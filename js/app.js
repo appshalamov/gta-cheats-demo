@@ -986,7 +986,10 @@ addEventListener('resize', () => scrollToCat(ui.cat, false));
   if (window.speechSynthesis) speechSynthesis.getVoices();
   await loadGame(store.game).catch(() => { });
   renderAll();
-  if (!store.onboarded) showOnboarding();
+  // ссылка «поделиться местом» (…/?open=place:gta5:<id>): друг сразу видит это место; знакомство — в следующий раз
+  const openKey = new URLSearchParams(location.search).get('open');
+  if (openKey) { history.replaceState(null, '', location.pathname); openOnMap(openKey); }
+  else if (!store.onboarded) showOnboarding();
   document.body.classList.add('ready');
   requestAnimationFrame(guardTabbar);
 })();

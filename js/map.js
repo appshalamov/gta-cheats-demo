@@ -362,15 +362,19 @@ function favBtn(kind, id, small = false) {
   const on = !!ctx.isFav?.(favKey(kind, id));
   return `<button class="mp-ib mp-fav${on ? ' on' : ''}${small ? ' sm' : ''}" data-mp="fav" data-kind="${kind}" data-id="${esc(id)}" aria-label="${esc(w('fav'))}" aria-pressed="${on}" title="${esc(w('fav'))}">${IC.heart}</button>`;
 }
-function actions(lat, lon, name, shareText, fav = '', view = null) {
+function actions(lat, lon, name, shareText, fav = '', view = null, key = '') {
   return `<div class="mp-acts">
     <a class="mp-cta" href="${panoLink(lat, lon, view)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>
     <a class="mp-ib" href="${mapsLink(lat, lon, name)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}" title="${esc(w('route'))}">${IC.nav}</a>
-    ${fav}<button class="mp-ib" data-mp="share" data-t="${esc(shareText)}" aria-label="${esc(w('share'))}" title="${esc(w('share'))}">${IC.share}</button>
+    ${fav}<button class="mp-ib" data-mp="share" data-t="${esc(shareText)}" data-k="${esc(key)}" aria-label="${esc(w('share'))}" title="${esc(w('share'))}">${IC.share}</button>
   </div>`;
 }
-async function sharePlace(text) {
-  const url = location.href.split('#')[0];
+// «Поделиться местом»: ссылка на страницу-превью s/<игра>/<id>.html (в мессенджерах — карточка с кадром и названием,
+// на странице — превью и «Открыть в Secret Base»). Страницы собирает tools/build_share.py; ссылка всегда на прод.
+async function sharePlace(text, key) {
+  const base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '').replace(/beta\/$/, '');
+  const k = key ? key.split(':') : null;
+  const url = k && k.length >= 3 ? `${base}s/${k[1]}/${k.slice(2).join(':')}.html` : location.href.split('#')[0];
   try { if (navigator.share) { await navigator.share({ title: text, text, url }); return; } } catch { return; }
   try { await navigator.clipboard.writeText(`${text}\n${url}`); ctx?.toast?.(w('copied')); } catch { }
 }
@@ -486,7 +490,7 @@ function placeSheet(p, i) {
       <span class="mp-pic">${meter(p.cf)}<small>${esc(w(p.cf || 'likely'))}</small></span>
       ${dist ? `<span class="mp-pic">${IC.pin}<small>${dist}</small></span>` : ''}
     </div>
-    ${actions(p.lat, p.lon, p.n, `${p.g} → ${p.n}`, favBtn('place', p.id), p.view)}
+    ${actions(p.lat, p.lon, p.n, `${p.g} → ${p.n}`, favBtn('place', p.id), p.view, `place:${game}:${p.id}`)}
     ${BETA ? '' : eggBlocks(p)}
     ${(p.alias || []).length ? `<p class="mp-alias">${IC.game}<span>${esc(w('also'))}: ${p.alias.map(esc).join(' · ')}</span></p>` : ''}
     ${txt(p.s) ? `<p class="mp-text">${esc(txt(p.s))}</p>` : ''}
@@ -524,7 +528,7 @@ function eggSheet(e, i) {
     <div class="mp-picto"><span class="mp-pic">${meter(e.cf)}<small>${esc(w(e.cf || 'likely'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel(e)}</small></span>` : ''}</div>
     <div class="mp-acts">${cta}
       <a class="mp-ib" href="${mapsLink(e.lat, e.lon, e.p)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}">${IC.nav}</a>
-      ${favBtn('egg', e.id)}<button class="mp-ib" data-mp="share" data-t="${esc(txt(e.t))}" aria-label="${esc(w('share'))}">${IC.share}</button></div>
+      ${favBtn('egg', e.id)}<button class="mp-ib" data-mp="share" data-t="${esc(txt(e.t))}" data-k="egg:${game}:${esc(e.id)}" aria-label="${esc(w('share'))}">${IC.share}</button></div>
     <p class="mp-text">${esc(txt(e.d))}</p>
     ${yt.length > 1 ? `<div class="mp-yt">${yt.slice(1).map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
     ${e.src ? `<div class="mp-src">${IC.link}<span>${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span></div>` : ''}
@@ -1412,7 +1416,7 @@ document.addEventListener('click', (e) => {
     el.classList.toggle('on', on); el.setAttribute('aria-pressed', String(on));
     el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 300);
   }
-  else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t); }
+  else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t, el.dataset.k); }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
   else if (a === 'mode') { ctx?.haptic(); switchMode(el.dataset.v); }
   else if (a === 'cat') {
