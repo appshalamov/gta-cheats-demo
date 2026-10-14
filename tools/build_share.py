@@ -176,14 +176,14 @@ def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=()):
     if fp.exists():
         return rel
     if gf:
-        for pg_u, pr_u, pr_c in pairs:
+        for pg_u, pr_u, pr_c, own in pairs:
             try:
                 pg_im, pr_im = _src(pg_u), _src(pr_u)
             except Exception:
                 continue
             if pg_im is None or pr_im is None or og_render.quality(pg_im) < WEAK_FRAME:
                 continue
-            im, _ = og_render.render_pair(pg_im, pr_im, pr_c)
+            im, _ = og_render.render_pair(pg_im, pr_im, pr_c, centered=own)
             fp.parent.mkdir(parents=True, exist_ok=True)
             im.save(fp, "JPEG", quality=74, optimize=True, progressive=True, subsampling=2)
             return rel
@@ -213,7 +213,9 @@ def page(game, kind, x):
         name_g, name_r, addr = x.get("g") or "", x.get("n") or "", x.get("a") or ""
         d_ru, d_en = t(x.get("s"), "ru"), t(x.get("s"), "en")
     else:
-        name_g, name_r, addr = t(x.get("t"), "en"), (x.get("p") or "").split(",")[0], x.get("p") or ""
+        p_ = x.get("p") or ""
+        # место пасхалки: «название, адрес» — название жирно, адрес отдельно (15.10: строка повторялась дважды)
+        name_g, name_r, addr = t(x.get("t"), "en"), p_.split(",")[0], (p_.split(",", 1)[1].strip() if "," in p_ else "")
         d_ru, d_en = t(x.get("d"), "ru"), t(x.get("d"), "en")
     gimg, gcred = game_img(x)
     rimg, rcred = real_img(x)
@@ -222,7 +224,7 @@ def page(game, kind, x):
     pr0 = (x.get("pairs") or [None])[0]
     cg, cr = (absu(pr0["g"]["url"]), absu(pr0["r"]["url"])) if pr0 else (gimg, rimg)
     ccred = (pr0["g"].get("credit", "") + " · " + pr0["r"].get("credit", "")) if pr0 else ""
-    prs = tuple((absu(p["g"].get("url") or p["g"].get("file") or ""), absu(p["r"].get("url") or p["r"].get("file") or ""), p["r"].get("credit", ""))
+    prs = tuple((absu(p["g"].get("url") or p["g"].get("file") or ""), absu(p["r"].get("url") or p["r"].get("file") or ""), p["r"].get("credit", ""), bool(p.get("own")))
                 for p in (x.get("pairs") or []) if p.get("g") and p.get("r"))[:3]
     og = og_card(game, fid, gimg if kind == "db" else og_game_img(x), rimg, rcred, name_g or name_r, f"{name_r}" if name_g else "", prs)
     og_abs = f"{SITE}s/{og}" if og else gimg
@@ -233,6 +235,9 @@ def page(game, kind, x):
     app = f"../../?open={key}"
     maps = f"https://www.google.com/maps/search/?api=1&query={x['lat']},{x['lon']}"
     e = html.escape
+    # заголовок пасхалки — на языке телефона (15.10: у русскоязычного открывалось по-английски)
+    h1_lang = (f' data-ru="{e(t(x.get("t"), "ru"))}" data-en="{e(t(x.get("t"), "en"))}"' if kind == "egg" and isinstance(x.get("t"), dict) else "")
+    has_cmp = bool(cg and cr)   # ползунок — отдельным блоком на всю ширину, НЕ в сетке .pics (решаем флагом, а не поиском текста)
     imgs = ""
     if cg and cr:
         imgs = (f'<div class="cmp ld" style="--x:50%" role="slider" aria-label="compare" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">'
@@ -278,9 +283,9 @@ background:linear-gradient(90deg,#22c3d9,#7ee0ff)}}.sub{{display:block;text-alig
 @media (max-height:620px){{.cmp,figure{{aspect-ratio:16/10}}}}
 </style></head><body><main>
 <div class="brand"><img src="../../icons/icon-192.png" alt=""><span>Secret Base</span><span class="tag">{e(gt)} · <span data-ru="{e(city_ru)} в жизни" data-en="{e(city_en)} in real life">{e(city_en)} in real life</span></span></div>
-<h1>{e(name_g or name_r)}</h1>
+<h1{h1_lang}>{e(name_g or name_r)}</h1>
 <p class="real">📍 {e(name_r)}{(' · ' + e(addr)) if addr and addr != name_r else ''}</p>
-{imgs if 'class="cmp"' in imgs else f'<div class="pics">{imgs}</div>'}
+{imgs if has_cmp else f'<div class="pics">{imgs}</div>'}
 <a class="cta" href="{e(app)}" data-ru="Открыть в Secret Base" data-en="Open in Secret Base">Open in Secret Base</a>
 <p class="d" data-ru="{e(d_ru)}" data-en="{e(d_en)}">{e(d_en or d_ru)}</p>
 <a class="sub" href="{e(maps)}" data-ru="Как добраться — Google Maps" data-en="Directions — Google Maps">Directions — Google Maps</a>
@@ -358,6 +363,10 @@ def main():
         for fp in (OUT / "og").glob("*/*.jpg"):
             if fp not in OG_MADE and not fp.name.startswith("._"):
                 fp.unlink(missing_ok=True)
+    # вёрстка: ползунок никогда не внутри двухколоночной сетки (15.10.2026: 1606 страниц сломались после правки класса)
+    broken = [fp.name for fp in made if 'class="pics"><div class="cmp' in fp.read_text("utf-8")]
+    if broken:
+        sys.exit(f"СТОП вёрстка: ползунок попал в сетку .pics на {len(broken)} страницах (пример: {broken[:3]})")
     # метки превью для ссылки «поделиться» (?p=<метка>): приложение берёт их отсюда — новая картинка = новый адрес
     tags = {}
     for fp in OG_MADE:

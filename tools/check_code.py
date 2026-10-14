@@ -44,7 +44,12 @@ if share_bad:
     for b in share_bad:
         print("  ✗", b)
     sys.exit(1)
-pages = [p for p in (ROOT / "s").glob("*/*.html") if not p.name.startswith(("._", "db-"))]   # db- — точки gtadb, превью = кадр игры
+pages = [p for p in (ROOT / "s").glob("*/*.html") if not p.name.startswith(("._", "db-"))]
+# 5. Вёрстка страниц «поделиться»: ползунок — на всю ширину, не в сетке .pics (15.10.2026: сломались 1606 страниц)
+lay_bad = [p.name for p in (ROOT / "s").glob("*/*.html") if not p.name.startswith("._") and 'class="pics"><div class="cmp' in p.read_text("utf-8")]
+if lay_bad:
+    print(f"СТОП: на {len(lay_bad)} страницах «поделиться» ползунок внутри сетки .pics (пример: {lay_bad[:3]}) — ~/.video-venv/bin/python tools/build_share.py")
+    sys.exit(1)   # db- — точки gtadb, превью = кадр игры
 no_og = [p.name for p in pages if not re.search(r'property="og:image" content="[^"]*/s/og/', p.read_text("utf-8"))]
 if pages and len(no_og) > len(pages) * 0.05:
     print(f"СТОП: {len(no_og)} из {len(pages)} страниц «поделиться» без превью «игра | жизнь» (s/og; пример: {no_og[:3]})"

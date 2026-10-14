@@ -602,7 +602,7 @@ def build(game, cfg):
     for e in eggs:
         pr = pairs_for(e["lat"], e["lon"], (e["t"].get("en"), e.get("p")), e.get("_ggid") or "")   # своя точка gtadb — пара сразу
         if not pr and e.get("_pair") and e.get("pg") and e.get("pr"):   # пара из своих кадров (люк LOST: игра ⇄ сериал, 15.10.2026)
-            pr = [{"g": {"url": e["pg"]["file"], "credit": e["pg"].get("credit", "")}, "r": {"url": e["pr"]["file"], "credit": e["pr"].get("credit", "")}}]
+            pr = [{"g": {"url": e["pg"]["file"], "credit": e["pg"].get("credit", "")}, "r": {"url": e["pr"]["file"], "credit": e["pr"].get("credit", "")}, "own": 1}]
         if pr:
             e["pairs"] = pr
     region_gate(game, places, eggs, pts)
