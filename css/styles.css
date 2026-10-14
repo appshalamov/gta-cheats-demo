@@ -657,3 +657,10 @@ body.in-ob #onboarding { display: flex; }
 .cmp-pairs button img { width: 50%; height: 100%; object-fit: cover; }
 .cmp-pairs button.on { opacity: 1; border-color: var(--accent); }
 .mpv-cap b svg { width: 15px; height: 15px; display: inline-block; vertical-align: -2px; }
+
+/* ───── карта: избранное в карточках ───── */
+.mp-fav.on { color: #ff4d6d; border-color: color-mix(in srgb, #ff4d6d 45%, var(--line-2)); }
+.mp-fav.on svg path { fill: #ff4d6d; }
+.mp-eggblk { position: relative; }
+.mp-fav.sm { position: absolute; right: 8px; top: 8px; width: 34px; height: 34px; padding: 8px; }
+.mp-eggblk > div { padding-right: 34px; }

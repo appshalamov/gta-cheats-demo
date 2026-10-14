@@ -25,6 +25,7 @@ const W = {
   here:   { en: 'Several places here', ru: 'Здесь несколько мест', es: 'Varios lugares aquí', pt: 'Vários lugares aqui', fr: 'Plusieurs lieux ici', de: 'Mehrere Orte hier', it: 'Più luoghi qui', tr: 'Burada birkaç yer', uk: 'Тут кілька місць', pl: 'Kilka miejsc tutaj', zh: '这里有多个地点', ja: 'ここに複数の場所', ko: '여기에 여러 장소' },
   also:   { en: 'Also here', ru: 'Здесь же', es: 'También aquí', pt: 'Também aqui', fr: 'Aussi ici', de: 'Auch hier', it: 'Anche qui', tr: 'Burada ayrıca', uk: 'Тут же', pl: 'Także tutaj', zh: '这里还有', ja: 'ここにも', ko: '여기도' },
   allPhotos: { en: 'All photos', ru: 'Все фото', es: 'Todas las fotos', pt: 'Todas as fotos', fr: 'Toutes les photos', de: 'Alle Fotos', it: 'Tutte le foto', tr: 'Tüm fotoğraflar', uk: 'Усі фото', pl: 'Wszystkie zdjęcia', zh: '全部照片', ja: 'すべての写真', ko: '모든 사진' },
+  fav:    { en: 'Favorite', ru: 'В избранное', es: 'Favorito', pt: 'Favorito', fr: 'Favori', de: 'Favorit', it: 'Preferito', tr: 'Favori', uk: 'В обране', pl: 'Ulubione', zh: '收藏', ja: 'お気に入り', ko: '즐겨찾기' },
   compare: { en: 'Compare', ru: 'Сравнить', es: 'Comparar', pt: 'Comparar', fr: 'Comparer', de: 'Vergleichen', it: 'Confronta', tr: 'Karşılaştır', uk: 'Порівняти', pl: 'Porównaj', zh: '对比', ja: '比較', ko: '비교' },
   copied: { en: 'Link copied', ru: 'Ссылка скопирована', es: 'Enlace copiado', pt: 'Link copiado', fr: 'Lien copié', de: 'Link kopiert', it: 'Link copiato', tr: 'Bağlantı kopyalandı', uk: 'Посилання скопійовано', pl: 'Skopiowano link', zh: '链接已复制', ja: 'リンクをコピーしました', ko: '링크 복사됨' },
   trans:  { en: 'Translate', ru: 'Перевести', es: 'Traducir', pt: 'Traduzir', fr: 'Traduire', de: 'Übersetzen', it: 'Traduci', tr: 'Çevir', uk: 'Перекласти', pl: 'Przetłumacz', zh: '翻译', ja: '翻訳', ko: '번역' },
@@ -83,6 +84,7 @@ const IC = {
   chevL: sv('<path d="m15 5-7 7 7 7"/>'),
   chevR: sv('<path d="m9 5 7 7-7 7"/>'),
   pano: sv('<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/>'),
+  heart: sv('<path d="M12 20.5s-7.5-4.6-9.2-9.3C1.6 7.8 3.9 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.4 0 5.7 3.3 4.5 6.7-1.7 4.7-9.2 9.3-9.2 9.3z"/>'),
   share: sv('<path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>'),
   translate: sv('<path d="M4 5h9M8.5 3v2M6 5c.8 3 3 5.5 6 7M11 5c-.7 3.5-3.3 6.5-7 8"/><path d="m13 21 4-9 4 9M14.5 18h5"/>'),
   play: sv('<path fill="currentColor" stroke="none" d="M8 5.5v13a1 1 0 0 0 1.5.9l10.4-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/>'),
@@ -187,11 +189,17 @@ function needsTranslate(text) {
 }
 // ряд действий: главная кнопка «Осмотреться 360°» (Street View — место видно из любой страны), маленькие «маршрут» и «поделиться»
 const panoLink = (lat, lon) => `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`;
-function actions(lat, lon, name, shareText) {
+const favKey = (kind, id) => `${kind}:${game}:${id}`;
+function favBtn(kind, id, small = false) {
+  if (!ctx?.toggleFav || !id) return '';
+  const on = !!ctx.isFav?.(favKey(kind, id));
+  return `<button class="mp-ib mp-fav${on ? ' on' : ''}${small ? ' sm' : ''}" data-mp="fav" data-kind="${kind}" data-id="${esc(id)}" aria-label="${esc(w('fav'))}" aria-pressed="${on}" title="${esc(w('fav'))}">${IC.heart}</button>`;
+}
+function actions(lat, lon, name, shareText, fav = '') {
   return `<div class="mp-acts">
     <a class="mp-cta" href="${panoLink(lat, lon)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>
     <a class="mp-ib" href="${mapsLink(lat, lon, name)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}" title="${esc(w('route'))}">${IC.nav}</a>
-    <button class="mp-ib" data-mp="share" data-t="${esc(shareText)}" aria-label="${esc(w('share'))}" title="${esc(w('share'))}">${IC.share}</button>
+    ${fav}<button class="mp-ib" data-mp="share" data-t="${esc(shareText)}" aria-label="${esc(w('share'))}" title="${esc(w('share'))}">${IC.share}</button>
   </div>`;
 }
 async function sharePlace(text) {
@@ -251,8 +259,8 @@ function placeSheet(p, i) {
       <span class="mp-pic">${meter(p.cf)}<small>${esc(w(p.cf || 'likely'))}</small></span>
       ${dist ? `<span class="mp-pic">${IC.pin}<small>${dist}</small></span>` : ''}
     </div>
-    ${actions(p.lat, p.lon, p.n, `${p.g} → ${p.n}`)}
-    ${(p.eggs || []).map((e) => { const yt = (e.m || []).map(ytLink).filter(Boolean)[0]; return `<div class="mp-eggblk"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><b>${esc(txt(e.t))}</b><p>${esc(txt(e.d))}</p>${yt ? `<a href="${yt.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(yt.label)}</span></a>` : ''}</div></div>`; }).join('')}
+    ${actions(p.lat, p.lon, p.n, `${p.g} → ${p.n}`, favBtn('place', p.id))}
+    ${(p.eggs || []).map((e) => { const yt = (e.m || []).map(ytLink).filter(Boolean)[0]; return `<div class="mp-eggblk">${favBtn('egg', e.id, true)}<span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><b>${esc(txt(e.t))}</b><p>${esc(txt(e.d))}</p>${yt ? `<a href="${yt.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(yt.label)}</span></a>` : ''}</div></div>`; }).join('')}
     ${(p.alias || []).length ? `<p class="mp-alias">${IC.game}<span>${esc(w('also'))}: ${p.alias.map(esc).join(' · ')}</span></p>` : ''}
     ${txt(p.s) ? `<p class="mp-text">${esc(txt(p.s))}</p>` : ''}
     ${txt(p.why) ? `<div class="mp-blk">${IC.info}<div><b>${esc(w('why'))}</b><p>${esc(txt(p.why))}</p></div></div>` : ''}
@@ -274,7 +282,7 @@ function eggSheet(e, i) {
     <div class="mp-picto"><span class="mp-pic">${meter(e.cf)}<small>${esc(w(e.cf || 'likely'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel(e)}</small></span>` : ''}</div>
     <div class="mp-acts">${cta}
       <a class="mp-ib" href="${mapsLink(e.lat, e.lon, e.p)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}">${IC.nav}</a>
-      <button class="mp-ib" data-mp="share" data-t="${esc(txt(e.t))}" aria-label="${esc(w('share'))}">${IC.share}</button></div>
+      ${favBtn('egg', e.id)}<button class="mp-ib" data-mp="share" data-t="${esc(txt(e.t))}" aria-label="${esc(w('share'))}">${IC.share}</button></div>
     <p class="mp-text">${esc(txt(e.d))}</p>
     ${yt.length > 1 ? `<div class="mp-yt">${yt.slice(1).map((m) => `<a href="${m.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(m.label)}</span></a>`).join('')}</div>` : ''}
     ${e.src ? `<div class="mp-src">${IC.link}<a href="${esc(e.src)}" target="_blank" rel="noopener">${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a></div>` : ''}
@@ -595,6 +603,12 @@ document.addEventListener('click', (e) => {
   else if (a === 'all-tab') openAll(viewer.key, el.dataset.t, viewer.i);
   else if (a === 'viewer-close') closeViewer();
   else if (a === 'pick') { const i = +el.dataset.i, l = el.dataset.l; if (l === 'places') openPlace(i, false); else if (l === 'eggs') ctx.openSheet(eggSheet(data[game].eggs[i], i), 'sheet-map'); else openPoint(i, false); }
+  else if (a === 'fav') {
+    e.stopPropagation(); ctx?.haptic?.();
+    const on = !!ctx?.toggleFav?.(favKey(el.dataset.kind, el.dataset.id), { kind: el.dataset.kind, game, id: el.dataset.id });
+    el.classList.toggle('on', on); el.setAttribute('aria-pressed', String(on));
+    el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 300);
+  }
   else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t); }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
 });
@@ -639,6 +653,28 @@ export async function toggle(k) {
   show[k] = !show[k];
   if (k === 'gtadb' && show[k]) { await loadGtadb(game); refreshData(); }
   applyShow(); renderChips(); renderCards();
+}
+
+export async function focus(g, kind, id) {
+  if (!map) return false;
+  if (g && g !== game) await setGame(g);
+  const d = await loadGame(game);
+  if (kind === 'place') {
+    const i = d.places.findIndex((x) => x.id === id);
+    if (i < 0) return false;
+    openPlace(i, true); return true;
+  }
+  const ei = d.eggs.findIndex((x) => x.id === id);
+  if (ei >= 0) {
+    const e = d.eggs[ei];
+    map.easeTo({ center: [e.lon, e.lat], zoom: Math.max(map.getZoom(), 15), duration: 700, offset: [0, -90] });
+    ctx.openSheet(eggSheet(e, ei), 'sheet-map'); return true;
+  }
+  const pi = d.places.findIndex((x) => (x.eggs || []).some((e) => e.id === id));   // пасхалка показана в карточке места
+  if (pi < 0) return false;
+  openPlace(pi, true);
+  setTimeout(() => document.querySelector(`#sheet-body [data-mp="fav"][data-id="${CSS.escape(id)}"]`)?.closest('.mp-eggblk')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 450);
+  return true;
 }
 
 export function locate() {
