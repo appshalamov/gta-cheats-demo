@@ -134,19 +134,25 @@ let selected = null;      // индекс выбранного места
 let selectedD = null;     // индекс выбранной точки сообщества (gtadb)
 let viewer = null;        // {p, k}
 
+// одновременные вызовы ждут одну загрузку; после ошибки — можно повторить
+const pending = {};
+function once(key, make) {
+  return (pending[key] ||= make().catch((err) => { delete pending[key]; throw err; }));
+}
 function loadLib() {
   if (window.maplibregl) return Promise.resolve();
-  return new Promise((ok, fail) => {
+  return once('lib', () => new Promise((ok, fail) => {
     const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'vendor/maplibre/maplibre-gl.css'; document.head.appendChild(css);
-    const s = document.createElement('script'); s.src = 'vendor/maplibre/maplibre-gl.js'; s.onload = ok; s.onerror = fail; document.head.appendChild(s);
-  });
+    const s = document.createElement('script'); s.src = 'vendor/maplibre/maplibre-gl.js'; s.onload = ok;
+    s.onerror = () => { s.remove(); css.remove(); fail(new Error('maplibre')); }; document.head.appendChild(s);
+  }));
 }
 async function loadGame(g) {
-  if (!data[g]) data[g] = await fetch(`data/map/${g}.json`).then((r) => r.json());
+  if (!data[g]) data[g] = await once('d:' + g, () => fetch(`data/map/${g}.json`).then((r) => r.json()));
   return data[g];
 }
 async function loadGtadb(g) {
-  if (!gtadb[g]) gtadb[g] = await fetch(`data/map/gtadb_${g}.json`).then((r) => r.json());
+  if (!gtadb[g]) gtadb[g] = await once('g:' + g, () => fetch(`data/map/gtadb_${g}.json`).then((r) => r.json()));
   return gtadb[g];
 }
 
@@ -614,12 +620,19 @@ document.addEventListener('click', (e) => {
 });
 addEventListener('keydown', (e) => { if (e.key === 'Escape') closeViewer(); });
 
+let opening = null;   // карта создаётся один раз: второй open() во время загрузки ждёт первый
 export async function open(c, preferGame) {
   ctx = c;
-  const box = document.getElementById('map');
   ensureChrome();
-  if (!map) {
-    box.classList.add('loading');
+  if (map) retheme();
+  else await (opening ||= create(preferGame).finally(() => { opening = null; }));
+  requestAnimationFrame(() => map?.resize());
+}
+
+async function create(preferGame) {
+  const box = document.getElementById('map');
+  box.classList.add('loading');
+  try {
     game = preferGame === 'gta5' ? 'gta5' : 'gta6';
     const [d] = await Promise.all([loadGame(game), loadLib(), loadGtadb(game).catch(() => null)]);
     styleKey = themeKey();
@@ -634,10 +647,10 @@ export async function open(c, preferGame) {
     map.on('moveend', renderCards);
     map.on('click', onTap);
     renderChips();
-  } else {
-    retheme();
+  } catch (err) {
+    box.classList.remove('loading');
+    throw err;
   }
-  requestAnimationFrame(() => map.resize());
 }
 
 export async function setGame(g) {
@@ -656,6 +669,7 @@ export async function toggle(k) {
 }
 
 export async function focus(g, kind, id) {
+  if (!map && opening) await opening.catch(() => null);
   if (!map) return false;
   if (g && g !== game) await setGame(g);
   const d = await loadGame(game);
