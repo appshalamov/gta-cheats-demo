@@ -451,26 +451,52 @@ function openPaywall() {
 function closePaywall() { $('#paywall').classList.remove('open'); maybeInstallHint(); }
 
 // ───────── онбординг ─────────
-function renderOnboarding() {
+// Один тап по варианту = выбор и сразу дальше (без второго нажатия «Продолжить»).
+// «Продолжить» всегда активна (вариант выбран заранее), на втором шаге есть «Назад».
+let obBusy = false; // защита от двойного тапа во время перехода
+function obDefaultPlatform(gameId) {
+  const g = GAMES.find((x) => x.id === gameId);
+  return g.platforms.includes(store.platform) ? store.platform : g.platforms[0];
+}
+function renderOnboarding(dir = 0) {
   const ob = $('#onboarding');
   const step = ui.obStep;
   const g = ui.obGame || store.game;
   ob.innerHTML = `
+    <div class="ob-bar">
+      ${step === 'platform' ? `<button class="ob-back" data-action="ob-back">${I.back}<span>${t('back')}</span></button>` : '<span></span>'}
+      <span class="ob-step">${step === 'game' ? 1 : 2} / 2</span>
+    </div>
     <div class="ob-progress"><i style="width:${step === 'game' ? 50 : 100}%"></i></div>
     <div class="ob-brand"><img src="icons/icon-192.png" alt=""><span>${esc(APP.shortName)}</span></div>
-    <div class="ob-top"><div class="ob-ic">${step === 'game' ? I.gamepad : platformIcon(ui.obPlatform || 'playstation')}</div>
-      <h1>${step === 'game' ? t('ob_game_title') : t('ob_platform_title')}</h1><p>${t('ob_sub')}</p></div>
-    <div class="opts">${step === 'game' ? gameListHTML(g, 'ob-game') : platListHTML(g, ui.obPlatform, 'ob-platform')}</div>
-    <button class="btn-primary ob-cta" data-action="ob-next" ${step === 'platform' && !ui.obPlatform ? 'disabled' : ''}>${t('continue')}</button>`;
+    <div class="ob-body${dir > 0 ? ' ob-in-right' : dir < 0 ? ' ob-in-left' : ''}">
+      <div class="ob-top"><div class="ob-ic">${step === 'game' ? I.gamepad : platformIcon(ui.obPlatform || 'playstation')}</div>
+        <h1>${step === 'game' ? t('ob_game_title') : t('ob_platform_title')}</h1><p>${t('ob_sub')}</p></div>
+      <div class="opts">${step === 'game' ? gameListHTML(g, 'ob-game') : platListHTML(g, ui.obPlatform, 'ob-platform')}</div>
+    </div>
+    <button class="btn-primary ob-cta" data-action="ob-next">${t('continue')}</button>`;
 }
 function showOnboarding() {
-  ui.obStep = 'game'; ui.obGame = store.game; ui.obPlatform = null;
+  ui.obStep = 'game'; ui.obGame = store.game; ui.obPlatform = obDefaultPlatform(store.game); obBusy = false;
   document.body.classList.add('in-ob');
   renderOnboarding();
 }
+function obGo(step) {
+  ui.obStep = step;
+  if (step === 'platform' && !GAMES.find((x) => x.id === ui.obGame).platforms.includes(ui.obPlatform)) ui.obPlatform = obDefaultPlatform(ui.obGame);
+  renderOnboarding(step === 'platform' ? 1 : -1);
+}
+// подсветить выбор, дать увидеть его ~0,25 с, затем дальше
+function obPickThen(el, fn) {
+  if (obBusy) return;
+  obBusy = true;
+  document.querySelectorAll('#onboarding .opt').forEach((o) => o.classList.toggle('on', o === el));
+  el.classList.add('picked');
+  setTimeout(() => { obBusy = false; fn(); }, 260);
+}
 async function finishOnboarding() {
   store.game = ui.obGame; store.platform = ui.obPlatform; store.onboarded = true; save();
-  await loadGame(store.game);
+  try { await loadGame(store.game); } catch { /* нет сети при первом запуске — данные подгрузятся позже, не держим на онбординге */ }
   document.body.classList.remove('in-ob');
   ui.tab = 'home'; ui.cat = DEFAULT_CATEGORY;
   renderAll();
@@ -573,12 +599,14 @@ document.addEventListener('click', async (e) => {
     case 'plan': plan = v; haptic(); openPaywall(); $('#paywall .pw-close').classList.add('show'); break;
     case 'buy': store.pro = true; save(); haptic(); closePaywall(); toast(t('pro_unlocked')); refreshCards(); renderSettings(); break;
     case 'pw-close': closePaywall(); break;
-    case 'ob-game': haptic(); ui.obGame = v; ui.obPlatform = null; renderOnboarding(); break;
-    case 'ob-platform': haptic(); ui.obPlatform = v; renderOnboarding(); break;
+    case 'ob-game': haptic(); obPickThen(el, () => { ui.obGame = v; obGo('platform'); }); break;
+    case 'ob-platform': haptic(); obPickThen(el, () => { ui.obPlatform = v; finishOnboarding(); }); break;
+    case 'ob-back': haptic(); if (!obBusy) obGo('game'); break;
     case 'ob-next':
       haptic();
-      if (ui.obStep === 'game') { ui.obStep = 'platform'; renderOnboarding(); }
-      else if (ui.obPlatform) finishOnboarding();
+      if (obBusy) break;
+      if (ui.obStep === 'game') obGo('platform');
+      else finishOnboarding();
       break;
     case 'install': deferredPrompt?.prompt(); deferredPrompt = null; $('#install').classList.remove('show'); break;
     case 'install-x': $('#install').classList.remove('show'); break;
