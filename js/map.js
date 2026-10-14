@@ -2,6 +2,9 @@
 // MapLibre GL (vendor/maplibre) грузится лениво при первом открытии вкладки.
 // Подложка — OpenFreeMap (векторная, OpenStreetMap, без ключа). Точки — GeoJSON-слои кружков.
 // Данные: data/map/<game>.json (места + пасхалки), data/map/gtadb_<game>.json (слой сообщества).
+// Интерфейс карточек — «картинки и значки прежде слов»: пара фото «в игре / в реальности»,
+// пиктограммы типа места, доступа и точности совпадения, короткие подписи на языке устройства.
+// Свои клики обрабатываем здесь через атрибут data-mp (app.js их не трогает).
 
 import { t, L as tr, getLang } from './i18n.js';
 
@@ -12,10 +15,110 @@ const GAMES = {
 };
 const STYLE = { dark: 'https://tiles.openfreemap.org/styles/dark', light: 'https://tiles.openfreemap.org/styles/positron' };
 
+// ───── короткие подписи к значкам на многих языках (остальное понимается по картинке) ─────
+const W = {
+  game:   { en: 'In game', ru: 'В игре', es: 'En el juego', pt: 'No jogo', fr: 'En jeu', de: 'Im Spiel', it: 'Nel gioco', tr: 'Oyunda', uk: 'У грі', pl: 'W grze', zh: '游戏中', ja: 'ゲーム内', ko: '게임 속' },
+  real:   { en: 'Real life', ru: 'В жизни', es: 'En la vida real', pt: 'Na vida real', fr: 'En vrai', de: 'In echt', it: 'Dal vivo', tr: 'Gerçekte', uk: 'У житті', pl: 'W realu', zh: '现实中', ja: '実際', ko: '실제' },
+  route:  { en: 'Go there', ru: 'Проложить путь', es: 'Cómo llegar', pt: 'Como chegar', fr: 'Y aller', de: 'Route', it: 'Indicazioni', tr: 'Yol tarifi', uk: 'Маршрут', pl: 'Trasa', zh: '导航', ja: '経路', ko: '길찾기' },
+  trans:  { en: 'Translate', ru: 'Перевести', es: 'Traducir', pt: 'Traduzir', fr: 'Traduire', de: 'Übersetzen', it: 'Traduci', tr: 'Çevir', uk: 'Перекласти', pl: 'Przetłumacz', zh: '翻译', ja: '翻訳', ko: '번역' },
+  why:    { en: 'Why it matches', ru: 'Почему похоже', es: 'Por qué coincide', pt: 'Por que combina', fr: 'Pourquoi', de: 'Warum', it: 'Perché', tr: 'Neden', uk: 'Чому схоже', pl: 'Dlaczego', zh: '为何相似', ja: '似ている理由', ko: '닮은 이유' },
+  tip:    { en: 'Visit tip', ru: 'Совет', es: 'Consejo', pt: 'Dica', fr: 'Conseil', de: 'Tipp', it: 'Consiglio', tr: 'İpucu', uk: 'Порада', pl: 'Wskazówka', zh: '提示', ja: 'ヒント', ko: '팁' },
+  fun:    { en: 'Fun fact', ru: 'Интересно', es: 'Dato curioso', pt: 'Curiosidade', fr: 'Le saviez-vous', de: 'Wissenswert', it: 'Curiosità', tr: 'İlginç', uk: 'Цікаво', pl: 'Ciekawostka', zh: '趣闻', ja: '豆知識', ko: '재미있는 사실' },
+  seen:   { en: 'Watch in trailer', ru: 'Смотреть в трейлере', es: 'Ver en el tráiler', pt: 'Ver no trailer', fr: 'Voir la bande-annonce', de: 'Im Trailer', it: 'Nel trailer', tr: 'Fragmanda', uk: 'У трейлері', pl: 'W zwiastunie', zh: '预告片', ja: '予告編', ko: '예고편' },
+  match:  { en: 'Match', ru: 'Сходство', es: 'Parecido', pt: 'Semelhança', fr: 'Ressemblance', de: 'Treffer', it: 'Somiglianza', tr: 'Benzerlik', uk: 'Схожість', pl: 'Zgodność', zh: '相似度', ja: '一致度', ko: '일치도' },
+  near:   { en: 'Nearby on the map', ru: 'Рядом на карте', es: 'Cerca en el mapa', pt: 'Perto no mapa', fr: 'À proximité', de: 'In der Nähe', it: 'Nelle vicinanze', tr: 'Yakında', uk: 'Поруч на мапі', pl: 'W pobliżu', zh: '附近', ja: '近くの場所', ko: '근처 장소' },
+  zoom:   { en: 'Zoom in to see places', ru: 'Приблизьте карту', es: 'Acerca el mapa', pt: 'Aproxime o mapa', fr: 'Zoomez', de: 'Hineinzoomen', it: 'Ingrandisci', tr: 'Yakınlaştırın', uk: 'Наблизьте мапу', pl: 'Przybliż mapę', zh: '放大地图', ja: '拡大してください', ko: '지도를 확대하세요' },
+  src:    { en: 'Sources', ru: 'Источники', es: 'Fuentes', pt: 'Fontes', fr: 'Sources', de: 'Quellen', it: 'Fonti', tr: 'Kaynaklar', uk: 'Джерела', pl: 'Źródła', zh: '来源', ja: '出典', ko: '출처' },
+  help:   { en: 'How to read the map', ru: 'Как читать карту', es: 'Cómo leer el mapa', pt: 'Como ler o mapa', fr: 'Légende', de: 'Legende', it: 'Legenda', tr: 'Harita rehberi', uk: 'Як читати мапу', pl: 'Legenda', zh: '图例', ja: '凡例', ko: '범례' },
+  // точность совпадения
+  confirmed: { en: 'Exact copy', ru: 'Точная копия', es: 'Copia exacta', pt: 'Cópia exata', fr: 'Copie exacte', de: 'Exakte Kopie', it: 'Copia esatta', tr: 'Birebir', uk: 'Точна копія', pl: 'Dokładna kopia', zh: '完全一致', ja: 'そっくり', ko: '똑같음' },
+  likely:    { en: 'Very similar', ru: 'Очень похоже', es: 'Muy parecido', pt: 'Muito parecido', fr: 'Très proche', de: 'Sehr ähnlich', it: 'Molto simile', tr: 'Çok benzer', uk: 'Дуже схоже', pl: 'Bardzo podobne', zh: '非常相似', ja: 'よく似ている', ko: '매우 비슷함' },
+  speculative: { en: 'Fan theory', ru: 'Версия фанатов', es: 'Teoría de fans', pt: 'Teoria de fãs', fr: 'Théorie de fans', de: 'Fan-Theorie', it: 'Teoria dei fan', tr: 'Hayran teorisi', uk: 'Версія фанатів', pl: 'Teoria fanów', zh: '粉丝推测', ja: 'ファン説', ko: '팬 추측' },
+  // доступ
+  public:   { en: 'Free to visit', ru: 'Можно свободно', es: 'Acceso libre', pt: 'Acesso livre', fr: 'Accès libre', de: 'Frei zugänglich', it: 'Accesso libero', tr: 'Serbest giriş', uk: 'Вільний вхід', pl: 'Wstęp wolny', zh: '免费参观', ja: '自由に見学', ko: '자유 방문' },
+  business: { en: 'Open to guests', ru: 'Для гостей', es: 'Para clientes', pt: 'Para clientes', fr: 'Pour les clients', de: 'Für Gäste', it: 'Per clienti', tr: 'Misafirlere açık', uk: 'Для гостей', pl: 'Dla gości', zh: '对顾客开放', ja: '利用客向け', ko: '손님 이용' },
+  view_from_street: { en: 'View from street', ru: 'Смотреть с улицы', es: 'Ver desde la calle', pt: 'Ver da rua', fr: 'Voir depuis la rue', de: 'Nur von außen', it: 'Solo dall’esterno', tr: 'Dışarıdan bakın', uk: 'Дивитися з вулиці', pl: 'Z ulicy', zh: '仅外观', ja: '外から見る', ko: '밖에서 보기' },
+  restricted: { en: 'No entry', ru: 'Вход закрыт', es: 'Prohibido el paso', pt: 'Entrada proibida', fr: 'Accès interdit', de: 'Kein Zutritt', it: 'Vietato l’accesso', tr: 'Giriş yok', uk: 'Вхід заборонено', pl: 'Zakaz wstępu', zh: '禁止入内', ja: '立入禁止', ko: '출입 금지' },
+  gone: { en: 'Closed / gone', ru: 'Закрыто / снесено', es: 'Cerrado', pt: 'Fechado', fr: 'Fermé', de: 'Geschlossen', it: 'Chiuso', tr: 'Kapalı', uk: 'Закрито', pl: 'Zamknięte', zh: '已关闭', ja: '閉鎖', ko: '폐쇄됨' },
+  // тип места
+  landmark: { en: 'Landmark', ru: 'Символ места', es: 'Monumento', pt: 'Marco', fr: 'Monument', de: 'Wahrzeichen', it: 'Monumento', tr: 'Simge', uk: 'Пам’ятка', pl: 'Symbol', zh: '地标', ja: 'ランドマーク', ko: '랜드마크' },
+  building: { en: 'Building', ru: 'Здание', es: 'Edificio', pt: 'Prédio', fr: 'Bâtiment', de: 'Gebäude', it: 'Edificio', tr: 'Bina', uk: 'Будівля', pl: 'Budynek', zh: '建筑', ja: '建物', ko: '건물' },
+  hotel: { en: 'Hotel', ru: 'Отель', es: 'Hotel', pt: 'Hotel', fr: 'Hôtel', de: 'Hotel', it: 'Hotel', tr: 'Otel', uk: 'Готель', pl: 'Hotel', zh: '酒店', ja: 'ホテル', ko: '호텔' },
+  beach: { en: 'Beach', ru: 'Пляж', es: 'Playa', pt: 'Praia', fr: 'Plage', de: 'Strand', it: 'Spiaggia', tr: 'Plaj', uk: 'Пляж', pl: 'Plaża', zh: '海滩', ja: 'ビーチ', ko: '해변' },
+  street: { en: 'Street', ru: 'Улица', es: 'Calle', pt: 'Rua', fr: 'Rue', de: 'Straße', it: 'Strada', tr: 'Cadde', uk: 'Вулиця', pl: 'Ulica', zh: '街道', ja: '通り', ko: '거리' },
+  bridge: { en: 'Bridge', ru: 'Мост', es: 'Puente', pt: 'Ponte', fr: 'Pont', de: 'Brücke', it: 'Ponte', tr: 'Köprü', uk: 'Міст', pl: 'Most', zh: '桥', ja: '橋', ko: '다리' },
+  park: { en: 'Park', ru: 'Парк', es: 'Parque', pt: 'Parque', fr: 'Parc', de: 'Park', it: 'Parco', tr: 'Park', uk: 'Парк', pl: 'Park', zh: '公园', ja: '公園', ko: '공원' },
+  nature: { en: 'Nature', ru: 'Природа', es: 'Naturaleza', pt: 'Natureza', fr: 'Nature', de: 'Natur', it: 'Natura', tr: 'Doğa', uk: 'Природа', pl: 'Przyroda', zh: '自然', ja: '自然', ko: '자연' },
+  business_c: { en: 'Shop / bar', ru: 'Заведение', es: 'Local', pt: 'Loja / bar', fr: 'Commerce', de: 'Lokal', it: 'Locale', tr: 'Mekân', uk: 'Заклад', pl: 'Lokal', zh: '商店', ja: '店', ko: '가게' },
+  neighborhood: { en: 'District', ru: 'Район', es: 'Barrio', pt: 'Bairro', fr: 'Quartier', de: 'Viertel', it: 'Quartiere', tr: 'Semt', uk: 'Район', pl: 'Dzielnica', zh: '街区', ja: '地区', ko: '동네' },
+  venue: { en: 'Venue', ru: 'Площадка', es: 'Recinto', pt: 'Arena', fr: 'Salle', de: 'Arena', it: 'Arena', tr: 'Mekân', uk: 'Арена', pl: 'Arena', zh: '场馆', ja: '会場', ko: '경기장' },
+  infrastructure: { en: 'Port / road', ru: 'Порт / дорога', es: 'Puerto / vía', pt: 'Porto / via', fr: 'Port / route', de: 'Hafen / Straße', it: 'Porto / strada', tr: 'Liman / yol', uk: 'Порт / дорога', pl: 'Port / droga', zh: '港口/道路', ja: '港・道路', ko: '항구/도로' },
+  sign: { en: 'Sign', ru: 'Вывеска', es: 'Letrero', pt: 'Placa', fr: 'Enseigne', de: 'Schild', it: 'Insegna', tr: 'Tabela', uk: 'Вивіска', pl: 'Znak', zh: '招牌', ja: '看板', ko: '간판' },
+  other: { en: 'Place', ru: 'Место', es: 'Lugar', pt: 'Lugar', fr: 'Lieu', de: 'Ort', it: 'Luogo', tr: 'Yer', uk: 'Місце', pl: 'Miejsce', zh: '地点', ja: '場所', ko: '장소' },
+  egg: { en: 'Easter egg', ru: 'Пасхалка', es: 'Easter egg', pt: 'Easter egg', fr: 'Easter egg', de: 'Easter Egg', it: 'Easter egg', tr: 'Sürpriz', uk: 'Пасхалка', pl: 'Easter egg', zh: '彩蛋', ja: 'イースターエッグ', ko: '이스터에그' },
+};
+const devLang = () => (navigator.language || 'en').slice(0, 2).toLowerCase();
+function uiLang() {
+  if (getLang() === 'ru') return 'ru';
+  const d = devLang();
+  return W.game[d] ? d : 'en';
+}
+const w = (k) => (W[k] && (W[k][uiLang()] || W[k].en)) || k;
+
+// ───── значки (SVG, stroke = currentColor) ─────
+const sv = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const IC = {
+  game: sv('<path d="M6 9h4M8 7v4M15 10h.01M18 8h.01"/><path d="M7.5 4h9A5.5 5.5 0 0 1 22 9.5v3.8a3.7 3.7 0 0 1-6.6 2.3L14 14h-4l-1.4 1.6A3.7 3.7 0 0 1 2 13.3V9.5A5.5 5.5 0 0 1 7.5 4z"/>'),
+  camera: sv('<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>'),
+  pin: sv('<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>'),
+  nav: sv('<path d="M3 11.5 21 3l-8.5 18-2-7.5z"/>'),
+  translate: sv('<path d="M4 5h9M8.5 3v2M6 5c.8 3 3 5.5 6 7M11 5c-.7 3.5-3.3 6.5-7 8"/><path d="m13 21 4-9 4 9M14.5 18h5"/>'),
+  play: sv('<path fill="currentColor" stroke="none" d="M8 5.5v13a1 1 0 0 0 1.5.9l10.4-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/>'),
+  close: sv('<path d="M6 6l12 12M18 6 6 18"/>'),
+  swap: sv('<path d="M7 7h11l-3-3M17 17H6l3 3"/>'),
+  info: sv('<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/>'),
+  bulb: sv('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.9V16h5v-.2c0-.8.4-1.5 1-1.9A6 6 0 0 0 12 3z"/>'),
+  spark: sv('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>'),
+  link: sv('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+  help: sv('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17.5v.01"/>'),
+  egg: sv('<path d="M12 3c3.5 0 7 6 7 10.5A7 7 0 0 1 5 13.5C5 9 8.5 3 12 3z"/><path d="m7 13 2.5-2 2.5 2 2.5-2L17 13"/>'),
+  // доступ
+  public: sv('<circle cx="13" cy="4.5" r="1.8"/><path d="m9 21 2.5-6.5L14 17v4M10 9.5l3-1.5 2.5 3 2.5 1M11.5 14.5l1-5-3.5 1.5-1.5 3"/>'),
+  business: sv('<path d="M4 10v10h16V10M3 10l2-6h14l2 6zM9 20v-5h6v5"/>'),
+  view_from_street: sv('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+  restricted: sv('<circle cx="12" cy="12" r="9"/><path d="M7 12h10"/>'),
+  gone: sv('<path d="M3 21h18M5 21V10l4-3 4 3v11M13 21v-6l3-2 3 2v6"/><path d="m3 3 18 18"/>'),
+  // типы
+  landmark: sv('<path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4l-5.2 2.7 1-5.8L3.5 9.2l5.9-.9z"/>'),
+  building: sv('<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/>'),
+  hotel: sv('<path d="M3 20V8M21 20v-6a3 3 0 0 0-3-3H10v9M3 16h18"/><circle cx="6.5" cy="12" r="1.8"/>'),
+  beach: sv('<path d="M3 20c2 0 2-1.5 4.5-1.5S10 20 12 20s2.5-1.5 4.5-1.5S19 20 21 20"/><path d="M12 17 8 7M4 9a8 8 0 0 1 14-3z"/>'),
+  street: sv('<path d="M8 3 5 21M16 3l3 18M12 4v2M12 10v3M12 17v3"/>'),
+  bridge: sv('<path d="M2 17h20M4 17v-4M20 17v-4M2 13h20M6 13a6 6 0 0 1 12 0"/>'),
+  park: sv('<path d="M12 21v-6M7 15h10l-5-11z"/>'),
+  nature: sv('<path d="m3 20 6-10 4 6 2-3 6 7z"/><circle cx="17" cy="6" r="2"/>'),
+  business_c: sv('<path d="M5 4h14l1 5H4zM5 9v11h14V9M10 20v-5h4v5"/>'),
+  neighborhood: sv('<path d="M3 21V11l5-4 5 4v10M13 21V8l4-3 4 3v13M6 21v-4h4v4"/>'),
+  venue: sv('<ellipse cx="12" cy="10" rx="9" ry="4"/><path d="M3 10v5c0 2.2 4 4 9 4s9-1.8 9-4v-5"/>'),
+  infrastructure: sv('<path d="M4 20h16M6 20V9l6-5 6 5v11M10 20v-6h4v6"/>'),
+  sign: sv('<path d="M12 21V4M5 6h12l2 2.5L17 11H5z"/>'),
+  other: sv('<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>'),
+};
+const HOTEL_RE = /hotel|motel|resort|inn\b|отел/i;
+function catKey(p) {
+  if ((p.c === 'building' || p.c === 'business') && HOTEL_RE.test(`${p.n} ${p.g}`)) return 'hotel';
+  if (p.c === 'business') return 'business_c';
+  return IC[p.c] ? p.c : 'other';
+}
+
 let ctx = null;          // {openSheet, haptic, toast, I}
 let map = null, game = null, styleKey = null;
 const data = {}, gtadb = {};
-const show = { places: true, eggs: true, gtadb: false };
+const show = { places: true, eggs: true, gtadb: true };   // «все точки» видны при приближении (minzoom)
+let me = null;            // последняя известная позиция пользователя [lat, lon]
+let selected = null;      // индекс выбранного места
+let selectedD = null;     // индекс выбранной точки сообщества (gtadb)
+let viewer = null;        // {p, k}
 
 function loadLib() {
   if (window.maplibregl) return Promise.resolve();
@@ -36,60 +139,206 @@ async function loadGtadb(g) {
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
 const mapsLink = (lat, lon, q) => isIOS()
-  ? `https://maps.apple.com/?ll=${lat},${lon}&q=${encodeURIComponent(q || `${lat},${lon}`)}`
-  : `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+  ? `https://maps.apple.com/?daddr=${lat},${lon}&q=${encodeURIComponent(q || `${lat},${lon}`)}`
+  : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
 const themeKey = () => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
+const txt = (o) => (o ? tr(o) : '');
 
-function confLabel(cf) { return t('conf_' + (cf || 'likely')); }
+function km(a, b) {
+  const R = 6371, r = Math.PI / 180;
+  const x = Math.sin((b[0] - a[0]) * r / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin((b[1] - a[1]) * r / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+function distLabel(p) {
+  if (!me) return '';
+  const d = km(me, [p.lat, p.lon]);
+  if (navigator.language === 'en-US') { const mi = d * 0.621; return mi < 0.2 ? `${Math.round(mi * 5280 / 10) * 10} ft` : `${mi.toFixed(mi < 10 ? 1 : 0)} mi`; }
+  return d < 1 ? `${Math.round(d * 1000 / 10) * 10} m` : `${d.toFixed(d < 10 ? 1 : 0)} km`;
+}
+function meter(cf) {
+  const n = cf === 'confirmed' ? 3 : cf === 'likely' ? 2 : 1;
+  return `<span class="mp-meter" style="--c:${COLORS[cf] || COLORS.likely}">${[1, 2, 3].map((i) => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</span>`;
+}
+function ytLink(ref) {
+  const m = /(Trailer\s*1|Trailer\s*2|Extended\s*Look)\D{0,12}(\d{1,2}):(\d{2})/i.exec(ref || '');
+  if (!m) return null;
+  const id = /trailer\s*1/i.test(m[1]) ? 'QdBZY2fkU-0' : /trailer\s*2/i.test(m[1]) ? 'VQRLujxTm3c' : 'tJbzMqJGH4k';
+  return { url: `https://www.youtube.com/watch?v=${id}&t=${(+m[2]) * 60 + (+m[3])}s`, label: `${/1/.test(m[1]) && /trailer/i.test(m[1]) ? 'Trailer 1' : /trailer/i.test(m[1]) ? 'Trailer 2' : 'Extended Look'} · ${m[2]}:${m[3]}` };
+}
+// кнопка «Перевести» — если текст не на языке устройства (часть советов пока только по-русски)
+function needsTranslate(text) {
+  if (!text || !text.trim()) return false;
+  const cyr = /[а-яё]/i.test(text), dl = devLang();
+  if (dl === 'ru') return !cyr;
+  if (dl === 'en') return cyr;
+  return true;
+}
+function translateLink(text) {
+  const tl = devLang();
+  return `https://translate.google.com/?sl=auto&tl=${encodeURIComponent(tl)}&text=${encodeURIComponent(text.slice(0, 1800))}&op=translate`;
+}
 
 // ───── карточки (шторка) ─────
-function placeSheet(p) {
-  const I = ctx.I;
+function shot(ph, kind, ref) {
+  const icon = kind === 'g' ? IC.game : IC.camera;
+  const label = kind === 'g' ? w('game') : w('real');
+  if (!ph) return `<div class="mp-shot empty ${kind}"><span class="mp-shot-ic">${icon}</span></div>`;
+  return `<button class="mp-shot ${kind}" data-mp="view" data-ref="${ref}" data-k="${kind}" aria-label="${esc(label)}">
+    <img src="${esc(ph.file)}" alt="${esc(label)}" loading="lazy" decoding="async">
+    <span class="mp-badge">${icon}<b>${esc(label)}</b></span></button>`;
+}
+function placeSheet(p, i) {
+  const ck = catKey(p);
+  const dist = distLabel(p);
+  const body = [txt(p.s), txt(p.why)].filter(Boolean).join(' ');
+  const showTr = needsTranslate([body, txt(p.tip), txt(p.fun)].join(' '));
+  const media = (p.m || []).map(ytLink).filter(Boolean);
   return `
-    <div class="mp-tags"><span class="mp-conf" style="--c:${COLORS[p.cf] || COLORS.likely}">${confLabel(p.cf)}</span>${p.c ? `<span class="mp-cat">${esc(p.c)}</span>` : ''}</div>
-    <div class="mp-pair">
-      <div class="mp-side"><small>${t('map_in_game')}</small><h2>${esc(p.g)}</h2>${p.r ? `<span>${esc(p.r)}</span>` : ''}</div>
-      <div class="mp-arrow">${I.chevron}</div>
-      <div class="mp-side mp-real"><small>${t('map_in_real')}</small><b>${esc(p.n)}</b>${p.a ? `<span>${esc(p.a)}</span>` : ''}</div>
+    <div class="mp-hero">${shot(p.pg, 'g', 'p' + i)}${shot(p.pr, 'r', 'p' + i)}<span class="mp-vs">${IC.swap}</span></div>
+    <div class="mp-names">
+      <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(p.g)}</b>${p.r ? `<small>${esc(p.r)}</small>` : ''}</div></div>
+      <div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(p.n)}</b>${p.a ? `<small>${esc(p.a)}</small>` : ''}</div></div>
     </div>
-    ${p.ph ? `<figure class="mp-photo"><img src="${esc(p.ph.file)}" alt="" loading="lazy"><figcaption>${esc(p.ph.credit)}</figcaption></figure>` : ''}
-    ${p.s ? `<p class="mp-text">${esc(tr(p.s))}</p>` : ''}
-    ${tr(p.tip) ? `<div class="mp-tip"><b>${t('map_tip')}</b>${esc(tr(p.tip))}</div>` : ''}
-    ${p.m?.length ? `<div class="mp-media"><b>${t('map_where_seen')}</b>${p.m.map((x) => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
-    <div class="mp-btns">
-      <a class="btn-primary" href="${mapsLink(p.lat, p.lon, p.n)}" target="_blank" rel="noopener">${I.pin}<span>${t('map_route')}</span></a>
-      ${p.src ? `<a class="btn-ghost" href="${esc(p.src)}" target="_blank" rel="noopener">${I.info}<span>${t('map_source')}</span></a>` : ''}
+    <div class="mp-picto">
+      <span class="mp-pic">${IC[ck]}<small>${esc(w(ck))}</small></span>
+      ${p.ac && IC[p.ac] ? `<span class="mp-pic ac-${p.ac}">${IC[p.ac]}<small>${esc(w(p.ac))}</small></span>` : ''}
+      <span class="mp-pic">${meter(p.cf)}<small>${esc(w(p.cf || 'likely'))}</small></span>
+      ${dist ? `<span class="mp-pic">${IC.pin}<small>${dist}</small></span>` : ''}
     </div>
-    ${getLang() === 'ru' && p.s && p.s.ru === p.s.en ? `<p class="d-note">${t('map_en_note')}</p>` : ''}`;
+    <a class="btn-primary mp-go" href="${mapsLink(p.lat, p.lon, p.n)}" target="_blank" rel="noopener">${IC.nav}<span>${esc(w('route'))}</span></a>
+    ${txt(p.s) ? `<p class="mp-text">${esc(txt(p.s))}</p>` : ''}
+    ${txt(p.why) ? `<div class="mp-blk">${IC.info}<div><b>${esc(w('why'))}</b><p>${esc(txt(p.why))}</p></div></div>` : ''}
+    ${txt(p.tip) ? `<div class="mp-blk">${IC.bulb}<div><b>${esc(w('tip'))}</b><p>${esc(txt(p.tip))}</p></div></div>` : ''}
+    ${txt(p.fun) ? `<div class="mp-blk">${IC.spark}<div><b>${esc(w('fun'))}</b><p>${esc(txt(p.fun))}</p></div></div>` : ''}
+    ${media.length ? `<div class="mp-yt">${media.map((m) => `<a href="${m.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(m.label)}</span></a>`).join('')}</div>` : ''}
+    ${showTr ? `<a class="btn-ghost mp-tr" href="${translateLink([p.g + ' — ' + p.n, txt(p.s), txt(p.why), txt(p.tip)].filter(Boolean).join('\n\n'))}" target="_blank" rel="noopener">${IC.translate}<span>${esc(w('trans'))}</span></a>` : ''}
+    ${(p.src || []).length ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u, k) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a>`).join('')}</div>` : ''}
+    ${[p.pg, p.pr].filter(Boolean).length ? `<p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>` : ''}`;
 }
 function eggSheet(e) {
-  const I = ctx.I;
   return `
-    <div class="mp-tags"><span class="mp-conf" style="--c:${COLORS.egg}">${t('map_egg')}</span><span class="mp-conf" style="--c:${COLORS[e.cf] || COLORS.likely}">${confLabel(e.cf)}</span></div>
-    <h2 class="mp-h">${esc(tr(e.t))}</h2>
-    ${e.p ? `<div class="mp-addr">${I.pin}<span>${esc(e.p)}</span></div>` : ''}
-    <p class="mp-text">${esc(tr(e.d))}</p>
-    ${e.m?.length ? `<div class="mp-media"><b>${t('map_where_seen')}</b>${e.m.map((x) => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
-    <div class="mp-btns">
-      <a class="btn-primary" href="${mapsLink(e.lat, e.lon, e.p)}" target="_blank" rel="noopener">${I.pin}<span>${t('map_route')}</span></a>
-      ${e.src ? `<a class="btn-ghost" href="${esc(e.src)}" target="_blank" rel="noopener">${I.info}<span>${t('map_source')}</span></a>` : ''}
+    <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><h2>${esc(txt(e.t))}</h2></div></div>
+    <div class="mp-picto"><span class="mp-pic">${meter(e.cf)}<small>${esc(w(e.cf || 'likely'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel(e)}</small></span>` : ''}</div>
+    ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(e.p)}</b></div></div>` : ''}
+    <p class="mp-text">${esc(txt(e.d))}</p>
+    ${(e.m || []).map(ytLink).filter(Boolean).length ? `<div class="mp-yt">${(e.m || []).map(ytLink).filter(Boolean).map((m) => `<a href="${m.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(m.label)}</span></a>`).join('')}</div>` : ''}
+    <a class="btn-primary mp-go" href="${mapsLink(e.lat, e.lon, e.p)}" target="_blank" rel="noopener">${IC.nav}<span>${esc(w('route'))}</span></a>
+    ${needsTranslate(txt(e.d)) ? `<a class="btn-ghost mp-tr" href="${translateLink([txt(e.t), txt(e.d)].join('\n\n'))}" target="_blank" rel="noopener">${IC.translate}<span>${esc(w('trans'))}</span></a>` : ''}
+    ${e.src ? `<div class="mp-src">${IC.link}<a href="${esc(e.src)}" target="_blank" rel="noopener">${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a></div>` : ''}`;
+}
+// фото точек сообщества — из открытого репозитория gtadb.org на GitHub (CC BY 4.0; кадры игры © Rockstar Games)
+function gtadbPhotos(p, g) {
+  const v = g === 'VI' ? 6 : 5, id = encodeURIComponent(p[0]);
+  const u = (k) => `https://raw.githubusercontent.com/rolux/gtadb.org/main/map/photos/${v}/${id},${k}.jpg`;
+  return { pg: p[7] ? { file: u('ig'), credit: '© Rockstar Games · gtadb.org' } : null, pr: p[8] ? { file: u('rl'), credit: 'gtadb.org and contributors (CC BY 4.0)' } : null };
+}
+function gtadbSheet(p, g, i) {
+  const [id, name, district, real, lat, lon, type] = p;
+  const ph = gtadbPhotos(p, g);
+  return `
+    <div class="mp-hero">${shot(ph.pg, 'g', 'd' + i)}${shot(ph.pr, 'r', 'd' + i)}<span class="mp-vs">${IC.swap}</span></div>
+    <div class="mp-names">
+      <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(name || district || id)}</b>${name && district ? `<small>${esc(district)}</small>` : ''}</div></div>
+      <div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(real.split(',')[0])}</b><small>${esc(real.split(',').slice(1).join(',').trim())}</small></div></div>
+    </div>
+    <div class="mp-picto"><span class="mp-pic">${IC.other}<small>${esc(type || w('other'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel({ lat, lon })}</small></span>` : ''}</div>
+    <a class="btn-primary mp-go" href="${mapsLink(lat, lon, real)}" target="_blank" rel="noopener">${IC.nav}<span>${esc(w('route'))}</span></a>
+    <a class="btn-ghost" href="https://map.gtadb.org/#${g},${esc(id)}" target="_blank" rel="noopener">${IC.link}<span>gtadb.org</span></a>
+    <p class="d-note">${t('map_gtadb_credit')}</p>`;
+}
+function helpSheet() {
+  const row = (ic, label, extra = '') => `<div class="mp-hrow"><span class="mp-pic">${ic}</span><span>${esc(label)}</span>${extra}</div>`;
+  return `<h2 class="pick-t">${esc(w('help'))}</h2>
+    <div class="mp-help">
+      ${row(`<i class="mp-dot" style="background:${COLORS.confirmed}"></i>`, w('confirmed'), meter('confirmed'))}
+      ${row(`<i class="mp-dot" style="background:${COLORS.likely}"></i>`, w('likely'), meter('likely'))}
+      ${row(`<i class="mp-dot" style="background:${COLORS.speculative}"></i>`, w('speculative'), meter('speculative'))}
+      ${row(`<i class="mp-dot" style="background:${COLORS.egg};box-shadow:0 0 0 2px #fff"></i>`, w('egg'))}
+      <hr>
+      ${row(IC.game, w('game'))}${row(IC.camera, w('real'))}
+      <hr>
+      ${['public', 'business', 'view_from_street', 'restricted', 'gone'].map((k) => row(IC[k], w(k))).join('')}
     </div>`;
 }
-function gtadbSheet(p, g) {
-  const [id, name, district, real, lat, lon, type] = p;
-  const I = ctx.I;
-  return `
-    <div class="mp-tags"><span class="mp-conf" style="--c:${COLORS.gtadb}">gtadb.org</span>${type ? `<span class="mp-cat">${esc(type)}</span>` : ''}</div>
-    <div class="mp-pair">
-      <div class="mp-side"><small>${t('map_in_game')}</small><h2>${esc(name || district || id)}</h2>${name && district ? `<span>${esc(district)}</span>` : ''}</div>
-      <div class="mp-arrow">${I.chevron}</div>
-      <div class="mp-side mp-real"><small>${t('map_in_real')}</small><b>${esc(real.split(',')[0])}</b><span>${esc(real.split(',').slice(1).join(',').trim())}</span></div>
-    </div>
-    <div class="mp-btns">
-      <a class="btn-primary" href="${mapsLink(lat, lon, real)}" target="_blank" rel="noopener">${I.pin}<span>${t('map_route')}</span></a>
-      <a class="btn-ghost" href="https://map.gtadb.org/#${g},${esc(id)}" target="_blank" rel="noopener">${I.info}<span>gtadb.org</span></a>
-    </div>
-    <p class="d-note">${t('map_gtadb_credit')}</p>`;
+
+// ───── просмотр фото на весь экран (свайп / тап — переключить игра ↔ реальность) ─────
+function subject(ref) {
+  const i = +ref.slice(1);
+  if (ref[0] === 'p') { const p = data[game].places[i]; return { pg: p.pg, pr: p.pr, g: p.g, n: p.n }; }
+  const d = gtadb[game].points[i], ph = gtadbPhotos(d, gtadb[game].game);
+  return { pg: ph.pg, pr: ph.pr, g: d[1] || d[2] || d[0], n: d[3].split(',')[0] };
+}
+function openViewer(ref, k) {
+  const p = subject(ref);
+  viewer = { ref, k };
+  let el = document.getElementById('mp-viewer');
+  if (!el) { el = document.createElement('div'); el.id = 'mp-viewer'; document.body.appendChild(el); }
+  const both = [['g', p.pg], ['r', p.pr]].filter(([, ph]) => ph);
+  const cur = both.find(([kk]) => kk === k) || both[0];
+  el.innerHTML = `
+    <button class="mpv-x" data-mp="viewer-close" aria-label="close">${IC.close}</button>
+    <div class="mpv-tabs">${both.map(([kk]) => `<button class="${kk === cur[0] ? 'on' : ''}" data-mp="viewer-k" data-k="${kk}">${kk === 'g' ? IC.game : IC.camera}<span>${esc(w(kk === 'g' ? 'game' : 'real'))}</span></button>`).join('')}</div>
+    <img src="${esc(cur[1].file)}" alt="" data-mp="viewer-next">
+    <div class="mpv-cap"><b>${esc(cur[0] === 'g' ? p.g : p.n)}</b><small>${esc(cur[1].credit || '')}</small></div>`;
+  el.classList.add('open');
+  let x0 = null;
+  el.ontouchstart = (e) => { x0 = e.touches[0].clientX; };
+  el.ontouchend = (e) => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 50 && both.length > 1) openViewer(ref, cur[0] === 'g' ? 'r' : 'g'); };
+}
+function closeViewer() { document.getElementById('mp-viewer')?.classList.remove('open'); viewer = null; }
+
+// ───── лента карточек внизу карты ─────
+function ensureChrome() {
+  const view = document.getElementById('view-map');
+  if (!document.getElementById('map-cards')) {
+    const c = document.createElement('div'); c.id = 'map-cards'; c.className = 'map-cards'; view.appendChild(c);
+  }
+  const fabs = view.querySelector('.map-fabs');
+  if (fabs && !fabs.querySelector('[data-mp="help"]')) {
+    const b = document.createElement('button'); b.className = 'map-fab'; b.dataset.mp = 'help'; b.setAttribute('aria-label', 'help'); b.innerHTML = IC.help;
+    fabs.prepend(b);
+  }
+}
+function renderCards() {
+  const box = document.getElementById('map-cards');
+  if (!box || !map || !data[game]) return;
+  const places = data[game].places;
+  const b = map.getBounds(), c = map.getCenter();
+  const vis = show.places ? places.map((p, i) => ({ p, i })).filter(({ p }) => b.contains([p.lon, p.lat])) : [];
+  // на общем плане — сначала самые узнаваемые (точная копия, обе фотографии), при приближении — ближайшие к центру
+  const rank = (p) => (p.cf === 'confirmed' ? 0 : p.cf === 'likely' ? 1 : 2) + (p.pg && p.pr ? 0 : 1.5);
+  const dc = (p) => km([c.lat, c.lng], [p.lat, p.lon]);
+  if (map.getZoom() < 12.5) vis.sort((a, z) => rank(a.p) - rank(z.p) || dc(a.p) - dc(z.p));
+  else vis.sort((a, z) => dc(a.p) - dc(z.p));
+  const top = vis.slice(0, 30);
+  if (selected != null && !top.some((x) => x.i === selected)) { const s = vis.find((x) => x.i === selected); if (s) top.unshift(s); }
+  let extra = '';
+  if (show.gtadb && gtadb[game] && map.getZoom() >= 13 && top.length < 30) {
+    const g = gtadb[game];
+    const pts = g.points.map((q, i) => ({ q, i })).filter(({ q }) => b.contains([q[5], q[4]]));
+    pts.sort((a, z) => km([c.lat, c.lng], [a.q[4], a.q[5]]) - km([c.lat, c.lng], [z.q[4], z.q[5]]));
+    extra = pts.slice(0, 30 - top.length).map(({ q, i }) => {
+      const ph = gtadbPhotos(q, g.game);
+      return `<button class="mc mc-d${i === selectedD ? ' on' : ''}" data-mp="dcard" data-d="${i}" data-i="${i}">
+        <span class="mc-ph">${ph.pg ? `<img src="${esc(ph.pg.file)}" alt="" loading="lazy" decoding="async">` : `<i class="g">${IC.game}</i>`}${ph.pr ? `<img src="${esc(ph.pr.file)}" alt="" loading="lazy" decoding="async">` : `<i class="r">${IC.camera}</i>`}<em>${IC.game}</em><em class="r">${IC.camera}</em></span>
+        <span class="mc-t"><b>${esc(q[3].split(',')[0])}</b><small>${IC.game}${esc(q[1] || q[2] || q[0])}</small></span>
+        <span class="mc-ic">${IC.other}<span class="mc-dot"></span>${me ? `<em>${distLabel({ lat: q[4], lon: q[5] })}</em>` : ''}</span>
+      </button>`;
+    }).join('');
+  }
+  if (!top.length && !extra) { box.innerHTML = `<div class="mc-empty">${IC.pin}<span>${esc(w('zoom'))}</span></div>`; return; }
+  box.innerHTML = extra && !top.length ? extra : top.map(({ p, i }) => {
+    const ck = catKey(p);
+    return `<button class="mc${i === selected ? ' on' : ''}" data-mp="card" data-i="${i}">
+      <span class="mc-ph">${p.pg ? `<img src="${esc(p.pg.thumb || p.pg.file)}" alt="" loading="lazy" decoding="async">` : `<i class="g">${IC.game}</i>`}${p.pr ? `<img src="${esc(p.pr.thumb || p.pr.file)}" alt="" loading="lazy" decoding="async">` : `<i class="r">${IC.camera}</i>`}<em>${IC.game}</em><em class="r">${IC.camera}</em></span>
+      <span class="mc-t"><b>${esc(p.n)}</b><small>${IC.game}${esc(p.g)}</small></span>
+      <span class="mc-ic">${IC[ck]}${p.ac && IC[p.ac] ? IC[p.ac] : ''}${meter(p.cf)}${me ? `<em>${distLabel(p)}</em>` : ''}</span>
+    </button>`;
+  }).join('') + (top.length ? extra : '');
+}
+function scrollCardIntoView(i) {
+  const el = document.querySelector(`#map-cards .mc[data-i="${i}"]`);
+  el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 }
 
 // ───── слои ─────
@@ -101,15 +350,21 @@ function geo(kind) {
   if (kind === 'places') return fc((d?.places || []).map((p, i) => pt(p.lon, p.lat, { i, cf: p.cf })));
   if (kind === 'eggs') return fc((d?.eggs || []).map((e, i) => pt(e.lon, e.lat, { i, cf: e.cf })));
   if (kind === 'gtadb') return fc(show.gtadb && gtadb[game] ? gtadb[game].points.map((p, i) => pt(p[5], p[4], { i })) : []);
+  if (kind === 'sel') {
+    const p = selected != null && d?.places[selected];
+    if (p) return fc([pt(p.lon, p.lat, {})]);
+    const q = selectedD != null && gtadb[game]?.points[selectedD];
+    return fc(q ? [pt(q[5], q[4], {})] : []);
+  }
   return fc([]);
 }
 
 function addLayers() {
   const dark = themeKey() === 'dark';
   const stroke = dark ? '#0b0b0d' : '#ffffff';
-  for (const k of ['gtadb', 'places', 'eggs']) if (!map.getSource(k)) map.addSource(k, { type: 'geojson', data: geo(k) });
+  for (const k of ['gtadb', 'places', 'eggs', 'sel']) if (!map.getSource(k)) map.addSource(k, { type: 'geojson', data: geo(k) });
   const z = (a, b) => ['interpolate', ['linear'], ['zoom'], 8, a, 15, b];
-  if (!map.getLayer('gtadb')) map.addLayer({ id: 'gtadb', type: 'circle', source: 'gtadb',
+  if (!map.getLayer('gtadb')) map.addLayer({ id: 'gtadb', type: 'circle', source: 'gtadb', minzoom: 11.5,
     paint: { 'circle-radius': z(2.5, 6), 'circle-color': COLORS.gtadb, 'circle-opacity': .75, 'circle-stroke-width': 1, 'circle-stroke-color': stroke } });
   if (!map.getLayer('places-glow')) map.addLayer({ id: 'places-glow', type: 'circle', source: 'places', filter: ['==', ['get', 'cf'], 'confirmed'],
     paint: { 'circle-radius': z(9, 18), 'circle-color': COLORS.confirmed, 'circle-opacity': .18, 'circle-blur': .6 } });
@@ -118,14 +373,16 @@ function addLayers() {
       'circle-color': ['match', ['get', 'cf'], 'confirmed', COLORS.confirmed, 'speculative', COLORS.speculative, COLORS.likely] } });
   if (!map.getLayer('eggs')) map.addLayer({ id: 'eggs', type: 'circle', source: 'eggs',
     paint: { 'circle-radius': z(5, 11), 'circle-color': COLORS.egg, 'circle-stroke-width': 2.2, 'circle-stroke-color': '#ffffff' } });
+  if (!map.getLayer('sel')) map.addLayer({ id: 'sel', type: 'circle', source: 'sel',
+    paint: { 'circle-radius': z(11, 18), 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-width': 3, 'circle-stroke-color': dark ? '#ffffff' : '#0b0b0d' } });
   if (!map.getSource('me')) {
-    map.addSource('me', { type: 'geojson', data: fc([]) });
+    map.addSource('me', { type: 'geojson', data: fc(me ? [pt(me[1], me[0], {})] : []) });
     map.addLayer({ id: 'me', type: 'circle', source: 'me', paint: { 'circle-radius': 8, 'circle-color': '#3b82f6', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' } });
   }
   applyShow();
 }
 function refreshData() {
-  for (const k of ['gtadb', 'places', 'eggs']) map.getSource(k)?.setData(geo(k));
+  for (const k of ['gtadb', 'places', 'eggs', 'sel']) map.getSource(k)?.setData(geo(k));
 }
 function applyShow() {
   const vis = (on) => (on ? 'visible' : 'none');
@@ -134,6 +391,15 @@ function applyShow() {
   map.setLayoutProperty('places', 'visibility', vis(show.places));
   map.setLayoutProperty('places-glow', 'visibility', vis(show.places));
   map.setLayoutProperty('eggs', 'visibility', vis(show.eggs));
+}
+
+function openPlace(i, fly) {
+  const p = data[game].places[i];
+  selected = i; selectedD = null;
+  map?.getSource('sel')?.setData(geo('sel'));
+  if (fly) map.easeTo({ center: [p.lon, p.lat], zoom: Math.max(map.getZoom(), 14.5), duration: 700, offset: [0, -90] });
+  renderCards(); scrollCardIntoView(i);
+  ctx.openSheet(placeSheet(p, i), 'sheet-map');
 }
 
 // нажатие: ищем точку в радиусе пальца, приоритет пасхалки > места > сообщество
@@ -147,8 +413,17 @@ function onTap(e) {
   const i = nearest.properties.i, l = nearest.layer.id;
   ctx.haptic();
   if (l === 'eggs') ctx.openSheet(eggSheet(data[game].eggs[i]), 'sheet-map');
-  else if (l === 'places') ctx.openSheet(placeSheet(data[game].places[i]), 'sheet-map');
-  else ctx.openSheet(gtadbSheet(gtadb[game].points[i], gtadb[game].game), 'sheet-map');
+  else if (l === 'places') openPlace(i, false);
+  else openPoint(i, false);
+}
+function openPoint(i, fly) {
+  const q = gtadb[game].points[i];
+  selected = null; selectedD = i;
+  map?.getSource('sel')?.setData(geo('sel'));
+  if (fly) map.easeTo({ center: [q[5], q[4]], zoom: Math.max(map.getZoom(), 15), duration: 700, offset: [0, -90] });
+  renderCards();
+  document.querySelector(`#map-cards .mc[data-d="${i}"]`)?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  ctx.openSheet(gtadbSheet(q, gtadb[game].game, i), 'sheet-map');
 }
 function dist(f, e) {
   const p = map.project(f.geometry.coordinates);
@@ -164,25 +439,42 @@ function renderChips() {
   ].map(([k, label, c]) => `<button class="mchip${show[k] ? ' on' : ''}" data-action="map-layer" data-v="${k}" style="--c:${c}"><i></i>${label}${n[k] !== '' ? ` <em>${n[k]}</em>` : ''}</button>`).join('');
   document.getElementById('map-games').innerHTML = Object.entries(GAMES).map(([id, g]) =>
     `<button class="${id === game ? 'on' : ''}" data-action="map-game" data-v="${id}"><b>${g.title}</b><small>${tr(g.place)}</small></button>`).join('');
-  document.getElementById('map-legend').innerHTML = ['confirmed', 'likely', 'speculative'].map((k) => `<span><i style="background:${COLORS[k]}"></i>${confLabel(k)}</span>`).join('')
-    + `<span><i style="background:${COLORS.egg};box-shadow:0 0 0 1.5px #fff"></i>${t('map_egg')}</span>`;
+  const lg = document.getElementById('map-legend'); if (lg) lg.innerHTML = '';
 }
+
+// свои клики (data-mp) — шторка, лента, просмотрщик
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-mp]');
+  if (!el || !data[game]) return;
+  const a = el.dataset.mp;
+  if (a === 'card') { ctx?.haptic(); openPlace(+el.dataset.i, true); }
+  else if (a === 'dcard') { ctx?.haptic(); openPoint(+el.dataset.i, true); }
+  else if (a === 'view') { ctx?.haptic(); openViewer(el.dataset.ref, el.dataset.k); }
+  else if (a === 'viewer-k') openViewer(viewer.ref, el.dataset.k);
+  else if (a === 'viewer-next') { const p = subject(viewer.ref); if (p.pg && p.pr) openViewer(viewer.ref, viewer.k === 'g' ? 'r' : 'g'); }
+  else if (a === 'viewer-close') closeViewer();
+  else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
+});
+addEventListener('keydown', (e) => { if (e.key === 'Escape') closeViewer(); });
 
 export async function open(c, preferGame) {
   ctx = c;
   const box = document.getElementById('map');
+  ensureChrome();
   if (!map) {
     box.classList.add('loading');
     game = preferGame === 'gta5' ? 'gta5' : 'gta6';
-    const [d] = await Promise.all([loadGame(game), loadLib()]);
+    const [d] = await Promise.all([loadGame(game), loadLib(), loadGtadb(game).catch(() => null)]);
     styleKey = themeKey();
     map = new window.maplibregl.Map({
       container: box, style: STYLE[styleKey], center: [d.center[1], d.center[0]], zoom: d.zoom - 0.6,
       attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false, touchPitch: false, fadeDuration: 150,
     });
     map.touchZoomRotate.disableRotation();
+    window.__gtaMap = map; // для проверки из консоли (?vptest и т. п.)
     map.on('style.load', addLayers);
-    map.on('load', () => box.classList.remove('loading'));
+    map.on('load', () => { box.classList.remove('loading'); renderCards(); });
+    map.on('moveend', renderCards);
     map.on('click', onTap);
     renderChips();
   } else {
@@ -193,7 +485,7 @@ export async function open(c, preferGame) {
 
 export async function setGame(g) {
   if (!map || g === game) return;
-  game = g;
+  game = g; selected = null; selectedD = null;
   const d = await loadGame(g);
   if (show.gtadb) await loadGtadb(g);
   refreshData(); renderChips();
@@ -203,15 +495,15 @@ export async function setGame(g) {
 export async function toggle(k) {
   show[k] = !show[k];
   if (k === 'gtadb' && show[k]) { await loadGtadb(game); refreshData(); }
-  applyShow(); renderChips();
+  applyShow(); renderChips(); renderCards();
 }
 
 export function locate() {
   if (!map || !navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition((pos) => {
-    const ll = [pos.coords.longitude, pos.coords.latitude];
-    map.getSource('me')?.setData(fc([pt(ll[0], ll[1], {})]));
-    map.flyTo({ center: ll, zoom: 13, duration: 1000 });
+    me = [pos.coords.latitude, pos.coords.longitude];
+    map.getSource('me')?.setData(fc([pt(me[1], me[0], {})]));
+    map.flyTo({ center: [me[1], me[0]], zoom: 13, duration: 1000 });
   }, () => ctx?.toast?.(t('map_no_geo')), { enableHighAccuracy: true, timeout: 8000 });
 }
 
@@ -224,4 +516,4 @@ export function retheme() {
   const k = themeKey();
   if (k !== styleKey) { styleKey = k; map.setStyle(STYLE[k]); } // style.load → addLayers
 }
-export function relang() { if (map) renderChips(); }
+export function relang() { if (map) { renderChips(); renderCards(); } }

@@ -13,6 +13,7 @@ import json
 import pathlib
 import re
 import shutil
+import subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT.parent / "Карта локаций GTA — реальный мир"
@@ -24,8 +25,8 @@ IMG_OUT = ROOT / "img" / "map"
 GAMES = {
     "gta6": {"center": [25.79, -80.21], "zoom": 10, "places": ["locations_gta6.json", "_сырьё/canonical_locations_gta6.json"],
              "eggs": ["easter_eggs_gta6.json", "_сырьё/canonical_eggs_gta6.json"], "gtadb": "VI"},
-    "gta5": {"center": [34.05, -118.33], "zoom": 10, "places": ["locations_gta5.json", "_сырьё/raw_locations_gta5.json"],
-             "eggs": ["easter_eggs_gta5.json", "_сырьё/raw_eggs_gta5.json"], "gtadb": "V"},
+    "gta5": {"center": [34.05, -118.33], "zoom": 10, "places": ["locations_gta5.json", "_сырьё/canonical_locations_gta5.json", "_сырьё/raw_locations_gta5.json"],
+             "eggs": ["easter_eggs_gta5.json", "_сырьё/canonical_eggs_gta5.json", "_сырьё/raw_eggs_gta5.json"], "gtadb": "V"},
 }
 MAX_TXT = 320
 
@@ -79,21 +80,25 @@ def media(item):
         if x and x not in seen and not x.startswith("GTADB"):
             seen.add(x)
             out.append(short(x, 90))
-    return out[:2]
+    return out[:4]
 
 
-def photo(item, game):
-    p = item.get("photo_real") or item.get("photo")
+def photo(item, game, key="photo_real"):
+    p = item.get(key) or (item.get("photo") if key == "photo_real" else None)
     if not isinstance(p, dict) or not p.get("file"):
         return None
     src = SRC / "карта" / p["file"]
     if not src.exists():
         return None
     dst = IMG_OUT / game / src.name
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    if not dst.exists() or dst.stat().st_size != src.stat().st_size:
-        shutil.copyfile(src, dst)
-    return {"file": f"img/map/{game}/{src.name}", "credit": p.get("credit", "")}
+    thumb = IMG_OUT / game / "t" / src.name
+    thumb.parent.mkdir(parents=True, exist_ok=True)
+    # два размера (sips есть в любой macOS): 640 px для карточки, 240 px — миниатюра для ленты
+    for out, size, q in ((dst, 640, 70), (thumb, 240, 60)):
+        if not out.exists() or out.stat().st_mtime < src.stat().st_mtime:
+            subprocess.run(["sips", "-Z", str(size), "-s", "format", "jpeg", "-s", "formatOptions", str(q), str(src), "--out", str(out)],
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return {"file": f"img/map/{game}/{src.name}", "thumb": f"img/map/{game}/t/{src.name}", "credit": p.get("credit", "")}
 
 
 def build(game, cfg):
@@ -103,15 +108,23 @@ def build(game, cfg):
         lat, lon = num(it.get("lat")), num(it.get("lon"))
         if lat is None or lon is None:
             continue
-        summary = bi(it, "summary") if it.get("summary") or it.get("summary_ru") else bi(it, "match_evidence")
-        places.append({
+        has_sum = bool(it.get("summary") or it.get("summary_ru"))
+        summary = bi(it, "summary") if has_sum else bi(it, "match_evidence")
+        srcs = it.get("sources") or []
+        if isinstance(srcs, str):
+            srcs = re.findall(r"https?://[^'\"\s,\]]+", srcs)
+        place = {
             "id": it.get("id") or f"{game}-p{i}",
             "g": it.get("game_name", ""), "r": it.get("game_region", ""),
-            "n": it.get("real_name", ""), "a": it.get("real_address", ""),
+            "n": it.get("real_name", ""), "a": it.get("real_address", "") or it.get("real_city", ""),
             "lat": lat, "lon": lon, "c": it.get("category", ""), "cf": it.get("confidence", "likely"),
-            "s": summary, "tip": bi(it, "visit_tips"), "m": media(it), "src": src0(it),
-            "ph": photo(it, game),
-        })
+            "ac": it.get("access", ""), "v": it.get("verified", True) is not False and pf.name.startswith("locations_"),
+            "s": summary, "why": bi(it, "match_evidence") if has_sum else None,
+            "tip": bi(it, "visit_tips"), "fun": bi(it, "trivia") if (it.get("trivia") or it.get("trivia_ru")) else None,
+            "m": media(it), "src": [u for u in srcs if str(u).startswith("http")][:3],
+            "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"),
+        }
+        places.append({k: v for k, v in place.items() if v not in (None, "", [], {"ru": "", "en": ""})})
     for i, it in enumerate(json.loads(ef.read_text("utf-8")) if ef else []):
         lat, lon = num(it.get("lat")), num(it.get("lon"))
         if lat is None or lon is None:
@@ -127,7 +140,7 @@ def build(game, cfg):
 
     layer = json.loads((DATA / f"gtadb_layer_{game}.json").read_text("utf-8"))
     pts = [[p["id"], p.get("name") or "", p.get("district") or p.get("region") or "", p.get("real") or "",
-            num(p["lat"]), num(p["lon"]), p.get("type") or ""] for p in layer
+            num(p["lat"]), num(p["lon"]), p.get("type") or "", 1 if p.get("ig") else 0, 1 if p.get("rl") else 0] for p in layer
            if not p.get("leak_tag") and num(p.get("lat")) is not None]
     (OUT / f"gtadb_{game}.json").write_text(json.dumps({"game": cfg["gtadb"], "points": pts}, ensure_ascii=False, separators=(",", ":")), "utf-8")
     print(f"{game}: мест {len(places)} ({pf.name if pf else '—'}), пасхалок {len(eggs)}, точек gtadb {len(pts)}")
