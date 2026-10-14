@@ -57,6 +57,11 @@ def page(game, kind, x):
         d_ru, d_en = t(x.get("d"), "ru"), t(x.get("d"), "en")
     gimg, gcred = game_img(x)
     rimg, rcred = real_img(x)
+    # ползунок «В игре ⇄ В жизни» (Игорь 15.10.2026: «чтобы другу сравнивать в браузере — эффект вау при репостах»):
+    # пара с одного ракурса, если есть (фото из жизни — ссылкой на gtadb, как в приложении), иначе кадр игры + Commons
+    pr0 = (x.get("pairs") or [None])[0]
+    cg, cr = (absu(pr0["g"]["url"]), absu(pr0["r"]["url"])) if pr0 else (gimg, rimg)
+    ccred = (pr0["g"].get("credit", "") + " · " + pr0["r"].get("credit", "")) if pr0 else ""
     title = f"{name_g} = {name_r}" if name_g and name_r else (name_g or name_r)
     og_title = f"{title} · {gt} in real life · Secret Base"
     og_desc = (d_en or d_ru)[:190]
@@ -65,11 +70,18 @@ def page(game, kind, x):
     maps = f"https://www.google.com/maps/search/?api=1&query={x['lat']},{x['lon']}"
     e = html.escape
     imgs = ""
-    if gimg:
+    if cg and cr:
+        imgs = (f'<div class="cmp" style="--x:50%" role="slider" aria-label="compare" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">'
+                f'<img class="g" src="{e(cg)}" alt="{e(gt)}" draggable="false"><img class="r" src="{e(cr)}" alt="real life" draggable="false">'
+                f'<span class="lab lg">🎮 <span data-ru="В игре" data-en="In game">In game</span></span>'
+                f'<span class="lab lr">📷 <span data-ru="В жизни" data-en="Real life">Real life</span></span>'
+                f'<div class="line"><span class="knob">‹ ›</span></div></div>'
+                f'<p class="hint" data-ru="Проведите пальцем: игра ⇄ жизнь" data-en="Swipe: game ⇄ real life">Swipe: game ⇄ real life</p>')
+    elif gimg:
         imgs += f'<figure><img src="{e(gimg)}" alt="{e(gt)}"><figcaption>🎮 {e(gt)}</figcaption></figure>'
-    if rimg:
+    if rimg and not (cg and cr):
         imgs += f'<figure><img src="{e(rimg)}" alt="real life"><figcaption>📍 <span data-ru="В жизни" data-en="Real life">Real life</span></figcaption></figure>'
-    credits = " · ".join(c for c in (gcred, rcred) if c)
+    credits = " · ".join(c for c in ((ccred,) if pr0 else (gcred, rcred)) if c)
     return f"""<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -92,19 +104,34 @@ figure img{{width:100%;height:100%;object-fit:cover;display:block}}figcaption{{p
 p.d{{margin:14px 0}}.cta{{display:block;margin:18px 0 10px;padding:16px;border-radius:16px;text-align:center;font-weight:800;font-size:17px;color:#0b0d12;text-decoration:none;
 background:linear-gradient(90deg,#22c3d9,#7ee0ff)}}.sub{{display:block;text-align:center;color:#7ee0ff;font-weight:700;text-decoration:none;margin:6px 0}}
 .cred{{color:#6f7787;font-size:11.5px;margin-top:22px}}
+.cmp{{position:relative;aspect-ratio:4/3;border-radius:18px;overflow:hidden;background:#151922;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:ew-resize}}
+.cmp img{{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}}.cmp .r{{clip-path:inset(0 0 0 var(--x))}}
+.cmp .line{{position:absolute;top:0;bottom:0;left:var(--x);width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 12px rgba(0,0,0,.5)}}
+.cmp .knob{{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center;font-weight:900;font-size:16px;box-shadow:0 4px 18px rgba(0,0,0,.45)}}
+.cmp .lab{{position:absolute;top:10px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:800;background:rgba(0,0,0,.6)}}.cmp .lg{{left:10px;background:#22c3d9;color:#0b0d12}}.cmp .lr{{right:10px}}
+.hint{{text-align:center;color:#a9b2c3;font-size:13px;margin:8px 0 0}}
 </style></head><body><main>
 <div class="brand"><img src="../../icons/icon-192.png" alt=""><span>Secret Base</span></div>
 <span class="tag">{e(gt)} · <span data-ru="{e(city_ru)} в реальной жизни" data-en="{e(city_en)} in real life">{e(city_en)} in real life</span></span>
 <h1>{e(name_g or name_r)}</h1>
 <p class="real">📍 {e(name_r)}{(' · ' + e(addr)) if addr and addr != name_r else ''}</p>
-<div class="pics">{imgs}</div>
+{imgs if 'class="cmp"' in imgs else f'<div class="pics">{imgs}</div>'}
 <p class="d" data-ru="{e(d_ru)}" data-en="{e(d_en)}">{e(d_en or d_ru)}</p>
 <a class="cta" href="{e(app)}" data-ru="Открыть в Secret Base — сравнить игру и жизнь" data-en="Open in Secret Base — compare game and real life">Open in Secret Base — compare game and real life</a>
 <a class="sub" href="{e(maps)}" data-ru="Как добраться — Google Maps" data-en="Directions — Google Maps">Directions — Google Maps</a>
 <p class="cred">{e(credits)}{' · ' if credits else ''}Secret Base — fan app, not affiliated with Rockstar Games.</p>
 </main>
 <script>(()=>{{const ru=(navigator.language||'').toLowerCase().startsWith('ru')||(navigator.language||'').toLowerCase().startsWith('uk');
-document.documentElement.lang=ru?'ru':'en';document.querySelectorAll('[data-ru]').forEach(n=>{{const v=n.dataset[ru?'ru':'en'];if(v)n.textContent=v;}});}})();</script>
+document.documentElement.lang=ru?'ru':'en';document.querySelectorAll('[data-ru]').forEach(n=>{{const v=n.dataset[ru?'ru':'en'];if(v)n.textContent=v;}});
+const c=document.querySelector('.cmp');if(!c)return;let drag=false,x0=0,y0=0,dir=null,a=0;
+const set=(cx)=>{{const b=c.getBoundingClientRect();const v=Math.max(0,Math.min(100,(cx-b.left)/b.width*100));c.style.setProperty('--x',v+'%');c.setAttribute('aria-valuenow',Math.round(v));}};
+c.addEventListener('pointerdown',e=>{{clearInterval(a);drag=true;dir=e.pointerType==='touch'?null:'h';x0=e.clientX;y0=e.clientY;if(dir)set(e.clientX);}});
+addEventListener('pointermove',e=>{{if(!drag)return;if(!dir){{const dx=Math.abs(e.clientX-x0),dy=Math.abs(e.clientY-y0);if(dx+dy<6)return;dir=dx>=dy*.7?'h':'v';if(dir==='v'){{drag=false;return;}}}}set(e.clientX);}});
+addEventListener('pointerup',()=>{{drag=false;}});addEventListener('pointercancel',()=>{{drag=false;}});
+c.addEventListener('touchmove',e=>{{if(dir==='h'&&e.cancelable)e.preventDefault();}},{{passive:false}});
+// подсказка движением: ползунок сам качнётся, чтобы было понятно, что его можно тянуть
+setTimeout(()=>{{if(drag)return;let t=0;a=setInterval(()=>{{t+=1;c.style.setProperty('--x',(50+22*Math.sin(t/6))+'%');if(t>=38){{clearInterval(a);c.style.setProperty('--x','50%');}}}},16);}},700);
+}})();</script>
 </body></html>
 """
 

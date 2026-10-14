@@ -20,17 +20,32 @@ figure img{width:100%;height:100%;object-fit:cover;display:block}figcaption{posi
 p.d{margin:14px 0}.cta{display:block;margin:18px 0 10px;padding:16px;border-radius:16px;text-align:center;font-weight:800;font-size:17px;color:#0b0d12;text-decoration:none;
 background:linear-gradient(90deg,#22c3d9,#7ee0ff)}.sub{display:block;text-align:center;color:#7ee0ff;font-weight:700;text-decoration:none;margin:6px 0}
 .cred{color:#6f7787;font-size:11.5px;margin-top:22px}
+.cmp{position:relative;aspect-ratio:4/3;border-radius:18px;overflow:hidden;background:#151922;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:ew-resize}
+.cmp img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.cmp .r{clip-path:inset(0 0 0 var(--x))}
+.cmp .line{position:absolute;top:0;bottom:0;left:var(--x);width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 12px rgba(0,0,0,.5)}
+.cmp .knob{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center;font-weight:900;font-size:16px;box-shadow:0 4px 18px rgba(0,0,0,.45)}
+.cmp .lab{position:absolute;top:10px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:800;background:rgba(0,0,0,.6)}.cmp .lg{left:10px;background:#22c3d9;color:#0b0d12}.cmp .lr{right:10px}
+.hint{text-align:center;color:#a9b2c3;font-size:13px;margin:8px 0 0}
 </style></head><body><main>
 <div class="brand"><img src="../../icons/icon-192.png" alt=""><span>Secret Base</span></div>
 <span class="tag">GTA 5 · <span data-ru="Лос-Сантос в реальной жизни" data-en="Los Santos in real life">Los Santos in real life</span></span>
 <h1>Vinewood Bowl</h1>
 <p class="real">📍 Hollywood Bowl · 2301 N Highland Ave, Los Angeles, CA 90068</p>
-<div class="pics"><figure><img src="https://appshalamov.github.io/gta-cheats-demo/img/map/gta5/gta5-vinewood-bowl_game.jpg" alt="GTA 5"><figcaption>🎮 GTA 5</figcaption></figure><figure><img src="https://appshalamov.github.io/gta-cheats-demo/img/map/gta5/gta5-vinewood-bowl_real.jpg" alt="real life"><figcaption>📍 <span data-ru="В жизни" data-en="Real life">Real life</span></figcaption></figure></div>
+<div class="cmp" style="--x:50%" role="slider" aria-label="compare" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><img class="g" src="https://appshalamov.github.io/gta-map-assets/map/photos/5/L396,ig.jpg" alt="GTA 5" draggable="false"><img class="r" src="https://raw.githubusercontent.com/rolux/gtadb.org/main/map/photos/5/L396,rl.jpg" alt="real life" draggable="false"><span class="lab lg">🎮 <span data-ru="В игре" data-en="In game">In game</span></span><span class="lab lr">📷 <span data-ru="В жизни" data-en="Real life">Real life</span></span><div class="line"><span class="knob">‹ ›</span></div></div><p class="hint" data-ru="Проведите пальцем: игра ⇄ жизнь" data-en="Swipe: game ⇄ real life">Swipe: game ⇄ real life</p>
 <p class="d" data-ru="Hollywood Bowl — знаменитый концертный амфитеатр с арочной сценой-«ракушкой» в склоне холма; в GTA V его копия — Vinewood Bowl в Vinewood Hills." data-en="The Hollywood Bowl is LA&#x27;s famous outdoor amphitheater, with an arched band shell set into a hillside; GTA V recreates it as the Vinewood Bowl.">The Hollywood Bowl is LA&#x27;s famous outdoor amphitheater, with an arched band shell set into a hillside; GTA V recreates it as the Vinewood Bowl.</p>
 <a class="cta" href="../../?open=place:gta5:gta5-vinewood-bowl" data-ru="Открыть в Secret Base — сравнить игру и жизнь" data-en="Open in Secret Base — compare game and real life">Open in Secret Base — compare game and real life</a>
 <a class="sub" href="https://www.google.com/maps/search/?api=1&amp;query=34.11218,-118.33928" data-ru="Как добраться — Google Maps" data-en="Directions — Google Maps">Directions — Google Maps</a>
-<p class="cred">© Rockstar Games · кадр через gtadb.org (L396) · Thank You (22 Millions+) views from Los Angeles, USA · CC BY 2.0 · Wikimedia Commons · Secret Base — fan app, not affiliated with Rockstar Games.</p>
+<p class="cred">© Rockstar Games · gtadb.org (L396) · gtadb.org and contributors (CC BY 4.0) · Secret Base — fan app, not affiliated with Rockstar Games.</p>
 </main>
 <script>(()=>{const ru=(navigator.language||'').toLowerCase().startsWith('ru')||(navigator.language||'').toLowerCase().startsWith('uk');
-document.documentElement.lang=ru?'ru':'en';document.querySelectorAll('[data-ru]').forEach(n=>{const v=n.dataset[ru?'ru':'en'];if(v)n.textContent=v;});})();</script>
+document.documentElement.lang=ru?'ru':'en';document.querySelectorAll('[data-ru]').forEach(n=>{const v=n.dataset[ru?'ru':'en'];if(v)n.textContent=v;});
+const c=document.querySelector('.cmp');if(!c)return;let drag=false,x0=0,y0=0,dir=null,a=0;
+const set=(cx)=>{const b=c.getBoundingClientRect();const v=Math.max(0,Math.min(100,(cx-b.left)/b.width*100));c.style.setProperty('--x',v+'%');c.setAttribute('aria-valuenow',Math.round(v));};
+c.addEventListener('pointerdown',e=>{clearInterval(a);drag=true;dir=e.pointerType==='touch'?null:'h';x0=e.clientX;y0=e.clientY;if(dir)set(e.clientX);});
+addEventListener('pointermove',e=>{if(!drag)return;if(!dir){const dx=Math.abs(e.clientX-x0),dy=Math.abs(e.clientY-y0);if(dx+dy<6)return;dir=dx>=dy*.7?'h':'v';if(dir==='v'){drag=false;return;}}set(e.clientX);});
+addEventListener('pointerup',()=>{drag=false;});addEventListener('pointercancel',()=>{drag=false;});
+c.addEventListener('touchmove',e=>{if(dir==='h'&&e.cancelable)e.preventDefault();},{passive:false});
+// подсказка движением: ползунок сам качнётся, чтобы было понятно, что его можно тянуть
+setTimeout(()=>{if(drag)return;let t=0;a=setInterval(()=>{t+=1;c.style.setProperty('--x',(50+22*Math.sin(t/6))+'%');if(t>=38){clearInterval(a);c.style.setProperty('--x','50%');}},16);},700);
+})();</script>
 </body></html>
