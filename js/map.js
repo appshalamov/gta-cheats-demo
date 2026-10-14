@@ -374,7 +374,9 @@ function actions(lat, lon, name, shareText, fav = '', view = null, key = '') {
 async function sharePlace(text, key, el) {
   const base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '').replace(/beta\/$/, '');
   const k = key ? key.split(':') : null;
-  const url = k && k.length >= 3 ? `${base}s/${k[1]}/${k.slice(2).join(':')}.html` : location.href.split('#')[0];
+  // точки сообщества gtadb (db:<игра>:L123) — страницы s/<игра>/db-L123.html (Игорь 15.10.2026: на пирсе «американские
+  // горки» — ссылки нет; у точек gtadb ключа не было и уходила ссылка на само приложение)
+  const url = k && k.length >= 3 ? `${base}s/${k[1]}/${k[0] === 'db' ? 'db-' : ''}${k.slice(2).join(':')}.html` : location.href.split('#')[0];
   // только ссылка: картинку «игра | жизнь» мессенджер возьмёт со страницы (og:image, tools/build_share.py).
   // Файл к ссылке не прикладываем — Telegram тогда шлёт фото без ссылки (проверил Игорь 15.10.2026).
   try { if (navigator.share) { await navigator.share({ title: text, text, url }); return; } } catch { return; }
@@ -558,7 +560,7 @@ function gtadbSheet(p, g, i) {
     ${playerBlock(p[12])}
     <div class="mp-picto"><span class="mp-pic">${IC.other}<small>${esc(type || w('other'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel({ lat, lon })}</small></span>` : ''}</div>
     ${(p[9] || []).length ? `<div class="mp-also"><small>${esc(w('also'))}</small><span class="mp-also-list">${p[9].map(esc).join(' · ')}</span></div>` : ''}
-    ${actions(lat, lon, real, `${name || district || id} → ${real.split(',')[0]}`, '', p[10] || null)}
+    ${actions(lat, lon, real, `${name || district || id} → ${real.split(',')[0]}`, '', p[10] || null, `db:${game}:${id}`)}
     <div class="mp-src">${IC.link}<span>gtadb.org (CC BY 4.0)</span></div>
     <p class="d-note">${t('map_gtadb_credit')}</p>`;
 }
@@ -1784,6 +1786,13 @@ export async function focus(g, kind, id) {
     const i = d.places.findIndex((x) => x.id === id);
     if (i < 0) return false;
     openPlace(i, true); return true;
+  }
+  if (kind === 'db') {   // точка сообщества gtadb по ссылке «поделиться»
+    const db = await loadGtadb(game).catch(() => null);
+    const i = db ? db.points.findIndex((q) => q[0] === id) : -1;
+    if (i < 0) return false;
+    if (!show.gtadb) { show.gtadb = true; refreshData(); applyShow(); }
+    openPoint(i, true); return true;
   }
   const ei = d.eggs.findIndex((x) => x.id === id);
   if (ei >= 0) {

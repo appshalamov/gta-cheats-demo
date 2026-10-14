@@ -156,7 +156,8 @@ def t(o, lang):
 
 def page(game, kind, x):
     gt, city_en, city_ru = GAMES[game]
-    if kind == "place":
+    fid = x.get("_file") or x["id"]
+    if kind in ("place", "db"):
         name_g, name_r, addr = x.get("g") or "", x.get("n") or "", x.get("a") or ""
         d_ru, d_en = t(x.get("s"), "ru"), t(x.get("s"), "en")
     else:
@@ -169,7 +170,8 @@ def page(game, kind, x):
     pr0 = (x.get("pairs") or [None])[0]
     cg, cr = (absu(pr0["g"]["url"]), absu(pr0["r"]["url"])) if pr0 else (gimg, rimg)
     ccred = (pr0["g"].get("credit", "") + " · " + pr0["r"].get("credit", "")) if pr0 else ""
-    og = og_card(game, x["id"], gimg, rimg)
+    # точки gtadb: своего фото из жизни нет (только gtadb) — превью ссылки = кадр игры с нашего хостинга, без новых файлов
+    og = og_card(game, fid, gimg, rimg) if kind != "db" else ""
     og_abs = f"{SITE}s/{og}" if og else gimg
     title = f"{name_g} = {name_r}" if name_g and name_r else (name_g or name_r)
     og_title = f"{title} · {gt} in real life · Secret Base"
@@ -198,7 +200,7 @@ def page(game, kind, x):
 <meta name="description" content="{e(og_desc)}">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Secret Base">
 <meta property="og:title" content="{e(og_title)}"><meta property="og:description" content="{e(og_desc)}">
-<meta property="og:url" content="{SITE}s/{game}/{e(x['id'])}.html">
+<meta property="og:url" content="{SITE}s/{game}/{e(fid)}.html">
 {f'<meta property="og:image" content="{e(og_abs)}">' if og_abs else ''}{'<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' if og else ''}
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{e(og_title)}">
 <meta name="twitter:description" content="{e(og_desc)}">{f'<meta name="twitter:image" content="{e(og_abs)}">' if og_abs else ''}
@@ -246,16 +248,48 @@ setTimeout(()=>{{if(drag)return;let t=0;a=setInterval(()=>{{t+=1;c.style.setProp
 """
 
 
+GTADB_RAW = "https://raw.githubusercontent.com/rolux/gtadb.org/main/"
+
+
+def db_items(game):
+    """Точки сообщества gtadb (их ~1300) — тоже можно отправить другу (Игорь 15.10.2026: «поделиться точкой — везде»).
+    Кадр игры — наш хостинг, фото из жизни — ссылкой на gtadb (в ползунке страницы; в превью ссылки — только кадр игры:
+    своих копий фото gtadb не делаем)."""
+    fp = ROOT / "data" / "map" / f"gtadb_{game}.json"
+    if not fp.exists():
+        return []
+    gt = GAMES[game][0]
+    v = 6 if game == "gta6" else 5
+    out = []
+    for q in json.loads(fp.read_text("utf-8"))["points"]:
+        pid, name, district, real, lat, lon, typ = q[:7]
+        if lat is None or not pid:
+            continue
+        ig = {"url": f"{ASSETS}map/photos/{v}/{pid},ig.jpg", "credit": "© Rockstar Games · gtadb.org"} if q[7] else None
+        rl = {"url": f"{GTADB_RAW}map/photos/{v}/{pid},rl.jpg", "credit": "gtadb.org and contributors (CC BY 4.0)"} if q[8] else None
+        rname = real.split(",")[0]
+        where = f" ({district})" if district else ""
+        out.append({
+            "id": pid, "_file": f"db-{pid}", "lat": lat, "lon": lon,
+            "g": name or district or pid, "n": rname, "a": real.split(",", 1)[1].strip() if "," in real else "",
+            "s": {"ru": f"{name or district}{where} в {gt} — реальное место: {real}. Сравни кадр игры и фото из жизни.",
+                  "en": f"{name or district}{where} in {gt} is a real place: {real}. Compare the game shot with real life."},
+            "pg": ig, "pairs": [{"g": ig, "r": rl}] if ig and rl else [],
+        })
+    return out
+
+
 def main():
     n, made = 0, set()
     for game in GAMES:
         d = json.loads((ROOT / "data" / "map" / f"{game}.json").read_text("utf-8"))
         items = [("place", p) for p in d["places"]] + [("egg", e) for e in d["eggs"]] + [("egg", e) for p in d["places"] for e in p.get("eggs", [])]
+        items += [("db", q) for q in db_items(game)]
         (OUT / game).mkdir(parents=True, exist_ok=True)
         for kind, x in items:
             if x.get("lat") is None or not x.get("id"):
                 continue
-            fp = OUT / game / f"{x['id']}.html"
+            fp = OUT / game / f"{x.get('_file') or x['id']}.html"
             fp.write_text(page(game, kind, x), "utf-8")
             made.add(fp); n += 1
     # лишние страницы (место убрали) — удалить; служебные ._* macOS на exFAT не трогаем (ломали rmtree)

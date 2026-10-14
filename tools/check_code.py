@@ -29,12 +29,22 @@ for f in sorted((ROOT / "js").glob("*.js")):
     for n, line in enumerate(f.read_text("utf-8").splitlines(), 1):
         if "navigator.share" in line and re.search(r"\bfiles\s*:", line):
             share_bad.append(f"{f.name}:{n}: {line.strip()[:100]}")
+# 4. У каждой кнопки «Поделиться» есть ключ места — иначе уходит ссылка на само приложение (15.10.2026: точки gtadb
+#    на пирсе Санта-Моники делились без ссылки на место). Вызовы actions(...) в разметке — с ключом `<вид>:${game}:…`.
+for f in sorted((ROOT / "js").glob("*.js")):
+    if f.name.startswith("._"):
+        continue
+    for n, line in enumerate(f.read_text("utf-8").splitlines(), 1):
+        if "${actions(" in line and not re.search(r"`(place|egg|db):\$\{game\}:", line):
+            share_bad.append(f"{f.name}:{n}: кнопка «Поделиться» без ключа места: {line.strip()[:90]}")
+        if 'data-mp="share"' in line and "data-k=" not in line:
+            share_bad.append(f"{f.name}:{n}: data-mp=share без data-k: {line.strip()[:90]}")
 if share_bad:
-    print("СТОП: «Поделиться» прикладывает файл — Telegram потеряет ссылку; делитесь только url (превью — og:image):")
+    print("СТОП: «Поделиться» сломается (только url с ключом места; файл не прикладывать — Telegram теряет ссылку):")
     for b in share_bad:
         print("  ✗", b)
     sys.exit(1)
-pages = [p for p in (ROOT / "s").glob("*/*.html") if not p.name.startswith("._")]
+pages = [p for p in (ROOT / "s").glob("*/*.html") if not p.name.startswith(("._", "db-"))]   # db- — точки gtadb, превью = кадр игры
 no_og = [p.name for p in pages if not re.search(r'property="og:image" content="[^"]*/s/og/', p.read_text("utf-8"))]
 if pages and len(no_og) > len(pages) * 0.05:
     print(f"СТОП: {len(no_og)} из {len(pages)} страниц «поделиться» без превью «игра | жизнь» (s/og; пример: {no_og[:3]})"
