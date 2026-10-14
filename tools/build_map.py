@@ -230,6 +230,22 @@ def attach_commons(game, places, eggs):
         print(f"  фото Commons: главным {n[0]}, в галерею {n[1]}")
 
 
+def attach_igframes(game, places, eggs):
+    """Кадры игры gtadb для мест без кадра (данные/кадры_игры_gtadb.json): exact — точный, area — «≈ рядом»."""
+    f = DATA / "кадры_игры_gtadb.json"
+    sel = (json.loads(f.read_text("utf-8")) if f.exists() else {}).get(game) or {}
+    n = 0
+    for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
+        s = sel.get(x["id"])
+        if not s or x.get("pg") or x.get("gg") or x.get("pairs"):
+            continue
+        u = f"{ASSETS}map/photos/{5 if game == 'gta5' else 6}/{s['gid']},ig.jpg"
+        x["pg"] = {"url": u, "thumb": u, "credit": f"© Rockstar Games · gtadb.org ({s['gid']})", **({"ap": 1} if s.get("kind") == "area" else {})}
+        n += 1
+    if n:
+        print(f"  кадры игры gtadb по названию: {n}")
+
+
 def gtadb_fixes(game):
     f = DATA / "правки_вручную.json"
     return (json.loads(f.read_text("utf-8")).get(game) or {}).get("gtadb_fix") or {} if f.exists() else {}
@@ -544,6 +560,7 @@ def build(game, cfg):
     attach_approx(game, places, eggs)
     eggs, pts, rep_ = dedupe(places, eggs, pts)
     attach_commons(game, places, eggs)   # после слияния дублей: галерея не должна менять, какое место остаётся
+    attach_igframes(game, places, eggs)
     for q in pts:   # вид 360° точки gtadb — 11-й элемент (после «здесь же»)
         if q[0] in gviews and gviews[q[0]]:
             while len(q) < 10:
