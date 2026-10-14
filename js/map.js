@@ -24,6 +24,8 @@ const W = {
   share:  { en: 'Share', ru: 'Поделиться', es: 'Compartir', pt: 'Compartilhar', fr: 'Partager', de: 'Teilen', it: 'Condividi', tr: 'Paylaş', uk: 'Поділитися', pl: 'Udostępnij', zh: '分享', ja: '共有', ko: '공유' },
   here:   { en: 'Several places here', ru: 'Здесь несколько мест', es: 'Varios lugares aquí', pt: 'Vários lugares aqui', fr: 'Plusieurs lieux ici', de: 'Mehrere Orte hier', it: 'Più luoghi qui', tr: 'Burada birkaç yer', uk: 'Тут кілька місць', pl: 'Kilka miejsc tutaj', zh: '这里有多个地点', ja: 'ここに複数の場所', ko: '여기에 여러 장소' },
   also:   { en: 'Also here', ru: 'Здесь же', es: 'También aquí', pt: 'Também aqui', fr: 'Aussi ici', de: 'Auch hier', it: 'Anche qui', tr: 'Burada ayrıca', uk: 'Тут же', pl: 'Także tutaj', zh: '这里还有', ja: 'ここにも', ko: '여기도' },
+  nearby: { en: 'Nearby', ru: 'Рядом', es: 'Cerca', pt: 'Perto', fr: 'À proximité', de: 'In der Nähe', it: 'Nelle vicinanze', tr: 'Yakında', uk: 'Поруч', pl: 'W pobliżu', zh: '附近', ja: '近く', ko: '근처' },
+  full:   { en: 'Full screen', ru: 'На весь экран', es: 'Pantalla completa', pt: 'Tela cheia', fr: 'Plein écran', de: 'Vollbild', it: 'Schermo intero', tr: 'Tam ekran', uk: 'На весь екран', pl: 'Pełny ekran', zh: '全屏', ja: '全画面', ko: '전체 화면' },
   allPhotos: { en: 'All photos', ru: 'Все фото', es: 'Todas las fotos', pt: 'Todas as fotos', fr: 'Toutes les photos', de: 'Alle Fotos', it: 'Tutte le foto', tr: 'Tüm fotoğraflar', uk: 'Усі фото', pl: 'Wszystkie zdjęcia', zh: '全部照片', ja: 'すべての写真', ko: '모든 사진' },
   fav:    { en: 'Favorite', ru: 'В избранное', es: 'Favorito', pt: 'Favorito', fr: 'Favori', de: 'Favorit', it: 'Preferito', tr: 'Favori', uk: 'В обране', pl: 'Ulubione', zh: '收藏', ja: 'お気に入り', ko: '즐겨찾기' },
   compare: { en: 'Compare', ru: 'Сравнить', es: 'Comparar', pt: 'Comparar', fr: 'Comparer', de: 'Vergleichen', it: 'Confronta', tr: 'Karşılaştır', uk: 'Порівняти', pl: 'Porównaj', zh: '对比', ja: '比較', ko: '비교' },
@@ -82,6 +84,7 @@ const IC = {
   nav: sv('<path d="M3 11.5 21 3l-8.5 18-2-7.5z"/>'),
   grid: sv('<rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/>'),
   chevL: sv('<path d="m15 5-7 7 7 7"/>'),
+  expand: sv('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>'),
   chevR: sv('<path d="m9 5 7 7-7 7"/>'),
   pano: sv('<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/>'),
   heart: sv('<path d="M12 20.5s-7.5-4.6-9.2-9.3C1.6 7.8 3.9 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.4 0 5.7 3.3 4.5 6.7-1.7 4.7-9.2 9.3-9.2 9.3z"/>'),
@@ -171,7 +174,9 @@ function km(a, b) {
 }
 function distLabel(p) {
   if (!me) return '';
-  const d = km(me, [p.lat, p.lon]);
+  return fmtKm(km(me, [p.lat, p.lon]));
+}
+function fmtKm(d) {
   if (navigator.language === 'en-US') { const mi = d * 0.621; return mi < 0.2 ? `${Math.round(mi * 5280 / 10) * 10} ft` : `${mi.toFixed(mi < 10 ? 1 : 0)} mi`; }
   return d < 1 ? `${Math.round(d * 1000 / 10) * 10} m` : `${d.toFixed(d < 10 ? 1 : 0)} km`;
 }
@@ -194,16 +199,22 @@ function needsTranslate(text) {
   return true;
 }
 // ряд действий: главная кнопка «Осмотреться 360°» (Street View — место видно из любой страны), маленькие «маршрут» и «поделиться»
-const panoLink = (lat, lon) => `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`;
+// view {pano, heading, pitch, fov, lat, lon} — проверенный вид (данные/виды_360.json); без него Google берёт ближайшую панораму и смотрит куда попало
+const panoLink = (lat, lon, v) => {
+  let u = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${v?.lat ?? lat},${v?.lon ?? lon}`;
+  if (v?.pano) u += `&pano=${encodeURIComponent(v.pano)}`;
+  for (const k of ['heading', 'pitch', 'fov']) if (Number.isFinite(v?.[k])) u += `&${k}=${v[k]}`;
+  return u;
+};
 const favKey = (kind, id) => `${kind}:${game}:${id}`;
 function favBtn(kind, id, small = false) {
   if (!ctx?.toggleFav || !id) return '';
   const on = !!ctx.isFav?.(favKey(kind, id));
   return `<button class="mp-ib mp-fav${on ? ' on' : ''}${small ? ' sm' : ''}" data-mp="fav" data-kind="${kind}" data-id="${esc(id)}" aria-label="${esc(w('fav'))}" aria-pressed="${on}" title="${esc(w('fav'))}">${IC.heart}</button>`;
 }
-function actions(lat, lon, name, shareText, fav = '') {
+function actions(lat, lon, name, shareText, fav = '', view = null) {
   return `<div class="mp-acts">
-    <a class="mp-cta" href="${panoLink(lat, lon)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>
+    <a class="mp-cta" href="${panoLink(lat, lon, view)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>
     <a class="mp-ib" href="${mapsLink(lat, lon, name)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}" title="${esc(w('route'))}">${IC.nav}</a>
     ${fav}<button class="mp-ib" data-mp="share" data-t="${esc(shareText)}" aria-label="${esc(w('share'))}" title="${esc(w('share'))}">${IC.share}</button>
   </div>`;
@@ -233,19 +244,32 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
   galNames[key] = names; galleries[`g:${key}`] = gl; galleries[`r:${key}`] = rl;
   pairsOf[key] = (pairs || []).map((x) => ({ g: asItem(x.g), r: asItem(x.r) }));
   const P = pairsOf[key];
-  const cov = P.length ? [P[0].g, P[0].r] : [gl[0], rl[0]];
-  const tile = (ph, kind) => {
-    const icon = kind === 'g' ? IC.game : IC.camera, label = w(kind === 'g' ? 'game' : 'real');
-    if (!ph) return `<div class="mp-shot empty ${kind}"><span class="mp-shot-ic">${icon}</span></div>`;
-    const act = P.length ? `data-mp="compare" data-key="${key}" data-i="${o.i ?? ''}"` : `data-mp="view" data-ref="${kind}:${key}" data-n="0" data-i="${o.i ?? ''}"`;
-    return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}" alt="${esc(label)}" loading="lazy" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span></button>`;
-  };
-  const mid = P.length
-    ? `<button class="mp-vs mp-cmp" data-mp="compare" data-key="${key}" data-i="${o.i ?? ''}" aria-label="${esc(w('compare'))}">${IC.swap}<b>${esc(w('compare'))}</b></button>`
-    : `<span class="mp-vs">${o.egg ? IC.egg : IC.swap}</span>`;
   const all = gl.length + rl.length > 2
     ? `<button class="mp-allbtn" data-mp="all" data-key="${key}">${IC.grid}<span>${esc(w('allPhotos'))}</span><em>${IC.camera}${rl.length}</em><em>${IC.game}${gl.length}</em></button>`
     : '';
+  if (P.length) {
+    inl[key] = { pi: 0, x: 50 };
+    hintInline();
+    return `<div class="mp-media-box" data-key="${key}">
+      <div class="cmp-stage cmp-inline" data-key="${key}" data-i="${o.i ?? ''}" style="--x:50%" role="slider" tabindex="0" aria-label="${esc(w('compare'))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+        <img class="cmp-g" src="${esc(P[0].g.url)}" alt="${esc(w('game'))}" draggable="false" decoding="async">
+        <img class="cmp-r" src="${esc(P[0].r.url)}" alt="${esc(w('real'))}" draggable="false" decoding="async">
+        <span class="cmp-lab g">${IC.game}<b>${esc(w('game'))}</b></span>
+        <span class="cmp-lab r">${IC.camera}<b>${esc(w('real'))}</b></span>
+        <div class="cmp-line"><span class="cmp-knob">${IC.chevL}${IC.chevR}</span></div>
+        <button class="cmp-full" data-mp="compare" data-key="${key}" data-i="${o.i ?? ''}" aria-label="${esc(w('full'))}" title="${esc(w('full'))}">${IC.expand}</button>
+      </div>
+      ${P.length > 1 ? `<div class="cmp-ipairs">${P.map((x, k) => `<button class="${k ? '' : 'on'}" data-mp="ipair" data-key="${key}" data-n="${k}" aria-label="${k + 1}/${P.length}"><img src="${esc(x.g.url)}" alt="" loading="lazy"><img src="${esc(x.r.url)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
+      ${all}</div>`;
+  }
+  const cov = [gl[0], rl[0]];
+  const tile = (ph, kind) => {
+    const icon = kind === 'g' ? IC.game : IC.camera, label = w(kind === 'g' ? 'game' : 'real');
+    if (!ph) return `<div class="mp-shot empty ${kind}"><span class="mp-shot-ic">${icon}</span></div>`;
+    const act = `data-mp="view" data-ref="${kind}:${key}" data-n="0" data-i="${o.i ?? ''}"`;
+    return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}" alt="${esc(label)}" loading="lazy" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span></button>`;
+  };
+  const mid = `<span class="mp-vs">${o.egg ? IC.egg : IC.swap}</span>`;
   return `<div class="mp-media-box" data-key="${key}"><div class="mp-hero">${tile(cov[0], 'g')}${tile(cov[1], 'r')}${mid}</div>${all}</div>`;
 }
 // ───── карточки (шторка) ─────
@@ -265,7 +289,7 @@ function placeSheet(p, i) {
       <span class="mp-pic">${meter(p.cf)}<small>${esc(w(p.cf || 'likely'))}</small></span>
       ${dist ? `<span class="mp-pic">${IC.pin}<small>${dist}</small></span>` : ''}
     </div>
-    ${actions(p.lat, p.lon, p.n, `${p.g} → ${p.n}`, favBtn('place', p.id))}
+    ${actions(p.lat, p.lon, p.n, `${p.g} → ${p.n}`, favBtn('place', p.id), p.view)}
     ${(p.eggs || []).map((e) => { const yt = (e.m || []).map(ytLink).filter(Boolean)[0]; return `<div class="mp-eggblk">${favBtn('egg', e.id, true)}<span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><b>${esc(txt(e.t))}</b><p>${esc(txt(e.d))}</p>${yt ? `<a href="${yt.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(yt.label)}</span></a>` : ''}</div></div>`; }).join('')}
     ${(p.alias || []).length ? `<p class="mp-alias">${IC.game}<span>${esc(w('also'))}: ${p.alias.map(esc).join(' · ')}</span></p>` : ''}
     ${txt(p.s) ? `<p class="mp-text">${esc(txt(p.s))}</p>` : ''}
@@ -273,14 +297,27 @@ function placeSheet(p, i) {
     ${txt(p.tip) ? `<div class="mp-blk">${IC.bulb}<div><b>${esc(w('tip'))}</b><p>${esc(txt(p.tip))}</p></div></div>` : ''}
     ${txt(p.fun) ? `<div class="mp-blk">${IC.spark}<div><b>${esc(w('fun'))}</b><p>${esc(txt(p.fun))}</p></div></div>` : ''}
     ${media.length ? `<div class="mp-yt">${media.map((m) => `<a href="${m.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(m.label)}</span></a>`).join('')}</div>` : ''}
+    ${nearbyRow(p, i)}
     ${(p.src || []).length ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a>`).join('')}</div>` : ''}
     <p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>`;
+}
+// ближайшие места (до 5 км) — следующий шаг прогулки в одно касание
+function nearbyRow(p, i) {
+  const all = data[game].places;
+  const near = all.map((q, k) => [k, km([p.lat, p.lon], [q.lat, q.lon])]).filter(([k, d]) => k !== i && d <= 5)
+    .sort((a, b) => a[1] - b[1]).slice(0, 8);
+  if (!near.length) return '';
+  const pic = (q) => q.pr?.thumb || q.pg?.thumb || q.pr?.file || q.pg?.file || q.pairs?.[0]?.r?.url || '';
+  return `<div class="mp-near"><b class="mp-near-t">${IC.pin}<span>${esc(w('nearby'))}</span></b><div class="mp-near-row">${near.map(([k, d]) => {
+    const q = all[k], img = pic(q);
+    return `<button class="mp-near-c" data-mp="near" data-i="${k}">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="mp-ch-ic">${IC.pin}</span>`}<span><b>${esc(q.g || q.n)}</b><small>${esc(fmtKm(d))} · ${esc(q.n)}</small></span></button>`;
+  }).join('')}</div></div>`;
 }
 function eggSheet(e, i) {
   const yt = (e.m || []).map(ytLink).filter(Boolean);
   const cta = yt.length
     ? `<a class="mp-cta mp-cta-yt" href="${yt[0].url}" target="_blank" rel="noopener">${IC.play}<span>${esc(w('seen'))} · ${esc(yt[0].label.split(' · ')[1] || '')}</span></a>`
-    : `<a class="mp-cta" href="${panoLink(e.lat, e.lon)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>`;
+    : `<a class="mp-cta" href="${panoLink(e.lat, e.lon, e.view)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>`;
   return `
     ${heroBox('e' + i, e.pairs, gameList(e), realList(e), { g: txt(e.t), r: (e.p || '').split(',')[0] }, { egg: true })}
     <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><h2>${esc(txt(e.t))}</h2></div></div>
@@ -329,6 +366,83 @@ function helpSheet() {
       ${['public', 'business', 'view_from_street', 'restricted', 'gone'].map((k) => row(IC[k], w(k))).join('')}
     </div>`;
 }
+
+// ───── сравнение прямо в карточке ─────
+// Пара с одного ракурса показывается сразу ползунком: палец вбок — двигает, вверх-вниз — листает карточку,
+// короткое нажатие или ⤢ — на весь экран. Пока ползунок едет, шторка не тянется вниз.
+const inl = {};          // key → { pi: номер пары, x: положение ползунка, % }
+let cmpDrag = null;      // { st, id, x0, y0, mode: null | 'h' | 'v' }
+function hintInline() {
+  if (hintInline.done || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  hintInline.done = true;
+  requestAnimationFrame(() => {
+    const st = document.querySelector('#sheet-body .cmp-inline');
+    if (!st) { hintInline.done = false; return; }
+    setTimeout(() => { st.classList.add('hint'); setTimeout(() => st.classList.remove('hint'), 1600); }, 350);
+  });
+}
+function setInlineX(st, v) {
+  v = Math.max(0, Math.min(100, v));
+  st.style.setProperty('--x', v + '%'); st.setAttribute('aria-valuenow', String(Math.round(v)));
+  (inl[st.dataset.key] ||= { pi: 0 }).x = v;
+}
+function setInlinePair(btn) {
+  const key = btn.dataset.key, n = +btn.dataset.n, pr = (pairsOf[key] || [])[n];
+  const box = btn.closest('.mp-media-box'), st = box?.querySelector('.cmp-inline');
+  if (!pr || !st) return;
+  st.querySelector('.cmp-g').src = pr.g.url; st.querySelector('.cmp-r').src = pr.r.url;
+  box.querySelectorAll('.cmp-ipairs button').forEach((b) => b.classList.toggle('on', b === btn));
+  (inl[key] ||= {}).pi = n; setInlineX(st, 50);   // новый ракурс — снова пополам
+}
+document.addEventListener('pointerdown', (e) => {
+  const st = e.target.closest?.('.cmp-inline');
+  if (!st || e.target.closest('button') || e.button > 0) return;
+  cmpDrag = { st, id: e.pointerId, x0: e.clientX, y0: e.clientY, mode: null };
+});
+document.addEventListener('pointermove', (e) => {
+  const d = cmpDrag;
+  if (!d || e.pointerId !== d.id) return;
+  if (!d.mode) {
+    const dx = Math.abs(e.clientX - d.x0), dy = Math.abs(e.clientY - d.y0);
+    if (dx > 6 && dx >= dy) {
+      d.mode = 'h'; d.st.classList.remove('hint'); d.st.classList.add('drag');
+      try { d.st.setPointerCapture(e.pointerId); } catch { }
+      const sh = document.getElementById('sheet'); if (sh) sh.style.transform = '';
+    } else if (dy > 8) d.mode = 'v';
+  }
+  if (d.mode === 'h') { const b = d.st.getBoundingClientRect(); setInlineX(d.st, ((e.clientX - b.left) / b.width) * 100); }
+});
+function endInlineDrag(e) {
+  const d = cmpDrag;
+  if (!d || e.pointerId !== d.id) return;
+  cmpDrag = null; d.st.classList.remove('drag');
+  if (d.mode || e.type !== 'pointerup') return;
+  ctx?.haptic?.();                                     // короткое нажатие — на весь экран
+  const s = inl[d.st.dataset.key] || {};
+  if (d.st.dataset.i) viewer = { ...(viewer || {}), i: d.st.dataset.i };
+  openCompare(d.st.dataset.key, s.pi || 0, s.x ?? 50);
+}
+document.addEventListener('pointerup', endInlineDrag);
+document.addEventListener('pointercancel', endInlineDrag);
+// жест вбок (ползунок, полоса «Рядом», миниатюры пар) не должен тянуть шторку: её жест — touchmove на #sheet
+let hTouch = null;
+addEventListener('touchstart', (e) => {
+  const t = e.touches[0];
+  hTouch = e.target.closest?.('.mp-near-row, .cmp-ipairs') ? { x: t.clientX, y: t.clientY, h: null } : null;
+}, { capture: true, passive: true });
+addEventListener('touchmove', (e) => {
+  if (cmpDrag?.mode === 'h') { e.stopPropagation(); return; }
+  if (!hTouch) return;
+  const t = e.touches[0];
+  if (hTouch.h == null) { const dx = Math.abs(t.clientX - hTouch.x), dy = Math.abs(t.clientY - hTouch.y); if (dx > 6 || dy > 6) hTouch.h = dx > dy; }
+  if (hTouch.h) e.stopPropagation();
+}, { capture: true, passive: true });
+addEventListener('keydown', (e) => {
+  const st = e.target.closest?.('.cmp-inline');
+  if (!st || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+  e.preventDefault();
+  setInlineX(st, (inl[st.dataset.key]?.x ?? 50) + (e.key === 'ArrowLeft' ? -5 : 5));
+});
 
 // ───── просмотр на весь экран ─────
 // «Сравнить» — только пары с одного ракурса, ползунок двигается пальцем. «Все фото» — сетка всех снимков (жизнь / игра),
@@ -603,7 +717,14 @@ document.addEventListener('click', (e) => {
   else if (a === 'dcard') { ctx?.haptic(); openPoint(+el.dataset.i, true); }
   else if (a === 'view') { ctx?.haptic(); if (el.dataset.i) viewer = { ...(viewer || {}), i: el.dataset.i }; openViewer(el.dataset.ref, +(el.dataset.n || 0)); }
   else if (a === 'viewer-step') openSingle(viewer.ref, viewer.n + (+el.dataset.d));
-  else if (a === 'compare') { ctx?.haptic(); if (el.dataset.i !== undefined && el.dataset.i !== '') viewer = { ...(viewer || {}), i: el.dataset.i }; openCompare(el.dataset.key, viewer?.mode === 'cmp' ? viewer.pi : 0, viewer?.x ?? 50); }
+  else if (a === 'compare') {
+    ctx?.haptic(); const st = inl[el.dataset.key];
+    if (el.dataset.i !== undefined && el.dataset.i !== '') viewer = { ...(viewer || {}), i: el.dataset.i };
+    if (viewer?.mode === 'cmp') openCompare(el.dataset.key, viewer.pi, viewer.x ?? 50);
+    else openCompare(el.dataset.key, st?.pi ?? 0, st?.x ?? 50);
+  }
+  else if (a === 'ipair') { ctx?.haptic(); setInlinePair(el); }
+  else if (a === 'near') { ctx?.haptic(); openPlace(+el.dataset.i, true); }
   else if (a === 'pair') openCompare(viewer.key, +el.dataset.n, viewer.x ?? 50);
   else if (a === 'all') { ctx?.haptic(); openAll(el.dataset.key, viewer?.mode === 'all' ? viewer.tab : 'r', el.dataset.i !== undefined && el.dataset.i !== '' ? el.dataset.i : viewer?.i); }
   else if (a === 'all-tab') openAll(viewer.key, el.dataset.t, viewer.i);

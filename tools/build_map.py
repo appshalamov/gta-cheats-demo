@@ -14,6 +14,8 @@ import pathlib
 import re
 import shutil
 import subprocess
+import urllib.parse
+import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT.parent / "Карта локаций GTA — реальный мир"
@@ -29,6 +31,56 @@ GAMES = {
              "eggs": ["easter_eggs_gta5.json", "_сырьё/canonical_eggs_gta5.json", "_сырьё/raw_eggs_gta5.json"], "gtadb": "V"},
 }
 MAX_TXT = 320
+VIEWS = DATA / "виды_360.json"   # id места/пасхалки → ссылка Google Street View (или готовый {pano, heading, pitch, fov})
+
+
+def parse_view(v):
+    """Ссылка Street View → {lat, lon, pano, heading, pitch, fov}.
+    Вид ссылки: …/maps/@25.79,-80.13,3a,75y,90h,95t/data=…!1s<ID панорамы>!2e0…  (t = наклон + 90)."""
+    if isinstance(v, dict):
+        out = {k: v[k] for k in ("lat", "lon", "pano", "heading", "pitch", "fov") if v.get(k) not in (None, "")}
+    else:
+        url = str(v).strip()
+        if re.match(r"https?://(maps\.app\.goo\.gl|goo\.gl)/", url):   # короткая ссылка из «Поделиться» — раскрыть
+            req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": "Mozilla/5.0"})
+            url = urllib.request.urlopen(req, timeout=20).geturl()
+        url = urllib.parse.unquote(url)
+        out = {}
+        m = re.search(r"@(-?\d+\.\d+),(-?\d+\.\d+)", url)
+        if m:
+            out["lat"], out["lon"] = round(float(m[1]), 6), round(float(m[2]), 6)
+        for key, rx in (("fov", r",([\d.]+)y"), ("heading", r",([\d.]+)h"), ("pitch", r",([\d.]+)t")):
+            m = re.search(r"@[^/]*" + rx, url)
+            if m:
+                out[key] = float(m[1])
+        if "pitch" in out:
+            out["pitch"] -= 90
+        m = re.search(r"!1s([A-Za-z0-9_\-]{10,})!2e0", url)   # !2e0 — панорама Google (свои фото людей !2e10 не берём)
+        if m:
+            out["pano"] = m[1]
+    lim = {"heading": (-180, 360), "pitch": (-90, 90), "fov": (10, 100)}
+    for k, (lo, hi) in lim.items():
+        if k in out:
+            out[k] = round(min(hi, max(lo, float(out[k]))), 1)
+    return out if ("pano" in out or "heading" in out) else None
+
+
+def load_views(game):
+    if not VIEWS.exists():
+        return {}
+    raw = json.loads(VIEWS.read_text("utf-8")).get(game) or {}
+    views = {}
+    for pid, v in raw.items():
+        try:
+            pv = parse_view(v)
+        except Exception as err:   # сеть/формат — место останется со ссылкой по координатам
+            print(f"  ! вид 360° {pid}: {err}")
+            continue
+        if pv:
+            views[pid] = pv
+        else:
+            print(f"  ! вид 360° {pid}: в ссылке нет ни ID панорамы, ни направления")
+    return views
 
 
 def first_existing(names):
@@ -257,6 +309,15 @@ def build(game, cfg):
         if pr:
             e["pairs"] = pr
     eggs, pts, rep_ = dedupe(places, eggs, pts)
+    views = load_views(game)
+    used = set()
+    for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
+        if x["id"] in views:
+            x["view"] = views[x["id"]]; used.add(x["id"])
+    for pid in sorted(set(views) - used):
+        print(f"  ! вид 360° {pid}: такого места нет в {game}")
+    if views:
+        print(f"  виды 360°: {len(used)} из {len(views)}")
     for pl in places:
         pl.pop("_gtadb", None)
     data = {"game": game, "center": cfg["center"], "zoom": cfg["zoom"],
