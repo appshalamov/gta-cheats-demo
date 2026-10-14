@@ -23,7 +23,7 @@ const data = {}; // gameId -> {cheats, ...}
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const mapMod = () => import('./map.js');
-const mapCtx = () => ({ openSheet, closeSheet, setSnap, sheetSnap: () => snap, sheetPx: snapPx, haptic, toast, I, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k) });
+const mapCtx = () => ({ openSheet, closeSheet, setSnap, sheetSnap: () => snap, sheetPx: snapPx, restSheet, haptic, toast, I, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k) });
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const game = () => GAMES.find((g) => g.id === store.game) || GAMES[0];
 const cheats = () => (data[store.game]?.cheats) || [];
@@ -517,6 +517,9 @@ function applySnap(animate = true) {
   document.documentElement.style.setProperty('--sheet-vis', vis + 'px');
   if (!animate) requestAnimationFrame(() => { sheet.style.transition = ''; });
 }
+// вернуть шторку в её текущее положение (после чужого жеста). Положение шторки меняет только app.js:
+// 15.10.2026 ползунок в map.js писал sheet.style.transform = '' — у шторки с положениями это «весь экран».
+function restSheet() { if (snap) applySnap(); else $('#sheet').style.transform = ''; }
 function setSnap(s) {
   if (!snap || !SNAP_ORDER.includes(s)) return;
   snap = s;
@@ -562,27 +565,34 @@ const SHEET_LOCK_PX = 10, SHEET_V_RATIO = 1.6, SHEET_CLOSE_PX = 110, SHEET_FLICK
 (() => {
   const sheet = $('#sheet');
   let x0 = 0, y0 = null, t0 = 0, dy = 0, dir = null;
-  let base = 0, lastY = 0, lastT = 0, v = 0;
+  let base = 0, hist = [], fromH = false;
+  // Игорь 15.10.2026: «карточка на половине, веду влево-вправо — она открывается во весь экран». Живой палец в начале
+  // горизонтального свайпа чуть уходит вверх: шторка считала это рывком вверх. Теперь: шторка едет только при явно
+  // вертикальном движении, положение меняется только после сдвига ≥ 28 px, скорость — за последние 80 мс.
+  const SNAP_MIN_PX = 28, SNAP_LOCK_PX = 12, SNAP_V_RATIO = 1.8, SNAP_V_RATIO_H = 2.6;
   sheet.addEventListener('touchstart', (e) => {
     const body = $('#sheet-body');
     if (e.touches.length > 1 || (body.scrollTop > 0 && !e.target.closest('.grab'))) { y0 = null; return; }
     x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = e.timeStamp; dy = 0; dir = null;
-    lastY = y0; lastT = t0; v = 0;
+    hist = [[t0, y0]];
+    // начало на ползунке сравнения или горизонтальной ленте — вертикаль должна быть совсем явной
+    fromH = !!e.target.closest('.cmp-stage, .cmp-ipairs, .mp-near-row, .mp-chooser, [data-hscroll]');
     const m = /translateY\((-?[\d.]+)px\)/.exec(sheet.style.transform); base = m ? +m[1] : 0;
   }, { passive: true });
   sheet.addEventListener('touchmove', (e) => {
     if (y0 == null || dir === 'h') return;
     const dx = e.touches[0].clientX - x0, d = e.touches[0].clientY - y0;
     if (!dir) {
-      if (Math.abs(dx) < SHEET_LOCK_PX && Math.abs(d) < SHEET_LOCK_PX) return;
+      const lock = snap ? SNAP_LOCK_PX : SHEET_LOCK_PX;
+      if (Math.abs(dx) < lock && Math.abs(d) < lock) return;
       // в режиме положений шторку можно тянуть и вверх (кроме «весь экран» — там вверх листается содержимое)
       const upOk = snap && snap !== 'full';
-      dir = (d > 0 || upOk) && Math.abs(d) > Math.abs(dx) * SHEET_V_RATIO ? 'v' : 'h';
+      const ratio = snap ? (fromH ? SNAP_V_RATIO_H : SNAP_V_RATIO) : SHEET_V_RATIO;
+      dir = (d > 0 || upOk) && Math.abs(d) > Math.abs(dx) * ratio ? 'v' : 'h';
       if (dir === 'h') return;
       sheet.style.transition = 'none';
     }
-    const now = e.touches[0].clientY, t = e.timeStamp;
-    if (t > lastT) { v = (now - lastY) / (t - lastT); lastY = now; lastT = t; }
+    hist.push([e.timeStamp, e.touches[0].clientY]); if (hist.length > 12) hist.shift();
     if (snap) {
       dy = d - Math.sign(d) * SHEET_LOCK_PX;
       sheet.style.transform = `translateY(${Math.max(0, base + dy)}px)`;
@@ -598,8 +608,11 @@ const SHEET_LOCK_PX = 10, SHEET_V_RATIO = 1.6, SHEET_CLOSE_PX = 110, SHEET_FLICK
     if (!wasV) return;
     sheet.style.transition = '';
     if (snap) {   // к ближайшему положению с учётом скорости; ниже полоски или рывок вниз из полоски — закрыть
+      const tEnd = e.timeStamp, recent = hist.filter(([t]) => tEnd - t <= 80), a = recent[0] || hist[0], b = hist[hist.length - 1];
+      const v = b && a && b[0] > a[0] ? (b[1] - a[1]) / (b[0] - a[0]) : 0;
+      if (Math.abs(dy) < SNAP_MIN_PX) { setSnap(snap); return; }   // едва сдвинули — остаёмся где были
       const h = sheet.offsetHeight, vis = h - Math.max(0, base + dy), proj = vis - v * 150;
-      if (vis < snapPx('peek') - 60 || (snap === 'peek' && v > SHEET_FLICK_PX_MS)) { closeSheet(); return; }
+      if (vis < snapPx('peek') - 60 || (snap === 'peek' && v > SHEET_FLICK_PX_MS && dy > SNAP_MIN_PX)) { closeSheet(); return; }
       let next = SNAP_ORDER.reduce((a, b) => (Math.abs(Math.min(h, snapPx(b)) - proj) < Math.abs(Math.min(h, snapPx(a)) - proj) ? b : a));
       if (Math.abs(v) > SHEET_FLICK_PX_MS) { const i = SNAP_ORDER.indexOf(snap) + (v < 0 ? 1 : -1); next = SNAP_ORDER[Math.max(0, Math.min(2, i))]; }
       if (next !== snap) haptic?.();

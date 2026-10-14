@@ -621,7 +621,7 @@ addEventListener('touchmove', (e) => {
       if (cmpT.h) {
         d.st.classList.remove('hint'); d.st.classList.add('drag');
         try { d.st.setPointerCapture(d.id); } catch { }
-        const sh = document.getElementById('sheet'); if (sh) sh.style.transform = '';
+        ctx?.restSheet?.();   // шторку — в её положение (не сброс transform: у шторки с положениями это «весь экран»)
       }
     }
   }
