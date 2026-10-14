@@ -1040,8 +1040,19 @@ function openPlace(i, fly) {
   ctx.openSheet(placeSheet(p, i), 'sheet-map');
 }
 
-// нажатие: ищем точку в радиусе пальца, приоритет пасхалки > места > сообщество
+// нажатие по карте ждёт 250 мс: если за это время началось второе касание (двойной тап или «тап и тяни» —
+// масштаб одним пальцем, как в навигаторе), точку не открываем (Игорь 14.10.2026: «палец попадает на точку — она открывается»)
+let tapTimer = null;
+const TAP_WAIT = 250;
 function onTap(e) {
+  clearTimeout(tapTimer);
+  const point = e.point;
+  tapTimer = setTimeout(() => { tapTimer = null; pickAt({ point }); }, TAP_WAIT);
+}
+function cancelTap() { if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; } }
+// ищем точку в радиусе пальца, приоритет пасхалки > места > сообщество
+function pickAt(e) {
+  if (!map) return;
   const r = 14, { x, y } = e.point;
   const layers = ['eggs', 'places', 'gtadb'].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, 'visibility') !== 'none');
   const hits = map.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]], { layers });
@@ -1193,6 +1204,7 @@ async function create(preferGame) {
     map.on('load', () => { box.classList.remove('loading'); renderCards(); });
     map.on('moveend', renderCards);
     map.on('click', onTap);
+    for (const ev of ['touchstart', 'mousedown', 'dblclick', 'zoomstart', 'dragstart']) map.on(ev, cancelTap);
     renderChips();
   } catch (err) {
     box.classList.remove('loading');
