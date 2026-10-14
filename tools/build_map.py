@@ -81,6 +81,53 @@ def region_gate(game, places, eggs):
                          f"или внесите в «вне_региона», если это законная отсылка:\n  " + "\n  ".join(bad))
 
 
+GAME_CATS = [("w", r"Ammu-?Nation"),
+             ("c", r"Los Santos Customs|LS Customs|Benny'?s|Premium Deluxe|Simeon|Legendary Motorsport|Southern San Andreas Super Autos|Auto Exotic|Beeker"),
+             ("h", r"Fleeca|Pacific Standard|Blaine County Savings|Union Depository|Vangelico"),
+             ("s", r"Binco|Suburban|Ponsonbys|Discount Store|Herr Kutz|Beach Combover|Bob Mulet|Hair on Hawick|O'Sheas Barbers|Barber|Tattoo")]
+
+
+def game_cat(name):
+    """Категория для игрока по названию в игре: w — оружие, c — машины, h — ограбления, s — магазины (одежда, стрижки, тату)."""
+    for code, rx in GAME_CATS:
+        if re.search(rx, name or "", re.I):
+            return code
+    return None
+
+
+def attach_cats(places, pts):
+    n = 0
+    for pl in places:
+        c = game_cat(pl.get("g"))
+        if c:
+            pl["gc"] = c; n += 1
+    for q in pts:
+        c = game_cat(q[1])
+        if c:
+            while len(q) < 12:
+                q.append([] if len(q) == 9 else None)
+            q[12:] = [c]; n += 1
+    print(f"  категории для игрока: {n}")
+
+
+LEAK_WORDS = re.compile(r"\bleak|утечк|placeholder", re.I)
+
+
+def leak_reason(it, game):
+    """Признак утечки: утечка в самом названии («2022 leak trivia», «leaked placeholder») или фото взято с точки gtadb
+    с тегом утечки (L1–L8, EVENTS). Описание, где утечка упомянута как исключённая, — не признак."""
+    v = 5 if game == "gta5" else 6
+    lm = json.loads((SRC / "источники" / "gtadb.org (CC BY 4.0)" / f"landmarks_gta{v}.json").read_text("utf-8"))
+    leaky = lambda gid: gid in lm and any(t.lower() == "events" or re.fullmatch(r"l\d+", t.lower()) for t in lm[gid][6])
+    if LEAK_WORDS.search(str(it.get("title") or "") + " " + str(it.get("id") or "")):
+        return "утечка в названии"
+    for k in ("photo_game", "photo_real"):
+        m = re.search(r"\((L\d+)\)", str((it.get(k) or {}).get("credit") or ""))
+        if m and leaky(m.group(1)):
+            return f"фото из утечки gtadb {m.group(1)}"
+    return ""
+
+
 def attach_ingame(game, cfg, places, eggs, pts):
     """«Где в игре» (просьба Игоря 14.10.2026: «как это в GTA найти»): координаты места на карте игры.
     gm = [x, y, точность]: 0 — своя точка gtadb, 1 — соседняя пара gtadb, 2 — оценка по 6 ближайшим опорным точкам
@@ -288,12 +335,16 @@ def dedupe(places, eggs, pts):
     keep = []
     for q in pts:
         here = (q[4], q[5])
-        dup = q[0] in own_ids
-        if not dup:
+        hit = next((pl for pl in places if pl.get("_gtadb") == q[0]), None)
+        if not hit:
             for pl in places:
                 d = meters(here, (pl["lat"], pl["lon"]))
                 if d <= 25 or (d <= 80 and toks(q[1], q[3]) & toks(pl["g"], pl["n"])):
-                    dup = True; break
+                    hit = pl; break
+        dup = hit is not None
+        cat = game_cat(q[1])
+        if dup and cat and game_cat(hit.get("g")) != cat:   # точку для игрока (оружие, машины…) не теряем, если место-дубль её не несёт
+            dup = False
         if dup:
             rep_["gtadb_dup"] += 1
         else:
@@ -302,6 +353,8 @@ def dedupe(places, eggs, pts):
     keep.sort(key=lambda q: -(q[7] + q[8]))
     groups = []
     for q in keep:
+        if game_cat(q[1]):   # точки для игрока не схлопываем в стопки
+            groups.append([q]); continue
         for g in groups:
             if meters((q[4], q[5]), (g[0][4], g[0][5])) <= 15:
                 g.append(q); break
@@ -358,16 +411,24 @@ def build(game, cfg):
             "_gxy": it.get("game_xy"), "_gaddr": it.get("game_addr"), "_ggid": it.get("game_gid"),
         }
         places.append({k: v for k, v in place.items() if v not in (None, "", [], {"ru": "", "en": ""})})
+    skipped = []
     for i, it in enumerate(json.loads(ef.read_text("utf-8")) if ef else []):
         lat, lon = num(it.get("lat")), num(it.get("lon"))
         if lat is None or lon is None:
             continue
+        # в приложение — только проверенное и без утечек (14.10.2026 в прод попали непроверенная пасхалка из списка утечки
+        # 2022 года и опровергнутый слух: finalize --provisional добавлял непроверенные записи канона)
+        why = "не проверена" if it.get("verified") is False else leak_reason(it, game)
+        if why:
+            skipped.append(f"{it.get('id')} ({why})"); continue
         eggs.append({
             "id": it.get("id") or f"{game}-e{i}",
             "t": bi(it, "title"), "d": bi(it, "description"), "p": it.get("real_place", ""),
             "lat": lat, "lon": lon, "cf": it.get("confidence", "likely"), "m": media(it), "src": src0(it),
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"), "gg": gal(it, game, "game_gallery", 4),
         })
+    if skipped:
+        print(f"  пасхалки не в приложение: {len(skipped)} — " + ", ".join(skipped[:6]) + (" …" if len(skipped) > 6 else ""))
     layer = json.loads((DATA / f"gtadb_layer_{game}.json").read_text("utf-8"))
     gfix = gtadb_fixes(game)   # проверенные вручную точки gtadb (у части адрес вида «Wilshire Boulevard, CA» без номера — координаты примерные)
     for x in layer:
@@ -418,6 +479,7 @@ def build(game, cfg):
     if views:
         print(f"  виды 360°: {len(used)} из {len(views)}")
     attach_ingame(game, cfg, places, eggs, pts)
+    attach_cats(places, pts)
     for pl in places:
         for k in ("_gtadb", "_gxy", "_gaddr", "_ggid"):
             pl.pop(k, None)

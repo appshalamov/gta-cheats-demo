@@ -18,6 +18,14 @@ const GAMES = {
 // Бета «карта игры в основе» (гипотеза Игоря 14.10.2026: миру известна карта GTA 5 — люди ищут, что из игры есть в жизни).
 export const BETA = /\/beta\//.test(location.pathname) || new URLSearchParams(location.search).has('beta');
 let mode = !BETA ? 'real' : (() => { try { return localStorage.getItem('secret.map.mode') === 'real' ? 'real' : 'game'; } catch { return 'game'; } })();
+// категории для игрока (бета): цвет, подпись, что тут делать, какие читы открыть
+const CATS = {
+  w: { c: '#ff5a5a', t: { ru: 'Оружие', en: 'Weapons' }, what: { ru: 'Оружейный магазин: оружие, патроны, бронежилеты, модификации.', en: 'Gun store: weapons, ammo, body armor, attachments.' }, cheat: 'weapon', ct: { ru: 'Читы на оружие', en: 'Weapon cheats' } },
+  c: { c: '#3b9cff', t: { ru: 'Машины', en: 'Cars' }, what: { ru: 'Машины: тюнинг, покраска, покупка и продажа.', en: 'Cars: tuning, paint, buying and selling.' }, cheat: 'vehicle', ct: { ru: 'Читы на машины', en: 'Vehicle cheats' } },
+  h: { c: '#f5b942', t: { ru: 'Ограбления', en: 'Heists' }, what: { ru: 'Банк или ювелирный: место ограблений и миссий.', en: 'Bank or jeweler: a heist and mission spot.' }, cheat: 'player', ct: { ru: 'Читы на игрока', en: 'Player cheats' } },
+  s: { c: '#b07cff', t: { ru: 'Магазины', en: 'Shops' }, what: { ru: 'Магазин: одежда, маски, стрижки или тату для персонажа.', en: 'Shop: clothes, masks, haircuts or tattoos for your character.' } },
+};
+let activeCat = null;
 const G2M = (gx, gy) => { const fx = (gx + 16384) / 32768, fy = (16384 - gy) / 32768; return [fx * 360 - 180, Math.atan(Math.sinh(Math.PI * (1 - 2 * fy))) * 180 / Math.PI]; };
 const ll = (x) => (mode === 'real' ? [x.lon, x.lat] : x.gm ? G2M(x.gm[0], x.gm[1]) : null);
 const llPt = (q) => (mode === 'real' ? [q[5], q[4]] : q[11] ? G2M(q[11][0], q[11][1]) : null);
@@ -342,6 +350,16 @@ function gameBlock(gm, addr, region, gid, ref = {}) {
       <span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))}</small><b>${line}</b></span>
       <span class="mp-ig-open">${esc(w('showInGame'))}${IC.chevR}</span></button>`;
 }
+// пасхалки места (в бете — выше реального мира: игрокам они интереснее)
+function eggBlocks(p) {
+  return (p.eggs || []).map((e) => { const yt = (e.m || []).map(ytLink).filter(Boolean)[0]; return `<div class="mp-eggblk">${favBtn('egg', e.id, true)}<span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><b>${esc(txt(e.t))}</b><p>${esc(txt(e.d))}</p>${yt ? `<button class="mp-ytbtn" data-mp="yt" data-v="${yt.id}" data-t="${yt.t}" data-l="${esc(yt.label)}">${IC.play}<span>${esc(yt.label)}</span></button>` : ''}</div></div>`; }).join('');
+}
+function playerBlock(gc) {
+  const c = CATS[gc];
+  if (!BETA || !c) return '';
+  return `<div class="mp-player" style="--c:${c.c}"><span class="mp-player-t"><i></i>${esc(tr(c.t))}</span><p>${esc(tr(c.what))}</p>
+    ${c.cheat ? `<button class="mp-player-go" data-action="open-cheats" data-cat="${c.cheat}">${IC.game}<span>${esc(tr(c.ct))}</span>${IC.chevR}</button>` : ''}</div>`;
+}
 function placeSheet(p, i) {
   const ck = catKey(p);
   const dist = distLabel(p);
@@ -353,6 +371,8 @@ function placeSheet(p, i) {
       <a class="mp-nm r mp-nm-link" href="${mapsLink(p.lat, p.lon, p.n)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(p.n)}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(p.n)}</b>${p.a ? `<small>${esc(p.a)}</small>` : ''}</div><span class="mp-nm-go">${IC.nav}</span></a>
     </div>
     ${gameBlock(p.gm, p.ga, p.r, '', { k: 'p', i, real: [p.n, p.a].filter(Boolean).join(' · ') })}
+    ${playerBlock(p.gc)}
+    ${BETA ? eggBlocks(p) : ''}
     <div class="mp-picto">
       <span class="mp-pic">${IC[ck]}<small>${esc(w(ck))}</small></span>
       ${p.ac && IC[p.ac] ? `<span class="mp-pic ac-${p.ac}">${IC[p.ac]}<small>${esc(w(p.ac))}</small></span>` : ''}
@@ -360,7 +380,7 @@ function placeSheet(p, i) {
       ${dist ? `<span class="mp-pic">${IC.pin}<small>${dist}</small></span>` : ''}
     </div>
     ${actions(p.lat, p.lon, p.n, `${p.g} → ${p.n}`, favBtn('place', p.id), p.view)}
-    ${(p.eggs || []).map((e) => { const yt = (e.m || []).map(ytLink).filter(Boolean)[0]; return `<div class="mp-eggblk">${favBtn('egg', e.id, true)}<span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><b>${esc(txt(e.t))}</b><p>${esc(txt(e.d))}</p>${yt ? `<button class="mp-ytbtn" data-mp="yt" data-v="${yt.id}" data-t="${yt.t}" data-l="${esc(yt.label)}">${IC.play}<span>${esc(yt.label)}</span></button>` : ''}</div></div>`; }).join('')}
+    ${BETA ? '' : eggBlocks(p)}
     ${(p.alias || []).length ? `<p class="mp-alias">${IC.game}<span>${esc(w('also'))}: ${p.alias.map(esc).join(' · ')}</span></p>` : ''}
     ${txt(p.s) ? `<p class="mp-text">${esc(txt(p.s))}</p>` : ''}
     ${txt(p.why) ? `<div class="mp-blk">${IC.info}<div><b>${esc(w('why'))}</b><p>${esc(txt(p.why))}</p></div></div>` : ''}
@@ -418,6 +438,7 @@ function gtadbSheet(p, g, i) {
       <a class="mp-nm r mp-nm-link" href="${mapsLink(lat, lon, real)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(real.split(',')[0])}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(real.split(',')[0])}</b><small>${esc(real.split(',').slice(1).join(',').trim())}</small></div><span class="mp-nm-go">${IC.nav}</span></a>
     </div>
     ${p[11] ? gameBlock([p[11][0], p[11][1], 0], [name, district].filter(Boolean).join(', '), '', id, { k: 'd', i, real }) : ''}
+    ${playerBlock(p[12])}
     <div class="mp-picto"><span class="mp-pic">${IC.other}<small>${esc(type || w('other'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel({ lat, lon })}</small></span>` : ''}</div>
     ${(p[9] || []).length ? `<div class="mp-also"><small>${esc(w('also'))}</small><span class="mp-also-list">${p[9].map(esc).join(' · ')}</span></div>` : ''}
     ${actions(lat, lon, real, `${name || district || id} → ${real.split(',')[0]}`, '', p[10] || null)}
@@ -829,7 +850,7 @@ function renderCards() {
   if (!box || !map || !data[game]) return;
   const places = data[game].places;
   const b = map.getBounds(), c = map.getCenter();
-  const vis = show.places ? places.map((p, i) => ({ p, i, c: ll(p) })).filter(({ c }) => c && b.contains(c)) : [];
+  const vis = show.places ? places.map((p, i) => ({ p, i, c: ll(p) })).filter(({ p, c }) => c && (activeCat ? p.gc === activeCat : b.contains(c))) : [];
   // на общем плане — сначала самые узнаваемые (точная копия, обе фотографии), при приближении — ближайшие к центру
   const rank = (p) => (p.cf === 'confirmed' ? 0 : p.cf === 'likely' ? 1 : 2) + (p.pg && p.pr ? 0 : 1.5);
   const dc = (x) => km([c.lat, c.lng], [x.c[1], x.c[0]]);
@@ -838,9 +859,9 @@ function renderCards() {
   const top = vis.slice(0, 30);
   if (selected != null && !top.some((x) => x.i === selected)) { const s = vis.find((x) => x.i === selected); if (s) top.unshift(s); }
   let extra = '';
-  if (show.gtadb && gtadb[game] && map.getZoom() >= (mode === 'game' ? 6 : 13) && top.length < 30) {
+  if (show.gtadb && gtadb[game] && (activeCat || map.getZoom() >= (mode === 'game' ? 6 : 13)) && top.length < 30) {
     const g = gtadb[game];
-    const pts = g.points.map((q, i) => ({ q, i, c: llPt(q) })).filter(({ c }) => c && b.contains(c));
+    const pts = g.points.map((q, i) => ({ q, i, c: llPt(q) })).filter(({ q, c }) => c && (activeCat ? q[12] === activeCat : b.contains(c)));
     pts.sort((a, z) => km([c.lat, c.lng], [a.c[1], a.c[0]]) - km([c.lat, c.lng], [z.c[1], z.c[0]]));
     extra = pts.slice(0, 30 - top.length).map(({ q, i }) => {
       const ph = gtadbPhotos(q, g.game);
@@ -852,7 +873,7 @@ function renderCards() {
     }).join('');
   }
   const other = game === 'gta6' ? 'gta5' : 'gta6';
-  const promo = BETA && map.getZoom() < (mode === 'game' ? 4.5 : 11) ? `<button class="mc mc-promo${other === 'gta6' ? ' g6' : ''}" data-mp="game" data-v="${other}">
+  const promo = BETA && !activeCat && map.getZoom() < (mode === 'game' ? 4.5 : 11) ? `<button class="mc mc-promo${other === 'gta6' ? ' g6' : ''}" data-mp="game" data-v="${other}">
       <span class="mc-promo-t"><b>${GAMES[other].title}</b><small>${esc(w(other === 'gta6' ? 'promo6' : 'promo5'))}</small></span>
       <span class="mc-promo-n">${data[other] ? `<em>${data[other].places.length}</em> ${esc(w('places_n'))}` : ''}${IC.chevR}</span></button>` : '';
   if (BETA && !data[other]) loadGame(other).then(() => { if (promo === '') return; renderCards(); }).catch(() => { });
@@ -879,9 +900,9 @@ function geo(kind) {
   const d = data[game];
   const at = (c, props) => (c ? pt(c[0], c[1], props) : null);
   const est = (x) => (mode === 'game' && x.gm && x.gm[2] === 2 ? 1 : 0);   // место в игре оценено по соседним точкам
-  if (kind === 'places') return fc((d?.places || []).map((p, i) => at(ll(p), { i, cf: p.cf, egg: (p.eggs || []).length ? 1 : 0, est: est(p) })).filter(Boolean));
+  if (kind === 'places') return fc((d?.places || []).map((p, i) => at(ll(p), { i, cf: p.cf, egg: (p.eggs || []).length ? 1 : 0, est: est(p), gc: p.gc || '' })).filter(Boolean));
   if (kind === 'eggs') return fc((d?.eggs || []).map((e, i) => at(ll(e), { i, cf: e.cf, est: est(e) })).filter(Boolean));
-  if (kind === 'gtadb') return fc(show.gtadb && gtadb[game] ? gtadb[game].points.map((p, i) => at(llPt(p), { i })).filter(Boolean) : []);
+  if (kind === 'gtadb') return fc(show.gtadb && gtadb[game] ? gtadb[game].points.map((p, i) => at(llPt(p), { i, gc: p[12] || '' })).filter(Boolean) : []);
   if (kind === 'sel') {
     const p = selected != null && d?.places[selected];
     if (p) return fc([at(ll(p), {})].filter(Boolean));
@@ -897,7 +918,9 @@ function addLayers() {
   for (const k of ['gtadb', 'places', 'eggs', 'sel']) if (!map.getSource(k)) map.addSource(k, { type: 'geojson', data: geo(k) });
   const z = mode === 'game' ? (a, b) => ['interpolate', ['linear'], ['zoom'], 2, a, 8, b] : (a, b) => ['interpolate', ['linear'], ['zoom'], 8, a, 15, b];
   if (!map.getLayer('gtadb')) map.addLayer({ id: 'gtadb', type: 'circle', source: 'gtadb', minzoom: mode === 'game' ? 5 : 11.5,
-    paint: { 'circle-radius': z(2.5, 6), 'circle-color': COLORS.gtadb, 'circle-opacity': .75, 'circle-stroke-width': 1, 'circle-stroke-color': stroke } });
+    paint: { 'circle-radius': BETA ? ['case', ['!=', ['get', 'gc'], ''], z(4.5, 9), z(2.5, 6)] : z(2.5, 6),
+      'circle-color': BETA ? ['match', ['get', 'gc'], 'w', CATS.w.c, 'c', CATS.c.c, 'h', CATS.h.c, 's', CATS.s.c, COLORS.gtadb] : COLORS.gtadb,
+      'circle-opacity': .85, 'circle-stroke-width': 1, 'circle-stroke-color': stroke } });
   if (!map.getLayer('places-glow')) map.addLayer({ id: 'places-glow', type: 'circle', source: 'places', filter: ['==', ['get', 'cf'], 'confirmed'],
     paint: { 'circle-radius': z(9, 18), 'circle-color': COLORS.confirmed, 'circle-opacity': .18, 'circle-blur': .6 } });
   if (!map.getLayer('places')) map.addLayer({ id: 'places', type: 'circle', source: 'places',
@@ -914,7 +937,23 @@ function addLayers() {
     map.addSource('me', { type: 'geojson', data: fc(me && mode === 'real' ? [pt(me[1], me[0], {})] : []) });
     map.addLayer({ id: 'me', type: 'circle', source: 'me', paint: { 'circle-radius': 8, 'circle-color': '#3b82f6', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' } });
   }
-  applyShow();
+  applyShow(); applyCat();
+}
+// выбрана категория — показать все её точки на экране
+function fitCat() {
+  if (!activeCat || !map) return;
+  const cs = [...(data[game]?.places || []).filter((p) => p.gc === activeCat).map(ll), ...(gtadb[game]?.points || []).filter((q) => q[12] === activeCat).map(llPt)].filter(Boolean);
+  if (!cs.length) return;
+  const b = cs.reduce((bb, c) => bb.extend(c), new window.maplibregl.LngLatBounds(cs[0], cs[0]));
+  map.fitBounds(b, { padding: { top: 140, bottom: 220, left: 40, right: 40 }, maxZoom: mode === 'game' ? 6 : 14, duration: 700 });
+}
+// фильтр категории (бета): только точки этой категории — места и точки gtadb
+function applyCat() {
+  if (!map?.getLayer('places')) return;
+  const f = activeCat ? ['==', ['get', 'gc'], activeCat] : null;
+  for (const l of ['places', 'places-glow', 'places-egg', 'gtadb']) if (map.getLayer(l)) map.setFilter(l, l === 'places-glow' ? (f ? ['all', ['==', ['get', 'cf'], 'confirmed'], f] : ['==', ['get', 'cf'], 'confirmed']) : l === 'places-egg' ? (f ? ['all', ['==', ['get', 'egg'], 1], f] : ['==', ['get', 'egg'], 1]) : f);
+  if (map.getLayer('gtadb')) map.setLayerZoomRange('gtadb', activeCat ? 0 : (mode === 'game' ? 5 : 11.5), 24);
+  if (map.getLayer('eggs')) map.setLayoutProperty('eggs', 'visibility', activeCat ? 'none' : (show.eggs ? 'visible' : 'none'));
 }
 function refreshData() {
   for (const k of ['gtadb', 'places', 'eggs', 'sel']) map.getSource(k)?.setData(geo(k));
@@ -987,7 +1026,11 @@ function renderChips() {
   const n = { places: d.places.length, eggs: d.eggs.length, gtadb: gtadb[game]?.points.length ?? '' };
   document.getElementById('map-chips').innerHTML = [
     ['places', t('map_places'), COLORS.confirmed], ['eggs', t('map_eggs'), COLORS.egg], ['gtadb', t('map_all'), COLORS.gtadb],
-  ].map(([k, label, c]) => `<button class="mchip${show[k] ? ' on' : ''}" data-action="map-layer" data-v="${k}" style="--c:${c}"><i></i>${label}${n[k] !== '' ? ` <em>${n[k]}</em>` : ''}</button>`).join('');
+  ].map(([k, label, c]) => `<button class="mchip${show[k] ? ' on' : ''}" data-action="map-layer" data-v="${k}" style="--c:${c}"><i></i>${label}${n[k] !== '' ? ` <em>${n[k]}</em>` : ''}</button>`).join('')
+    + (BETA ? Object.entries(CATS).map(([k, c]) => {
+      const cnt = d.places.filter((p) => p.gc === k).length + (gtadb[game]?.points.filter((q) => q[12] === k).length || 0);
+      return cnt ? `<button class="mchip mchip-cat${activeCat === k ? ' on' : ''}" data-mp="cat" data-v="${k}" style="--c:${c.c}"><i></i>${esc(tr(c.t))} <em>${cnt}</em></button>` : '';
+    }).join('') : '');
   const G = GAMES[game];
   if (!BETA && mode === 'game') {
     document.getElementById('map-games').innerHTML =
@@ -1035,6 +1078,11 @@ document.addEventListener('click', (e) => {
   else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t); }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
   else if (a === 'mode') { ctx?.haptic(); setMode(el.dataset.v); }
+  else if (a === 'cat') {
+    ctx?.haptic(); activeCat = activeCat === el.dataset.v ? null : el.dataset.v;
+    if (activeCat && !show.gtadb) { show.gtadb = true; loadGtadb(game).then(() => { refreshData(); applyShow(); applyCat(); renderCards(); }); }
+    applyCat(); renderChips(); renderCards(); fitCat();
+  }
   else if (a === 'ingame' || a === 'inreal') { ctx?.haptic(); showOnMap(a === 'ingame' ? 'game' : 'real', el.dataset.k, +el.dataset.i); }
   else if (a === 'yt') { ctx?.haptic(); openVideo(el.dataset.v, +el.dataset.t || 0, el.dataset.l || ''); }
   else if (a === 'game') { ctx?.haptic(); userGame = el.dataset.v; setGame(el.dataset.v); }

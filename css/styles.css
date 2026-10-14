@@ -824,4 +824,12 @@ button.mp-ingame { width: 100%; padding: 0; text-align: left; font: inherit; cur
 .mpv-video { width: 100%; padding: 0 0 calc(var(--safe-b) + 8px); }
 .mpv-video iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; background: #000; }
 .mp-src span { color: var(--text-2); }
+/* бета: карта для игроков — категории и блок «Для игрока» */
+.mp-player { margin: 0 0 14px; padding: 12px; border-radius: 14px; background: color-mix(in srgb, var(--c) 12%, var(--card)); border: 1px solid color-mix(in srgb, var(--c) 40%, transparent); }
+.mp-player-t { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--c); }
+.mp-player-t i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.mp-player p { margin: 6px 0 0; font-size: 14px; line-height: 1.4; }
+.mp-player-go { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--line-2); font-weight: 700; color: var(--text); text-align: left; }
+.mp-player-go svg { width: 18px; height: 18px; color: var(--c); }
+.mp-player-go span { flex: 1; }
 

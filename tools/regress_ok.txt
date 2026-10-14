@@ -1,0 +1,5 @@
+# Осознанно убранное из приложения (id # причина, дата). check_regress.py не считает это потерей.
+egg-sandbar-piano            # 14.10.2026: не проверена, источник — список утечки 2022 года (правило «без утечек»)
+egg-wynwood-mural-rumor      # 14.10.2026: опровергнутый слух (мурал — реклама Formula E), не проверена
+egg-bahia-honda-movies       # 14.10.2026: не проверена (попала через finalize --provisional)
+gta5-egg-california-sign-pier-400  # 14.10.2026: не проверена (попала через finalize --provisional)
