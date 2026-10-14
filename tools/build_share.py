@@ -13,11 +13,13 @@
   своя картинка s/og/<игра>/<id>.<хеш>.jpg 1200×630 — слева кадр игры, справа фото из жизни, белая линия с кругом
   посередине, подписи IN GAME / REAL LIFE. Фото из жизни в превью — только Commons (своих копий фото gtadb не делаем);
   где Commons нет — кадр игры с подписью «сравни с жизнью». Хеш в имени — мессенджеры не держат старое превью.
-  ПОКА ВЫКЛЮЧЕНО (Игорь 15.10.2026: «на все точки сейчас не делать — генерировать в момент, когда делюсь; на все —
-  когда утвердим дизайн»): картинку рисует приложение при «Поделиться» (js/map.js shareCard). Включить на все места:
-  ~/.video-venv/bin/python tools/build_share.py --og   (нужен Pillow; ≈250 КБ на место — перед этим ужать).
+  Делаются заранее на все места: превью ссылки мессенджер берёт со страницы (og:image), а у статичного хостинга нет
+  сервера, чтобы рисовать её в момент отправки. Попытка 15.10 «рисовать в приложении и слать файлом» не годится:
+  Telegram отправляет картинку вместо ссылки (текст со ссылкой теряется). Картинки лёгкие (~60–90 КБ), новые
+  дорисовываются, готовые не пересчитываются.
+  Нужен Pillow: ~/.video-venv/bin/python tools/build_share.py (системный python3 без Pillow превью не трогает).
 
-Запуск: python3 tools/build_share.py   (после build_map.py; пишет s/ в корне приложения)
+Запуск: ~/.video-venv/bin/python tools/build_share.py   (после build_map.py; пишет s/ в корне приложения)
 """
 import hashlib
 import html
@@ -57,8 +59,6 @@ ASSETS = "https://appshalamov.github.io/gta-map-assets/"
 ASSETS_LOCAL = ROOT.parent / "хостинг-плиток" / "gta-map-assets"
 OGW, OGH = 1200, 630
 try:
-    if "--og" not in sys.argv:
-        raise ImportError
     from PIL import Image, ImageDraw, ImageFilter, ImageFont
 except ImportError:          # системный python3 без Pillow — превью не трогаем
     Image = None
@@ -107,8 +107,8 @@ def og_card(game, pid, gurl, rurl):
     rel = f"og/{game}/{pid}.{sig}.jpg"
     fp = OUT / rel
     OG_MADE.add(fp)
-    if Image is None:
-        return ""
+    if fp.exists() or Image is None:
+        return rel if fp.exists() else ""
     g = _src(gurl)
     r = _src(rurl) if rurl else None
     if g is None:
@@ -134,13 +134,14 @@ def og_card(game, pid, gurl, rurl):
         d = ImageDraw.Draw(canvas)
         d.rectangle((cx - 3, 0, cx + 3, OGH), fill=(255, 255, 255))
         d.ellipse((cx - 48, cy - 48, cx + 48, cy + 48), fill=(255, 255, 255))
-        d.text((cx, cy - 3), "‹  ›", font=_font(44), fill=(17, 17, 17), anchor="mm")
+        for sx in (-1, 1):
+            d.line([(cx + sx * 9, cy - 13), (cx + sx * 21, cy), (cx + sx * 9, cy + 13)], fill=(17, 17, 17), width=6, joint="curve")
     else:
         band = Image.new("RGBA", (OGW, 96), (11, 13, 18, 205))
         canvas.paste(band, (0, OGH - 96), band)
-        d.text((OGW // 2, OGH - 48), "Compare with real life in Secret Base  →", font=_font(36), fill=(255, 255, 255), anchor="mm")
+        d.text((OGW // 2, OGH - 48), "Compare with real life in Secret Base", font=_font(36), fill=(255, 255, 255), anchor="mm")
     fp.parent.mkdir(parents=True, exist_ok=True)
-    canvas.save(fp, "JPEG", quality=80, optimize=True, progressive=True)
+    canvas.save(fp, "JPEG", quality=70, optimize=True, progressive=True, subsampling=2)
     return rel
 
 
@@ -265,7 +266,7 @@ def main():
         for fp in (OUT / "og").glob("*/*.jpg"):
             if fp not in OG_MADE and not fp.name.startswith("._"):
                 fp.unlink(missing_ok=True)
-    print(f"страниц «поделиться»: {n}, превью: {sum(1 for p in OG_MADE if p.exists())}" + ("" if Image else " (картинки превью выключены — рисует приложение)"))
+    print(f"страниц «поделиться»: {n}, превью: {sum(1 for p in OG_MADE if p.exists())}" + ("" if Image else " (нет Pillow — превью не обновлялись)"))
 
 
 if __name__ == "__main__":
