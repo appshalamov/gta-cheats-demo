@@ -1194,7 +1194,7 @@ function addLayers() {
   if (!map.getLayer('sel')) map.addLayer({ id: 'sel', type: 'circle', source: 'sel',
     paint: { 'circle-radius': z(11, 18), 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-width': 3, 'circle-stroke-color': dark ? '#ffffff' : '#0b0b0d' } });
   if (!map.getSource('me')) {
-    map.addSource('me', { type: 'geojson', data: fc(me && mode === 'real' ? [pt(me[1], me[0], {})] : []) });
+    map.addSource('me', { type: 'geojson', data: meGeo() });
     map.addLayer({ id: 'me', type: 'circle', source: 'me', paint: { 'circle-radius': 8, 'circle-color': '#3b82f6', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' } });
   }
   applyShow(); applyCat();
@@ -1216,7 +1216,7 @@ function addGameLayers(z) {
   if (!map.getLayer('sel')) map.addLayer({ id: 'sel', type: 'circle', source: 'sel',
     paint: { 'circle-radius': z(13, 19), 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' } });
   if (!map.getSource('me')) {
-    map.addSource('me', { type: 'geojson', data: fc([]) });
+    map.addSource('me', { type: 'geojson', data: meGeo() });
     map.addLayer({ id: 'me', type: 'circle', source: 'me', paint: { 'circle-radius': 8, 'circle-color': '#3b82f6', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' } });
   }
 }
@@ -1414,7 +1414,7 @@ document.addEventListener('click', (e) => {
   }
   else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t); }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
-  else if (a === 'mode') { ctx?.haptic(); if (GHOST_ON) switchMode(el.dataset.v); else setMode(el.dataset.v); }
+  else if (a === 'mode') { ctx?.haptic(); switchMode(el.dataset.v); }
   else if (a === 'cat') {
     ctx?.haptic(); activeCat = activeCat === el.dataset.v ? null : el.dataset.v;
     if (activeCat && !show.gtadb) { show.gtadb = true; loadGtadb(game).then(() => { refreshData(); applyShow(); applyCat(); renderCards(); }); }
@@ -1465,7 +1465,7 @@ async function create(preferGame) {
     map.on('style.load', addLayers);
     map.on('load', () => { box.classList.remove('loading'); renderCards(); });
     map.on('moveend', renderCards);
-    map.on('moveend', () => ghostPrep(900));
+    map.on('moveend', () => ghostPrep(400));
     map.on('click', onTap);
     for (const ev of ['touchstart', 'mousedown', 'dblclick', 'zoomstart', 'dragstart']) map.on(ev, cancelTap);
     renderChips();
@@ -1509,24 +1509,95 @@ async function showOnMap(m, k, i) {
   });
 }
 // переключение «Реальная карта ⇄ Карта игры»: остаёмся у того же места (выбранного или ближайшего к центру)
-// куда встанет карта при переходе в режим m (без побочных эффектов) — общий расчёт для setMode и «запасной» карты
+// ───── «Жизнь ⇄ игра»: та же точка и тот же масштаб по реальным размерам (Игорь 15.10.2026: «чтобы при переключении
+// не сбивалось — та же точка и, самое главное, масштаб, параллельный реальному миру»). Опорные точки — места с точными
+// игровыми координатами (gm[2] < 2). Центр — по 6 ближайшим опорным (IDW), масштаб — местный коэффициент «единиц игры на
+// метр» (медиана по парам опорных рядом): GTA сжимает город неравномерно, поэтому коэффициент свой в каждом районе.
+const ctrlCache = {};
+const ctrl = () => (ctrlCache[game] ||= (data[game]?.places || []).filter((p) => p.gm && p.gm[2] < 2).map((p) => ({ lat: p.lat, lon: p.lon, x: p.gm[0], y: p.gm[1] })));
+// местное преобразование «жизнь → игра» (поворот, масштаб, сдвиг) по 8 ближайшим опорным, взвешенный МНК.
+// Вперёд — прямо; обратно — решаем то же преобразование в обратную сторону (2 уточнения): туда-обратно приходим туда же.
+const LAT_M = 110540;
+const lonM = (lat) => 111320 * Math.cos(lat * Math.PI / 180);
+function fitAt(lat, lon) {   // → { a, b, c, d, e, f, s } : x = a·X + b·Y + c, y = d·X + e·Y + f (X, Y — км от точки)
+  const C = ctrl(); if (C.length < 6) return null;
+  const k = lonM(lat) / 1000, kl = LAT_M / 1000;   // в километрах — иначе уравнения плохо обусловлены
+  const near = C.map((p) => { const X = (p.lon - lon) * k, Y = (p.lat - lat) * kl; return [Math.hypot(X, Y), X, Y, p]; })
+    .sort((u, v) => u[0] - v[0]).slice(0, 8);
+  const W = near.reduce((sum, [dd]) => sum + 1 / (dd + 0.15) ** 2, 0);
+  // нормальные уравнения 3×3 (общие для x и y), веса нормированы
+  let S = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], bx = [0, 0, 0], by = [0, 0, 0];
+  for (const [dd, X, Y, p] of near) {
+    const w = 1 / (dd + 0.15) ** 2 / W, v = [X, Y, 1];
+    for (let i = 0; i < 3; i++) { for (let j = 0; j < 3; j++) S[i][j] += w * v[i] * v[j]; bx[i] += w * v[i] * p.x; by[i] += w * v[i] * p.y; }
+  }
+  const det3 = (m) => m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+  const D = det3(S); if (!isFinite(D) || Math.abs(D) < 1e-9) return null;
+  const solve = (b) => [0, 1, 2].map((col) => det3(S.map((row, i) => row.map((v, j) => (j === col ? b[i] : v)))) / D);
+  const [a, b, c] = solve(bx), [d, e, f] = solve(by);
+  const s = Math.sqrt(Math.abs(a * e - b * d)) / 1000;   // единиц игры на метр
+  return s > 0 && isFinite(s) ? { a, b, c, d, e, f, s } : null;
+}
+function convert(q, toGame) {   // q: {lat, lon} → {x, y, s} или {x, y} → {lat, lon, s}; s — единиц игры на метр
+  if (toGame) { const T = fitAt(q.lat, q.lon); return T ? { x: T.c, y: T.f, s: T.s } : null; }
+  // обратно: несколько стартов (ближайшие опорные в игре), от каждого решаем местное преобразование; берём старт,
+  // который точнее всего возвращается вперёд (карта GTA глобально не повторяет город — один старт мог уйти в чужой район)
+  const C = ctrl(); if (C.length < 6) return null;
+  const starts = C.map((c) => [Math.hypot(q.x - c.x, q.y - c.y), c]).sort((u, v) => u[0] - v[0]).slice(0, 3);
+  let best = null;
+  for (const [, c0] of starts) {
+    let lat = c0.lat, lon = c0.lon, s = 0.2, T = null;
+    for (let it = 0; it < 6; it++) {
+      T = fitAt(lat, lon); if (!T) break;
+      const det = T.a * T.e - T.b * T.d; if (Math.abs(det) < 1e-12) break;
+      const rx = q.x - T.c, ry = q.y - T.f, X = (T.e * rx - T.b * ry) / det, Y = (-T.d * rx + T.a * ry) / det;   // км
+      lat += Y * 1000 / LAT_M; lon += X * 1000 / lonM(lat); s = T.s;
+      if (Math.hypot(X, Y) < 0.002) break;
+    }
+    const F = fitAt(lat, lon), res = F ? Math.hypot(F.c - q.x, F.f - q.y) : Infinity;
+    if (!best || res < best.res) best = { lat, lon, s, res };
+  }
+  return best && { lat: best.lat, lon: best.lon, s: best.s };
+}
+const M2G = (c) => { const fx = (c.lng + 180) / 360, fy = (1 - Math.log(Math.tan(Math.PI / 4 + c.lat * Math.PI / 360)) / Math.PI) / 2; return { x: fx * 32768 - 16384, y: 16384 - fy * 32768 }; };
+const EQ = 40075016.686;
+const realMpp = (z, lat) => EQ * Math.cos(lat * Math.PI / 180) / (512 * 2 ** z);   // метров в пикселе
+const gameUpp = (z) => 64 / 2 ** z;                                                // единиц игры в пикселе
+const clampZ = (z, a, b) => Math.min(b, Math.max(a, z));
 const llM = (x, m) => (m === 'real' || approx() ? [x.lon, x.lat] : x.gm ? G2M(x.gm[0], x.gm[1]) : null);
+// Переключился туда и обратно, карту не трогал — возвращаемся ровно туда же и в тот же масштаб (Игорь 15.10.2026:
+// «чтобы не сбивалось»). Карта GTA не повторяет город один в один — пересчёт обратно может найти другую точку,
+// поэтому помним пару «камера до ⇄ камера после» последнего переключения.
+let lastSwitch = null;   // { game, from: {m, center, zoom}, to: {m, center, zoom} }
+const camNow = () => { const c = map.getCenter(); return { center: [c.lng, c.lat], zoom: map.getZoom() }; };
+const nearCam = (a, b) => a && b && Math.abs(a.center[0] - b.center[0]) < 2e-5 && Math.abs(a.center[1] - b.center[1]) < 2e-5 && Math.abs(a.zoom - b.zoom) < 0.02;
+// куда встанет карта при переходе в режим m (без побочных эффектов) — общий расчёт для setMode и «запасной» карты
 function targetFor(m) {
   const d = data[game]; if (!d || !map) return null;
-  let ref = selected != null ? d.places[selected] : null;
-  if (!ref) {
-    const c = map.getCenter(), b = map.getBounds();
-    let best = Infinity;
-    for (const p of d.places) { const q = ll(p); if (!q || !b.contains(q)) continue; const k = (q[0] - c.lng) ** 2 + (q[1] - c.lat) ** 2; if (k < best) { best = k; ref = p; } }
+  if (lastSwitch && lastSwitch.game === game && lastSwitch.to.m === mode && lastSwitch.from.m === m && nearCam(lastSwitch.to, camNow()))
+    return { center: lastSwitch.from.center, zoom: lastSwitch.from.zoom, sel: selected != null, back: true };
+  const zr = map.getZoom(), p = selected != null ? d.places[selected] : null, c0 = map.getCenter();
+  if (approx()) return { center: p ? [p.lon, p.lat] : [c0.lng, c0.lat], zoom: zr, sel: !!p };   // «Леонида» — та же география
+  if (m === 'game') {
+    const src = p ? { lat: p.lat, lon: p.lon } : { lat: c0.lat, lon: c0.lng };
+    const cv = convert(src, true);
+    const center = p?.gm ? G2M(p.gm[0], p.gm[1]) : cv ? G2M(cv.x, cv.y) : null;
+    if (!center) return null;
+    return { center, zoom: clampZ(Math.log2(64 / (realMpp(zr, src.lat) * (cv?.s || 0.2))), 2.5, 9), sel: !!p };
   }
-  const zr = map.getZoom(), c = ref && llM(ref, m);
-  const zoom = approx() ? (selected != null ? Math.max(zr, 15) : zr)
-    : selected != null ? (m === 'game' ? 6.5 : 15) : m === 'game' ? Math.min(7, Math.max(3.5, zr - 8.5)) : Math.min(16, Math.max(9, zr + 8.5));
-  if (c) return { center: c, zoom, sel: selected != null };
-  if (m === 'real' || approx()) return { center: [d.center[1], d.center[0]], zoom: d.zoom - 0.6, sel: false };
-  const g = d.places.filter((p) => p.gm && p.gm[2] < 2);
-  const mid = (k) => g.map((p) => p.gm[k]).sort((a, b) => a - b)[Math.floor(g.length / 2)] || 0;
-  return { center: G2M(mid(0), mid(1)), zoom: 3.6, sel: false };
+  const g = p?.gm ? { x: p.gm[0], y: p.gm[1] } : M2G(c0);
+  const cv = convert(g, false);
+  const center = p ? [p.lon, p.lat] : cv ? [cv.lon, cv.lat] : null;
+  if (!center) return null;
+  // коэффициент — по опорным у реального места (как при переходе в игру): туда и обратно масштаб совпадает
+  const sReal = convert({ lat: center[1], lon: center[0] }, true)?.s || cv?.s || 0.2;
+  const mpp = gameUpp(zr) / sReal;
+  return { center, zoom: clampZ(Math.log2(EQ * Math.cos(center[1] * Math.PI / 180) / (512 * mpp)), 8, 18), sel: !!p };
+}
+// место — над шторкой, а не под ней (сдвиг центра на половину видимой шторки)
+function shiftForSheet(c, want) {
+  const off = -camOffset(want)[1], p = map.project(c);
+  map.jumpTo({ center: map.unproject([p.x, p.y + off]) });
 }
 export async function setMode(m, cam) {
   if (!map || (m !== 'real' && m !== 'game')) return;
@@ -1565,7 +1636,7 @@ function ghostLayers() {
 // камера с учётом шторки в полоске: место — над шторкой, а не под ней
 function ghostCam(t) {
   ghost.jumpTo({ center: t.center, zoom: t.zoom });
-  if (t.sel && SNAP_ON) {
+  if (t.sel && SNAP_ON && !t.back) {   // при возврате камера уже настоящая — второй раз не сдвигаем
     const off = Math.round((ctx?.sheetPx ? ctx.sheetPx('peek') : 112) / 2), p = ghost.project(t.center);
     ghost.jumpTo({ center: ghost.unproject([p.x, p.y + off]) });
   }
@@ -1588,19 +1659,25 @@ function ghostPrep(delay = 250) {
     if (ghost.isStyleLoaded()) ghostLayers();
   }, delay);
 }
-const ghostReady = (m) => GHOST_ON && ghost && ghostFor && ghostFor.m === m && ghostFor.key === styleKeyFor(m)
-  && ghostFor.sel === selected && ghostFor.game === game && ghost.isStyleLoaded();
+// запасная годится, только если готовилась ровно под эту точку и масштаб (15.10.2026: после прокрутки показывалось прошлое место)
+const sameCam = (a, b) => a && b && Math.abs(a.center[0] - b.center[0]) < 1e-4 && Math.abs(a.center[1] - b.center[1]) < 1e-4 && Math.abs(a.zoom - b.zoom) < 0.05;
+const ghostReady = (m, T) => GHOST_ON && ghost && ghostFor && ghostFor.m === m && ghostFor.key === styleKeyFor(m)
+  && ghostFor.sel === selected && ghostFor.game === game && ghost.isStyleLoaded() && sameCam(ghostFor.t, T);
 // переход между картами: запасная показывается сразу, основная перестраивается под ней в ту же точку и плавно её сменяет
 async function switchMode(m, after) {
   clearTimeout(ghostTimer);
-  const ready = ghostReady(m), el = ready && ghostEl();
+  const before = map && { m: mode, ...camNow() };
+  const T0 = targetFor(m), ready = ghostReady(m, T0), el = ready && ghostEl();
   let cam = null;
   if (ready) {
     cam = { center: ghost.getCenter().toArray(), zoom: ghost.getZoom() };
     el.style.transition = 'none'; el.style.opacity = '1';
   }
-  await setMode(m, cam);
-  after?.(!!cam);
+  const T = !cam && T0;
+  await setMode(m, cam || T);
+  if (T?.sel && !T.back) shiftForSheet(T.center, SNAP_ON ? 'peek' : undefined);
+  after?.(true);   // камера уже стоит: та же точка и масштаб — карточке лететь не нужно
+  if (before && mode === m) lastSwitch = { game, from: before, to: { m, ...camNow() } };
   if (ready) {   // держим, пока основная не загрузится целиком (до 3 с); палец двинул карту — убираем сразу
     await new Promise((res) => {
       const done = () => { clearTimeout(t); map.off('movestart', user); res(); };
@@ -1643,13 +1720,22 @@ export async function focus(g, kind, id) {
   return true;
 }
 
+// где я на этой карте: в реальном мире — как есть, на карте игры — пересчитано по опорным точкам (та же логика, что переход)
+function meAt() {
+  if (!me) return null;
+  if (!tilesGame()) return [me[1], me[0]];
+  const cv = convert({ lat: me[0], lon: me[1] }, true);
+  return cv ? G2M(cv.x, cv.y) : null;
+}
+const meGeo = () => { const c = meAt(); return fc(c ? [pt(c[0], c[1], {})] : []); };
 export async function locate() {
   if (!map || !navigator.geolocation) return;
-  if (mode === 'game') await setMode('real');   // «где я» — только на реальной карте
   navigator.geolocation.getCurrentPosition((pos) => {
     me = [pos.coords.latitude, pos.coords.longitude];
-    map.getSource('me')?.setData(fc([pt(me[1], me[0], {})]));
-    map.flyTo({ center: [me[1], me[0]], zoom: 13, duration: 1000 });
+    map.getSource('me')?.setData(meGeo());
+    const c = meAt(); if (!c) return;
+    const zoom = tilesGame() ? clampZ(Math.log2(64 / (realMpp(14, me[0]) * (convert({ lat: me[0], lon: me[1] }, true)?.s || 0.2))), 2.5, 9) : 14;
+    map.flyTo({ center: c, zoom, duration: 1000 });
   }, () => ctx?.toast?.(t('map_no_geo')), { enableHighAccuracy: true, timeout: 8000 });
 }
 
