@@ -15,3 +15,5 @@ sed -i '' "s/const VERSION = '[^']*';/const VERSION = 'beta-$n';/" beta/sw.js
 sed -i '' 's/"short_name": "Secret Base"/"short_name": "Secret Base β"/; s/"name": "Secret Base — /"name": "Secret Base β — /' beta/manifest.webmanifest
 find beta -name '._*' -delete
 echo "бета собрана: $(find beta -type f | wc -l | tr -d ' ') файлов, кэш beta-$n"
+# служебные файлы macOS «._*» внутри .git на exFAT ломают git («non-monotonic index ._pack…», 15.10.2026)
+find .git -name '._*' -type f -delete 2>/dev/null || true
