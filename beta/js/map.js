@@ -42,7 +42,25 @@ const ll = (x) => (!tilesGame() ? [x.lon, x.lat] : x.gm ? G2M(x.gm[0], x.gm[1]) 
 const llPt = (q) => (!tilesGame() ? [q[5], q[4]] : q[11] ? G2M(q[11][0], q[11][1]) : null);
 // ───── «Леонида» — приблизительная карта GTA 6 до выхода игры ─────
 // Регионы — официальные названия Rockstar и их реальные прототипы (проверено по официальным материалам, без утечек).
-const LEONIDA_REGIONS = [];
+// Источник и проверка — «Карта локаций GTA — реальный мир/данные/регионы_gta6_официальные.json» (tier: 0 штат, 1 регион, 2 округ, 3 район).
+const LEONIDA_REGIONS = [
+  { name: "Leonida", tier: 0, lat: 28.1, lon: -81.6 },
+  { name: "Ambrosia", tier: 1, lat: 26.754, lon: -80.934 },
+  { name: "Grassrivers", tier: 1, lat: 25.6, lon: -80.85 },
+  { name: "Lake Leonida", tier: 1, lat: 26.9442, lon: -80.8029 },
+  { name: "Leonida Keys", tier: 1, lat: 24.7136, lon: -81.0903 },
+  { name: "Mount Kalaga National Park", tier: 1, lat: 30.65, lon: -84.97 },
+  { name: "Port Gellhorn", tier: 1, lat: 29.812, lon: -85.303 },
+  { name: "Vice City", tier: 1, lat: 25.7742, lon: -80.1936 },
+  { name: "Vice Dale County", tier: 2, lat: 25.6, lon: -80.45 },
+  { name: "Little Cuba", tier: 3, lat: 25.7656, lon: -80.2195 },
+  { name: "Ocean Beach", tier: 3, lat: 25.779, lon: -80.1315 },
+  { name: "Shore Drive", tier: 3, lat: 25.78, lon: -80.1306 },
+  { name: "Stockyard", tier: 3, lat: 25.8014, lon: -80.1991 },
+  { name: "Tisha-Wocka flea market", tier: 3, lat: 25.8905, lon: -80.2645 },
+  { name: "VC Port", tier: 3, lat: 25.7735, lon: -80.1692 },
+  { name: "Washington Beach", tier: 3, lat: 25.79, lon: -80.132 },
+];
 const LEO = { land: '#15171c', block: '#20232a', build: '#292d35', green: '#17221d', wet: '#14211f', sand: '#2b2922',
   water: '#0b2c37', road: '#555a64', major: '#9097a2', hwy: '#ff9a5c', glow: 'rgba(255,79,163,.30)', label: '#ffd0a6' };
 function leonidaStyle() {
@@ -53,7 +71,7 @@ function leonidaStyle() {
     version: 8, glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
     sources: {
       omt: { type: 'vector', url: 'https://tiles.openfreemap.org/planet', attribution: '≈ GTA 6 по мотивам Флориды · © OpenStreetMap · OpenFreeMap' },
-      regions: { type: 'geojson', data: fc(LEONIDA_REGIONS.map((r) => pt(r.lon, r.lat, { name: r.name }))) },
+      regions: { type: 'geojson', data: fc(LEONIDA_REGIONS.map((r) => pt(r.lon, r.lat, { name: r.name, tier: r.tier }))) },
     },
     layers: [
       { id: 'bg', type: 'background', paint: { 'background-color': LEO.land } },
@@ -72,10 +90,23 @@ function leonidaStyle() {
         layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': LEO.glow, 'line-width': w(2, 6, 20), 'line-blur': 3 } },
       { id: 'hwy', type: 'line', ...src, 'source-layer': 'transportation', filter: cls(['motorway']),
         layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': LEO.hwy, 'line-width': w(0.7, 2, 9) } },
-      { id: 'regions', type: 'symbol', source: 'regions', maxzoom: 13,
-        layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Bold'], 'text-transform': 'uppercase', 'text-letter-spacing': 0.14,
-          'text-size': ['interpolate', ['linear'], ['zoom'], 5, 11, 9, 20, 12, 24], 'text-max-width': 8, 'text-allow-overlap': false },
+      // подписи по уровням: штат — издалека, регионы — средний масштаб, районы Вайс-Сити — вблизи
+      { id: 'lbl-state', type: 'symbol', source: 'regions', minzoom: 3, maxzoom: 6.5, filter: ['==', ['get', 'tier'], 0],
+        layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Bold'], 'text-transform': 'uppercase', 'text-letter-spacing': 0.3,
+          'text-size': ['interpolate', ['linear'], ['zoom'], 3, 16, 6, 26], 'text-max-width': 9, 'text-allow-overlap': false, 'text-padding': 4 },
+        paint: { 'text-color': '#ff8fbf', 'text-halo-color': 'rgba(0,0,0,.85)', 'text-halo-width': 1.6, 'text-opacity': 0.92 } },
+      { id: 'lbl-region', type: 'symbol', source: 'regions', minzoom: 5.5, maxzoom: 11.5, filter: ['==', ['get', 'tier'], 1],
+        layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Bold'], 'text-transform': 'uppercase', 'text-letter-spacing': 0.16,
+          'text-size': ['interpolate', ['linear'], ['zoom'], 6, 12, 9, 19, 11, 22], 'text-max-width': 9, 'text-allow-overlap': false, 'text-padding': 4 },
         paint: { 'text-color': LEO.label, 'text-halo-color': 'rgba(0,0,0,.85)', 'text-halo-width': 1.6, 'text-opacity': 0.92 } },
+      { id: 'lbl-county', type: 'symbol', source: 'regions', minzoom: 8.5, maxzoom: 10.5, filter: ['==', ['get', 'tier'], 2],
+        layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Bold'], 'text-transform': 'uppercase', 'text-letter-spacing': 0.12,
+          'text-size': 13, 'text-max-width': 9, 'text-allow-overlap': false, 'text-padding': 4 },
+        paint: { 'text-color': '#c9b6a6', 'text-halo-color': 'rgba(0,0,0,.85)', 'text-halo-width': 1.6, 'text-opacity': 0.92 } },
+      { id: 'lbl-district', type: 'symbol', source: 'regions', minzoom: 12, maxzoom: 17, filter: ['==', ['get', 'tier'], 3],
+        layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Bold'], 'text-transform': 'uppercase', 'text-letter-spacing': 0.1,
+          'text-size': ['interpolate', ['linear'], ['zoom'], 12, 11, 15, 15], 'text-max-width': 9, 'text-allow-overlap': false, 'text-padding': 4 },
+        paint: { 'text-color': '#ffe1c4', 'text-halo-color': 'rgba(0,0,0,.85)', 'text-halo-width': 1.6, 'text-opacity': 0.92 } },
     ],
   };
 }
@@ -91,8 +122,14 @@ function tileUrl(url) {   // https://gtadb-tile.invalid/gta5/6/40/52 → пли�
   const m = url.match(/^https:\/\/gtadb-tile\.invalid\/(gta[56])\/(\d+)\/(\d+)\/(\d+)$/);
   if (!m) return null;
   const c = GMAP[m[1]], z = +m[2] - 2;
-  return `https://raw.githubusercontent.com/rolux/gtadb.org/main/maps/tiles/${c.v}/${c.set}/${z}/${z},${m[4]},${m[3]}.jpg`;
+  return `${tileBase(c.v)}maps/tiles/${c.v}/${c.set}/${z}/${z},${m[4]},${m[3]}.jpg`;
 }
+// Свой хостинг плиток и кадров игры (Игорь 14.10.2026: «используй мой GitHub»): копия нужного из gtadb.org (CC BY 4.0)
+// в appshalamov/gta-map-assets на GitHub Pages — автор gtadb просит не тянуть живые файлы, у raw.githubusercontent лимиты.
+// Фото из жизни (,rl.jpg) там нет — их у себя не храним (часто это кадры Street View), они идут ссылкой на gtadb.
+const ASSETS = 'https://appshalamov.github.io/gta-map-assets/';
+const GTADB_RAW = 'https://raw.githubusercontent.com/rolux/gtadb.org/main/';
+const tileBase = (v) => (v === 5 ? ASSETS : GTADB_RAW);   // GTA 6 (yanis) не переносили: карта выключена
 const STYLE = { dark: 'https://tiles.openfreemap.org/styles/dark', light: 'https://tiles.openfreemap.org/styles/positron' };
 
 // ───── короткие подписи к значкам на многих языках (остальное понимается по картинке) ─────
@@ -402,7 +439,7 @@ function gameBlock(gm, addr, region, gid, ref = {}) {
   const px = (gx + 16384) / k, py = (16384 - gy) / k, tx = Math.floor(px / 256), ty = Math.floor(py / 256);
   let tiles = '';
   for (let y = ty - 1; y <= ty + 1; y++) for (let x = tx - 1; x <= tx + 1; x++)
-    tiles += `<img src="https://raw.githubusercontent.com/rolux/gtadb.org/main/maps/tiles/${c.v}/${c.set}/${c.z}/${c.z},${y},${x}.jpg" style="left:${Math.round(x * 256 - px)}px;top:${Math.round(y * 256 - py)}px" alt="" loading="lazy" decoding="async" onerror="this.remove()">`;
+    tiles += `<img src="${tileBase(c.v)}maps/tiles/${c.v}/${c.set}/${c.z}/${c.z},${y},${x}.jpg" style="left:${Math.round(x * 256 - px)}px;top:${Math.round(y * 256 - py)}px" alt="" loading="lazy" decoding="async" onerror="this.remove()">`;
   const line = acc === 2 ? `${region ? esc(region) + ' · ' : ''}<em>${esc(w('approxHere'))}</em>` : esc(addr || region || '') + (acc === 1 ? ` <em>· ${esc(w('nextTo'))}</em>` : '');
   return `<button class="mp-ingame" data-mp="ingame" ${at}>
       <span class="mp-ig-map"><span class="mp-ig-tiles">${tiles}</span><span class="mp-ig-pin${acc === 2 ? ' est' : ''}"></span></span>
@@ -486,7 +523,7 @@ function eggSheet(e, i) {
 // Фото из жизни — ссылкой на gtadb (часто кадр Street View), у себя копию не храним.
 function gtadbPhotos(p, g) {
   const v = g === 'VI' ? 6 : 5, id = encodeURIComponent(p[0]);
-  const u = (k) => `https://raw.githubusercontent.com/rolux/gtadb.org/main/map/photos/${v}/${id},${k}.jpg`;
+  const u = (k) => `${k === 'ig' ? ASSETS : GTADB_RAW}map/photos/${v}/${id},${k}.jpg`;
   return { pg: p[7] ? { file: u('ig'), credit: '© Rockstar Games · gtadb.org' } : null, pr: p[8] ? { file: u('rl'), credit: 'gtadb.org and contributors (CC BY 4.0)' } : null };
 }
 function gtadbSheet(p, g, i) {

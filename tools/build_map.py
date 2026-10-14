@@ -191,7 +191,7 @@ def attach_approx(game, places, eggs):
     for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
         s = sel.get(x["id"]) or {}
         if s.get("game") and not (x.get("pg") or x.get("pairs") or x.get("gg")):
-            x["pg"] = {"url": s["game"]["url"], "credit": s["game"]["credit"], "ap": 1}; n += 1
+            x["pg"] = {"url": to_assets(s["game"]["url"]), "credit": s["game"]["credit"], "ap": 1}; n += 1
         if s.get("real") and not (x.get("pr") or x.get("pairs") or x.get("gl")) and not banned_real(s["real"]):
             x["pr"] = {"url": s["real"]["url"], "thumb": s["real"].get("thumb") or s["real"]["url"], "credit": s["real"]["credit"], "ap": 1}; n += 1
     if n:
@@ -314,6 +314,15 @@ def banned_real(p):
     return "gtadb" in s or ",rl.jpg" in s or "google" in who                    # законные фото зданий Google (Lifeinvader)
 
 
+ASSETS = "https://appshalamov.github.io/gta-map-assets/"   # свой хостинг кадров игры и плиток (GitHub Pages Игоря)
+GTADB_RAW = "https://raw.githubusercontent.com/rolux/gtadb.org/main/"
+
+
+def to_assets(u):
+    """Кадр игры gtadb (,ig.jpg) — со своего хостинга; всё остальное — как есть."""
+    return ASSETS + u[len(GTADB_RAW):] if isinstance(u, str) and u.startswith(GTADB_RAW) and u.endswith(",ig.jpg") else u
+
+
 def gtadb_link(p, item, game):
     """Фото из жизни gtadb — ссылкой на их репозиторий (v33, 14.10.2026): копии у себя не храним (часто это кадр Street View),
     но карточка, лента, список и «Все фото» выглядят как в v29 (до v30 тут была своя копия — её снятие испортило ленту)."""
@@ -355,7 +364,7 @@ def gal(item, game, key, limit=5):
             if ph:
                 out.append(ph)
         elif g.get("url"):
-            out.append({"url": g["url"], "thumb": g.get("thumb") or g["url"], "credit": g.get("credit", "")})
+            out.append({"url": to_assets(g["url"]), "thumb": to_assets(g.get("thumb") or g["url"]), "credit": g.get("credit", "")})
     return out[:limit]
 
 
@@ -508,7 +517,8 @@ def build(game, cfg):
     # Сравнение ползунком — главная функция приложения (Игорь 14.10.2026: «не убирай, это основополагающее»).
     # Фото из жизни в парах — ссылка на репозиторий gtadb (часто кадр Street View), копию у себя не храним.
     # Замена на свои/свободные снимки с того же ракурса — только пара на пару, сравнение не выключать.
-    raw = lambda gid, k: f"https://raw.githubusercontent.com/rolux/gtadb.org/main/map/photos/{5 if game == 'gta5' else 6}/{gid},{k}.jpg"
+    # кадр игры — со своего хостинга (appshalamov/gta-map-assets), фото из жизни — ссылкой на gtadb (у себя не храним)
+    raw = lambda gid, k: f"{ASSETS if k == 'ig' else GTADB_RAW}map/photos/{5 if game == 'gta5' else 6}/{gid},{k}.jpg"
     lay = {x["id"]: x for x in layer if x.get("ig") and x.get("rl") and not x.get("leak_tag")}
     def pairs_for(lat, lon, names, own="", wide=False):
         # своя привязка gtadb — всегда; соседние пары — с общим словом в названии в 120 м (район/пляж/парк/природа — 1,5 км).
