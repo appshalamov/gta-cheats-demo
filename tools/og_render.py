@@ -48,6 +48,18 @@ def licence(cred):
     return "whole"
 
 
+def trim(im):
+    """Срезать чёрные поля по краям кадра (у части кадров gtadb полосы слева/сверху — 15.10, пирс Дель-Перро)."""
+    g = im.convert("L").point(lambda v: 255 if v > 18 else 0)
+    box = g.getbbox()
+    if not box:
+        return im
+    x0, y0, x1, y1 = box
+    if (x1 - x0) < im.width * 0.5 or (y1 - y0) < im.height * 0.5 or box == (0, 0, im.width, im.height):
+        return im
+    return im.crop(box)
+
+
 def _cover(im, w, h):
     k = max(w / im.width, h / im.height)
     im = im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.LANCZOS)
@@ -106,11 +118,25 @@ def _knob(c, x, y):
 GAME_CREDIT = "Game frame © Rockstar Games"
 
 
+def render_pair(g, r):
+    """Пара с одного ракурса (как ползунок в приложении): оба снимка в ОДИН кадр, слева игра, справа жизнь — «половина
+    автобуса из GTA, половина настоящая» (Игорь 15.10.2026: «так намного эффектнее, делай так везде, где возможно;
+    сначала красиво, о лицензиях — потом»). Фото из жизни — из базы gtadb (часто снимки Street View)."""
+    c = Image.new("RGB", (W, H), BG)
+    gi, ri = _cover(trim(g), W, TOP), _cover(trim(r), W, TOP)
+    c.paste(gi.crop((0, 0, W // 2, TOP)), (0, 0))
+    c.paste(ri.crop((W // 2, 0, W, TOP)), (W // 2, 0))
+    _knob(c, W // 2, TOP // 2)
+    _band(c, "In game", "Real life", credits=(GAME_CREDIT, "Real photo: gtadb.org contributors"))
+    return c, "pair"
+
+
 def render(g=None, r=None, rcred="", title="", sub="", game_frame=True):
     """g, r — PIL-картинки (или None). Возвращает (картинка, вариант)."""
     c = Image.new("RGB", (W, H), BG)
     if not game_frame:
         g = None
+    g = trim(g) if g is not None else None
     if g is not None and r is not None:
         if licence(rcred) == "split":
             # каждая половина — свой снимок «обложкой» в свою половину (15.10: «картинка из жизни сильно увеличена» —

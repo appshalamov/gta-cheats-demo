@@ -91,6 +91,7 @@ def real_img(x):
 ASSETS = "https://appshalamov.github.io/gta-map-assets/"
 ASSETS_LOCAL = ROOT.parent / "хостинг-плиток" / "gta-map-assets"
 OGW, OGH = 1200, 630
+GTADB_CACHE = ROOT.parent / "Карта локаций GTA — реальный мир" / "кэш" / "gtadb_фото_для_превью"   # снимки gtadb (SSD)
 CACHE = ROOT.parent / "Карта локаций GTA — реальный мир" / "кэш" / "commons_для_превью"   # скачанные фото Commons (SSD)
 # рубильник «кадр игры в превью» (вопрос юристу до 04.11): false — только фото из жизни / карточка с названием
 CFG = json.loads((ROOT / "tools" / "share_config.json").read_text("utf-8")) if (ROOT / "tools" / "share_config.json").exists() else {}
@@ -102,12 +103,43 @@ except ImportError:          # системный python3 без Pillow — пр
     Image = None
 
 
+def _fetch(u, p):
+    p.parent.mkdir(parents=True, exist_ok=True)
+    req = urllib.request.Request(u, headers={"User-Agent": "SecretBase-share-preview/1.0 (app.shalamov@gmail.com)"})
+    with urllib.request.urlopen(req, timeout=40) as r:
+        data = r.read()
+    tmp = p.with_name(p.name + ".part")
+    tmp.write_bytes(data)
+    tmp.replace(p)
+
+
+def prefetch_gtadb(urls):
+    """Скачать нужные снимки gtadb заранее, параллельно (по одному — полчаса: raw.githubusercontent ~1,5 с на файл)."""
+    from concurrent.futures import ThreadPoolExecutor
+    todo = [u for u in dict.fromkeys(urls) if u.startswith(GTADB_RAW) and not (GTADB_CACHE / u[len(GTADB_RAW):]).exists()]
+    if not todo:
+        return
+    def one(u):
+        try:
+            _fetch(u, GTADB_CACHE / u[len(GTADB_RAW):])
+            return 1
+        except Exception:
+            return 0
+    with ThreadPoolExecutor(16) as ex:
+        ok = sum(ex.map(one, todo))
+    print(f"снимки gtadb для превью: скачано {ok} из {len(todo)}")
+
+
 def _src(u):
     """Картинка по адресу: свой файл приложения, своя копия хостинга кадров или (на крайний случай) скачать."""
     if u.startswith(SITE):
         p = ROOT / u[len(SITE):]
     elif u.startswith(ASSETS):
         p = ASSETS_LOCAL / u[len(ASSETS):]
+    elif u.startswith(GTADB_RAW):                      # пары gtadb (решение Игоря 15.10: в превью — как в приложении)
+        p = GTADB_CACHE / u[len(GTADB_RAW):]
+        if not p.exists():
+            _fetch(u, p)
     elif "upload.wikimedia.org" in u:                 # свободное фото Commons, которое мы не копировали к себе
         p = CACHE / hashlib.sha1(u.encode()).hexdigest()[:16]
         if not p.exists():
@@ -126,17 +158,31 @@ def _src(u):
 WEAK_FRAME = 1500   # og_render.quality: меньше — кадр в превью не ставим (GTA 6: 68 точек gtadb; Вашингтон-Бич — 411)
 
 
-def og_card(game, pid, gurl, rurl, rcred="", title="", sub=""):
-    """Превью 1200×630 «игра | жизнь» → путь от s/ или ''. Как рисуется (по лицензии фото) — tools/og_render.py."""
-    if Image is None or not (gurl or rurl):
+def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=()):
+    """Превью 1200×630 «игра | жизнь» → путь от s/ или ''. Как рисуется — tools/og_render.py.
+    Первым — пара с одного ракурса (как ползунок в приложении), если кадр игры в ней не мутный."""
+    if Image is None or not (gurl or rurl or pairs):
         return ""
     gf = CFG.get("og_game_frame", True)
-    sig = hashlib.sha1(f"v4|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}".encode()).hexdigest()[:8]
+    pk = "|".join(f"{a}>{b}" for a, b in pairs) if gf else ""
+    sig = hashlib.sha1(f"v6|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}|{pk}".encode()).hexdigest()[:8]
     rel = f"og/{game}/{pid}.{sig}.jpg"
     fp = OUT / rel
     OG_MADE.add(fp)
     if fp.exists():
         return rel
+    if gf:
+        for pg_u, pr_u in pairs:
+            try:
+                pg_im, pr_im = _src(pg_u), _src(pr_u)
+            except Exception:
+                continue
+            if pg_im is None or pr_im is None or og_render.quality(pg_im) < WEAK_FRAME:
+                continue
+            im, _ = og_render.render_pair(pg_im, pr_im)
+            fp.parent.mkdir(parents=True, exist_ok=True)
+            im.save(fp, "JPEG", quality=74, optimize=True, progressive=True, subsampling=2)
+            return rel
     g = _src(gurl) if (gurl and gf) else None
     if g is not None and og_render.quality(g) < WEAK_FRAME:   # мутная вырезка из трейлера — не позорим превью (Игорь 15.10)
         g = None
@@ -172,7 +218,9 @@ def page(game, kind, x):
     pr0 = (x.get("pairs") or [None])[0]
     cg, cr = (absu(pr0["g"]["url"]), absu(pr0["r"]["url"])) if pr0 else (gimg, rimg)
     ccred = (pr0["g"].get("credit", "") + " · " + pr0["r"].get("credit", "")) if pr0 else ""
-    og = og_card(game, fid, gimg if kind == "db" else og_game_img(x), rimg, rcred, name_g or name_r, f"{name_r}" if name_g else "")
+    prs = tuple((absu(p["g"].get("url") or p["g"].get("file") or ""), absu(p["r"].get("url") or p["r"].get("file") or ""))
+                for p in (x.get("pairs") or []) if p.get("g") and p.get("r"))[:3]
+    og = og_card(game, fid, gimg if kind == "db" else og_game_img(x), rimg, rcred, name_g or name_r, f"{name_r}" if name_g else "", prs)
     og_abs = f"{SITE}s/{og}" if og else gimg
     title = f"{name_g} = {name_r}" if name_g and name_r else (name_g or name_r)
     og_title = f"{title} · {gt} in real life · Secret Base"
@@ -291,6 +339,7 @@ def main():
         items = [("place", p) for p in d["places"]] + [("egg", e) for e in d["eggs"]] + [("egg", e) for p in d["places"] for e in p.get("eggs", [])]
         items += [("db", q) for q in db_items(game)]
         (OUT / game).mkdir(parents=True, exist_ok=True)
+        prefetch_gtadb([(p["r"].get("url") or "") for _, x in items for p in (x.get("pairs") or [])[:3] if p.get("r")])
         for kind, x in items:
             if x.get("lat") is None or not x.get("id"):
                 continue
