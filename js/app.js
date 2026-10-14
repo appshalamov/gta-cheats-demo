@@ -23,7 +23,7 @@ const data = {}; // gameId -> {cheats, ...}
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const mapMod = () => import('./map.js');
-const mapCtx = () => ({ openSheet, haptic, toast, I, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k) });
+const mapCtx = () => ({ openSheet, closeSheet, setSnap, sheetSnap: () => snap, sheetPx: snapPx, haptic, toast, I, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k) });
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const game = () => GAMES.find((g) => g.id === store.game) || GAMES[0];
 const cheats = () => (data[store.game]?.cheats) || [];
@@ -498,20 +498,61 @@ function renderAll() {
 
 // ───────── шторки ─────────
 let sheetOnClose = null;
-function openSheet(html, cls = '', onClose = null) {
+// Шторка карты как в Google Maps (Игорь 14.10.2026): три положения — полоска (peek), половина (half), весь экран (full).
+// В peek и half карта за шторкой живая, затемнение — только в full. Шторка стоит над нижней панелью.
+// Обычные шторки (чит, выбор игры, оплата) — модальные, как раньше: openSheet без opts.snap.
+let snap = null;
+const SNAP_ORDER = ['peek', 'half', 'full'];
+function snapPx(s) {
+  const H = $('#sheet-layer').clientHeight || innerHeight;
+  if (s === 'peek') return 112;
+  if (s === 'half') return Math.max(340, Math.min(460, Math.round(H * 0.5)));
+  return H;
+}
+function applySnap(animate = true) {
+  if (!snap) return;
+  const sheet = $('#sheet'), h = sheet.offsetHeight, vis = Math.min(h, snapPx(snap));
+  if (!animate) sheet.style.transition = 'none';
+  sheet.style.transform = `translateY(${h - vis}px)`;
+  document.documentElement.style.setProperty('--sheet-vis', vis + 'px');
+  if (!animate) requestAnimationFrame(() => { sheet.style.transition = ''; });
+}
+function setSnap(s) {
+  if (!snap || !SNAP_ORDER.includes(s)) return;
+  snap = s;
+  $('#sheet-layer').dataset.snap = s;
+  document.body.dataset.sheet = s;
+  $('#sheet-body').scrollTop = s === 'full' ? $('#sheet-body').scrollTop : 0;
+  applySnap();
+}
+function openSheet(html, cls = '', onClose = null, opts = null) {
   const layer = $('#sheet-layer');
   $('#sheet').className = 'sheet ' + cls;
   $('#sheet-body').innerHTML = html;
   $('#sheet-body').scrollTop = 0;
   sheetOnClose = onClose;
-  layer.classList.add('open');
+  if (opts?.snap) {
+    snap = opts.snap; layer.classList.add('snap', 'open');
+    layer.dataset.snap = snap; document.body.dataset.sheet = snap;
+    applySnap();
+  } else {
+    snap = null; layer.classList.remove('snap'); delete layer.dataset.snap; delete document.body.dataset.sheet;
+    $('#sheet').style.transform = '';
+    layer.classList.add('open');
+  }
 }
 function closeSheet() {
   ui.stopPlay?.();
-  $('#sheet-layer').classList.remove('open');
+  const layer = $('#sheet-layer');
+  layer.classList.remove('open');
   $('#sheet').style.transform = '';
+  if (snap) {   // режим положений снимаем после того, как шторка уехала вниз (иначе прыжок на высоту нижней панели)
+    snap = null; delete document.body.dataset.sheet; document.documentElement.style.setProperty('--sheet-vis', '0px');
+    setTimeout(() => { if (!layer.classList.contains('open')) { layer.classList.remove('snap'); delete layer.dataset.snap; } }, 380);
+  }
   const cb = sheetOnClose; sheetOnClose = null; cb?.();
 }
+addEventListener('resize', () => applySnap(false));
 
 // Перетаскивание шторки вниз — с фиксацией направления, как в iOS.
 // Направление решается по первым ~10px: шторка едет, только если палец идёт явно вниз
@@ -521,19 +562,31 @@ const SHEET_LOCK_PX = 10, SHEET_V_RATIO = 1.6, SHEET_CLOSE_PX = 110, SHEET_FLICK
 (() => {
   const sheet = $('#sheet');
   let x0 = 0, y0 = null, t0 = 0, dy = 0, dir = null;
+  let base = 0, lastY = 0, lastT = 0, v = 0;
   sheet.addEventListener('touchstart', (e) => {
     const body = $('#sheet-body');
     if (e.touches.length > 1 || (body.scrollTop > 0 && !e.target.closest('.grab'))) { y0 = null; return; }
     x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = e.timeStamp; dy = 0; dir = null;
+    lastY = y0; lastT = t0; v = 0;
+    const m = /translateY\((-?[\d.]+)px\)/.exec(sheet.style.transform); base = m ? +m[1] : 0;
   }, { passive: true });
   sheet.addEventListener('touchmove', (e) => {
     if (y0 == null || dir === 'h') return;
     const dx = e.touches[0].clientX - x0, d = e.touches[0].clientY - y0;
     if (!dir) {
       if (Math.abs(dx) < SHEET_LOCK_PX && Math.abs(d) < SHEET_LOCK_PX) return;
-      dir = d > 0 && Math.abs(d) > Math.abs(dx) * SHEET_V_RATIO ? 'v' : 'h';
+      // в режиме положений шторку можно тянуть и вверх (кроме «весь экран» — там вверх листается содержимое)
+      const upOk = snap && snap !== 'full';
+      dir = (d > 0 || upOk) && Math.abs(d) > Math.abs(dx) * SHEET_V_RATIO ? 'v' : 'h';
       if (dir === 'h') return;
       sheet.style.transition = 'none';
+    }
+    const now = e.touches[0].clientY, t = e.timeStamp;
+    if (t > lastT) { v = (now - lastY) / (t - lastT); lastY = now; lastT = t; }
+    if (snap) {
+      dy = d - Math.sign(d) * SHEET_LOCK_PX;
+      sheet.style.transform = `translateY(${Math.max(0, base + dy)}px)`;
+      return;
     }
     dy = Math.max(0, d - SHEET_LOCK_PX);
     sheet.style.transform = dy ? `translateY(${dy}px)` : '';
@@ -544,6 +597,14 @@ const SHEET_LOCK_PX = 10, SHEET_V_RATIO = 1.6, SHEET_CLOSE_PX = 110, SHEET_FLICK
     y0 = null; dir = null;
     if (!wasV) return;
     sheet.style.transition = '';
+    if (snap) {   // к ближайшему положению с учётом скорости; ниже полоски или рывок вниз из полоски — закрыть
+      const h = sheet.offsetHeight, vis = h - Math.max(0, base + dy), proj = vis - v * 150;
+      if (vis < snapPx('peek') - 60 || (snap === 'peek' && v > SHEET_FLICK_PX_MS)) { closeSheet(); return; }
+      let next = SNAP_ORDER.reduce((a, b) => (Math.abs(Math.min(h, snapPx(b)) - proj) < Math.abs(Math.min(h, snapPx(a)) - proj) ? b : a));
+      if (Math.abs(v) > SHEET_FLICK_PX_MS) { const i = SNAP_ORDER.indexOf(snap) + (v < 0 ? 1 : -1); next = SNAP_ORDER[Math.max(0, Math.min(2, i))]; }
+      if (next !== snap) haptic?.();
+      setSnap(next); return;
+    }
     if (dy > SHEET_CLOSE_PX || (dy > 40 && speed > SHEET_FLICK_PX_MS)) closeSheet(); else sheet.style.transform = '';
   };
   sheet.addEventListener('touchend', end);
@@ -887,7 +948,9 @@ document.addEventListener('click', async (e) => {
     case 'install-x': $('#install').classList.remove('show'); break;
   }
 });
-$('#sheet-layer').addEventListener('click', (e) => { if (e.target.id === 'sheet-layer') closeSheet(); });
+$('#sheet-layer').addEventListener('click', (e) => { if (e.target.id === 'sheet-layer') { if (snap === 'full') setSnap('half'); else closeSheet(); } });
+// нажатие на «ручку» шторки карты — на положение выше: полоска → половина → весь экран → половина
+$('#sheet .grab').addEventListener('click', () => { if (snap) setSnap(snap === 'peek' ? 'half' : snap === 'half' ? 'full' : 'half'); });
 $('#search-input').addEventListener('input', (e) => { ui.query = e.target.value; renderSearch(); });
 $('#search-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { rememberQuery(); e.target.blur(); } });
 $('#pager').addEventListener('scroll', () => requestAnimationFrame(moveInk), { passive: true });

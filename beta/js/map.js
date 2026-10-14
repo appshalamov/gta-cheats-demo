@@ -383,6 +383,8 @@ function asItem(ph) {
 const gameList = (o) => [o.pg, ...(o.gg || [])].filter(Boolean).map((ph) => asItem(ph));
 const realList = (o) => [o.pr, ...(o.gl || [])].filter(Boolean).map((ph) => asItem(ph));
 const pairsOf = {};     // key → [{g, r}] — только пары с одного ракурса (подобраны людьми в gtadb)
+// строка-название для шторки в положении «полоска» (как в Google Maps): видно, какое место, пока карта на весь экран
+const peekHead = (g, r, egg) => `<div class="mp-peek" data-mp="peekup">${egg ? IC.egg : IC.game}<span><b>${esc(g || r || '')}</b>${r && g ? `<small>${IC.pin}${esc(r)}</small>` : ''}</span><i class="mp-chev">${IC.chevR}</i></div>`;
 function heroBox(key, pairs, gl, rl, names, o = {}) {
   galNames[key] = names; galleries[`g:${key}`] = gl; galleries[`r:${key}`] = rl;
   pairsOf[key] = (pairs || []).map((x) => ({ g: asItem(x.g), r: asItem(x.r), ap: !!x.ap }));
@@ -462,6 +464,7 @@ function placeSheet(p, i) {
   const dist = distLabel(p);
   const media = (p.m || []).map(ytLink).filter(Boolean);
   return `
+    ${peekHead(p.g, p.n)}
     ${heroBox('p' + i, p.pairs, gameList(p), realList(p), { g: p.g, r: p.n }, { pano: panoLink(p.lat, p.lon, p.view) })}
     <div class="mp-names">
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(p.g)}</b>${p.r ? `<small>${esc(p.r)}</small>` : ''}</div></div>
@@ -506,6 +509,7 @@ function eggSheet(e, i) {
     ? `<button class="mp-cta mp-cta-yt" data-mp="yt" data-v="${yt[0].id}" data-t="${yt[0].t}" data-l="${esc(yt[0].label)}">${IC.play}<span>${esc(w('seen'))} · ${esc(yt[0].label.split(' · ')[1] || '')}</span></button>`
     : `<a class="mp-cta" href="${panoLink(e.lat, e.lon, e.view)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>`;
   return `
+    ${peekHead(txt(e.t), (e.p || '').split(',')[0], true)}
     ${heroBox('e' + i, e.pairs, gameList(e), realList(e), { g: txt(e.t), r: (e.p || '').split(',')[0] }, { egg: true })}
     <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><h2>${esc(txt(e.t))}</h2></div></div>
     ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(e.p.split(',')[0])}</b><small>${esc(e.p.split(',').slice(1).join(',').trim())}</small></div></div>` : ''}
@@ -531,6 +535,7 @@ function gtadbSheet(p, g, i) {
   const [id, name, district, real, lat, lon, type] = p;
   const ph = gtadbPhotos(p, g);
   return `
+    ${peekHead(name || district || id, real.split(',')[0])}
     ${heroBox('d' + i, ph.pg && ph.pr ? [{ g: ph.pg, r: ph.pr }] : [], gameList(ph), realList(ph), { g: name || district || id, r: real.split(',')[0] })}
     <div class="mp-names">
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(name || district || id)}</b>${name && district ? `<small>${esc(district)}</small>` : ''}</div></div>
@@ -1119,24 +1124,30 @@ function applyShow() {
   map.setLayoutProperty('eggs', 'visibility', vis(show.eggs));
 }
 
-function openPlace(i, fly) {
+function openPlace(i, fly, want) {
   const p = data[game].places[i];
   selected = i; selectedD = null;
   map?.getSource('sel')?.setData(geo('sel'));
   const c = ll(p);
-  if (fly && c) map.easeTo({ center: c, zoom: Math.max(map.getZoom(), tilesGame() ? 6.5 : 14.5), duration: 700, offset: [0, -90] });
+  if (fly && c) map.easeTo({ center: c, zoom: Math.max(map.getZoom(), tilesGame() ? 6.5 : 14.5), duration: 700, offset: camOffset(want) });
   renderCards(); scrollCardIntoView(i);
-  mapSheet(placeSheet(p, i));
+  mapSheet(placeSheet(p, i), want);
 }
+// Шторка карты как в Google Maps (бета; в прод — после «ок» Игоря): карточка открывается на половине экрана,
+// переход на другую карту сворачивает её в полоску внизу, тап по пустой карте — на ступень ниже.
+const SNAP_ON = BETA;
+const snapOpt = (want) => (SNAP_ON ? { snap: want || 'half' } : null);
+// сдвиг центра: место видно над шторкой, а не под ней
+const camOffset = (want) => [0, -Math.round((SNAP_ON && ctx?.sheetPx ? ctx.sheetPx(want || 'half') : 180) / 2)];
 
 // «Несколько мест здесь»: карточку, открытую из этого списка, смахнули вниз — снова открывается список,
 // чтобы не терять, откуда пришёл (Игорь 14.10.2026). Повторное смахивание закрывает список как обычно.
 let chooserHtml = null, backToChooser = false;
-function mapSheet(html) {
+function mapSheet(html, want) {
   const back = backToChooser && chooserHtml; backToChooser = false;
   ctx.openSheet(html, 'sheet-map', back ? () => setTimeout(() => {
-    if (document.body.dataset.tab === 'map' && !document.getElementById('sheet-layer')?.classList.contains('open')) ctx.openSheet(back, 'sheet-map');
-  }, 120) : null);
+    if (document.body.dataset.tab === 'map' && !document.getElementById('sheet-layer')?.classList.contains('open')) ctx.openSheet(back, 'sheet-map', null, snapOpt('half'));
+  }, 120) : null, snapOpt(want));
 }
 // нажатие по карте ждёт 250 мс: если за это время началось второе касание (двойной тап или «тап и тяни» —
 // масштаб одним пальцем, как в навигаторе), точку не открываем (Игорь 14.10.2026: «палец попадает на точку — она открывается»)
@@ -1154,10 +1165,14 @@ function pickAt(e) {
   const r = 14, { x, y } = e.point;
   const layers = ['eggs', 'places', 'gtadb'].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, 'visibility') !== 'none');
   const hits = map.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]], { layers });
-  if (!hits.length) return;
+  if (!hits.length) {   // пустое место: шторка на ступень ниже — половина/весь экран → полоска → закрыть
+    const s = SNAP_ON && ctx.sheetSnap?.();
+    if (s === 'half' || s === 'full') ctx.setSnap('peek'); else if (s === 'peek') ctx.closeSheet();
+    return;
+  }
   const uniq = []; const seenHit = new Set();
   for (const h of hits.sort((a, b) => dist(a, e) - dist(b, e))) { const k = h.layer.id + ':' + h.properties.i; if (!seenHit.has(k)) { seenHit.add(k); uniq.push(h); } }
-  if (uniq.length > 1) { ctx.haptic(); chooserHtml = chooserSheet(uniq.slice(0, 12)); backToChooser = false; ctx.openSheet(chooserHtml, 'sheet-map'); return; }
+  if (uniq.length > 1) { ctx.haptic(); chooserHtml = chooserSheet(uniq.slice(0, 12)); backToChooser = false; ctx.openSheet(chooserHtml, 'sheet-map', null, snapOpt('half')); return; }
   chooserHtml = null;
   const nearest = uniq[0];
   const i = nearest.properties.i, l = nearest.layer.id;
@@ -1177,15 +1192,15 @@ function chooserSheet(hits) {
   };
   return `<h2 class="pick-t">${esc(w('here'))}</h2><div class="mp-chooser">${hits.map(row).join('')}</div>`;
 }
-function openPoint(i, fly) {
+function openPoint(i, fly, want) {
   const q = gtadb[game].points[i];
   selected = null; selectedD = i;
   map?.getSource('sel')?.setData(geo('sel'));
   const c = llPt(q);
-  if (fly && c) map.easeTo({ center: c, zoom: Math.max(map.getZoom(), tilesGame() ? 7 : 15), duration: 700, offset: [0, -90] });
+  if (fly && c) map.easeTo({ center: c, zoom: Math.max(map.getZoom(), tilesGame() ? 7 : 15), duration: 700, offset: camOffset(want) });
   renderCards();
   document.querySelector(`#map-cards .mc[data-d="${i}"]`)?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-  mapSheet(gtadbSheet(q, gtadb[game].game, i));
+  mapSheet(gtadbSheet(q, gtadb[game].game, i), want);
 }
 function dist(f, e) {
   const p = map.project(f.geometry.coordinates);
@@ -1243,6 +1258,7 @@ document.addEventListener('click', (e) => {
   else if (a === 'pair') { if (viewer) { viewer.pi = +el.dataset.n; viewer.x = 50; renderViewer(); } }
   else if (a === 'all') { ctx?.haptic(); openAll(el.dataset.key, 'r'); }
   else if (a === 'viewer-close') closeViewer();
+  else if (a === 'peekup') { ctx?.haptic(); ctx.setSnap?.('half'); }
   else if (a === 'pick') { const i = +el.dataset.i, l = el.dataset.l; backToChooser = true; if (l === 'places') openPlace(i, false); else if (l === 'eggs') mapSheet(eggSheet(data[game].eggs[i], i)); else openPoint(i, false); }
   else if (a === 'fav') {
     e.stopPropagation(); ctx?.haptic?.();
@@ -1333,12 +1349,16 @@ function startView(d) {
   return { center: G2M(mid(0), mid(1)), zoom: 3.6 };
 }
 // «Показать на карте GTA» / «на реальной карте» из карточки: переключить вид и открыть это же место там
+// Игорь 14.10.2026: «нажимаю “где в жизни / где в GTA” — карточка сворачивается вниз, а на весь экран открывается другая карта;
+// карточку можно поднять обратно или переключить карту»
 async function showOnMap(m, k, i) {
+  const want = SNAP_ON ? 'peek' : undefined;
+  if (SNAP_ON) ctx.setSnap?.('peek');
   await setMode(m);
   const d = data[game];
-  if (k === 'p') openPlace(i, true);
-  else if (k === 'd') openPoint(i, true);
-  else if (k === 'e' && d.eggs[i]) { const e = d.eggs[i], c = ll(e); if (c) map.easeTo({ center: c, zoom: tilesGame() ? 6.5 : 15, duration: 600, offset: [0, -90] }); ctx.openSheet(eggSheet(e, i), 'sheet-map'); }
+  if (k === 'p') openPlace(i, true, want);
+  else if (k === 'd') openPoint(i, true, want);
+  else if (k === 'e' && d.eggs[i]) { const e = d.eggs[i], c = ll(e); if (c) map.easeTo({ center: c, zoom: tilesGame() ? 6.5 : 15, duration: 600, offset: camOffset(want) }); mapSheet(eggSheet(e, i), want); }
 }
 // переключение «Реальная карта ⇄ Карта игры»: остаёмся у того же места (выбранного или ближайшего к центру)
 export async function setMode(m) {
@@ -1385,8 +1405,8 @@ export async function focus(g, kind, id) {
   const ei = d.eggs.findIndex((x) => x.id === id);
   if (ei >= 0) {
     const e = d.eggs[ei], c = ll(e);
-    if (c) map.easeTo({ center: c, zoom: Math.max(map.getZoom(), tilesGame() ? 6.5 : 15), duration: 700, offset: [0, -90] });
-    ctx.openSheet(eggSheet(e, ei), 'sheet-map'); return true;
+    if (c) map.easeTo({ center: c, zoom: Math.max(map.getZoom(), tilesGame() ? 6.5 : 15), duration: 700, offset: camOffset() });
+    mapSheet(eggSheet(e, ei)); return true;
   }
   const pi = d.places.findIndex((x) => (x.eggs || []).some((e) => e.id === id));   // пасхалка показана в карточке места
   if (pi < 0) return false;

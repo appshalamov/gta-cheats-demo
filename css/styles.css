@@ -851,3 +851,29 @@ button.mp-ingame { width: 100%; padding: 0; text-align: left; font: inherit; cur
   background: rgba(12, 14, 18, .78); border: 1px solid rgba(255, 154, 92, .35); white-space: normal; }
 /* пара «≈ рядом» в ползунке сравнения (кадр не точно этого места, но игра и жизнь — один вид) */
 .cmp-stage .cmp-approx { position: absolute; left: 50%; top: auto; bottom: 10px; transform: translateX(-50%); z-index: 3; pointer-events: none; }
+
+/* Шторка карты как в Google Maps (14.10.2026): полоска / половина / весь экран, стоит над нижней панелью.
+   В полоске и половине карта за шторкой живая (слой не перехватывает касания), затемнение — только во весь экран. */
+#sheet-layer.snap.open { background: transparent; pointer-events: none; }
+#sheet-layer.snap.open[data-snap="full"] { background: rgba(0,0,0,.35); pointer-events: auto; }
+#sheet-layer.snap .sheet { pointer-events: auto; bottom: calc(var(--tabbar-h) + var(--safe-b));
+  max-height: calc(var(--app-h, 100dvh) - var(--safe-t) - var(--tabbar-h) - var(--safe-b) - 16px); transition: transform .32s cubic-bezier(.2,.9,.25,1); }
+#sheet-layer.snap:not(.open) .sheet { transform: translateY(calc(100% + var(--tabbar-h) + var(--safe-b) + 20px)) !important; }
+#sheet-layer.snap .sheet-body { padding-bottom: 22px; }
+#sheet-layer.snap:not([data-snap="full"]) .sheet-body { overflow-y: hidden; }
+#sheet-layer.snap .grab { cursor: pointer; height: 26px; }
+body[data-sheet] .map-cards { opacity: 0; pointer-events: none; transition: opacity .2s; }
+body[data-sheet="peek"] .map-fabs { bottom: calc(var(--tabbar-h) + var(--safe-b) + var(--sheet-vis, 0px) + 12px); }
+body[data-sheet="half"] .map-fabs, body[data-sheet="full"] .map-fabs { opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { #sheet-layer.snap .sheet { transition-duration: .16s; } }
+/* строка-название в полоске (peek): только в этом положении */
+.mp-peek { display: none; }
+#sheet-layer.snap[data-snap="peek"] .mp-peek { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; cursor: pointer; }
+.mp-peek > svg { width: 22px; height: 22px; flex: none; color: var(--accent); }
+.mp-peek span { min-width: 0; flex: 1; display: grid; gap: 2px; }
+.mp-peek b { font-size: 16px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-peek small { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-peek small svg { width: 13px; height: 13px; flex: none; }
+.mp-peek .mp-chev { transform: rotate(-90deg); color: var(--text-2); }
+.mp-peek .mp-chev { display: grid; place-items: center; width: 22px; height: 22px; flex: none; }
+.mp-peek .mp-chev svg { width: 18px; height: 18px; }
