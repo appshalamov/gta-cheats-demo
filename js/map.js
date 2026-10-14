@@ -396,30 +396,68 @@ function setInlinePair(btn) {
   box.querySelectorAll('.cmp-ipairs button').forEach((b) => b.classList.toggle('on', b === btn));
   (inl[key] ||= {}).pi = n; setInlineX(st, 50);   // новый ракурс — снова пополам
 }
+// Ползунок «игра ⇄ жизнь» в карточке. Корень бага (14.10.2026): с touch-action: pan-y iOS при малейшем
+// вертикальном смещении начинала прокрутку карточки и слала ползунку pointercancel.
+// Лечение: направление решается на ПЕРВОМ touchmove (с перевесом в пользу горизонтали). Если вбок —
+// preventDefault на всех touchmove жеста: iOS не начинает прокрутку, ползунок едет до отпускания пальца.
+// Если вверх-вниз — жест остаётся родной прокруткой браузера (с инерцией и отскоком).
+const CMP_H_BIAS = 0.7;   // вбок, если |dx| ≥ 0.7·|dy| на первом движении
+let cmpT = null;          // текущее касание над ползунком: { x, y, h: null | true | false }
+addEventListener('touchstart', (e) => {
+  const st = e.target.closest?.('.cmp-inline');
+  cmpT = st && !e.target.closest('button') && e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY, h: null } : null;
+}, { capture: true, passive: true });
+addEventListener('touchmove', (e) => {
+  if (!cmpT) return;
+  if (cmpT.h === null) {
+    const t = e.touches[0], dx = Math.abs(t.clientX - cmpT.x), dy = Math.abs(t.clientY - cmpT.y);
+    if (dx + dy < 1) return;
+    cmpT.h = dx >= dy * CMP_H_BIAS;
+    const d = cmpDrag;
+    if (d) {
+      d.mode = cmpT.h ? 'h' : 'v';
+      if (cmpT.h) {
+        d.st.classList.remove('hint'); d.st.classList.add('drag');
+        try { d.st.setPointerCapture(d.id); } catch { }
+        const sh = document.getElementById('sheet'); if (sh) sh.style.transform = '';
+      }
+    }
+  }
+  if (cmpT.h && e.cancelable) e.preventDefault();      // отменяет прокрутку карточки на весь жест
+}, { capture: true, passive: false });
+addEventListener('touchend', () => { cmpT = null; }, { capture: true, passive: true });
+addEventListener('touchcancel', () => { cmpT = null; }, { capture: true, passive: true });
+
 document.addEventListener('pointerdown', (e) => {
   const st = e.target.closest?.('.cmp-inline');
   if (!st || e.target.closest('button') || e.button > 0) return;
-  cmpDrag = { st, id: e.pointerId, x0: e.clientX, y0: e.clientY, mode: null };
+  cmpDrag = { st, id: e.pointerId, x0: e.clientX, y0: e.clientY, mode: null, touch: e.pointerType === 'touch' };
 });
 document.addEventListener('pointermove', (e) => {
   const d = cmpDrag;
   if (!d || e.pointerId !== d.id) return;
-  if (!d.mode) {
+  if (!d.mode && !d.touch) {                             // мышь: направление по порогу
     const dx = Math.abs(e.clientX - d.x0), dy = Math.abs(e.clientY - d.y0);
-    if (dx > 6 && dx >= dy) {
+    if (dx > 4 && dx >= dy * CMP_H_BIAS) {
       d.mode = 'h'; d.st.classList.remove('hint'); d.st.classList.add('drag');
       try { d.st.setPointerCapture(e.pointerId); } catch { }
-      const sh = document.getElementById('sheet'); if (sh) sh.style.transform = '';
-    } else if (dy > 8) d.mode = 'v';
+    } else if (dy > 6) d.mode = 'v';
   }
-  if (d.mode === 'h') { const b = d.st.getBoundingClientRect(); setInlineX(d.st, ((e.clientX - b.left) / b.width) * 100); }
+  if (d.mode !== 'h') return;
+  d.px = e.clientX;                                      // одно обновление ползунка на кадр
+  if (!d.raf) d.raf = requestAnimationFrame(() => {
+    d.raf = 0; const b = d.st.getBoundingClientRect(), v = ((d.px - b.left) / b.width) * 100;
+    const edge = v <= 0 ? 0 : v >= 100 ? 100 : null;
+    if (edge !== null && d.edge !== edge) ctx?.haptic?.();   // лёгкий отклик у краёв
+    d.edge = edge; setInlineX(d.st, v);
+  });
 });
 function endInlineDrag(e) {
   const d = cmpDrag;
   if (!d || e.pointerId !== d.id) return;
   cmpDrag = null; d.st.classList.remove('drag');
   if (d.mode || e.type !== 'pointerup') return;
-  ctx?.haptic?.();                                     // короткое нажатие — на весь экран
+  ctx?.haptic?.();                                     // короткое нажатие без сдвига — на весь экран
   const s = inl[d.st.dataset.key] || {};
   if (d.st.dataset.i) viewer = { ...(viewer || {}), i: d.st.dataset.i };
   openCompare(d.st.dataset.key, s.pi || 0, s.x ?? 50);

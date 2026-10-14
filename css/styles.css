@@ -666,7 +666,7 @@ body.in-ob #onboarding { display: flex; }
 .mp-eggblk > div { padding-right: 34px; }
 
 /* ───── карта: сравнение прямо в карточке + «Рядом» ───── */
-.cmp-inline { aspect-ratio: 4 / 3; max-height: none; border-radius: 16px; margin: 2px 0 8px; touch-action: pan-y; }
+.cmp-inline { aspect-ratio: 4 / 3; max-height: none; border-radius: 16px; margin: 2px 0 8px; touch-action: pan-y; } /* вертикаль — родная прокрутка; вбок map.js гасит её на первом touchmove */
 .cmp-inline .cmp-knob { width: 42px; height: 42px; margin: -21px 0 0 -21px; transition: transform .15s; }
 .cmp-inline.drag .cmp-knob { transform: scale(1.1); }
 .cmp-inline:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
