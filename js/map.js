@@ -231,15 +231,23 @@ function placeSheet(p, i) {
     ${(p.src || []).length ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u, k) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a>`).join('')}</div>` : ''}
     ${[p.pg, p.pr].filter(Boolean).length ? `<p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>` : ''}`;
 }
-function eggSheet(e) {
+function eggSheet(e, i) {
+  const yt = (e.m || []).map(ytLink).filter(Boolean);
+  const cta = yt.length
+    ? `<a class="mp-cta mp-cta-yt" href="${yt[0].url}" target="_blank" rel="noopener">${IC.play}<span>${esc(w('seen'))} · ${esc(yt[0].label.split(' · ')[1] || '')}</span></a>`
+    : `<a class="mp-cta" href="${panoLink(e.lat, e.lon)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>`;
   return `
+    <div class="mp-hero">${shot(e.pg, 'g', 'e' + i)}${shot(e.pr, 'r', 'e' + i)}<span class="mp-vs mp-vs-egg">${IC.egg}</span></div>
     <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><h2>${esc(txt(e.t))}</h2></div></div>
+    ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(e.p.split(',')[0])}</b><small>${esc(e.p.split(',').slice(1).join(',').trim())}</small></div></div>` : ''}
     <div class="mp-picto"><span class="mp-pic">${meter(e.cf)}<small>${esc(w(e.cf || 'likely'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel(e)}</small></span>` : ''}</div>
-    ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(e.p)}</b></div></div>` : ''}
+    <div class="mp-acts">${cta}
+      <a class="mp-ib" href="${mapsLink(e.lat, e.lon, e.p)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}">${IC.nav}</a>
+      <button class="mp-ib" data-mp="share" data-t="${esc(txt(e.t))}" aria-label="${esc(w('share'))}">${IC.share}</button></div>
     <p class="mp-text">${esc(txt(e.d))}</p>
-    ${(e.m || []).map(ytLink).filter(Boolean).length ? `<div class="mp-yt">${(e.m || []).map(ytLink).filter(Boolean).map((m) => `<a href="${m.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(m.label)}</span></a>`).join('')}</div>` : ''}
-    ${actions(e.lat, e.lon, e.p, txt(e.t))}
-    ${e.src ? `<div class="mp-src">${IC.link}<a href="${esc(e.src)}" target="_blank" rel="noopener">${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a></div>` : ''}`;
+    ${yt.length > 1 ? `<div class="mp-yt">${yt.slice(1).map((m) => `<a href="${m.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(m.label)}</span></a>`).join('')}</div>` : ''}
+    ${e.src ? `<div class="mp-src">${IC.link}<a href="${esc(e.src)}" target="_blank" rel="noopener">${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a></div>` : ''}
+    ${[e.pg, e.pr].filter(Boolean).length ? `<p class="mp-cred">${[e.pg, e.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>` : ''}`;
 }
 // фото точек сообщества — из открытого репозитория gtadb.org на GitHub (CC BY 4.0; кадры игры © Rockstar Games)
 function gtadbPhotos(p, g) {
@@ -280,6 +288,7 @@ function helpSheet() {
 function subject(ref) {
   const i = +ref.slice(1);
   if (ref[0] === 'p') { const p = data[game].places[i]; return { pg: p.pg, pr: p.pr, g: p.g, n: p.n }; }
+  if (ref[0] === 'e') { const e = data[game].eggs[i]; return { pg: e.pg, pr: e.pr, g: txt(e.t), n: (e.p || '').split(',')[0] }; }
   const d = gtadb[game].points[i], ph = gtadbPhotos(d, gtadb[game].game);
   return { pg: ph.pg, pr: ph.pr, g: d[1] || d[2] || d[0], n: d[3].split(',')[0] };
 }
@@ -427,7 +436,7 @@ function onTap(e) {
   const nearest = best.sort((a, b) => dist(a, e) - dist(b, e))[0];
   const i = nearest.properties.i, l = nearest.layer.id;
   ctx.haptic();
-  if (l === 'eggs') ctx.openSheet(eggSheet(data[game].eggs[i]), 'sheet-map');
+  if (l === 'eggs') ctx.openSheet(eggSheet(data[game].eggs[i], i), 'sheet-map');
   else if (l === 'places') openPlace(i, false);
   else openPoint(i, false);
 }

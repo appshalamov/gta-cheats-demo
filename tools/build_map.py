@@ -73,7 +73,7 @@ def src0(item):
 def media(item):
     m = item.get("game_media") or item.get("where_in_media") or []
     if isinstance(m, str):
-        m = [m]
+        m = [x for x in re.split(r"[|;]", m)]
     seen, out = set(), []
     for x in m:
         x = str(x).strip()
@@ -133,6 +133,7 @@ def build(game, cfg):
             "id": it.get("id") or f"{game}-e{i}",
             "t": bi(it, "title"), "d": bi(it, "description"), "p": it.get("real_place", ""),
             "lat": lat, "lon": lon, "cf": it.get("confidence", "likely"), "m": media(it), "src": src0(it),
+            "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"),
         })
     data = {"game": game, "center": cfg["center"], "zoom": cfg["zoom"],
             "source": pf.name if pf else None, "places": places, "eggs": eggs}

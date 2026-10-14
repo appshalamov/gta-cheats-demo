@@ -481,3 +481,6 @@ body.in-ob #onboarding { display: flex; }
 .mp-cta span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mp-ib { flex: none; width: 44px; height: 44px; padding: 11px; border-radius: 12px; background: var(--card); border: 1px solid var(--line-2); color: var(--text); display: inline-grid; place-items: center; }
 .mp-ib:active, .mp-cta:active { transform: scale(.96); }
+.mp-cta-yt { background: rgba(255,0,0,.12); color: var(--text); border-color: rgba(255,60,60,.45); }
+.mp-cta-yt svg { color: #ff3b3b; }
+.mp-vs-egg { color: #f472b6; }
