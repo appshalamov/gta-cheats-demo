@@ -431,7 +431,8 @@ addEventListener('touchcancel', () => { cmpT = null; }, { capture: true, passive
 document.addEventListener('pointerdown', (e) => {
   const st = e.target.closest?.('.cmp-inline');
   if (!st || e.target.closest('button') || e.button > 0) return;
-  cmpDrag = { st, id: e.pointerId, x0: e.clientX, y0: e.clientY, mode: null, touch: e.pointerType === 'touch' };
+  cmpDrag = { st, id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: e.timeStamp, mode: null, touch: e.pointerType === 'touch',
+    v0: inl[st.dataset.key]?.x ?? 50 };
 });
 document.addEventListener('pointermove', (e) => {
   const d = cmpDrag;
@@ -456,8 +457,16 @@ function endInlineDrag(e) {
   const d = cmpDrag;
   if (!d || e.pointerId !== d.id) return;
   cmpDrag = null; d.st.classList.remove('drag');
-  if (d.mode || e.type !== 'pointerup') return;
-  ctx?.haptic?.();                                     // короткое нажатие без сдвига — на весь экран
+  if (d.raf) { cancelAnimationFrame(d.raf); d.raf = 0; }
+  const b = d.st.getBoundingClientRect();
+  if (d.mode === 'h' && d.px != null) setInlineX(d.st, ((d.px - b.left) / b.width) * 100);   // последний кадр не теряем
+  // Тап = сдвиг за всё касание < 6px и < 350 мс, даже если дрожь пальца успела выбрать «вбок»:
+  // ползунок возвращается, открывается полный экран. Порог направления не поднимаем — иначе iOS начнёт прокрутку.
+  const moved = Math.hypot(e.clientX - d.x0, e.clientY - d.y0);
+  const tap = e.type === 'pointerup' && moved < 6 && e.timeStamp - d.t0 < 350;
+  if (!tap) return;
+  if (d.mode === 'h') setInlineX(d.st, d.v0);
+  ctx?.haptic?.();                                     // короткое нажатие — на весь экран
   const s = inl[d.st.dataset.key] || {};
   if (d.st.dataset.i) viewer = { ...(viewer || {}), i: d.st.dataset.i };
   openCompare(d.st.dataset.key, s.pi || 0, s.x ?? 50);
