@@ -1,0 +1,14 @@
+/* Каркас под iPhone «на экране Домой» (iOS 26).
+   Баг WebKit 301994: в standalone окно (innerHeight, 100dvh) занижено на высоту чёлки (~59px),
+   а любой position: fixed корень обрезается по этой заниженной высоте — внизу системная полоса.
+   Лечение (подтверждено в piclaw/docs/PWA.md): корень в обычном потоке, без fixed;
+   высота в standalone = 100vh (её iOS не занижает), в браузере = 100dvh. Ставит fitViewport() в app.js.
+   Подстраховка: фон страницы = цвет нижней панели — если полоса всё же останется, она сольётся с панелью. */
+:root { --tabbar-bg: #101013; --safe-b: max(env(safe-area-inset-bottom, 0px), var(--safe-b-min, 0px)); }
+:root[data-theme="light"] { --tabbar-bg: #f7f7f9; }
+html { height: 100%; background: var(--tabbar-bg); }
+body { position: relative; height: var(--app-h, 100dvh); min-height: var(--app-h, 100dvh); background: var(--bg); overflow: hidden; }
+/* было position: fixed — теперь absolute внутри body (body = полная высота) */
+#main, #onboarding, #paywall, #sheet-layer { position: absolute; }
+#toast, #install, #mp-viewer { position: absolute; }
+.tabbar { background: color-mix(in srgb, var(--tabbar-bg) 94%, transparent); }

@@ -50,42 +50,58 @@ function toast(msg) {
 }
 
 // ───────── высота окна ─────────
-// Каркас = ровно окно, которое даёт браузер (window.innerHeight): ниже него iOS ничего не рисует.
-// iOS в режиме «на экране Домой» иногда отдаёт окно, которое кончается НАД полосой жеста,
-// но env(safe-area-inset-bottom) всё равно ~34px — тогда нижний отступ двойной и панель «висит».
-// Если окно короче экрана на ≥20px — низ уже отрезан системой, свой отступ снизу обнуляем.
-// Проверка без iPhone: ?vptest=805x852 — окно 805 при экране 852 в режиме «на экране Домой» (как iOS с багом).
+// iOS 26, режим «на экране Домой»: innerHeight/100dvh занижены на высоту чёлки (WebKit 301994),
+// а fixed-корень обрезается по ним. Поэтому корень в обычном потоке (css/layout.css), а высота:
+// standalone → 100vh (iOS её не занижает), браузер → 100dvh. Пиксели innerHeight/screen.height не используем.
+// Проверка без iPhone: ?vptest=805x852 включает режим standalone.
 const VPTEST = /[?&]vptest=(\d+)x(\d+)/.exec(location.search);
 if (VPTEST) {
   Object.defineProperty(screen, 'height', { get: () => +VPTEST[2], configurable: true });
   Object.defineProperty(navigator, 'standalone', { get: () => true, configurable: true });
 }
-
+const isStandalone = () => !!(matchMedia('(display-mode: standalone)').matches || navigator.standalone);
+function probe(css) {
+  const d = document.createElement('div');
+  d.style.cssText = 'position:absolute;left:-9999px;top:0;width:1px;' + css;
+  document.documentElement.appendChild(d);
+  const v = Math.round(d.getBoundingClientRect().height || parseFloat(getComputedStyle(d).paddingBottom) || 0);
+  d.remove(); return v;
+}
 function fitViewport() {
   const root = document.documentElement;
-  const h = window.innerHeight;
-  root.style.setProperty('--app-h', h + 'px');
-  const sa = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-  const portrait = window.innerHeight >= window.innerWidth;
-  const full = portrait ? Math.max(screen.height, screen.width) : Math.min(screen.height, screen.width);
-  const gap = sa ? full - h : 0;
-  if (gap >= 20) root.style.setProperty('--safe-b', '0px'); else root.style.removeProperty('--safe-b');
-  window.__vp = { inner: h, screen: full, gap, standalone: !!sa, guard: false };
-  requestAnimationFrame(guardTabbar);
+  const sa = isStandalone();
+  root.style.setProperty('--app-h', sa ? '100vh' : '100dvh');
+  // у iPhone с полосой жеста env() в standalone иногда отдаёт 0 — минимум 20px, чтобы иконки не легли под полосу
+  const faceId = Math.max(screen.height, screen.width) >= 812 && /iphone/i.test(navigator.userAgent + (VPTEST ? 'iphone' : ''));
+  if (sa && faceId) root.style.setProperty('--safe-b-min', '20px'); else root.style.removeProperty('--safe-b-min');
+  window.__vp = {
+    inner: window.innerHeight, vh: probe('height:100vh'), dvh: probe('height:100dvh'), screen: screen.height,
+    safeB: probe('height:0;padding-bottom:env(safe-area-inset-bottom)'), standalone: sa, guard: false,
+  };
+  setTimeout(guardTabbar, 50);
 }
-// Предохранитель: панель вкладок обязана целиком быть в видимом окне. Ниже innerHeight iOS не рисует —
-// если панель (из-за любой будущей правки CSS) вылезла, каркас ужимается до окна, нижний отступ обнуляется.
+fitViewport();
+addEventListener('resize', fitViewport);
+addEventListener('orientationchange', () => setTimeout(fitViewport, 300));
+// без fixed-корня iOS при открытии клавиатуры сдвигает страницу вверх — возвращаем
+['focusin', 'focusout'].forEach((ev) => addEventListener(ev, () => {
+  if (!isStandalone()) return;
+  [0, 16, 50, 100, 200].forEach((ms) => setTimeout(() => window.scrollTo(0, 0), ms));
+}));
+
+// Предохранитель: панель вкладок обязана стоять в пределах экрана (в standalone — полный экран,
+// в браузере — окно). Если вылезла из-за будущей правки CSS — каркас ужимается до окна.
 function guardTabbar() {
   const tb = document.getElementById('tabbar');
   if (!tb || !tb.offsetParent) return;
+  const limit = isStandalone() ? Math.max(window.innerHeight, window.__vp?.vh || 0) : window.innerHeight;
   const r = tb.getBoundingClientRect();
-  if (r.bottom > window.innerHeight + 1) {
-    document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
-    document.documentElement.style.setProperty('--safe-b', '0px');
+  if (r.bottom > limit + 1) {
+    document.documentElement.style.setProperty('--app-h', limit + 'px');
     if (window.__vp) window.__vp.guard = true;
   }
 }
-window.__guardTabbar = guardTabbar; // для проверки: ?vptest=805x852
+window.__guardTabbar = guardTabbar; // для проверки
 fitViewport();
 addEventListener('resize', fitViewport);
 addEventListener('orientationchange', () => setTimeout(fitViewport, 300));
@@ -94,7 +110,7 @@ addEventListener('orientationchange', () => setTimeout(fitViewport, 300));
 function applyTheme() {
   const th = store.theme === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : store.theme;
   document.documentElement.dataset.theme = th;
-  $('meta[name="theme-color"]').setAttribute('content', th === 'light' ? '#F2F2F7' : '#000000');
+  $('meta[name="theme-color"]').setAttribute('content', th === 'light' ? '#f7f7f9' : '#101013'); // = цвет нижней панели
 }
 matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', applyTheme);
 
@@ -423,7 +439,7 @@ function openHowto() {
   openSheet(`<h2 class="pick-t">${t('st_howto')}</h2>${g.platforms.map((p) => `<div class="howto"><div class="plat-h">${platformIcon(p)}<span>${L(PLATFORMS[p])}</span></div><p>${esc(howto(p))}</p></div>`).join('')}<p class="d-note">${t('howto_warn')}</p>`, 'sheet-pick');
 }
 function openAbout() {
-  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p><p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp ${__vp.inner}/${__vp.screen} gap ${__vp.gap}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}` : ''}</div>`, 'sheet-pick');
+  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p><p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp in ${__vp.inner} vh ${__vp.vh} dvh ${__vp.dvh} scr ${__vp.screen} sb ${__vp.safeB}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}` : ''}</div>`, 'sheet-pick');
 }
 
 // ───────── пейвол ─────────
