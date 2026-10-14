@@ -841,3 +841,11 @@ button.mp-ingame { width: 100%; padding: 0; text-align: left; font: inherit; cur
 .mp-ig-soon .mp-ig-txt small { color: var(--text-2); }
 .mp-ig-soon .mp-ig-txt b { font-weight: 600; color: var(--text-2); }
 #map-games .mg-seg button.mg-soon { opacity: .55; cursor: default; }
+
+/* «Леонида» — приблизительная карта GTA 6 до выхода (бета, 14.10.2026): кнопка в карточке и пометка на карте */
+.mp-ingame.mp-ig-approx .mp-ig-txt { padding: 10px 12px 4px; }
+.mp-ingame.mp-ig-approx .mp-ig-txt em { display: block; font-size: 12.5px; color: var(--text-2); font-weight: 500; }
+.mp-ingame.mp-ig-approx .mp-ig-txt small { color: #ff8fbf; }
+.map-legend.map-approx { display: block !important; top: calc(var(--safe-t) + 122px); bottom: auto; left: 12px; right: 12px; padding: 0; background: none; border: 0; box-shadow: none; pointer-events: none; }
+.map-legend.map-approx span { display: inline-block; max-width: 100%; padding: 5px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: #ffd0a6;
+  background: rgba(12, 14, 18, .78); border: 1px solid rgba(255, 154, 92, .35); white-space: normal; }
