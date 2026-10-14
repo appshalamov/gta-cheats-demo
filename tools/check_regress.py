@@ -75,6 +75,8 @@ for g in ("gta6", "gta5"):
     for k, n in new.items():   # запрещённые фото из жизни не должны попасть в приложение ни через сборку, ни правкой руками
         if any(banned(ph) for ph in [n.get("pr")] + (n.get("gl") or []) + [p.get("r") for p in n.get("pairs") or []] if ph):
             problems.append(f"{k}: фото из жизни без права показа (gtadb / Street View)")
+    if g == "gta6" and any(n.get("gm") for n in new.values()):   # координаты GTA 6 в gtadb — по карте с утечками (14.10.2026);
+        problems.append("gta6: игровые координаты (gm) — по карте с утечками, до карты из вышедшей игры не выкладываем")
     print(f"{g}: было {len(old)}, стало {len(new)}, потерь {len(problems)}")
     for line in problems[:40]:
         print("   ✗", line)

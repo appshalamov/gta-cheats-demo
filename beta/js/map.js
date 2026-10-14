@@ -18,6 +18,11 @@ const GAMES = {
 // Бета «карта игры в основе» (гипотеза Игоря 14.10.2026: миру известна карта GTA 5 — люди ищут, что из игры есть в жизни).
 export const BETA = /\/beta\//.test(location.pathname) || new URLSearchParams(location.search).has('beta');
 let mode = !BETA ? 'real' : (() => { try { return localStorage.getItem('secret.map.mode') === 'real' ? 'real' : 'game'; } catch { return 'game'; } })();
+let wantMode = mode;     // что выбрал человек; у игры без своей карты (GAME_MAP) показываем реальную
+// Карта игры GTA 6 выключена (14.10.2026): фанатская карта Леониды (yanis) и игровые координаты GTA 6 в gtadb собраны
+// с опорой на утечки 2022 и 2026 годов (так пишет сам gtadb в FAQ), а правило проекта — утечки не показывать.
+// Включать только вместе с новой подложкой из вышедшей игры — не по дате.
+const GAME_MAP = { gta5: true, gta6: false };
 // категории для игрока (бета): цвет, подпись, что тут делать, какие читы открыть
 const CATS = {
   w: { c: '#ff5a5a', t: { ru: 'Оружие', en: 'Weapons' }, what: { ru: 'Оружейный магазин: оружие, патроны, бронежилеты, модификации.', en: 'Gun store: weapons, ammo, body armor, attachments.' }, cheat: 'weapon', ct: { ru: 'Читы на оружие', en: 'Weapon cheats' } },
@@ -72,6 +77,7 @@ const W = {
   backReal: { en: 'Real map', ru: 'Реальная карта', es: 'Mapa real', pt: 'Mapa real', fr: 'Carte réelle', de: 'Echte Karte', it: 'Mappa reale', tr: 'Gerçek harita', uk: 'Реальна мапа', pl: 'Prawdziwa mapa', zh: '真实地图', ja: '実際の地図', ko: '실제 지도' },
   whereGame: { en: 'Where in the game', ru: 'Где в игре', es: 'Dónde en el juego', pt: 'Onde no jogo', fr: 'Où dans le jeu', de: 'Wo im Spiel', it: 'Dove nel gioco', tr: 'Oyunda nerede', uk: 'Де в грі', pl: 'Gdzie w grze', zh: '游戏中的位置', ja: 'ゲーム内の場所', ko: '게임 속 위치' },
   openGtaMap: { en: 'Open GTA map', ru: 'Открыть карту GTA', es: 'Abrir mapa de GTA', pt: 'Abrir mapa do GTA', fr: 'Ouvrir la carte GTA', de: 'GTA-Karte öffnen', it: 'Apri mappa GTA', tr: 'GTA haritasını aç', uk: 'Відкрити мапу GTA', pl: 'Otwórz mapę GTA', zh: '打开 GTA 地图', ja: 'GTAマップを開く', ko: 'GTA 지도 열기' },
+  soon6: { en: 'The exact spot on the GTA 6 map — on release day, Nov 19', ru: 'Точное место на карте GTA 6 — в день выхода, 19 ноября', es: 'El lugar exacto en el mapa de GTA 6, el día del lanzamiento: 19 de noviembre', pt: 'O local exato no mapa do GTA 6 — no lançamento, 19 de novembro', fr: 'L’endroit exact sur la carte de GTA 6 — à la sortie, le 19 novembre', de: 'Die genaue Stelle auf der GTA-6-Karte — zum Release am 19. November', it: 'Il punto esatto sulla mappa di GTA 6 — all’uscita, il 19 novembre', tr: 'GTA 6 haritasındaki tam yer — çıkış günü, 19 Kasım', uk: 'Точне місце на мапі GTA 6 — у день виходу, 19 листопада', pl: 'Dokładne miejsce na mapie GTA 6 — w dniu premiery, 19 listopada', zh: 'GTA 6 地图上的确切位置——11月19日发售当天公布', ja: 'GTA 6マップでの正確な場所は発売日の11月19日に', ko: 'GTA 6 지도의 정확한 위치는 출시일인 11월 19일에' },
   approxHere: { en: '≈ approximately here', ru: '≈ примерно здесь', es: '≈ aproximadamente aquí', pt: '≈ aproximadamente aqui', fr: '≈ à peu près ici', de: '≈ ungefähr hier', it: '≈ più o meno qui', tr: '≈ yaklaşık burada', uk: '≈ приблизно тут', pl: '≈ mniej więcej tutaj', zh: '≈ 大致在这里', ja: '≈ だいたいこの辺り', ko: '≈ 대략 여기' },
   nextTo: { en: 'next to', ru: 'рядом', es: 'junto a', pt: 'perto de', fr: 'à côté de', de: 'neben', it: 'accanto a', tr: 'yanında', uk: 'поруч', pl: 'obok', zh: '旁边', ja: '近く', ko: '옆' },
   nearby: { en: 'Nearby', ru: 'Рядом', es: 'Cerca', pt: 'Perto', fr: 'À proximité', de: 'In der Nähe', it: 'Nelle vicinanze', tr: 'Yakında', uk: 'Поруч', pl: 'W pobliżu', zh: '附近', ja: '近く', ko: '근처' },
@@ -332,6 +338,7 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
 // Мир игры −16384…16384 единиц; при z=4 одна точка картинки = 2 единицы, плитка 256 px = 512 единиц (~500 м).
 const GMAP = { gta5: { v: 5, key: 'V', set: 'satellite', z: 4 }, gta6: { v: 6, key: 'VI', set: 'yanis,16', z: 4 } };
 function gameBlock(gm, addr, region, gid, ref = {}) {
+  if (!GAME_MAP[game]) return `<div class="mp-ingame mp-ig-soon"><span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))}</small><b>${esc(w('soon6'))}</b></span></div>`;
   if (!gm) return '';
   const at = `data-k="${ref.k || ''}" data-i="${ref.i ?? ''}"`;
   if (mode === 'game') {   // на карте игры — обратный путь: где это в жизни
@@ -1044,7 +1051,9 @@ function renderChips() {
     `<div class="mg-seg mg-games" role="group" aria-label="GTA">${['gta6', 'gta5'].map((id) => `<button class="${id === game ? 'on' : ''}${id === 'gta6' ? ' g6' : ''}" data-mp="game" data-v="${id}" aria-pressed="${id === game}"><b>${GAMES[id].title}</b>${id === 'gta6' && game !== 'gta6' ? '<i class="mg-new" aria-hidden="true"></i>' : ''}</button>`).join('')}</div>` +
     `<div class="mg-seg mg-mode" role="group">` +
     `<button class="${mode === 'real' ? 'on' : ''}" data-mp="mode" data-v="real" aria-pressed="${mode === 'real'}" title="${esc(w('modeReal'))}: ${esc(tr(G.real))}">${IC.pin}<b>${esc(w('life'))}</b></button>` +
-    `<button class="${mode === 'game' ? 'on' : ''}" data-mp="mode" data-v="game" aria-pressed="${mode === 'game'}" title="${esc(w('modeGame'))}: ${esc(tr(G.gameCity))}">${IC.game}<b>${esc(w('inGame'))}</b></button></div>`;
+    (GAME_MAP[game]
+      ? `<button class="${mode === 'game' ? 'on' : ''}" data-mp="mode" data-v="game" aria-pressed="${mode === 'game'}" title="${esc(w('modeGame'))}: ${esc(tr(G.gameCity))}">${IC.game}<b>${esc(w('inGame'))}</b></button></div>`
+      : `<button class="mg-soon" disabled title="${esc(w('soon6'))}" aria-label="${esc(w('inGame'))}: ${esc(w('soon6'))}">${IC.game}<b>19.11</b></button></div>`);
   const lg = document.getElementById('map-legend'); if (lg) lg.innerHTML = '';
 }
 
@@ -1114,6 +1123,7 @@ async function create(preferGame) {
   box.classList.add('loading');
   try {
     game = preferGame === 'gta5' ? 'gta5' : 'gta6';
+    if (!GAME_MAP[game]) mode = 'real';
     const [d] = await Promise.all([loadGame(game), loadLib(), loadGtadb(game).catch(() => null)]);
     styleKey = mode === 'game' ? 'game:' + game : themeKey();
     const start = startView(d);
@@ -1141,8 +1151,11 @@ export async function setGame(g) {
   game = g; selected = null; selectedD = null;
   const d = await loadGame(g);
   if (show.gtadb) await loadGtadb(g);
+  const was = mode;
+  mode = wantMode === 'game' && GAME_MAP[g] ? 'game' : 'real';
   const v = startView(d);
   if (mode === 'game') { styleKey = 'game:' + g; map.setStyle(gameStyle(g), { diff: false }); map.jumpTo(v); }   // style.load → addLayers
+  else if (was === 'game') { styleKey = themeKey(); map.setStyle(STYLE[styleKey], { diff: false }); map.jumpTo(v); }
   else { refreshData(); map.flyTo({ ...v, duration: 1100, essential: true }); }
   renderChips();
 }
@@ -1163,7 +1176,10 @@ async function showOnMap(m, k, i) {
 }
 // переключение «Реальная карта ⇄ Карта игры»: остаёмся у того же места (выбранного или ближайшего к центру)
 export async function setMode(m) {
-  if (!map || (m !== 'real' && m !== 'game') || m === mode) return;
+  if (!map || (m !== 'real' && m !== 'game')) return;
+  if (m === 'game' && !GAME_MAP[game]) return;
+  wantMode = m;
+  if (m === mode) return;
   const d = data[game]; if (!d) return;
   let ref = selected != null ? d.places[selected] : null;
   if (!ref) {

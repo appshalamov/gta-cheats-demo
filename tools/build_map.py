@@ -128,11 +128,19 @@ def leak_reason(it, game):
     return ""
 
 
+# Игровые координаты GTA 6 в gtadb ставят «по самой точной карте» — фанатской карте Леониды, собранной с опорой на утечки
+# 2022 и 2026 годов (FAQ gtadb). Правило проекта — утечки не показывать (14.10.2026), поэтому до карты из вышедшей игры — выкл.
+GAME_COORDS = {"gta5": True, "gta6": False}
+
+
 def attach_ingame(game, cfg, places, eggs, pts):
     """«Где в игре» (просьба Игоря 14.10.2026: «как это в GTA найти»): координаты места на карте игры.
     gm = [x, y, точность]: 0 — своя точка gtadb, 1 — соседняя пара gtadb, 2 — оценка по 6 ближайшим опорным точкам
     (реальные ↔ игровые координаты из gtadb, медианная ошибка ≈ 200 м в GTA 5 и ≈ 115 м в GTA 6). ga — адрес в игре.
     Точкам слоя gtadb — 12-й элемент [x, y]."""
+    if not GAME_COORDS.get(game):
+        print(f"  где в игре: выключено для {game} (координаты gtadb опираются на утечки)")
+        return
     v = 5 if game == "gta5" else 6
     lm = json.loads((SRC / "источники" / "gtadb.org (CC BY 4.0)" / f"landmarks_gta{v}.json").read_text("utf-8"))
     ctrl = [(k, it[1], it[4]) for k, it in lm.items() if it[1] and it[4]

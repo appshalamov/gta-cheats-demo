@@ -833,3 +833,11 @@ button.mp-ingame { width: 100%; padding: 0; text-align: left; font: inherit; cur
 .mp-player-go svg { width: 18px; height: 18px; color: var(--c); }
 .mp-player-go span { flex: 1; }
 
+
+/* GTA 6 без карты игры до выхода (14.10.2026): плашка — просто текст, не кнопка; «Игра» в переключателе — недоступна */
+.mp-ingame.mp-ig-soon { background: transparent; border-style: dashed; box-shadow: none; }
+.mp-ingame.mp-ig-soon:active { transform: none; }
+.mp-ig-soon .mp-ig-txt { padding: 10px 12px; }
+.mp-ig-soon .mp-ig-txt small { color: var(--text-2); }
+.mp-ig-soon .mp-ig-txt b { font-weight: 600; color: var(--text-2); }
+#map-games .mg-seg button.mg-soon { opacity: .55; cursor: default; }
