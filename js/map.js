@@ -1270,6 +1270,7 @@ const camOffset = (want) => [0, -Math.round((SNAP_ON && ctx?.sheetPx ? ctx.sheet
 // чтобы не терять, откуда пришёл (Игорь 14.10.2026). Повторное смахивание закрывает список как обычно.
 let chooserHtml = null, backToChooser = false;
 function mapSheet(html, want) {
+  ghostPrep();   // запасная карта — сразу на это место в другом мире
   const back = backToChooser && chooserHtml; backToChooser = false;
   ctx.openSheet(html, 'sheet-map', back ? () => setTimeout(() => {
     if (document.body.dataset.tab === 'map' && !document.getElementById('sheet-layer')?.classList.contains('open')) ctx.openSheet(back, 'sheet-map', null, snapOpt('half'));
@@ -1413,7 +1414,7 @@ document.addEventListener('click', (e) => {
   }
   else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t); }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
-  else if (a === 'mode') { ctx?.haptic(); setMode(el.dataset.v); }
+  else if (a === 'mode') { ctx?.haptic(); if (GHOST_ON) switchMode(el.dataset.v); else setMode(el.dataset.v); }
   else if (a === 'cat') {
     ctx?.haptic(); activeCat = activeCat === el.dataset.v ? null : el.dataset.v;
     if (activeCat && !show.gtadb) { show.gtadb = true; loadGtadb(game).then(() => { refreshData(); applyShow(); applyCat(); renderCards(); }); }
@@ -1464,6 +1465,7 @@ async function create(preferGame) {
     map.on('style.load', addLayers);
     map.on('load', () => { box.classList.remove('loading'); renderCards(); });
     map.on('moveend', renderCards);
+    map.on('moveend', () => ghostPrep(900));
     map.on('click', onTap);
     for (const ev of ['touchstart', 'mousedown', 'dblclick', 'zoomstart', 'dragstart']) map.on(ev, cancelTap);
     renderChips();
@@ -1499,36 +1501,117 @@ function startView(d) {
 async function showOnMap(m, k, i) {
   const want = SNAP_ON ? 'peek' : undefined;
   if (SNAP_ON) ctx.setSnap?.('peek');
-  await setMode(m);
-  const d = data[game];
-  if (k === 'p') openPlace(i, true, want);
-  else if (k === 'd') openPoint(i, true, want);
-  else if (k === 'e' && d.eggs[i]) { const e = d.eggs[i], c = ll(e); if (c) map.easeTo({ center: c, zoom: tilesGame() ? 6.5 : 15, duration: 600, offset: camOffset(want) }); mapSheet(eggSheet(e, i), want); }
+  await switchMode(m, (camSet) => {   // camSet — карта уже стоит на месте (взяла камеру у запасной), лететь не нужно
+    const d = data[game];
+    if (k === 'p') openPlace(i, !camSet, want);
+    else if (k === 'd') openPoint(i, !camSet, want);
+    else if (k === 'e' && d.eggs[i]) { const e = d.eggs[i], c = ll(e); if (c && !camSet) map.easeTo({ center: c, zoom: tilesGame() ? 6.5 : 15, duration: 600, offset: camOffset(want) }); mapSheet(eggSheet(e, i), want); }
+  });
 }
 // переключение «Реальная карта ⇄ Карта игры»: остаёмся у того же места (выбранного или ближайшего к центру)
-export async function setMode(m) {
-  if (!map || (m !== 'real' && m !== 'game')) return;
-  if (m === 'game' && !GAME_MAP[game]) return;
-  wantMode = m;
-  if (m === mode) return;
-  const d = data[game]; if (!d) return;
+// куда встанет карта при переходе в режим m (без побочных эффектов) — общий расчёт для setMode и «запасной» карты
+const llM = (x, m) => (m === 'real' || approx() ? [x.lon, x.lat] : x.gm ? G2M(x.gm[0], x.gm[1]) : null);
+function targetFor(m) {
+  const d = data[game]; if (!d || !map) return null;
   let ref = selected != null ? d.places[selected] : null;
   if (!ref) {
     const c = map.getCenter(), b = map.getBounds();
     let best = Infinity;
     for (const p of d.places) { const q = ll(p); if (!q || !b.contains(q)) continue; const k = (q[0] - c.lng) ** 2 + (q[1] - c.lat) ** 2; if (k < best) { best = k; ref = p; } }
   }
-  const zr = map.getZoom();
+  const zr = map.getZoom(), c = ref && llM(ref, m);
+  const zoom = approx() ? (selected != null ? Math.max(zr, 15) : zr)
+    : selected != null ? (m === 'game' ? 6.5 : 15) : m === 'game' ? Math.min(7, Math.max(3.5, zr - 8.5)) : Math.min(16, Math.max(9, zr + 8.5));
+  if (c) return { center: c, zoom, sel: selected != null };
+  if (m === 'real' || approx()) return { center: [d.center[1], d.center[0]], zoom: d.zoom - 0.6, sel: false };
+  const g = d.places.filter((p) => p.gm && p.gm[2] < 2);
+  const mid = (k) => g.map((p) => p.gm[k]).sort((a, b) => a - b)[Math.floor(g.length / 2)] || 0;
+  return { center: G2M(mid(0), mid(1)), zoom: 3.6, sel: false };
+}
+export async function setMode(m, cam) {
+  if (!map || (m !== 'real' && m !== 'game')) return;
+  if (m === 'game' && !GAME_MAP[game]) return;
+  wantMode = m;
+  if (m === mode) return;
+  const d = data[game]; if (!d) return;
+  const T = cam || targetFor(m);   // считаем ДО смены режима: ближайшее место ищется в текущих координатах
   mode = m;
   if (BETA) try { localStorage.setItem('secret.map.mode', m); } catch { }
   styleKey = m === 'game' ? 'game:' + game : themeKey();
   map.setStyle(m === 'game' ? gameStyleFor(game) : STYLE[styleKey], { diff: false });   // style.load → addLayers (точки уже в координатах режима)
-  const c = ref && ll(ref);
-  const zoom = approx() ? (selected != null ? Math.max(zr, 15) : zr)
-    : selected != null ? (m === 'game' ? 6.5 : 15) : m === 'game' ? Math.min(7, Math.max(3.5, zr - 8.5)) : Math.min(16, Math.max(9, zr + 8.5));
-  if (c) map.jumpTo({ center: c, zoom });
-  else map.jumpTo(startView(d));
+  if (T) map.jumpTo({ center: T.center, zoom: T.zoom });
   renderChips(); setTimeout(renderCards, 300);
+}
+
+// ───── «Запасная» карта: заранее грузит другую карту (игра ⇄ жизнь) там, куда приведёт переключение, и показывается
+// мгновенно, пока основная перестраивается (Игорь 15.10.2026: «резкая смена карты и пустой экран — пусть подгружается
+// заранее и открывается моментально»). Вторая карта MapLibre, без касаний; только бета.
+const GHOST_ON = BETA;
+let ghost = null, ghostKey = '', ghostFor = null, ghostTimer = 0;
+const otherMode = () => (mode === 'real' ? (GAME_MAP[game] ? 'game' : null) : 'real');
+const styleKeyFor = (m) => (m === 'game' ? 'game:' + game : themeKey());
+const styleFor = (m) => (m === 'game' ? gameStyleFor(game) : STYLE[themeKey()]);
+function ghostEl() {
+  let el = document.getElementById('map-ghost');
+  if (!el) { el = document.createElement('div'); el.id = 'map-ghost'; el.setAttribute('aria-hidden', 'true'); document.getElementById('map').after(el); }
+  return el;
+}
+function ghostLayers() {
+  if (!ghost.getSource('gsel')) ghost.addSource('gsel', { type: 'geojson', data: fc([]) });
+  if (!ghost.getLayer('gsel')) ghost.addLayer({ id: 'gsel', type: 'circle', source: 'gsel',
+    paint: { 'circle-radius': 13, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' } });
+  if (ghostFor?.t) ghost.getSource('gsel').setData(fc(ghostFor.t.sel ? [pt(ghostFor.t.center[0], ghostFor.t.center[1], {})] : []));
+}
+// камера с учётом шторки в полоске: место — над шторкой, а не под ней
+function ghostCam(t) {
+  ghost.jumpTo({ center: t.center, zoom: t.zoom });
+  if (t.sel && SNAP_ON) {
+    const off = Math.round((ctx?.sheetPx ? ctx.sheetPx('peek') : 112) / 2), p = ghost.project(t.center);
+    ghost.jumpTo({ center: ghost.unproject([p.x, p.y + off]) });
+  }
+}
+function ghostPrep(delay = 250) {
+  if (!GHOST_ON || !map || !window.maplibregl) return;
+  clearTimeout(ghostTimer);
+  ghostTimer = setTimeout(() => {
+    const m = otherMode(); if (!m) return;
+    const t = targetFor(m); if (!t) return;
+    const key = styleKeyFor(m);
+    ghostFor = { m, key, sel: selected, game, t };
+    if (!ghost) {
+      ghost = new window.maplibregl.Map({ container: ghostEl(), style: styleFor(m), center: t.center, zoom: t.zoom, interactive: false,
+        attributionControl: false, fadeDuration: 0, transformRequest: (url) => { const u = tileUrl(url); return u ? { url: u } : { url }; } });
+      ghost.on('style.load', ghostLayers);
+      ghostKey = key;
+    } else if (key !== ghostKey) { ghostKey = key; ghost.setStyle(styleFor(m), { diff: false }); }
+    ghostCam(t);
+    if (ghost.isStyleLoaded()) ghostLayers();
+  }, delay);
+}
+const ghostReady = (m) => GHOST_ON && ghost && ghostFor && ghostFor.m === m && ghostFor.key === styleKeyFor(m)
+  && ghostFor.sel === selected && ghostFor.game === game && ghost.isStyleLoaded();
+// переход между картами: запасная показывается сразу, основная перестраивается под ней в ту же точку и плавно её сменяет
+async function switchMode(m, after) {
+  clearTimeout(ghostTimer);
+  const ready = ghostReady(m), el = ready && ghostEl();
+  let cam = null;
+  if (ready) {
+    cam = { center: ghost.getCenter().toArray(), zoom: ghost.getZoom() };
+    el.style.transition = 'none'; el.style.opacity = '1';
+  }
+  await setMode(m, cam);
+  after?.(!!cam);
+  if (ready) {   // держим, пока основная не загрузится целиком (до 3 с); палец двинул карту — убираем сразу
+    await new Promise((res) => {
+      const done = () => { clearTimeout(t); map.off('movestart', user); res(); };
+      const user = (e) => { if (e.originalEvent) done(); };
+      const t = setTimeout(done, 3000);
+      map.on('movestart', user);
+      map.once('idle', () => setTimeout(done, 120));
+    });
+    el.style.transition = 'opacity .28s ease'; el.style.opacity = '0';
+  }
+  ghostPrep(600);   // запасная — теперь на обратную карту
 }
 
 export async function toggle(k) {

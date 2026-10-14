@@ -529,10 +529,14 @@ function setSnap(s) {
   applySnap();
 }
 function openSheet(html, cls = '', onClose = null, opts = null) {
-  const layer = $('#sheet-layer');
+  const layer = $('#sheet-layer'), body = $('#sheet-body');
+  // карточка карты уже открыта и открываем другую — как в Google Maps: новое содержимое плавно проявляется,
+  // шторка мягко едет в нужное положение (с «весь экран» — на половину), без резкой подмены
+  const swap = !!(opts?.snap && snap && layer.classList.contains('open'));
   $('#sheet').className = 'sheet ' + cls;
-  $('#sheet-body').innerHTML = html;
-  $('#sheet-body').scrollTop = 0;
+  body.innerHTML = html;
+  body.scrollTop = 0;
+  if (swap) { body.classList.add('swap-in'); requestAnimationFrame(() => requestAnimationFrame(() => body.classList.remove('swap-in'))); }
   sheetOnClose = onClose;
   if (opts?.snap) {
     snap = opts.snap; layer.classList.add('snap', 'open');
