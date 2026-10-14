@@ -99,11 +99,28 @@ def _label(d, xy, text, fg, bg, anchor_right=False):
     d.text((x + 22, y + 29), text, font=f, fill=fg, anchor="lm")
 
 
-def og_card(game, pid, gurl, rurl):
-    """Превью 1200×630 «игра | жизнь» → относительный путь от s/<игра>/ или ''."""
+def _fit(im, w, h):
+    k = min(w / im.width, h / im.height)
+    return im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.LANCZOS)
+
+
+def _credit_line(rcred):
+    """Подпись на самой картинке (лицензии CC требуют автора и лицензию): «Photo: автор · лицензия · Commons · Game © Rockstar Games»."""
+    who = (rcred or "").replace("Wikimedia Commons", "Commons").strip(" ·")
+    return (f"Photo: {who}   ·   " if who else "") + "Game © Rockstar Games   ·   Secret Base"
+
+
+def og_card(game, pid, gurl, rurl, rcred=""):
+    """Превью 1200×630 «игра | жизнь» → относительный путь от s/<игра>/ или ''.
+
+    Лицензии фото из жизни (аналитика 15.10.2026, 19 §7.2): CC BY-SA нельзя обрезать и склеивать с кадром игры
+    (это переработка — её пришлось бы выпускать под BY-SA, а кадр Rockstar так не выпустить). Поэтому:
+    - CC0 / общественное достояние / CC BY — «ползунок»: половины кадров, линия с кругом;
+    - CC BY-SA (и непонятная лицензия) — два снимка целиком рядом, без обрезки и надписей поверх фото (подборка);
+    - всегда — строка с автором и лицензией фото и «© Rockstar Games»."""
     if not gurl:
         return ""
-    sig = hashlib.sha1(f"v1|{gurl}|{rurl}".encode()).hexdigest()[:8]
+    sig = hashlib.sha1(f"v2|{gurl}|{rurl}|{rcred}".encode()).hexdigest()[:8]
     rel = f"og/{game}/{pid}.{sig}.jpg"
     fp = OUT / rel
     OG_MADE.add(fp)
@@ -113,6 +130,10 @@ def og_card(game, pid, gurl, rurl):
     r = _src(rurl) if rurl else None
     if g is None:
         return ""
+    lic = (rcred or "").upper()
+    split_ok = r is not None and "BY-SA" not in lic and ("CC0" in lic or "PUBLIC DOMAIN" in lic or "CC BY " in lic)
+    if r is not None and not split_ok:
+        return _og_side_by_side(fp, rel, g, r, rcred)
     canvas = _cover(g, OGW, OGH)
     if r is not None:
         canvas.paste(_cover(r, OGW, OGH).crop((OGW // 2, 0, OGW, OGH)), (OGW // 2, 0))
@@ -140,8 +161,28 @@ def og_card(game, pid, gurl, rurl):
         band = Image.new("RGBA", (OGW, 96), (11, 13, 18, 205))
         canvas.paste(band, (0, OGH - 96), band)
         d.text((OGW // 2, OGH - 48), "Compare with real life in Secret Base", font=_font(36), fill=(255, 255, 255), anchor="mm")
+    if r is not None:   # строка автора и лицензии — низ, на тёмной полосе
+        band = Image.new("RGBA", (OGW, 40), (0, 0, 0, 165))
+        canvas.paste(band, (0, OGH - 40), band)
+        ImageDraw.Draw(canvas).text((OGW // 2, OGH - 20), _credit_line(rcred), font=_font(19, False), fill=(235, 238, 244), anchor="mm")
     fp.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(fp, "JPEG", quality=70, optimize=True, progressive=True, subsampling=2)
+    return rel
+
+
+def _og_side_by_side(fp, rel, g, r, rcred):
+    """Два снимка целиком рядом (для CC BY-SA): подписи над снимками, автор и лицензия — снизу."""
+    canvas = Image.new("RGB", (OGW, OGH), (11, 13, 18))
+    d = ImageDraw.Draw(canvas)
+    gap, top, boxw, boxh = 16, 84, (OGW - 3 * 16) // 2, 470
+    for i, (im, lab, col) in enumerate(((g, "In game", (34, 195, 217)), (r, "Real life", (255, 255, 255)))):
+        x0 = gap + i * (boxw + gap)
+        fit = _fit(im, boxw, boxh)
+        canvas.paste(fit, (x0 + (boxw - fit.width) // 2, top + (boxh - fit.height) // 2))
+        d.text((x0 + 4, top - 18), lab, font=_font(40), fill=col, anchor="ls")
+    d.text((OGW // 2, top + boxh + 44), _credit_line(rcred), font=_font(19, False), fill=(190, 196, 208), anchor="mm")
+    fp.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(fp, "JPEG", quality=72, optimize=True, progressive=True, subsampling=2)
     return rel
 
 
@@ -171,7 +212,7 @@ def page(game, kind, x):
     cg, cr = (absu(pr0["g"]["url"]), absu(pr0["r"]["url"])) if pr0 else (gimg, rimg)
     ccred = (pr0["g"].get("credit", "") + " · " + pr0["r"].get("credit", "")) if pr0 else ""
     # точки gtadb: своего фото из жизни нет (только gtadb) — превью ссылки = кадр игры с нашего хостинга, без новых файлов
-    og = og_card(game, fid, gimg, rimg) if kind != "db" else ""
+    og = og_card(game, fid, gimg, rimg, rcred) if kind != "db" else ""
     og_abs = f"{SITE}s/{og}" if og else gimg
     title = f"{name_g} = {name_r}" if name_g and name_r else (name_g or name_r)
     og_title = f"{title} · {gt} in real life · Secret Base"
