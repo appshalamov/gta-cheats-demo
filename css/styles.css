@@ -537,3 +537,94 @@ body.in-ob #onboarding { display: flex; }
 .mp-hist div:last-child { border-bottom: 0; }
 .mp-hist b { color: #3ccf91; } .mp-hist b.neg { color: #ff6b6b; }
 .mp-nm small svg { width: 14px; height: 14px; display: inline-block; vertical-align: -2px; }
+
+/* ───── карта: понятное листание (стрелки, счётчик, миниатюры) ───── */
+.mp-hero { margin-bottom: 8px; }
+.mp-gal { position: relative; }
+.mp-gal .mp-strip { gap: 0; border-radius: 16px; }
+.mp-gal > .mp-badge { position: absolute; left: 8px; bottom: 8px; z-index: 2; pointer-events: none; }
+.mp-gal.g > .mp-badge { background: color-mix(in srgb, var(--accent) 85%, #000); color: var(--accent-ink); }
+.mp-cnt { font-style: normal; font-weight: 800; margin-left: 2px; padding-left: 6px; border-left: 1px solid rgba(255,255,255,.35); }
+.mp-gal.g .mp-cnt { border-left-color: color-mix(in srgb, var(--accent-ink) 35%, transparent); }
+.mp-arr { position: absolute; top: 50%; z-index: 3; width: 34px; height: 34px; margin-top: -17px; padding: 7px; border-radius: 50%; background: rgba(0,0,0,.6); color: #fff; border: 1px solid rgba(255,255,255,.25); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+.mp-arr.l { left: 6px; } .mp-arr.r { right: 6px; }
+.mp-arr:active { transform: scale(.9); }
+.mp-arr[hidden] { display: none; }
+.mp-hero .mp-vs { z-index: 4; }
+.mp-thumbs { display: grid; gap: 6px; margin-bottom: 14px; }
+.mp-trow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mp-tic { flex: none; position: relative; width: 28px; height: 28px; padding: 5px; border-radius: 8px; background: var(--card-2); color: var(--text-2); }
+.mp-trow.g .mp-tic { background: var(--accent-soft); color: var(--accent); }
+.mp-tic em { position: absolute; right: -6px; top: -6px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--text); color: var(--bg); font: 700 10px/16px -apple-system, system-ui, sans-serif; font-style: normal; text-align: center; }
+.mp-tscroll { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px; min-width: 0; }
+.mp-tscroll::-webkit-scrollbar { display: none; }
+.mp-th { flex: none; width: 52px; height: 40px; border-radius: 8px; overflow: hidden; padding: 0; border: 2px solid transparent; opacity: .6; transition: opacity .15s, border-color .15s; background: var(--card); }
+.mp-th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mp-th.on { opacity: 1; border-color: var(--accent); }
+.mp-th-add { opacity: 1; display: grid; place-items: center; padding: 10px; color: var(--accent); border: 1.5px dashed color-mix(in srgb, var(--accent) 55%, var(--line-2)); background: var(--accent-soft); }
+.mp-dots { display: none; }
+.mpv-stage { position: relative; width: 100%; display: flex; align-items: center; justify-content: center; }
+.mpv-stage img { max-width: 100%; max-height: 62vh; object-fit: contain; }
+.mpv-arr { position: absolute; top: 50%; width: 44px; height: 44px; margin-top: -22px; padding: 10px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; border: 1px solid rgba(255,255,255,.25); }
+.mpv-arr.l { left: 8px; } .mpv-arr.r { right: 8px; }
+.mpv-like { position: absolute; right: 10px; top: 10px; }
+.mpv-like .mp-like { position: static; height: 36px; padding: 0 12px; }
+.mpv-tabs button em { font-style: normal; font-size: 11px; font-weight: 800; opacity: .8; }
+.mpv-thumbs { display: flex; gap: 6px; max-width: 100%; overflow-x: auto; padding: 4px 14px; scrollbar-width: none; }
+.mpv-thumbs::-webkit-scrollbar { display: none; }
+.mpv-thumbs button { flex: none; width: 58px; height: 44px; border-radius: 8px; overflow: hidden; padding: 0; border: 2px solid transparent; opacity: .55; }
+.mpv-thumbs button.on { opacity: 1; border-color: var(--accent); }
+.mpv-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ───── карта: сравнение «игра ⇄ жизнь» с ползунком ───── */
+#mp-viewer { touch-action: none; overscroll-behavior: contain; justify-content: flex-start; padding-top: calc(var(--safe-t) + 64px); overflow: hidden; }
+#mp-viewer .mpv-thumbs { touch-action: pan-x; }
+.mpv-tabs { left: 12px; right: 60px; overflow-x: auto; scrollbar-width: none; }
+.mpv-tabs::-webkit-scrollbar { display: none; }
+.cmp-stage { position: relative; width: 100%; aspect-ratio: 4 / 3; max-height: 56vh; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; background: #111; cursor: ew-resize; }
+.cmp-stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.cmp-stage .cmp-r { clip-path: inset(0 0 0 var(--x)); }
+.cmp-line { position: absolute; top: 0; bottom: 0; left: var(--x); width: 3px; margin-left: -1.5px; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,.6); pointer-events: none; }
+.cmp-knob { position: absolute; top: 50%; left: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: #fff; color: #111; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(0,0,0,.45); }
+.cmp-knob svg { width: 18px; height: 18px; flex: none; margin: 0 -3px; }
+.cmp-lab { position: absolute; top: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px 5px 7px; border-radius: 999px; font-size: 12px; pointer-events: none; }
+.cmp-lab svg { width: 16px; height: 16px; }
+.cmp-lab.g { left: 10px; background: color-mix(in srgb, var(--accent) 88%, #000); color: var(--accent-ink); }
+.cmp-lab.r { right: 10px; background: rgba(0,0,0,.66); color: #fff; }
+.cmp-stage.hint { animation: cmpHint 1.5s ease-in-out; }
+@keyframes cmpHint { 0% { --x: 50%; } 30% { --x: 22%; } 65% { --x: 78%; } 100% { --x: 50%; } }
+@property --x { syntax: '<percentage>'; inherits: true; initial-value: 50%; }
+.cmp-rows { display: grid; gap: 8px; width: 100%; padding: 0 12px; }
+.cmp-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.cmp-row .mp-tic { background: rgba(255,255,255,.12); color: #fff; }
+.cmp-row .mp-tic.g { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--accent); }
+.cmp-row .mpv-thumbs { padding: 2px; }
+.mpv-credit { font-size: 10.5px; color: rgba(255,255,255,.55); text-align: center; padding: 0 16px; margin-top: 2px; }
+.mp-cmp { width: auto; height: 30px; margin: -15px 0 0 0; padding: 0 10px 0 8px; border-radius: 999px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 5px; pointer-events: auto; background: var(--accent); color: var(--accent-ink); border: 2px solid var(--bg-elev); font-size: 12px; box-shadow: 0 6px 16px rgba(0,0,0,.4); }
+.mp-cmp svg { width: 15px; height: 15px; }
+.mp-cmp b { font-weight: 800; }
+
+/* ───── карта: без дублей — пасхалка в карточке места, «здесь же», выбор из нескольких точек ───── */
+.mp-eggblk { display: flex; gap: 10px; padding: 11px 12px; border-radius: 14px; background: color-mix(in srgb, #f472b6 12%, var(--card)); border: 1px solid color-mix(in srgb, #f472b6 35%, transparent); margin-bottom: 10px; }
+.mp-eggblk .mp-eggic { width: 36px; height: 36px; padding: 8px; border-radius: 10px; flex: none; }
+.mp-eggblk small { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #f472b6; font-weight: 700; }
+.mp-eggblk b { display: block; font-size: 15px; line-height: 1.25; margin: 1px 0 4px; }
+.mp-eggblk p { font-size: 13.5px; line-height: 1.4; color: var(--text-2); }
+.mp-eggblk a { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none; padding: 6px 10px; border-radius: 999px; background: rgba(255,0,0,.12); border: 1px solid rgba(255,60,60,.35); }
+.mp-eggblk a svg { width: 14px; height: 14px; color: #ff3b3b; }
+.mp-alias { display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--text-2); margin-bottom: 10px; }
+.mp-alias svg { width: 15px; height: 15px; flex: none; color: var(--accent); }
+.mp-also { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; align-items: center; }
+.mp-also small { font-size: 12px; color: var(--text-2); width: 100%; }
+.mp-also span { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 12.5px; }
+.mp-also span svg { width: 13px; height: 13px; color: var(--accent); }
+.mp-chooser { display: grid; gap: 8px; }
+.mp-ch { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); text-align: left; }
+.mp-ch img, .mp-ch-ic { width: 64px; height: 48px; border-radius: 9px; object-fit: cover; flex: none; background: var(--card-2); }
+.mp-ch-ic { padding: 12px 20px; color: #f472b6; }
+.mp-ch > span { display: flex; flex-direction: column; min-width: 0; }
+.mp-ch b { font-size: 15px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-ch small { display: flex; gap: 4px; align-items: center; font-size: 12.5px; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-ch small svg { width: 13px; height: 13px; flex: none; }
+#mp-viewer { background: #000; }
+.mpv-tabs button { white-space: nowrap; flex: none; }

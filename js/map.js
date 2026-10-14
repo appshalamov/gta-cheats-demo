@@ -23,6 +23,9 @@ const W = {
   route:  { en: 'Go there', ru: 'Проложить путь', es: 'Cómo llegar', pt: 'Como chegar', fr: 'Y aller', de: 'Route', it: 'Indicazioni', tr: 'Yol tarifi', uk: 'Маршрут', pl: 'Trasa', zh: '导航', ja: '経路', ko: '길찾기' },
   look:   { en: 'Look around 360°', ru: 'Осмотреться 360°', es: 'Ver en 360°', pt: 'Ver em 360°', fr: 'Voir à 360°', de: '360°-Ansicht', it: 'Vista a 360°', tr: '360° bak', uk: 'Огляд 360°', pl: 'Widok 360°', zh: '360° 街景', ja: '360°で見る', ko: '360° 둘러보기' },
   share:  { en: 'Share', ru: 'Поделиться', es: 'Compartir', pt: 'Compartilhar', fr: 'Partager', de: 'Teilen', it: 'Condividi', tr: 'Paylaş', uk: 'Поділитися', pl: 'Udostępnij', zh: '分享', ja: '共有', ko: '공유' },
+  here:   { en: 'Several places here', ru: 'Здесь несколько мест', es: 'Varios lugares aquí', pt: 'Vários lugares aqui', fr: 'Plusieurs lieux ici', de: 'Mehrere Orte hier', it: 'Più luoghi qui', tr: 'Burada birkaç yer', uk: 'Тут кілька місць', pl: 'Kilka miejsc tutaj', zh: '这里有多个地点', ja: 'ここに複数の場所', ko: '여기에 여러 장소' },
+  also:   { en: 'Also here', ru: 'Здесь же', es: 'También aquí', pt: 'Também aqui', fr: 'Aussi ici', de: 'Auch hier', it: 'Anche qui', tr: 'Burada ayrıca', uk: 'Тут же', pl: 'Także tutaj', zh: '这里还有', ja: 'ここにも', ko: '여기도' },
+  compare: { en: 'Compare', ru: 'Сравнить', es: 'Comparar', pt: 'Comparar', fr: 'Comparer', de: 'Vergleichen', it: 'Confronta', tr: 'Karşılaştır', uk: 'Порівняти', pl: 'Porównaj', zh: '对比', ja: '比較', ko: '비교' },
   add:    { en: 'Your photo', ru: 'Ваше фото', es: 'Tu foto', pt: 'Sua foto', fr: 'Votre photo', de: 'Dein Foto', it: 'La tua foto', tr: 'Fotoğrafın', uk: 'Ваше фото', pl: 'Twoje zdjęcie', zh: '你的照片', ja: 'あなたの写真', ko: '내 사진' },
   addT:   { en: 'Add a photo', ru: 'Добавить фото', es: 'Añadir foto', pt: 'Adicionar foto', fr: 'Ajouter une photo', de: 'Foto hinzufügen', it: 'Aggiungi foto', tr: 'Fotoğraf ekle', uk: 'Додати фото', pl: 'Dodaj zdjęcie', zh: '添加照片', ja: '写真を追加', ko: '사진 추가' },
   pick:   { en: 'Take or choose a photo', ru: 'Снять или выбрать фото', es: 'Haz o elige una foto', pt: 'Tire ou escolha uma foto', fr: 'Prendre ou choisir', de: 'Aufnehmen oder wählen', it: 'Scatta o scegli', tr: 'Çek veya seç', uk: 'Зняти або вибрати', pl: 'Zrób lub wybierz', zh: '拍摄或选择照片', ja: '撮影または選択', ko: '촬영 또는 선택' },
@@ -95,6 +98,8 @@ const IC = {
   nav: sv('<path d="M3 11.5 21 3l-8.5 18-2-7.5z"/>'),
   heart: sv('<path d="M12 20.5s-7.5-4.6-9.2-9.3C1.6 7.8 3.9 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.4 0 5.7 3.3 4.5 6.7-1.7 4.7-9.2 9.3-9.2 9.3z"/>'),
   plus: sv('<path d="M12 5v14M5 12h14"/>'),
+  chevL: sv('<path d="m15 5-7 7 7 7"/>'),
+  chevR: sv('<path d="m9 5 7 7-7 7"/>'),
   star: sv('<path fill="currentColor" stroke="none" d="m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2 6.4 20.2l1.1-6.3L2.9 9.5l6.3-.9z"/>'),
   sun: sv('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
   moon: sv('<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'),
@@ -221,48 +226,80 @@ function translateLink(text) {
   return `https://translate.google.com/?sl=auto&tl=${encodeURIComponent(tl)}&text=${encodeURIComponent(text.slice(0, 1800))}&op=translate`;
 }
 
-// ───── карточки (шторка) ─────
-function shot(ph, kind, ref) {
-  const icon = kind === 'g' ? IC.game : IC.camera;
-  const label = kind === 'g' ? w('game') : w('real');
-  if (!ph) return `<div class="mp-shot empty ${kind}"><span class="mp-shot-ic">${icon}</span></div>`;
-  return `<button class="mp-shot ${kind}" data-mp="view" data-ref="${ref}" data-k="${kind}" aria-label="${esc(label)}">
-    <img src="${esc(ph.file)}" alt="${esc(label)}" loading="lazy" decoding="async">
-    <span class="mp-badge">${icon}<b>${esc(label)}</b></span></button>`;
-}
-// ───── галерея «в жизни»: редакционные фото (Commons/gtadb) + фото игроков, лучшие (по лайкам) — первыми ─────
-const galleries = {}; // ref → список фото (для просмотрщика)
+// ───── галереи «в игре» и «в жизни»: стрелки ‹ ›, счётчик, свайп, миниатюры; фото игроков и лайки ─────
+const galleries = {};   // 'g:p12' | 'r:p12' | 'g:e3' | 'r:d5' → [{id, src, url, thumb, credit, likes, liked}]
+const galNames = {};    // 'p12' → {g: имя в игре, r: имя в жизни}
 const placeKey = (p) => `${game}:${p.id}`;
-function realList(p, community, liked) {
-  const ed = [p.pr, ...(p.gl || [])].filter(Boolean).map((ph) => {
-    const id = photoKey(ph.url || ph.file);
-    return { id, src: 'e', url: ph.url || ph.file, thumb: ph.thumb || ph.url || ph.file, credit: ph.credit, likes: liked.has(id) ? 1 : 0, liked: liked.has(id) };
-  });
+function asItem(ph, liked) {
+  const url = ph.url || ph.file, id = photoKey(url);
+  return { id, src: 'e', url, thumb: ph.thumb || url, credit: ph.credit || '', likes: liked?.has(id) ? 1 : 0, liked: !!liked?.has(id) };
+}
+const gameList = (o) => [o.pg, ...(o.gg || [])].filter(Boolean).map((ph) => asItem(ph));
+function realList(o, community = [], liked = new Set()) {
+  const ed = [o.pr, ...(o.gl || [])].filter(Boolean).map((ph) => asItem(ph, liked));
   const cm = community.map((c) => ({ ...c, src: 'c' }));
   return [...cm, ...ed].map((x, k) => ({ ...x, k })).sort((a, b) => (b.likes - a.likes) || (a.k - b.k));
 }
-function realStrip(p, i, list) {
-  galleries['p' + i] = list;
-  const n = list.length;
-  const slides = list.map((ph, k) => `<div class="mp-slide">
-      <button class="mp-shot r" data-mp="view" data-ref="p${i}" data-k="r" data-n="${k}" aria-label="${esc(w('real'))}">
-        <img src="${esc(k === 0 ? ph.url : ph.thumb)}" alt="${esc(w('real'))}" loading="lazy" decoding="async">
-        <span class="mp-badge">${IC.camera}<b>${esc(w('real'))}${n > 1 ? ` · ${k + 1}/${n}` : ''}</b></span></button>
-      <button class="mp-like${ph.liked ? ' on' : ''}" data-mp="like" data-pid="${esc(ph.id)}" data-src="${ph.src}" aria-label="like">${IC.heart}<em>${ph.likes || ''}</em></button>
-    </div>`).join('');
-  const add = `<button class="mp-slide mp-addtile" data-mp="add" data-i="${i}"><span class="mp-addic">${IC.camera}<i>${IC.plus}</i></span><b>${esc(w('add'))}</b><em>${IC.star}+${POINTS.upload}</em></button>`;
-  return `<div class="mp-gal" data-gal="p${i}"><div class="mp-strip">${n ? slides : `<div class="mp-slide"><div class="mp-shot empty r"><span class="mp-shot-ic">${IC.camera}</span></div></div>`}${add}</div>
-    ${n > 1 ? `<div class="mp-dots">${list.map((_, k) => `<i class="${k ? '' : 'on'}"></i>`).join('')}<i class="add"></i></div>` : ''}</div>`;
+const likeBtn = (ph) => `<button class="mp-like${ph.liked ? ' on' : ''}" data-mp="like" data-pid="${esc(ph.id)}" data-src="${ph.src}" aria-label="like">${IC.heart}<em>${ph.likes || ''}</em></button>`;
+function galBox(kind, key, list, o = {}) {
+  const ref = `${kind}:${key}`; galleries[ref] = list;
+  const icon = kind === 'g' ? IC.game : IC.camera, label = w(kind === 'g' ? 'game' : 'real');
+  const n = list.length, total = n + (o.add ? 1 : 0);
+  const slides = list.map((ph, k) => `<div class="mp-slide"><button class="mp-shot ${kind}" data-mp="view" data-ref="${ref}" data-n="${k}" aria-label="${esc(label)}">
+      <img src="${esc(k === 0 ? ph.url : ph.thumb)}" alt="${esc(label)}" loading="lazy" decoding="async"></button>${kind === 'r' && o.likes ? likeBtn(ph) : ''}</div>`).join('');
+  const empty = n ? '' : `<div class="mp-slide"><div class="mp-shot empty ${kind}"><span class="mp-shot-ic">${icon}</span></div></div>`;
+  const add = o.add ? `<button class="mp-slide mp-addtile" data-mp="add" data-i="${o.i}"><span class="mp-addic">${IC.camera}<i>${IC.plus}</i></span><b>${esc(w('add'))}</b><em>${IC.star}+${POINTS.upload}</em></button>` : '';
+  return `<div class="mp-gal ${kind}" data-gal="${ref}" data-n="${n}">
+    <div class="mp-strip">${empty}${slides}${add}</div>
+    <span class="mp-badge">${icon}<b>${esc(label)}</b>${n > 1 ? `<em class="mp-cnt">1/${n}</em>` : ''}</span>
+    ${total > 1 ? `<button class="mp-arr l" data-mp="slide" data-d="-1" aria-label="‹" hidden>${IC.chevL}</button><button class="mp-arr r" data-mp="slide" data-d="1" aria-label="›">${IC.chevR}</button>` : ''}
+  </div>`;
+}
+function thumbRow(kind, key, list, o = {}) {
+  if (list.length < 2 && !o.add) return '';
+  const ref = `${kind}:${key}`;
+  return `<div class="mp-trow ${kind}" data-for="${ref}"><span class="mp-tic">${kind === 'g' ? IC.game : IC.camera}<em>${list.length}</em></span>
+    <div class="mp-tscroll">${list.map((ph, k) => `<button class="mp-th${k ? '' : ' on'}" data-mp="jump" data-ref="${ref}" data-n="${k}"><img src="${esc(ph.thumb)}" alt="" loading="lazy" decoding="async"></button>`).join('')}${o.add ? `<button class="mp-th mp-th-add" data-mp="add" data-i="${o.i}" aria-label="${esc(w('add'))}">${IC.plus}</button>` : ''}</div></div>`;
+}
+function mediaBox(key, gl, rl, names, o = {}) {
+  galNames[key] = names;
+  return `<div class="mp-media-box" data-key="${key}">
+    <div class="mp-hero">${galBox('g', key, gl)}${galBox('r', key, rl, o)}${gl.length && rl.length
+      ? `<button class="mp-vs mp-cmp" data-mp="compare" data-key="${key}" aria-label="${esc(w('compare'))}">${IC.swap}<b>${esc(w('compare'))}</b></button>`
+      : `<span class="mp-vs">${o.egg ? IC.egg : IC.swap}</span>`}</div>
+    <div class="mp-thumbs">${thumbRow('g', key, gl)}${thumbRow('r', key, rl, o)}</div></div>`;
+}
+// листание: стрелки, миниатюры и счётчик следуют за лентой
+function syncGal(strip) {
+  const box = strip.closest('.mp-gal'); if (!box) return;
+  const n = +box.dataset.n, k = Math.round(strip.scrollLeft / Math.max(1, strip.clientWidth));
+  const cnt = box.querySelector('.mp-cnt'); if (cnt) cnt.textContent = k < n ? `${k + 1}/${n}` : '＋';
+  const total = strip.children.length;
+  const l = box.querySelector('.mp-arr.l'), r = box.querySelector('.mp-arr.r');
+  if (l) l.hidden = k <= 0; if (r) r.hidden = k >= total - 1;
+  document.querySelectorAll(`.mp-trow[data-for="${box.dataset.gal}"] .mp-th`).forEach((t, j) => t.classList.toggle('on', j === k));
+}
+document.addEventListener('scroll', (e) => { if (e.target.classList?.contains('mp-strip')) syncGal(e.target); }, true);
+function goTo(ref, n) {
+  const st = document.querySelector(`#sheet-body .mp-gal[data-gal="${ref}"] .mp-strip`);
+  if (st) st.scrollTo({ left: n * st.clientWidth, behavior: 'smooth' });
+}
+// подсказка «можно листать»: один раз за запуск слегка сдвигаем ленту «в жизни» и возвращаем
+let nudged = false;
+function nudge() {
+  if (nudged) return;
+  const st = document.querySelector('#sheet-body .mp-gal.r .mp-strip');
+  if (!st || st.children.length < 2 || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  nudged = true;
+  setTimeout(() => { st.scrollTo({ left: st.clientWidth * 0.32, behavior: 'smooth' }); setTimeout(() => st.scrollTo({ left: 0, behavior: 'smooth' }), 650); }, 700);
 }
 async function loadCommunity(i) {
   const p = data[game].places[i];
   let community = [], liked = new Set();
   try { [community, liked] = await Promise.all([backend.photos(placeKey(p)).catch(() => []), localStore.likedSet().catch(() => new Set())]); } catch { }
-  const gal = document.querySelector(`#sheet-body .mp-gal[data-gal="p${i}"]`);
-  if (!gal) return;
-  const list = realList(p, community, liked);
-  if (!community.length && !list.some((x) => x.liked)) { galleries['p' + i] = list; return; }
-  gal.outerHTML = realStrip(p, i, list);
+  const box = document.querySelector(`#sheet-body .mp-media-box[data-key="p${i}"]`);
+  if (!box || (!community.length && !realList(p, [], liked).some((x) => x.liked))) return;
+  box.outerHTML = mediaBox('p' + i, gameList(p), realList(p, community, liked), galNames['p' + i], { add: true, i, likes: true });
 }
 function addSheet(i) {
   const p = data[game].places[i];
@@ -291,12 +328,13 @@ async function refreshPointsChip() {
   try { el.textContent = (await backend.stats()).points; } catch { }
 }
 
+// ───── карточки (шторка) ─────
 function placeSheet(p, i) {
   const ck = catKey(p);
   const dist = distLabel(p);
   const media = (p.m || []).map(ytLink).filter(Boolean);
   return `
-    <div class="mp-hero">${shot(p.pg, 'g', 'p' + i)}${realStrip(p, i, realList(p, [], new Set()))}<span class="mp-vs">${IC.swap}</span></div>
+    ${mediaBox('p' + i, gameList(p), realList(p), { g: p.g, r: p.n }, { add: true, i, likes: true })}
     <div class="mp-names">
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(p.g)}</b>${p.r ? `<small>${esc(p.r)}</small>` : ''}</div></div>
       <div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(p.n)}</b>${p.a ? `<small>${esc(p.a)}</small>` : ''}</div></div>
@@ -308,13 +346,15 @@ function placeSheet(p, i) {
       ${dist ? `<span class="mp-pic">${IC.pin}<small>${dist}</small></span>` : ''}
     </div>
     ${actions(p.lat, p.lon, p.n, `${p.g} → ${p.n}`)}
+    ${(p.eggs || []).map((e) => { const yt = (e.m || []).map(ytLink).filter(Boolean)[0]; return `<div class="mp-eggblk"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><b>${esc(txt(e.t))}</b><p>${esc(txt(e.d))}</p>${yt ? `<a href="${yt.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(yt.label)}</span></a>` : ''}</div></div>`; }).join('')}
+    ${(p.alias || []).length ? `<p class="mp-alias">${IC.game}<span>${esc(w('also'))}: ${p.alias.map(esc).join(' · ')}</span></p>` : ''}
     ${txt(p.s) ? `<p class="mp-text">${esc(txt(p.s))}</p>` : ''}
     ${txt(p.why) ? `<div class="mp-blk">${IC.info}<div><b>${esc(w('why'))}</b><p>${esc(txt(p.why))}</p></div></div>` : ''}
     ${txt(p.tip) ? `<div class="mp-blk">${IC.bulb}<div><b>${esc(w('tip'))}</b><p>${esc(txt(p.tip))}</p></div></div>` : ''}
     ${txt(p.fun) ? `<div class="mp-blk">${IC.spark}<div><b>${esc(w('fun'))}</b><p>${esc(txt(p.fun))}</p></div></div>` : ''}
     ${media.length ? `<div class="mp-yt">${media.map((m) => `<a href="${m.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(m.label)}</span></a>`).join('')}</div>` : ''}
-    ${(p.src || []).length ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u, k) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a>`).join('')}</div>` : ''}
-    ${[p.pg, p.pr].filter(Boolean).length ? `<p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>` : ''}`;
+    ${(p.src || []).length ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a>`).join('')}</div>` : ''}
+    <p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>`;
 }
 function eggSheet(e, i) {
   const yt = (e.m || []).map(ytLink).filter(Boolean);
@@ -322,7 +362,7 @@ function eggSheet(e, i) {
     ? `<a class="mp-cta mp-cta-yt" href="${yt[0].url}" target="_blank" rel="noopener">${IC.play}<span>${esc(w('seen'))} · ${esc(yt[0].label.split(' · ')[1] || '')}</span></a>`
     : `<a class="mp-cta" href="${panoLink(e.lat, e.lon)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>`;
   return `
-    <div class="mp-hero">${shot(e.pg, 'g', 'e' + i)}${shot(e.pr, 'r', 'e' + i)}<span class="mp-vs mp-vs-egg">${IC.egg}</span></div>
+    ${mediaBox('e' + i, gameList(e), realList(e), { g: txt(e.t), r: (e.p || '').split(',')[0] }, { egg: true })}
     <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><h2>${esc(txt(e.t))}</h2></div></div>
     ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(e.p.split(',')[0])}</b><small>${esc(e.p.split(',').slice(1).join(',').trim())}</small></div></div>` : ''}
     <div class="mp-picto"><span class="mp-pic">${meter(e.cf)}<small>${esc(w(e.cf || 'likely'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel(e)}</small></span>` : ''}</div>
@@ -332,7 +372,7 @@ function eggSheet(e, i) {
     <p class="mp-text">${esc(txt(e.d))}</p>
     ${yt.length > 1 ? `<div class="mp-yt">${yt.slice(1).map((m) => `<a href="${m.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(m.label)}</span></a>`).join('')}</div>` : ''}
     ${e.src ? `<div class="mp-src">${IC.link}<a href="${esc(e.src)}" target="_blank" rel="noopener">${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a></div>` : ''}
-    ${[e.pg, e.pr].filter(Boolean).length ? `<p class="mp-cred">${[e.pg, e.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>` : ''}`;
+    <p class="mp-cred">${[e.pg, e.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>`;
 }
 // фото точек сообщества — из открытого репозитория gtadb.org на GitHub (CC BY 4.0; кадры игры © Rockstar Games)
 function gtadbPhotos(p, g) {
@@ -344,12 +384,13 @@ function gtadbSheet(p, g, i) {
   const [id, name, district, real, lat, lon, type] = p;
   const ph = gtadbPhotos(p, g);
   return `
-    <div class="mp-hero">${shot(ph.pg, 'g', 'd' + i)}${shot(ph.pr, 'r', 'd' + i)}<span class="mp-vs">${IC.swap}</span></div>
+    ${mediaBox('d' + i, gameList(ph), realList(ph), { g: name || district || id, r: real.split(',')[0] })}
     <div class="mp-names">
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(name || district || id)}</b>${name && district ? `<small>${esc(district)}</small>` : ''}</div></div>
       <div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(real.split(',')[0])}</b><small>${esc(real.split(',').slice(1).join(',').trim())}</small></div></div>
     </div>
     <div class="mp-picto"><span class="mp-pic">${IC.other}<small>${esc(type || w('other'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel({ lat, lon })}</small></span>` : ''}</div>
+    ${(p[9] || []).length ? `<div class="mp-also"><small>${esc(w('also'))}</small>${p[9].map((x) => `<span>${IC.game}${esc(x)}</span>`).join('')}</div>` : ''}
     ${actions(lat, lon, real, `${name || district || id} → ${real.split(',')[0]}`)}
     <div class="mp-src">${IC.link}<a href="https://map.gtadb.org/#${g},${esc(id)}" target="_blank" rel="noopener">gtadb.org</a></div>
     <p class="d-note">${t('map_gtadb_credit')}</p>`;
@@ -369,40 +410,96 @@ function helpSheet() {
     </div>`;
 }
 
-// ───── просмотр фото на весь экран (свайп / тап — переключить игра ↔ реальность) ─────
-function subject(ref) {
-  const i = +ref.slice(1);
-  if (ref[0] === 'p') { const p = data[game].places[i]; const gl = galleries[ref] || realList(p, [], new Set()); return { pg: p.pg, pr: gl[0] || p.pr, prs: gl, g: p.g, n: p.n }; }
-  if (ref[0] === 'e') { const e = data[game].eggs[i]; return { pg: e.pg, pr: e.pr, g: txt(e.t), n: (e.p || '').split(',')[0] }; }
-  const d = gtadb[game].points[i], ph = gtadbPhotos(d, gtadb[game].game);
-  return { pg: ph.pg, pr: ph.pr, g: d[1] || d[2] || d[0], n: d[3].split(',')[0] };
+// ───── просмотр на весь экран ─────
+// «Сравнить»: кадр игры и фото из жизни друг на друге, ползунок двигается пальцем (влево — больше игры, вправо — жизни).
+// Под ним два ряда миниатюр: выбрать другой кадр игры или другое фото из жизни. Вкладки «Игра» / «Жизнь» — листать по одному.
+function openViewer(ref, n = 0) {
+  const key = ref.slice(2), kind = ref[0];
+  const G = galleries[`g:${key}`] || [], R = galleries[`r:${key}`] || [];
+  if (G.length && R.length) return openCompare(key, kind === 'g' ? n : 0, kind === 'r' ? n : 0);
+  openSingle(ref, n);
 }
-function openViewer(ref, k, n = 0) {
-  const p = subject(ref);
-  const prs = p.prs && p.prs.length ? p.prs : (p.pr ? [p.pr] : []);
-  n = Math.max(0, Math.min(n, prs.length - 1));
-  if (k === 'r' && prs[n]) p.pr = { file: prs[n].url || prs[n].file, credit: prs[n].credit };
-  viewer = { ref, k, n, len: prs.length };
+function viewerEl() {
   let el = document.getElementById('mp-viewer');
   if (!el) { el = document.createElement('div'); el.id = 'mp-viewer'; document.body.appendChild(el); }
-  const both = [['g', p.pg], ['r', p.pr]].filter(([, ph]) => ph);
-  const cur = both.find(([kk]) => kk === k) || both[0];
+  el.ontouchstart = el.ontouchend = el.ontouchmove = null;
+  return el;
+}
+function vTabs(key, active) {
+  const G = galleries[`g:${key}`] || [], R = galleries[`r:${key}`] || [];
+  const tabs = [];
+  if (G.length && R.length) tabs.push(['cmp', IC.swap, w('compare'), '']);
+  if (G.length) tabs.push([`g:${key}`, IC.game, w('game'), G.length]);
+  if (R.length) tabs.push([`r:${key}`, IC.camera, w('real'), R.length]);
+  return `<div class="mpv-tabs">${tabs.map(([r, ic, lab, cnt]) => `<button class="${r === active ? 'on' : ''}" data-mp="viewer-tab" data-ref="${r}" data-key="${key}">${ic}<span>${esc(lab)}</span>${cnt ? `<em>${cnt}</em>` : ''}</button>`).join('')}</div>`;
+}
+function openCompare(key, gi = 0, ri = 0, x = 50) {
+  const G = galleries[`g:${key}`], R = galleries[`r:${key}`];
+  gi = (gi + G.length) % G.length; ri = (ri + R.length) % R.length;
+  viewer = { mode: 'cmp', key, gi, ri };
+  const names = galNames[key] || {};
+  const el = viewerEl();
   el.innerHTML = `
     <button class="mpv-x" data-mp="viewer-close" aria-label="close">${IC.close}</button>
-    <div class="mpv-tabs">${both.map(([kk]) => `<button class="${kk === cur[0] ? 'on' : ''}" data-mp="viewer-k" data-k="${kk}">${kk === 'g' ? IC.game : IC.camera}<span>${esc(w(kk === 'g' ? 'game' : 'real'))}</span></button>`).join('')}</div>
-    <img src="${esc(cur[1].file)}" alt="" data-mp="viewer-next">
-    <div class="mpv-cap"><b>${esc(cur[0] === 'g' ? p.g : p.n)}${cur[0] === 'r' && prs.length > 1 ? ` · ${n + 1}/${prs.length}` : ''}</b><small>${esc(cur[1].credit || '')}</small></div>`;
+    ${vTabs(key, 'cmp')}
+    <div class="cmp-stage" id="cmp-stage" style="--x:${x}%">
+      <img class="cmp-g" src="${esc(G[gi].url)}" alt="" draggable="false">
+      <img class="cmp-r" src="${esc(R[ri].url)}" alt="" draggable="false">
+      <span class="cmp-lab g">${IC.game}<b>${esc(w('game'))}</b></span>
+      <span class="cmp-lab r">${IC.camera}<b>${esc(w('real'))}</b></span>
+      <div class="cmp-line"><span class="cmp-knob">${IC.chevL}${IC.chevR}</span></div>
+    </div>
+    <div class="mpv-cap"><b>${esc(names.g || '')} ⇄ ${esc(names.r || '')}</b></div>
+    <div class="cmp-rows">
+      <div class="cmp-row"><span class="mp-tic g">${IC.game}<em>${G.length}</em></span><div class="mpv-thumbs">${G.map((p, k) => `<button class="${k === gi ? 'on' : ''}" data-mp="cmp-g" data-n="${k}"><img src="${esc(p.thumb)}" alt="" loading="lazy"></button>`).join('')}</div></div>
+      <div class="cmp-row"><span class="mp-tic">${IC.camera}<em>${R.length}</em></span><div class="mpv-thumbs">${R.map((p, k) => `<button class="${k === ri ? 'on' : ''}" data-mp="cmp-r" data-n="${k}"><img src="${esc(p.thumb)}" alt="" loading="lazy"></button>`).join('')}</div></div>
+    </div>
+    <p class="mpv-credit">${esc(G[gi].credit)} · ${esc(R[ri].credit)}</p>`;
   el.classList.add('open');
-  let x0 = null;
-  el.ontouchstart = (e) => { x0 = e.touches[0].clientX; };
-  el.ontouchend = (e) => {
-    if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null;
-    if (Math.abs(dx) < 50) return;
-    if (cur[0] === 'r' && prs.length > 1) { const nn = n + (dx < 0 ? 1 : -1); if (nn >= 0 && nn < prs.length) return openViewer(ref, 'r', nn); if (nn < 0 && p.pg) return openViewer(ref, 'g'); return; }
-    if (both.length > 1) openViewer(ref, cur[0] === 'g' ? 'r' : 'g');
-  };
+  const stage = el.querySelector('#cmp-stage');
+  const setX = (cx) => { const b = stage.getBoundingClientRect(); const v = Math.max(0, Math.min(100, ((cx - b.left) / b.width) * 100)); stage.style.setProperty('--x', v + '%'); viewer.x = v; };
+  let drag = false;
+  stage.onpointerdown = (e) => { drag = true; stage.setPointerCapture?.(e.pointerId); setX(e.clientX); };
+  stage.onpointermove = (e) => { if (drag) setX(e.clientX); };
+  stage.onpointerup = stage.onpointercancel = () => { drag = false; };
+  // подсказка: ползунок сам качнётся один раз
+  if (!openCompare.hinted && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    openCompare.hinted = true;
+    stage.classList.add('hint'); setTimeout(() => stage.classList.remove('hint'), 1600);
+  }
+  el.querySelectorAll('.mpv-thumbs .on').forEach((b) => b.scrollIntoView({ inline: 'center', block: 'nearest' }));
 }
-function closeViewer() { document.getElementById('mp-viewer')?.classList.remove('open'); viewer = null; }
+function openSingle(ref, n = 0) {
+  const list = galleries[ref] || [];
+  if (!list.length) return;
+  n = (n + list.length) % list.length;
+  const kind = ref[0], key = ref.slice(2), names = galNames[key] || {};
+  viewer = { mode: 'one', ref, n };
+  const ph = list[n];
+  const el = viewerEl();
+  el.innerHTML = `
+    <button class="mpv-x" data-mp="viewer-close" aria-label="close">${IC.close}</button>
+    ${vTabs(key, ref)}
+    <div class="mpv-stage" id="mpv-stage">
+      <img src="${esc(ph.url)}" alt="" draggable="false">
+      ${list.length > 1 ? `<button class="mpv-arr l" data-mp="viewer-step" data-d="-1" aria-label="‹">${IC.chevL}</button><button class="mpv-arr r" data-mp="viewer-step" data-d="1" aria-label="›">${IC.chevR}</button>` : ''}
+      ${kind === 'r' && ph.src ? `<div class="mpv-like">${likeBtn(ph)}</div>` : ''}
+    </div>
+    <div class="mpv-cap"><b>${esc(kind === 'g' ? names.g || '' : names.r || '')}${list.length > 1 ? ` · ${n + 1}/${list.length}` : ''}</b><small>${esc(ph.credit || '')}</small></div>
+    ${list.length > 1 ? `<div class="mpv-thumbs">${list.map((x, k) => `<button class="${k === n ? 'on' : ''}" data-mp="viewer-n" data-n="${k}"><img src="${esc(x.thumb)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}`;
+  el.classList.add('open');
+  el.querySelector('.mpv-thumbs .on')?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  const stage = el.querySelector('#mpv-stage');
+  let x0 = null;
+  stage.onpointerdown = (e) => { x0 = e.clientX; };
+  stage.onpointerup = (e) => { if (x0 == null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 40 && list.length > 1) openSingle(ref, n + (dx < 0 ? 1 : -1)); };
+}
+function closeViewer() { document.getElementById('mp-viewer')?.classList.remove('open'); viewer = null; resetDocScroll(); }
+
+// Страница приложения никогда не прокручивается целиком (иначе на iPhone вылезают спрятанные слои — например, экран оплаты).
+// Любую прокрутку документа сразу возвращаем в ноль. Корень и проверка — tools/check_no_doc_scroll.js.
+function resetDocScroll() { if (window.scrollX || window.scrollY) window.scrollTo(0, 0); }
+addEventListener('scroll', resetDocScroll, { passive: true });
 
 // ───── лента карточек внизу карты ─────
 function ensureChrome() {
@@ -464,7 +561,7 @@ const pt = (lon, lat, props) => ({ type: 'Feature', geometry: { type: 'Point', c
 
 function geo(kind) {
   const d = data[game];
-  if (kind === 'places') return fc((d?.places || []).map((p, i) => pt(p.lon, p.lat, { i, cf: p.cf })));
+  if (kind === 'places') return fc((d?.places || []).map((p, i) => pt(p.lon, p.lat, { i, cf: p.cf, egg: (p.eggs || []).length ? 1 : 0 })));
   if (kind === 'eggs') return fc((d?.eggs || []).map((e, i) => pt(e.lon, e.lat, { i, cf: e.cf })));
   if (kind === 'gtadb') return fc(show.gtadb && gtadb[game] ? gtadb[game].points.map((p, i) => pt(p[5], p[4], { i })) : []);
   if (kind === 'sel') {
@@ -488,6 +585,8 @@ function addLayers() {
   if (!map.getLayer('places')) map.addLayer({ id: 'places', type: 'circle', source: 'places',
     paint: { 'circle-radius': z(4.5, 10), 'circle-stroke-width': 1.5, 'circle-stroke-color': stroke,
       'circle-color': ['match', ['get', 'cf'], 'confirmed', COLORS.confirmed, 'speculative', COLORS.speculative, COLORS.likely] } });
+  if (!map.getLayer('places-egg')) map.addLayer({ id: 'places-egg', type: 'circle', source: 'places', filter: ['==', ['get', 'egg'], 1],
+    paint: { 'circle-radius': z(7, 14), 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-width': 2.2, 'circle-stroke-color': COLORS.egg } });
   if (!map.getLayer('eggs')) map.addLayer({ id: 'eggs', type: 'circle', source: 'eggs',
     paint: { 'circle-radius': z(5, 11), 'circle-color': COLORS.egg, 'circle-stroke-width': 2.2, 'circle-stroke-color': '#ffffff' } });
   if (!map.getLayer('sel')) map.addLayer({ id: 'sel', type: 'circle', source: 'sel',
@@ -507,6 +606,7 @@ function applyShow() {
   map.setLayoutProperty('gtadb', 'visibility', vis(show.gtadb));
   map.setLayoutProperty('places', 'visibility', vis(show.places));
   map.setLayoutProperty('places-glow', 'visibility', vis(show.places));
+  if (map.getLayer('places-egg')) map.setLayoutProperty('places-egg', 'visibility', vis(show.places));
   map.setLayoutProperty('eggs', 'visibility', vis(show.eggs));
 }
 
@@ -518,6 +618,7 @@ function openPlace(i, fly) {
   renderCards(); scrollCardIntoView(i);
   ctx.openSheet(placeSheet(p, i), 'sheet-map');
   loadCommunity(i);
+  nudge();
 }
 
 // нажатие: ищем точку в радиусе пальца, приоритет пасхалки > места > сообщество
@@ -526,13 +627,26 @@ function onTap(e) {
   const layers = ['eggs', 'places', 'gtadb'].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, 'visibility') !== 'none');
   const hits = map.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]], { layers });
   if (!hits.length) return;
-  const best = layers.map((l) => hits.filter((h) => h.layer.id === l)).find((a) => a.length);
-  const nearest = best.sort((a, b) => dist(a, e) - dist(b, e))[0];
+  const uniq = []; const seenHit = new Set();
+  for (const h of hits.sort((a, b) => dist(a, e) - dist(b, e))) { const k = h.layer.id + ':' + h.properties.i; if (!seenHit.has(k)) { seenHit.add(k); uniq.push(h); } }
+  if (uniq.length > 1) { ctx.haptic(); ctx.openSheet(chooserSheet(uniq.slice(0, 12)), 'sheet-map'); return; }
+  const nearest = uniq[0];
   const i = nearest.properties.i, l = nearest.layer.id;
   ctx.haptic();
   if (l === 'eggs') ctx.openSheet(eggSheet(data[game].eggs[i], i), 'sheet-map');
   else if (l === 'places') openPlace(i, false);
   else openPoint(i, false);
+}
+function chooserSheet(hits) {
+  const row = (h) => {
+    const i = h.properties.i, l = h.layer.id;
+    let img = '', title = '', sub = '', ic = IC.pin;
+    if (l === 'places') { const p = data[game].places[i]; img = (p.pg || p.pr || {}).thumb || (p.pg || p.pr || {}).file || ''; title = p.n; sub = p.g; }
+    else if (l === 'eggs') { const e = data[game].eggs[i]; img = (e.pg || e.pr || {}).thumb || (e.pg || e.pr || {}).file || ''; title = txt(e.t); sub = w('egg'); ic = IC.egg; }
+    else { const q = gtadb[game].points[i]; const ph = gtadbPhotos(q, gtadb[game].game); img = (ph.pg || ph.pr || {}).file || ''; title = q[3].split(',')[0]; sub = q[1] || q[2]; }
+    return `<button class="mp-ch" data-mp="pick" data-l="${l}" data-i="${i}">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : `<span class="mp-ch-ic">${ic}</span>`}<span><b>${esc(title)}</b><small>${IC.game}${esc(sub || '')}</small></span></button>`;
+  };
+  return `<h2 class="pick-t">${esc(w('here'))}</h2><div class="mp-chooser">${hits.map(row).join('')}</div>`;
 }
 function openPoint(i, fly) {
   const q = gtadb[game].points[i];
@@ -561,14 +675,6 @@ function renderChips() {
     `<button class="${id === game ? 'on' : ''}" data-action="map-game" data-v="${id}"><b>${g.title}</b><small>${tr(g.place)}</small></button>`).join('');
   const lg = document.getElementById('map-legend'); if (lg) lg.innerHTML = '';
 }
-
-// точки под галереей следуют за листанием
-document.addEventListener('scroll', (e) => {
-  const st = e.target;
-  if (!st.classList || !st.classList.contains('mp-strip')) return;
-  const k = Math.round(st.scrollLeft / Math.max(1, st.clientWidth));
-  st.parentElement.querySelectorAll('.mp-dots i').forEach((d, n) => d.classList.toggle('on', n === k));
-}, true);
 
 // ───── добавление своего фото ─────
 let addState = null;
@@ -600,13 +706,15 @@ document.addEventListener('click', (e) => {
   const a = el.dataset.mp;
   if (a === 'card') { ctx?.haptic(); openPlace(+el.dataset.i, true); }
   else if (a === 'dcard') { ctx?.haptic(); openPoint(+el.dataset.i, true); }
-  else if (a === 'view') { ctx?.haptic(); openViewer(el.dataset.ref, el.dataset.k, +(el.dataset.n || 0)); }
-  else if (a === 'viewer-k') openViewer(viewer.ref, el.dataset.k);
-  else if (a === 'viewer-next') {
-    const p = subject(viewer.ref);
-    if (viewer.k === 'r' && viewer.len > 1 && viewer.n < viewer.len - 1) openViewer(viewer.ref, 'r', viewer.n + 1);
-    else if (p.pg && (p.pr || viewer.len)) openViewer(viewer.ref, viewer.k === 'g' ? 'r' : 'g', 0);
-  }
+  else if (a === 'view') { ctx?.haptic(); openViewer(el.dataset.ref, +(el.dataset.n || 0)); }
+  else if (a === 'slide') { ctx?.haptic(); const st = el.closest('.mp-gal').querySelector('.mp-strip'); st.scrollBy({ left: (+el.dataset.d) * st.clientWidth, behavior: 'smooth' }); }
+  else if (a === 'jump') { goTo(el.dataset.ref, +el.dataset.n); }
+  else if (a === 'viewer-tab') { if (el.dataset.ref === 'cmp') openCompare(el.dataset.key, viewer?.gi || 0, viewer?.ri || 0); else openSingle(el.dataset.ref, 0); }
+  else if (a === 'viewer-step') openSingle(viewer.ref, viewer.n + (+el.dataset.d));
+  else if (a === 'viewer-n') openSingle(viewer.ref, +el.dataset.n);
+  else if (a === 'cmp-g') openCompare(viewer.key, +el.dataset.n, viewer.ri, viewer.x ?? 50);
+  else if (a === 'cmp-r') openCompare(viewer.key, viewer.gi, +el.dataset.n, viewer.x ?? 50);
+  else if (a === 'compare') { ctx?.haptic(); openCompare(el.dataset.key, 0, 0); }
   else if (a === 'like') {
     e.stopPropagation(); ctx?.haptic();
     const store = el.dataset.src === 'c' ? backend : localStore;
@@ -620,6 +728,7 @@ document.addEventListener('click', (e) => {
   else if (a === 'publish') { publish(); }
   else if (a === 'points') { ctx?.haptic(); pointsSheet().then((h) => ctx.openSheet(h, 'sheet-map')); }
   else if (a === 'viewer-close') closeViewer();
+  else if (a === 'pick') { const i = +el.dataset.i, l = el.dataset.l; if (l === 'places') openPlace(i, false); else if (l === 'eggs') ctx.openSheet(eggSheet(data[game].eggs[i], i), 'sheet-map'); else openPoint(i, false); }
   else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t); }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
 });

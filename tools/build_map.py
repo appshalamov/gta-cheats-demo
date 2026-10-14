@@ -101,6 +101,101 @@ def photo(item, game, key="photo_real"):
     return {"file": f"img/map/{game}/{src.name}", "thumb": f"img/map/{game}/t/{src.name}", "credit": p.get("credit", "")}
 
 
+def gal(item, game, key, limit=5):
+    """Список фото галереи: локальные файлы (file, относительно «карта/») копируются как photo(), ссылки (url) — как есть."""
+    out = []
+    for g in (item.get(key) or []):
+        if g.get("file"):
+            ph = photo({"photo_real": g}, game)
+            if ph:
+                out.append(ph)
+        elif g.get("url"):
+            out.append({"url": g["url"], "thumb": g.get("thumb") or g["url"], "credit": g.get("credit", "")})
+    return out[:limit]
+
+
+def meters(a, b):
+    import math
+    R = 6371000; p1, p2 = math.radians(a[0]), math.radians(b[0])
+    x = math.sin(math.radians(b[0] - a[0]) / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(math.radians(b[1] - a[1]) / 2) ** 2
+    return 2 * R * math.asin(math.sqrt(x))
+
+
+STOPW = {"the", "and", "of", "in", "at", "los", "santos", "vice", "city", "santa", "monica", "miami", "beach", "pier", "former",
+         "real", "new", "old", "south", "north", "east", "west", "street", "st", "drive", "dr", "ave", "avenue", "blvd"}
+
+
+def toks(*xs):
+    return {w for x in xs for w in re.findall(r"[a-z0-9]+", str(x or "").lower()) if len(w) > 2 and w not in STOPW}
+
+
+def dedupe(places, eggs, pts):
+    """Без дублей на карте:
+    1) точка gtadb, которая повторяет наше место (тот же gtadb_id; или ≤ 25 м; или ≤ 80 м и общее слово в названии), — убирается;
+    2) точки gtadb ближе 15 м друг к другу схлопываются в одну (остальные названия — «здесь же»);
+    3) пасхалка ≤ 60 м от места, к которому относится (общее слово) или ≤ 25 м от любого места, — показывается в карточке места,
+       а не отдельной точкой.
+    Возвращает (eggs_left, pts_left, отчёт)."""
+    rep_ = {"places_merged": 0, "gtadb_dup": 0, "gtadb_stacked": 0, "eggs_into_place": 0}
+    # 0) два наших места про одну и ту же реальную точку (≤ 20 м и общее слово в реальном названии) — оставить лучшее
+    score = lambda pl: (pl.get("v", False), bool(pl.get("pg")) + bool(pl.get("pr")), len(pl.get("gl", [])), pl.get("cf") == "confirmed")
+    places.sort(key=score, reverse=True)
+    kept = []
+    for pl in places:
+        twin = next((k for k in kept if meters((pl["lat"], pl["lon"]), (k["lat"], k["lon"])) <= 20 and toks(pl["n"]) & toks(k["n"])), None)
+        if twin:
+            rep_["places_merged"] += 1
+            twin.setdefault("alias", []).append(pl["g"])
+        else:
+            kept.append(pl)
+    places[:] = kept
+    own_ids = {pl.get("_gtadb") for pl in places if pl.get("_gtadb")}
+    keep = []
+    for q in pts:
+        here = (q[4], q[5])
+        dup = q[0] in own_ids
+        if not dup:
+            for pl in places:
+                d = meters(here, (pl["lat"], pl["lon"]))
+                if d <= 25 or (d <= 80 and toks(q[1], q[3]) & toks(pl["g"], pl["n"])):
+                    dup = True; break
+        if dup:
+            rep_["gtadb_dup"] += 1
+        else:
+            keep.append(q)
+    # схлопывание стопок: представитель — с обеими фото
+    keep.sort(key=lambda q: -(q[7] + q[8]))
+    groups = []
+    for q in keep:
+        for g in groups:
+            if meters((q[4], q[5]), (g[0][4], g[0][5])) <= 15:
+                g.append(q); break
+        else:
+            groups.append([q])
+    pts_left = []
+    for g in groups:
+        head = list(g[0])
+        also = [x[1] or x[3].split(",")[0] for x in g[1:] if (x[1] or x[3])][:8]
+        head.append(also)
+        rep_["gtadb_stacked"] += len(g) - 1
+        pts_left.append(head)
+    eggs_left = []
+    for e in eggs:
+        best = None
+        for k, pl in enumerate(places):
+            d = meters((e["lat"], e["lon"]), (pl["lat"], pl["lon"]))
+            related = bool(toks(e["t"].get("en"), e.get("p")) & toks(pl["g"], pl["n"]))
+            if d <= 25 or (d <= 60 and related):
+                if best is None or d < best[0]:
+                    best = (d, k)
+        if best:
+            places[best[1]].setdefault("eggs", []).append(e)
+            rep_["eggs_into_place"] += 1
+        else:
+            eggs_left.append(e)
+    return eggs_left, pts_left, rep_
+
+
 def build(game, cfg):
     pf, ef = first_existing(cfg["places"]), first_existing(cfg["eggs"])
     places, eggs = [], []
@@ -123,8 +218,8 @@ def build(game, cfg):
             "tip": bi(it, "visit_tips"), "fun": bi(it, "trivia") if (it.get("trivia") or it.get("trivia_ru")) else None,
             "m": media(it), "src": [u for u in srcs if str(u).startswith("http")][:3],
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"),
-            "gl": [{"url": g["url"], "thumb": g.get("thumb") or g["url"], "credit": g.get("credit", "")}
-                   for g in (it.get("gallery") or []) if g.get("url")][:5],
+            "gl": gal(it, game, "gallery"), "gg": gal(it, game, "game_gallery", 4),
+            "_gtadb": it.get("gtadb_id") or "",
         }
         places.append({k: v for k, v in place.items() if v not in (None, "", [], {"ru": "", "en": ""})})
     for i, it in enumerate(json.loads(ef.read_text("utf-8")) if ef else []):
@@ -135,18 +230,20 @@ def build(game, cfg):
             "id": it.get("id") or f"{game}-e{i}",
             "t": bi(it, "title"), "d": bi(it, "description"), "p": it.get("real_place", ""),
             "lat": lat, "lon": lon, "cf": it.get("confidence", "likely"), "m": media(it), "src": src0(it),
-            "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"),
+            "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"), "gg": gal(it, game, "game_gallery", 4),
         })
-    data = {"game": game, "center": cfg["center"], "zoom": cfg["zoom"],
-            "source": pf.name if pf else None, "places": places, "eggs": eggs}
-    (OUT / f"{game}.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), "utf-8")
-
     layer = json.loads((DATA / f"gtadb_layer_{game}.json").read_text("utf-8"))
     pts = [[p["id"], p.get("name") or "", p.get("district") or p.get("region") or "", p.get("real") or "",
             num(p["lat"]), num(p["lon"]), p.get("type") or "", 1 if p.get("ig") else 0, 1 if p.get("rl") else 0] for p in layer
            if not p.get("leak_tag") and num(p.get("lat")) is not None]
+    eggs, pts, rep_ = dedupe(places, eggs, pts)
+    for pl in places:
+        pl.pop("_gtadb", None)
+    data = {"game": game, "center": cfg["center"], "zoom": cfg["zoom"],
+            "source": pf.name if pf else None, "places": places, "eggs": eggs}
+    (OUT / f"{game}.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), "utf-8")
     (OUT / f"gtadb_{game}.json").write_text(json.dumps({"game": cfg["gtadb"], "points": pts}, ensure_ascii=False, separators=(",", ":")), "utf-8")
-    print(f"{game}: мест {len(places)} ({pf.name if pf else '—'}), пасхалок {len(eggs)}, точек gtadb {len(pts)}")
+    print(f"{game}: мест {len(places)} ({pf.name if pf else '—'}), пасхалок отдельно {len(eggs)}, точек gtadb {len(pts)} · без дублей: {rep_}")
 
 
 def main():
