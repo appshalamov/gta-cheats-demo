@@ -65,6 +65,22 @@ def parse_view(v):
     return out if ("pano" in out or "heading" in out) else None
 
 
+REGION = {"gta5": (32.3, -124.6, 42.1, -114.0), "gta6": (24.3, -87.8, 31.1, -79.8)}   # Калифорния / Флорида
+
+
+def region_gate(game, places, eggs):
+    """Стоп-кран: точка вне региона игры (испорченная широта и т. п.) в приложение не попадает.
+    Законные исключения (отсылки к роликам из других штатов) — список «вне_региона» в данные/правки_вручную.json."""
+    f = DATA / "правки_вручную.json"
+    allowed = set(((json.loads(f.read_text("utf-8")) if f.exists() else {}).get(game) or {}).get("вне_региона") or [])
+    b = REGION[game]
+    bad = [f"{x['id']} ({x['lat']}, {x['lon']})" for x in places + eggs
+           if x["id"] not in allowed and not (b[0] <= x["lat"] <= b[2] and b[1] <= x["lon"] <= b[3])]
+    if bad:
+        raise SystemExit(f"СТОП {game}: точки вне региона игры — исправьте в данные/правки_вручную.json (fix) "
+                         f"или внесите в «вне_региона», если это законная отсылка:\n  " + "\n  ".join(bad))
+
+
 def gtadb_fixes(game):
     f = DATA / "правки_вручную.json"
     return (json.loads(f.read_text("utf-8")).get(game) or {}).get("gtadb_fix") or {} if f.exists() else {}
@@ -318,6 +334,7 @@ def build(game, cfg):
         pr = pairs_for(e["lat"], e["lon"], (e["t"].get("en"), e.get("p")))
         if pr:
             e["pairs"] = pr
+    region_gate(game, places, eggs)
     eggs, pts, rep_ = dedupe(places, eggs, pts)
     for q in pts:   # вид 360° точки gtadb — 11-й элемент (после «здесь же»)
         if q[0] in gviews and gviews[q[0]]:
