@@ -211,6 +211,25 @@ def photo_rights_gate(game, places, eggs):
         raise SystemExit(f"{game}: СТОП — фото из жизни без права показа ({len(bad)}): " + "; ".join(bad[:5]))
 
 
+def attach_commons(game, places, eggs):
+    """Свободные фото Commons (данные/фото_commons_доп.json, 14.10.2026): месту без фото из жизни — главное фото
+    (kind=area → ap=1, «≈ рядом»), остальным — в конец галереи. Ничего не заменяет и не убирает."""
+    f = DATA / "фото_commons_доп.json"
+    sel = (json.loads(f.read_text("utf-8")) if f.exists() else {}).get(game) or {}
+    n = [0, 0]
+    for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
+        s = sel.get(x["id"])
+        if not s:
+            continue
+        ph = {"url": s["url"], "thumb": s.get("thumb") or s["url"], "credit": s["credit"]}
+        if not (x.get("pr") or x.get("gl") or x.get("pairs")):
+            x["pr"] = {**ph, **({"ap": 1} if s.get("kind") == "area" else {})}; n[0] += 1
+        elif all(g.get("url") != ph["url"] for g in x.get("gl") or []):
+            x["gl"] = (x.get("gl") or []) + [ph]; n[1] += 1
+    if any(n):
+        print(f"  фото Commons: главным {n[0]}, в галерею {n[1]}")
+
+
 def gtadb_fixes(game):
     f = DATA / "правки_вручную.json"
     return (json.loads(f.read_text("utf-8")).get(game) or {}).get("gtadb_fix") or {} if f.exists() else {}
@@ -514,6 +533,7 @@ def build(game, cfg):
     region_gate(game, places, eggs)
     attach_approx(game, places, eggs)
     eggs, pts, rep_ = dedupe(places, eggs, pts)
+    attach_commons(game, places, eggs)   # после слияния дублей: галерея не должна менять, какое место остаётся
     for q in pts:   # вид 360° точки gtadb — 11-й элемент (после «здесь же»)
         if q[0] in gviews and gviews[q[0]]:
             while len(q) < 10:
