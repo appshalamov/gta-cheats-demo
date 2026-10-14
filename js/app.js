@@ -78,11 +78,22 @@ function fitViewport() {
     inner: window.innerHeight, vh: probe('height:100vh'), dvh: probe('height:100dvh'), screen: screen.height,
     safeB: probe('height:0;padding-bottom:env(safe-area-inset-bottom)'), standalone: sa, guard: false,
   };
-  setTimeout(guardTabbar, 50);
+  setTimeout(() => { guardTabbar(); checkDocOverflow(); }, 50);
 }
 fitViewport();
 addEventListener('resize', fitViewport);
 addEventListener('orientationchange', () => setTimeout(fitViewport, 300));
+// Страница никогда не должна прокручиваться (всё листается внутри своих блоков).
+// Предохранитель: любая прокрутка документа — сразу назад. Самопроверка: документ не выше body.
+addEventListener('scroll', () => { if (window.scrollX || window.scrollY) window.scrollTo(0, 0); }, { passive: true });
+function checkDocOverflow() {
+  const se = document.scrollingElement, bh = document.body.getBoundingClientRect().height;
+  const over = se.scrollHeight > Math.ceil(bh) + 1 || se.scrollWidth > window.innerWidth + 1;
+  if (over) console.warn('[layout] документ шире/выше body — страница может прокручиваться', se.scrollWidth, se.scrollHeight, bh);
+  if (window.__vp) window.__vp.overflow = over;
+  return over;
+}
+window.__checkDocOverflow = checkDocOverflow;
 // без fixed-корня iOS при открытии клавиатуры сдвигает страницу вверх — возвращаем
 ['focusin', 'focusout'].forEach((ev) => addEventListener(ev, () => {
   if (!isStandalone()) return;
@@ -439,7 +450,7 @@ function openHowto() {
   openSheet(`<h2 class="pick-t">${t('st_howto')}</h2>${g.platforms.map((p) => `<div class="howto"><div class="plat-h">${platformIcon(p)}<span>${L(PLATFORMS[p])}</span></div><p>${esc(howto(p))}</p></div>`).join('')}<p class="d-note">${t('howto_warn')}</p>`, 'sheet-pick');
 }
 function openAbout() {
-  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p><p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp in ${__vp.inner} vh ${__vp.vh} dvh ${__vp.dvh} scr ${__vp.screen} sb ${__vp.safeB}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}` : ''}</div>`, 'sheet-pick');
+  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p><p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp in ${__vp.inner} vh ${__vp.vh} dvh ${__vp.dvh} scr ${__vp.screen} sb ${__vp.safeB}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}${__vp.overflow ? ' OVERFLOW' : ''}` : ''}</div>`, 'sheet-pick');
 }
 
 // ───────── пейвол ─────────
