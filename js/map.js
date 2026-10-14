@@ -7,6 +7,7 @@
 // Свои клики обрабатываем здесь через атрибут data-mp (app.js их не трогает).
 
 import { t, L as tr, getLang } from './i18n.js';
+import { backend, localStore, photoKey, POINTS } from './community.js';
 
 const COLORS = { confirmed: '#22c3d9', likely: '#f5b942', speculative: '#9a8cab', egg: '#f472b6', gtadb: '#8b93a1' };
 const GAMES = {
@@ -22,6 +23,23 @@ const W = {
   route:  { en: 'Go there', ru: 'Проложить путь', es: 'Cómo llegar', pt: 'Como chegar', fr: 'Y aller', de: 'Route', it: 'Indicazioni', tr: 'Yol tarifi', uk: 'Маршрут', pl: 'Trasa', zh: '导航', ja: '経路', ko: '길찾기' },
   look:   { en: 'Look around 360°', ru: 'Осмотреться 360°', es: 'Ver en 360°', pt: 'Ver em 360°', fr: 'Voir à 360°', de: '360°-Ansicht', it: 'Vista a 360°', tr: '360° bak', uk: 'Огляд 360°', pl: 'Widok 360°', zh: '360° 街景', ja: '360°で見る', ko: '360° 둘러보기' },
   share:  { en: 'Share', ru: 'Поделиться', es: 'Compartir', pt: 'Compartilhar', fr: 'Partager', de: 'Teilen', it: 'Condividi', tr: 'Paylaş', uk: 'Поділитися', pl: 'Udostępnij', zh: '分享', ja: '共有', ko: '공유' },
+  add:    { en: 'Your photo', ru: 'Ваше фото', es: 'Tu foto', pt: 'Sua foto', fr: 'Votre photo', de: 'Dein Foto', it: 'La tua foto', tr: 'Fotoğrafın', uk: 'Ваше фото', pl: 'Twoje zdjęcie', zh: '你的照片', ja: 'あなたの写真', ko: '내 사진' },
+  addT:   { en: 'Add a photo', ru: 'Добавить фото', es: 'Añadir foto', pt: 'Adicionar foto', fr: 'Ajouter une photo', de: 'Foto hinzufügen', it: 'Aggiungi foto', tr: 'Fotoğraf ekle', uk: 'Додати фото', pl: 'Dodaj zdjęcie', zh: '添加照片', ja: '写真を追加', ko: '사진 추가' },
+  pick:   { en: 'Take or choose a photo', ru: 'Снять или выбрать фото', es: 'Haz o elige una foto', pt: 'Tire ou escolha uma foto', fr: 'Prendre ou choisir', de: 'Aufnehmen oder wählen', it: 'Scatta o scegli', tr: 'Çek veya seç', uk: 'Зняти або вибрати', pl: 'Zrób lub wybierz', zh: '拍摄或选择照片', ja: '撮影または選択', ko: '촬영 또는 선택' },
+  k_ground: { en: 'Street', ru: 'С земли', es: 'Calle', pt: 'Rua', fr: 'Rue', de: 'Straße', it: 'Strada', tr: 'Sokak', uk: 'З землі', pl: 'Z ulicy', zh: '地面', ja: '地上', ko: '지상' },
+  k_night:  { en: 'Night', ru: 'Ночью', es: 'Noche', pt: 'Noite', fr: 'Nuit', de: 'Nacht', it: 'Notte', tr: 'Gece', uk: 'Вночі', pl: 'Noc', zh: '夜景', ja: '夜', ko: '야간' },
+  k_drone:  { en: 'Drone', ru: 'Дрон', es: 'Dron', pt: 'Drone', fr: 'Drone', de: 'Drohne', it: 'Drone', tr: 'Drone', uk: 'Дрон', pl: 'Dron', zh: '无人机', ja: 'ドローン', ko: '드론' },
+  agree:  { en: 'I took this photo and allow showing it in the app (CC BY 4.0)', ru: 'Я снял(а) это фото сам(а) и разрешаю показывать его в приложении (CC BY 4.0)', es: 'Hice esta foto y permito mostrarla en la app (CC BY 4.0)', pt: 'Eu tirei esta foto e permito mostrá-la no app (CC BY 4.0)', fr: "J’ai pris cette photo et j’autorise son affichage (CC BY 4.0)", de: 'Ich habe das Foto gemacht und erlaube die Anzeige (CC BY 4.0)', it: 'Ho scattato io la foto e ne consento l’uso nell’app (CC BY 4.0)', tr: 'Bu fotoğrafı ben çektim, uygulamada gösterilmesine izin veriyorum (CC BY 4.0)', uk: 'Я зняв(ла) це фото сам(а) і дозволяю показувати його в застосунку (CC BY 4.0)', pl: 'Zrobiłem to zdjęcie i zgadzam się na pokazanie go (CC BY 4.0)', zh: '这是我拍的照片，允许在应用中展示（CC BY 4.0）', ja: '自分で撮影し、アプリでの表示を許可します（CC BY 4.0）', ko: '직접 찍은 사진이며 앱 표시를 허용합니다 (CC BY 4.0)' },
+  publish: { en: 'Publish', ru: 'Опубликовать', es: 'Publicar', pt: 'Publicar', fr: 'Publier', de: 'Veröffentlichen', it: 'Pubblica', tr: 'Yayınla', uk: 'Опублікувати', pl: 'Opublikuj', zh: '发布', ja: '投稿', ko: '게시' },
+  points: { en: 'Points', ru: 'Баллы', es: 'Puntos', pt: 'Pontos', fr: 'Points', de: 'Punkte', it: 'Punti', tr: 'Puan', uk: 'Бали', pl: 'Punkty', zh: '积分', ja: 'ポイント', ko: '포인트' },
+  r_upload: { en: 'for a photo', ru: 'за фото', es: 'por foto', pt: 'por foto', fr: 'par photo', de: 'pro Foto', it: 'per foto', tr: 'fotoğraf başına', uk: 'за фото', pl: 'za zdjęcie', zh: '每张照片', ja: '写真1枚', ko: '사진당' },
+  r_onsite: { en: 'taken on site', ru: 'снято на месте', es: 'hecha en el lugar', pt: 'tirada no local', fr: 'prise sur place', de: 'vor Ort', it: 'scattata sul posto', tr: 'yerinde çekildi', uk: 'знято на місці', pl: 'zrobione na miejscu', zh: '现场拍摄', ja: '現地で撮影', ko: '현장 촬영' },
+  r_drone: { en: 'from a drone', ru: 'с дрона', es: 'con dron', pt: 'com drone', fr: 'au drone', de: 'per Drohne', it: 'con drone', tr: 'drone ile', uk: 'з дрона', pl: 'z drona', zh: '无人机拍摄', ja: 'ドローン撮影', ko: '드론 촬영' },
+  r_like: { en: 'each like on your photo', ru: 'каждый лайк вашему фото', es: 'cada me gusta', pt: 'cada curtida', fr: 'chaque j’aime', de: 'jedes Like', it: 'ogni like', tr: 'her beğeni', uk: 'кожен лайк', pl: 'każde polubienie', zh: '每个赞', ja: 'いいね1件', ko: '좋아요 1개' },
+  r_top: { en: 'your photo becomes the cover', ru: 'ваше фото стало главным', es: 'tu foto es la portada', pt: 'sua foto vira capa', fr: 'votre photo en couverture', de: 'dein Foto wird Titelbild', it: 'la tua foto diventa copertina', tr: 'fotoğrafın kapak olur', uk: 'ваше фото стало головним', pl: 'twoje zdjęcie na okładce', zh: '成为封面', ja: 'カバー写真に選ばれる', ko: '대표 사진 선정' },
+  soon: { en: 'Points will be exchangeable for rewards. Rules may change.', ru: 'Баллы можно будет обменивать на награды. Правила могут меняться.', es: 'Los puntos se podrán canjear por premios.', pt: 'Os pontos poderão ser trocados por prêmios.', fr: 'Les points seront échangeables contre des récompenses.', de: 'Punkte werden gegen Prämien eintauschbar.', it: 'I punti si potranno scambiare con premi.', tr: 'Puanlar ödüllerle değiştirilebilecek.', uk: 'Бали можна буде обміняти на нагороди.', pl: 'Punkty będzie można wymienić na nagrody.', zh: '积分将可兑换奖励。', ja: 'ポイントは特典と交換できるようになります。', ko: '포인트는 보상으로 교환할 수 있게 됩니다.' },
+  localNote: { en: 'For now your photos are visible only on this phone. They will become public when the community server goes live.', ru: 'Пока ваши фото видны только на этом телефоне. Всем они станут видны, когда заработает общий сервер.', es: 'Por ahora tus fotos solo se ven en este teléfono.', pt: 'Por enquanto suas fotos aparecem só neste telefone.', fr: 'Pour l’instant vos photos ne sont visibles que sur ce téléphone.', de: 'Deine Fotos sind vorerst nur auf diesem Handy sichtbar.', it: 'Per ora le tue foto sono visibili solo su questo telefono.', tr: 'Şimdilik fotoğrafların yalnızca bu telefonda görünür.', uk: 'Поки ваші фото видно лише на цьому телефоні.', pl: 'Na razie zdjęcia widać tylko na tym telefonie.', zh: '目前你的照片仅在本机可见。', ja: '現在、写真はこの端末でのみ表示されます。', ko: '현재 사진은 이 휴대폰에서만 보입니다.' },
+  thanks: { en: 'Photo added', ru: 'Фото добавлено', es: 'Foto añadida', pt: 'Foto adicionada', fr: 'Photo ajoutée', de: 'Foto hinzugefügt', it: 'Foto aggiunta', tr: 'Fotoğraf eklendi', uk: 'Фото додано', pl: 'Dodano zdjęcie', zh: '已添加照片', ja: '写真を追加しました', ko: '사진이 추가됨' },
   copied: { en: 'Link copied', ru: 'Ссылка скопирована', es: 'Enlace copiado', pt: 'Link copiado', fr: 'Lien copié', de: 'Link kopiert', it: 'Link copiato', tr: 'Bağlantı kopyalandı', uk: 'Посилання скопійовано', pl: 'Skopiowano link', zh: '链接已复制', ja: 'リンクをコピーしました', ko: '링크 복사됨' },
   trans:  { en: 'Translate', ru: 'Перевести', es: 'Traducir', pt: 'Traduzir', fr: 'Traduire', de: 'Übersetzen', it: 'Traduci', tr: 'Çevir', uk: 'Перекласти', pl: 'Przetłumacz', zh: '翻译', ja: '翻訳', ko: '번역' },
   why:    { en: 'Why it matches', ru: 'Почему похоже', es: 'Por qué coincide', pt: 'Por que combina', fr: 'Pourquoi', de: 'Warum', it: 'Perché', tr: 'Neden', uk: 'Чому схоже', pl: 'Dlaczego', zh: '为何相似', ja: '似ている理由', ko: '닮은 이유' },
@@ -75,6 +93,12 @@ const IC = {
   camera: sv('<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>'),
   pin: sv('<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>'),
   nav: sv('<path d="M3 11.5 21 3l-8.5 18-2-7.5z"/>'),
+  heart: sv('<path d="M12 20.5s-7.5-4.6-9.2-9.3C1.6 7.8 3.9 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.4 0 5.7 3.3 4.5 6.7-1.7 4.7-9.2 9.3-9.2 9.3z"/>'),
+  plus: sv('<path d="M12 5v14M5 12h14"/>'),
+  star: sv('<path fill="currentColor" stroke="none" d="m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2 6.4 20.2l1.1-6.3L2.9 9.5l6.3-.9z"/>'),
+  sun: sv('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+  moon: sv('<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'),
+  drone: sv('<circle cx="5" cy="5" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M7 7l3 3M17 7l-3 3M7 17l3-3M17 17l-3-3"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.2"/>'),
   pano: sv('<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/>'),
   share: sv('<path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>'),
   translate: sv('<path d="M4 5h9M8.5 3v2M6 5c.8 3 3 5.5 6 7M11 5c-.7 3.5-3.3 6.5-7 8"/><path d="m13 21 4-9 4 9M14.5 18h5"/>'),
@@ -206,12 +230,73 @@ function shot(ph, kind, ref) {
     <img src="${esc(ph.file)}" alt="${esc(label)}" loading="lazy" decoding="async">
     <span class="mp-badge">${icon}<b>${esc(label)}</b></span></button>`;
 }
+// ───── галерея «в жизни»: редакционные фото (Commons/gtadb) + фото игроков, лучшие (по лайкам) — первыми ─────
+const galleries = {}; // ref → список фото (для просмотрщика)
+const placeKey = (p) => `${game}:${p.id}`;
+function realList(p, community, liked) {
+  const ed = [p.pr, ...(p.gl || [])].filter(Boolean).map((ph) => {
+    const id = photoKey(ph.url || ph.file);
+    return { id, src: 'e', url: ph.url || ph.file, thumb: ph.thumb || ph.url || ph.file, credit: ph.credit, likes: liked.has(id) ? 1 : 0, liked: liked.has(id) };
+  });
+  const cm = community.map((c) => ({ ...c, src: 'c' }));
+  return [...cm, ...ed].map((x, k) => ({ ...x, k })).sort((a, b) => (b.likes - a.likes) || (a.k - b.k));
+}
+function realStrip(p, i, list) {
+  galleries['p' + i] = list;
+  const n = list.length;
+  const slides = list.map((ph, k) => `<div class="mp-slide">
+      <button class="mp-shot r" data-mp="view" data-ref="p${i}" data-k="r" data-n="${k}" aria-label="${esc(w('real'))}">
+        <img src="${esc(k === 0 ? ph.url : ph.thumb)}" alt="${esc(w('real'))}" loading="lazy" decoding="async">
+        <span class="mp-badge">${IC.camera}<b>${esc(w('real'))}${n > 1 ? ` · ${k + 1}/${n}` : ''}</b></span></button>
+      <button class="mp-like${ph.liked ? ' on' : ''}" data-mp="like" data-pid="${esc(ph.id)}" data-src="${ph.src}" aria-label="like">${IC.heart}<em>${ph.likes || ''}</em></button>
+    </div>`).join('');
+  const add = `<button class="mp-slide mp-addtile" data-mp="add" data-i="${i}"><span class="mp-addic">${IC.camera}<i>${IC.plus}</i></span><b>${esc(w('add'))}</b><em>${IC.star}+${POINTS.upload}</em></button>`;
+  return `<div class="mp-gal" data-gal="p${i}"><div class="mp-strip">${n ? slides : `<div class="mp-slide"><div class="mp-shot empty r"><span class="mp-shot-ic">${IC.camera}</span></div></div>`}${add}</div>
+    ${n > 1 ? `<div class="mp-dots">${list.map((_, k) => `<i class="${k ? '' : 'on'}"></i>`).join('')}<i class="add"></i></div>` : ''}</div>`;
+}
+async function loadCommunity(i) {
+  const p = data[game].places[i];
+  let community = [], liked = new Set();
+  try { [community, liked] = await Promise.all([backend.photos(placeKey(p)).catch(() => []), localStore.likedSet().catch(() => new Set())]); } catch { }
+  const gal = document.querySelector(`#sheet-body .mp-gal[data-gal="p${i}"]`);
+  if (!gal) return;
+  const list = realList(p, community, liked);
+  if (!community.length && !list.some((x) => x.liked)) { galleries['p' + i] = list; return; }
+  gal.outerHTML = realStrip(p, i, list);
+}
+function addSheet(i) {
+  const p = data[game].places[i];
+  const kinds = [['ground', IC.sun, 'k_ground'], ['night', IC.moon, 'k_night'], ['drone', IC.drone, 'k_drone']];
+  return `<h2 class="pick-t mp-addt">${IC.camera}<span>${esc(w('addT'))}</span></h2>
+    <div class="mp-nm r" style="margin-bottom:12px"><span class="mp-nic">${IC.pin}</span><div><b>${esc(p.n)}</b><small>${esc(p.g)}</small></div></div>
+    <label class="mp-drop" id="mp-drop"><input type="file" accept="image/*" id="mp-file" hidden><span class="mp-addic">${IC.camera}<i>${IC.plus}</i></span><b>${esc(w('pick'))}</b><img id="mp-prev" alt="" hidden></label>
+    <div class="mp-kinds">${kinds.map(([k, ic, lab], n) => `<button class="mp-kind${n ? '' : ' on'}" data-mp="kind" data-k="${k}">${ic}<span>${esc(w(lab))}</span>${k === 'drone' ? `<em>+${POINTS.drone}</em>` : ''}</button>`).join('')}</div>
+    <label class="mp-agree"><input type="checkbox" id="mp-ok"><span>${esc(w('agree'))}</span></label>
+    <div class="mp-rew">${IC.star}<span>+${POINTS.upload} ${esc(w('r_upload'))} · +${POINTS.on_site} ${esc(w('r_onsite'))} · +${POINTS.drone} ${esc(w('r_drone'))}</span></div>
+    <button class="btn-primary" id="mp-send" data-mp="publish" data-i="${i}" disabled>${IC.plus}<span>${esc(w('publish'))}</span></button>
+    ${backend.mode === 'local' ? `<p class="d-note">${esc(w('localNote'))}</p>` : ''}`;
+}
+async function pointsSheet() {
+  let st = { points: 0, uploads: 0, history: [] };
+  try { st = await backend.stats(); } catch { }
+  const rules = [[IC.camera, POINTS.upload, 'r_upload'], [IC.pin, POINTS.on_site, 'r_onsite'], [IC.drone, POINTS.drone, 'r_drone'], [IC.heart, POINTS.like_received, 'r_like'], [IC.landmark, POINTS.featured, 'r_top']];
+  return `<div class="mp-pts"><span class="mp-pts-ic">${IC.star}</span><b>${st.points}</b><small>${esc(w('points'))}</small></div>
+    <div class="mp-help">${rules.map(([ic, n, k]) => `<div class="mp-hrow"><span class="mp-pic">${ic}</span><span>${esc(w(k))}</span><b class="mp-plus">+${n}</b></div>`).join('')}</div>
+    ${st.history.length ? `<div class="mp-hist">${st.history.slice(0, 12).map((h) => `<div><span>${esc(w({ upload: 'r_upload', on_site: 'r_onsite', drone: 'r_drone', like_received: 'r_like', featured: 'r_top' }[h.reason] || h.reason))}</span><b class="${h.delta < 0 ? 'neg' : ''}">${h.delta > 0 ? '+' : ''}${h.delta}</b></div>`).join('')}</div>` : ''}
+    <p class="d-note">${esc(w('soon'))}${backend.mode === 'local' ? ' ' + esc(w('localNote')) : ''}</p>`;
+}
+async function refreshPointsChip() {
+  const el = document.querySelector('#map-chips .mchip-pts em');
+  if (!el) return;
+  try { el.textContent = (await backend.stats()).points; } catch { }
+}
+
 function placeSheet(p, i) {
   const ck = catKey(p);
   const dist = distLabel(p);
   const media = (p.m || []).map(ytLink).filter(Boolean);
   return `
-    <div class="mp-hero">${shot(p.pg, 'g', 'p' + i)}${shot(p.pr, 'r', 'p' + i)}<span class="mp-vs">${IC.swap}</span></div>
+    <div class="mp-hero">${shot(p.pg, 'g', 'p' + i)}${realStrip(p, i, realList(p, [], new Set()))}<span class="mp-vs">${IC.swap}</span></div>
     <div class="mp-names">
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(p.g)}</b>${p.r ? `<small>${esc(p.r)}</small>` : ''}</div></div>
       <div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(p.n)}</b>${p.a ? `<small>${esc(p.a)}</small>` : ''}</div></div>
@@ -287,14 +372,17 @@ function helpSheet() {
 // ───── просмотр фото на весь экран (свайп / тап — переключить игра ↔ реальность) ─────
 function subject(ref) {
   const i = +ref.slice(1);
-  if (ref[0] === 'p') { const p = data[game].places[i]; return { pg: p.pg, pr: p.pr, g: p.g, n: p.n }; }
+  if (ref[0] === 'p') { const p = data[game].places[i]; const gl = galleries[ref] || realList(p, [], new Set()); return { pg: p.pg, pr: gl[0] || p.pr, prs: gl, g: p.g, n: p.n }; }
   if (ref[0] === 'e') { const e = data[game].eggs[i]; return { pg: e.pg, pr: e.pr, g: txt(e.t), n: (e.p || '').split(',')[0] }; }
   const d = gtadb[game].points[i], ph = gtadbPhotos(d, gtadb[game].game);
   return { pg: ph.pg, pr: ph.pr, g: d[1] || d[2] || d[0], n: d[3].split(',')[0] };
 }
-function openViewer(ref, k) {
+function openViewer(ref, k, n = 0) {
   const p = subject(ref);
-  viewer = { ref, k };
+  const prs = p.prs && p.prs.length ? p.prs : (p.pr ? [p.pr] : []);
+  n = Math.max(0, Math.min(n, prs.length - 1));
+  if (k === 'r' && prs[n]) p.pr = { file: prs[n].url || prs[n].file, credit: prs[n].credit };
+  viewer = { ref, k, n, len: prs.length };
   let el = document.getElementById('mp-viewer');
   if (!el) { el = document.createElement('div'); el.id = 'mp-viewer'; document.body.appendChild(el); }
   const both = [['g', p.pg], ['r', p.pr]].filter(([, ph]) => ph);
@@ -303,11 +391,16 @@ function openViewer(ref, k) {
     <button class="mpv-x" data-mp="viewer-close" aria-label="close">${IC.close}</button>
     <div class="mpv-tabs">${both.map(([kk]) => `<button class="${kk === cur[0] ? 'on' : ''}" data-mp="viewer-k" data-k="${kk}">${kk === 'g' ? IC.game : IC.camera}<span>${esc(w(kk === 'g' ? 'game' : 'real'))}</span></button>`).join('')}</div>
     <img src="${esc(cur[1].file)}" alt="" data-mp="viewer-next">
-    <div class="mpv-cap"><b>${esc(cur[0] === 'g' ? p.g : p.n)}</b><small>${esc(cur[1].credit || '')}</small></div>`;
+    <div class="mpv-cap"><b>${esc(cur[0] === 'g' ? p.g : p.n)}${cur[0] === 'r' && prs.length > 1 ? ` · ${n + 1}/${prs.length}` : ''}</b><small>${esc(cur[1].credit || '')}</small></div>`;
   el.classList.add('open');
   let x0 = null;
   el.ontouchstart = (e) => { x0 = e.touches[0].clientX; };
-  el.ontouchend = (e) => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 50 && both.length > 1) openViewer(ref, cur[0] === 'g' ? 'r' : 'g'); };
+  el.ontouchend = (e) => {
+    if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) < 50) return;
+    if (cur[0] === 'r' && prs.length > 1) { const nn = n + (dx < 0 ? 1 : -1); if (nn >= 0 && nn < prs.length) return openViewer(ref, 'r', nn); if (nn < 0 && p.pg) return openViewer(ref, 'g'); return; }
+    if (both.length > 1) openViewer(ref, cur[0] === 'g' ? 'r' : 'g');
+  };
 }
 function closeViewer() { document.getElementById('mp-viewer')?.classList.remove('open'); viewer = null; }
 
@@ -424,6 +517,7 @@ function openPlace(i, fly) {
   if (fly) map.easeTo({ center: [p.lon, p.lat], zoom: Math.max(map.getZoom(), 14.5), duration: 700, offset: [0, -90] });
   renderCards(); scrollCardIntoView(i);
   ctx.openSheet(placeSheet(p, i), 'sheet-map');
+  loadCommunity(i);
 }
 
 // нажатие: ищем точку в радиусе пальца, приоритет пасхалки > места > сообщество
@@ -460,10 +554,43 @@ function renderChips() {
   const n = { places: d.places.length, eggs: d.eggs.length, gtadb: gtadb[game]?.points.length ?? '' };
   document.getElementById('map-chips').innerHTML = [
     ['places', t('map_places'), COLORS.confirmed], ['eggs', t('map_eggs'), COLORS.egg], ['gtadb', t('map_all'), COLORS.gtadb],
-  ].map(([k, label, c]) => `<button class="mchip${show[k] ? ' on' : ''}" data-action="map-layer" data-v="${k}" style="--c:${c}"><i></i>${label}${n[k] !== '' ? ` <em>${n[k]}</em>` : ''}</button>`).join('');
+  ].map(([k, label, c]) => `<button class="mchip${show[k] ? ' on' : ''}" data-action="map-layer" data-v="${k}" style="--c:${c}"><i></i>${label}${n[k] !== '' ? ` <em>${n[k]}</em>` : ''}</button>`).join('')
+    + `<button class="mchip mchip-pts on" data-mp="points" style="--c:#f5b942">${IC.star}<em>0</em></button>`;
+  refreshPointsChip();
   document.getElementById('map-games').innerHTML = Object.entries(GAMES).map(([id, g]) =>
     `<button class="${id === game ? 'on' : ''}" data-action="map-game" data-v="${id}"><b>${g.title}</b><small>${tr(g.place)}</small></button>`).join('');
   const lg = document.getElementById('map-legend'); if (lg) lg.innerHTML = '';
+}
+
+// точки под галереей следуют за листанием
+document.addEventListener('scroll', (e) => {
+  const st = e.target;
+  if (!st.classList || !st.classList.contains('mp-strip')) return;
+  const k = Math.round(st.scrollLeft / Math.max(1, st.clientWidth));
+  st.parentElement.querySelectorAll('.mp-dots i').forEach((d, n) => d.classList.toggle('on', n === k));
+}, true);
+
+// ───── добавление своего фото ─────
+let addState = null;
+function canSend() { const b = document.getElementById('mp-send'); if (b) b.disabled = !(addState?.file && document.getElementById('mp-ok')?.checked); }
+document.addEventListener('change', (e) => {
+  if (e.target.id === 'mp-file' && e.target.files?.[0] && addState) {
+    addState.file = e.target.files[0];
+    const im = document.getElementById('mp-prev'); im.src = URL.createObjectURL(addState.file); im.hidden = false;
+    document.getElementById('mp-drop')?.classList.add('has');
+    canSend();
+  } else if (e.target.id === 'mp-ok') canSend();
+});
+async function publish() {
+  const b = document.getElementById('mp-send'); if (!addState?.file || !b) return;
+  b.disabled = true; b.classList.add('busy');
+  const p = data[game].places[addState.i];
+  try {
+    const r = await backend.add(placeKey(p), p, addState.file, addState.kind);
+    ctx?.haptic(); ctx?.toast?.(`${w('thanks')} · +${r.points} ★`);
+    refreshPointsChip();
+    openPlace(addState.i, false);
+  } catch (err) { b.disabled = false; b.classList.remove('busy'); ctx?.toast?.('Error: ' + (err?.message || err)); }
 }
 
 // свои клики (data-mp) — шторка, лента, просмотрщик
@@ -473,9 +600,25 @@ document.addEventListener('click', (e) => {
   const a = el.dataset.mp;
   if (a === 'card') { ctx?.haptic(); openPlace(+el.dataset.i, true); }
   else if (a === 'dcard') { ctx?.haptic(); openPoint(+el.dataset.i, true); }
-  else if (a === 'view') { ctx?.haptic(); openViewer(el.dataset.ref, el.dataset.k); }
+  else if (a === 'view') { ctx?.haptic(); openViewer(el.dataset.ref, el.dataset.k, +(el.dataset.n || 0)); }
   else if (a === 'viewer-k') openViewer(viewer.ref, el.dataset.k);
-  else if (a === 'viewer-next') { const p = subject(viewer.ref); if (p.pg && p.pr) openViewer(viewer.ref, viewer.k === 'g' ? 'r' : 'g'); }
+  else if (a === 'viewer-next') {
+    const p = subject(viewer.ref);
+    if (viewer.k === 'r' && viewer.len > 1 && viewer.n < viewer.len - 1) openViewer(viewer.ref, 'r', viewer.n + 1);
+    else if (p.pg && (p.pr || viewer.len)) openViewer(viewer.ref, viewer.k === 'g' ? 'r' : 'g', 0);
+  }
+  else if (a === 'like') {
+    e.stopPropagation(); ctx?.haptic();
+    const store = el.dataset.src === 'c' ? backend : localStore;
+    store.like(el.dataset.pid).then((on) => {
+      el.classList.toggle('on', on); const em = el.querySelector('em'); const n = Math.max(0, (+em.textContent || 0) + (on ? 1 : -1)); em.textContent = n || '';
+      el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 300);
+    }).catch(() => ctx?.toast?.('—'));
+  }
+  else if (a === 'add') { ctx?.haptic(); addState = { i: +el.dataset.i, kind: 'ground', file: null }; ctx.openSheet(addSheet(addState.i), 'sheet-map'); }
+  else if (a === 'kind') { addState.kind = el.dataset.k; document.querySelectorAll('.mp-kind').forEach((b) => b.classList.toggle('on', b === el)); }
+  else if (a === 'publish') { publish(); }
+  else if (a === 'points') { ctx?.haptic(); pointsSheet().then((h) => ctx.openSheet(h, 'sheet-map')); }
   else if (a === 'viewer-close') closeViewer();
   else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t); }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }

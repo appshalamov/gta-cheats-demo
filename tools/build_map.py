@@ -123,6 +123,8 @@ def build(game, cfg):
             "tip": bi(it, "visit_tips"), "fun": bi(it, "trivia") if (it.get("trivia") or it.get("trivia_ru")) else None,
             "m": media(it), "src": [u for u in srcs if str(u).startswith("http")][:3],
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"),
+            "gl": [{"url": g["url"], "thumb": g.get("thumb") or g["url"], "credit": g.get("credit", "")}
+                   for g in (it.get("gallery") or []) if g.get("url")][:5],
         }
         places.append({k: v for k, v in place.items() if v not in (None, "", [], {"ru": "", "en": ""})})
     for i, it in enumerate(json.loads(ef.read_text("utf-8")) if ef else []):
