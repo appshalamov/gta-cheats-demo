@@ -1,7 +1,7 @@
 // Офлайн-кэш. Оболочка — из кэша (быстро), данные data/*.json — сначала из сети,
 // чтобы новые коды (например, GTA 6 после релиза) появлялись без обновления приложения.
 // При изменении файлов оболочки поднимите VERSION.
-const VERSION = 'beta-v57';
+const VERSION = 'beta-v59';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css',
   'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/places.js',
@@ -20,15 +20,21 @@ self.addEventListener('activate', (e) => {
 // Фото мест (кадры игры, фото из жизни) — отдельный кэш, переживает обновления приложения: второй раз карточка
 // открывается мгновенно и на слабом интернете (Игорь 15.10.2026: «на слабом интернете хуже открывается»).
 // Чужие сайты (хостинг кадров, gtadb, Commons) отдают CORS — берём копию в режиме cors (не «непрозрачную»).
-const PHOTOS = 'photos-v1', PHOTOS_MAX = 600;
+const PHOTOS = 'photos-v2', PHOTOS_MAX = 600;
 const isPhoto = (u) => /\.(jpe?g|png|webp)$/i.test(u.pathname) && (
   (u.origin === location.origin && u.pathname.includes('/img/map/'))
   || u.host === 'appshalamov.github.io' && u.pathname.startsWith('/gta-map-assets/map/photos/')
   || u.host === 'raw.githubusercontent.com' && u.pathname.startsWith('/rolux/gtadb.org/')
   || u.host === 'upload.wikimedia.org');
-async function photo(req) {
+async function photo(req, ev) {
   const c = await caches.open(PHOTOS);
   const hit = await c.match(req.url);
+  // свои фото (img/map) могут замениться под тем же адресом (15.10.2026: люк LOST — старое фото держалось из кэша):
+  // отдаём из кэша сразу, а в фоне обновляем — следующее открытие уже с новым снимком. Чужие (кадры, gtadb, Commons) не меняются.
+  if (hit && new URL(req.url).origin === location.origin) {
+    ev.waitUntil(fetch(req.url, { cache: 'no-cache' }).then((r) => r.ok && c.put(req.url, r)).catch(() => { }));
+    return hit;
+  }
   if (hit) return hit;
   const r = await fetch(req.url, { mode: 'cors', credentials: 'omit' }).catch(() => null);
   if (r && r.ok) {
@@ -41,7 +47,7 @@ async function photo(req) {
 }
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
-  if (e.request.method === 'GET' && e.request.destination === 'image' && isPhoto(url)) { e.respondWith(photo(e.request)); return; }
+  if (e.request.method === 'GET' && e.request.destination === 'image' && isPhoto(url)) { e.respondWith(photo(e.request, e)); return; }
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   if (url.pathname.includes('/data/')) {
     e.respondWith(fetch(e.request).then((r) => {

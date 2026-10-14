@@ -561,7 +561,7 @@ def build(game, cfg):
             "t": bi(it, "title"), "d": bi(it, "description"), "p": it.get("real_place", ""),
             "lat": lat, "lon": lon, "cf": it.get("confidence", "likely"), "m": media(it), "src": src0(it),
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"), "gg": gal(it, game, "game_gallery", 4),
-            "_gxy": it.get("game_xy"), "_ggid": it.get("game_gid"),
+            "_gxy": it.get("game_xy"), "_ggid": it.get("game_gid"), "_pair": bool(it.get("pair_photos")),
         })
     if skipped:
         print(f"  пасхалки не в приложение: {len(skipped)} — " + ", ".join(skipped[:6]) + (" …" if len(skipped) > 6 else ""))
@@ -601,6 +601,8 @@ def build(game, cfg):
             pl["pairs"] = pr
     for e in eggs:
         pr = pairs_for(e["lat"], e["lon"], (e["t"].get("en"), e.get("p")), e.get("_ggid") or "")   # своя точка gtadb — пара сразу
+        if not pr and e.get("_pair") and e.get("pg") and e.get("pr"):   # пара из своих кадров (люк LOST: игра ⇄ сериал, 15.10.2026)
+            pr = [{"g": {"url": e["pg"]["file"], "credit": e["pg"].get("credit", "")}, "r": {"url": e["pr"]["file"], "credit": e["pr"].get("credit", "")}}]
         if pr:
             e["pairs"] = pr
     region_gate(game, places, eggs, pts)
@@ -626,7 +628,7 @@ def build(game, cfg):
     attach_ingame(game, cfg, places, eggs, pts)
     attach_cats(places, pts)
     for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
-        for k in ("_gtadb", "_gxy", "_gaddr", "_ggid", "_hadr"):
+        for k in ("_gtadb", "_gxy", "_gaddr", "_ggid", "_hadr", "_pair"):
             x.pop(k, None)
     photo_rights_gate(game, places, eggs)
     data = {"game": game, "center": cfg["center"], "zoom": cfg["zoom"],

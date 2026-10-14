@@ -168,7 +168,7 @@ def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=()):
     # в превью не берём, остаются варианты Commons; старые картинки с парами удалит эта же сборка (их нет в OG_MADE)
     if not CFG.get("og_gtadb_pairs", True):
         pairs = tuple(p for p in pairs if not p[1].startswith(GTADB_RAW))
-    pk = "|".join(f"{a}>{b}" for a, b in pairs) if gf else ""
+    pk = "|".join(f"{p[0]}>{p[1]}" for p in pairs) if gf else ""
     sig = hashlib.sha1(f"v6|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}|{pk}".encode()).hexdigest()[:8]
     rel = f"og/{game}/{pid}.{sig}.jpg"
     fp = OUT / rel
@@ -176,14 +176,14 @@ def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=()):
     if fp.exists():
         return rel
     if gf:
-        for pg_u, pr_u in pairs:
+        for pg_u, pr_u, pr_c in pairs:
             try:
                 pg_im, pr_im = _src(pg_u), _src(pr_u)
             except Exception:
                 continue
             if pg_im is None or pr_im is None or og_render.quality(pg_im) < WEAK_FRAME:
                 continue
-            im, _ = og_render.render_pair(pg_im, pr_im)
+            im, _ = og_render.render_pair(pg_im, pr_im, pr_c)
             fp.parent.mkdir(parents=True, exist_ok=True)
             im.save(fp, "JPEG", quality=74, optimize=True, progressive=True, subsampling=2)
             return rel
@@ -222,7 +222,7 @@ def page(game, kind, x):
     pr0 = (x.get("pairs") or [None])[0]
     cg, cr = (absu(pr0["g"]["url"]), absu(pr0["r"]["url"])) if pr0 else (gimg, rimg)
     ccred = (pr0["g"].get("credit", "") + " · " + pr0["r"].get("credit", "")) if pr0 else ""
-    prs = tuple((absu(p["g"].get("url") or p["g"].get("file") or ""), absu(p["r"].get("url") or p["r"].get("file") or ""))
+    prs = tuple((absu(p["g"].get("url") or p["g"].get("file") or ""), absu(p["r"].get("url") or p["r"].get("file") or ""), p["r"].get("credit", ""))
                 for p in (x.get("pairs") or []) if p.get("g") and p.get("r"))[:3]
     og = og_card(game, fid, gimg if kind == "db" else og_game_img(x), rimg, rcred, name_g or name_r, f"{name_r}" if name_g else "", prs)
     og_abs = f"{SITE}s/{og}" if og else gimg

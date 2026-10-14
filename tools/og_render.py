@@ -118,7 +118,7 @@ def _knob(c, x, y):
 GAME_CREDIT = "Game frame © Rockstar Games"
 
 
-def render_pair(g, r):
+def render_pair(g, r, rcred=""):
     """Пара с одного ракурса (как ползунок в приложении): оба снимка в ОДИН кадр, слева игра, справа жизнь — «половина
     автобуса из GTA, половина настоящая» (Игорь 15.10.2026: «так намного эффектнее, делай так везде, где возможно;
     сначала красиво, о лицензиях — потом»). Фото из жизни — из базы gtadb (часто снимки Street View)."""
@@ -127,7 +127,8 @@ def render_pair(g, r):
     c.paste(gi.crop((0, 0, W // 2, TOP)), (0, 0))
     c.paste(ri.crop((W // 2, 0, W, TOP)), (W // 2, 0))
     _knob(c, W // 2, TOP // 2)
-    _band(c, "In game", "Real life", credits=(GAME_CREDIT, "Real photo: gtadb.org contributors"))
+    rc = "Real photo: gtadb.org contributors" if (not rcred or "gtadb" in rcred) else "Photo: " + " ".join(rcred.replace(" · ", ", ").split())
+    _band(c, "In game", "Real life", credits=(GAME_CREDIT, rc))
     return c, "pair"
 
 
