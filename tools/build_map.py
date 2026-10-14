@@ -542,7 +542,8 @@ def build(game, cfg):
     # ручные правки пасхалок (15.10.2026, разбор дальних точек: «в Великобритании какие-то локации — скорее всего их там нет»):
     # egg_fix — поля поверх (lat, lon, real_place, …), egg_remove — убрать (причина — в файле правок)
     efix, erem = manual(game, "egg_fix", {}), set(manual(game, "egg_remove", {}))
-    for i, it in enumerate(json.loads(ef.read_text("utf-8")) if ef else []):
+    # egg_add — новые пасхалки вручную (15.10.2026: люк из «Остаться в живых» и редкие пасхалки, _сырьё/пасхалки_новые_люк_и_редкие.json)
+    for i, it in enumerate((json.loads(ef.read_text("utf-8")) if ef else []) + list(manual(game, "egg_add", []))):
         if it.get("id") in erem:
             skipped.append(f"{it.get('id')} (убрана вручную)"); continue
         if it.get("id") in efix:
@@ -560,6 +561,7 @@ def build(game, cfg):
             "t": bi(it, "title"), "d": bi(it, "description"), "p": it.get("real_place", ""),
             "lat": lat, "lon": lon, "cf": it.get("confidence", "likely"), "m": media(it), "src": src0(it),
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"), "gg": gal(it, game, "game_gallery", 4),
+            "_gxy": it.get("game_xy"), "_ggid": it.get("game_gid"),
         })
     if skipped:
         print(f"  пасхалки не в приложение: {len(skipped)} — " + ", ".join(skipped[:6]) + (" …" if len(skipped) > 6 else ""))
@@ -598,7 +600,7 @@ def build(game, cfg):
         if pr:
             pl["pairs"] = pr
     for e in eggs:
-        pr = pairs_for(e["lat"], e["lon"], (e["t"].get("en"), e.get("p")))
+        pr = pairs_for(e["lat"], e["lon"], (e["t"].get("en"), e.get("p")), e.get("_ggid") or "")   # своя точка gtadb — пара сразу
         if pr:
             e["pairs"] = pr
     region_gate(game, places, eggs, pts)
