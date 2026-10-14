@@ -1,0 +1,326 @@
+{
+ "ship": {
+  "file": "img/map/layers/ship.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:SpaceshipPart-GTAV.jpg",
+  "what": "A spaceship part — glowing metal collectible piece"
+ },
+ "letter": {
+  "file": "img/map/layers/letter.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:LetterScraps-GTAVe.png",
+  "what": "A letter scrap lying in the bushes"
+ },
+ "nuke": {
+  "file": "img/map/layers/nuke.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:NuclearWaste-GTAVe.png",
+  "what": "A radioactive nuclear waste barrel on the seabed"
+ },
+ "sub": {
+  "file": "img/map/layers/sub.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:SubmarinePieces-GTAVe.png",
+  "what": "A submarine piece on the seabed"
+ },
+ "cash": {
+  "file": "img/map/layers/cash.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:HiddenPackage_GTAV.jpg",
+  "what": "A hidden package — cash briefcase on the seabed"
+ },
+ "epsilon": {
+  "file": "img/map/layers/epsilon.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:EpsilonTract-GTAV.png",
+  "what": "An Epsilon tract — white scroll on a pier"
+ },
+ "monkey": {
+  "file": "img/map/layers/monkey.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Monkey_Mosaics_GTAVe_PillboxHill_yellow.png",
+  "what": "A monkey mosaic on a wall, photographed with the phone"
+ },
+ "peyote": {
+  "file": "img/map/layers/peyote.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:PeyotePlants-GTAO-Example.png",
+  "what": "A peyote plant with its white flower in the grass"
+ },
+ "sale": {
+  "file": "img/map/layers/sale.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:ForSaleSigns-GTAVe.png",
+  "what": "A Lenny Avery “For Sale” sign"
+ },
+ "stunt": {
+  "file": "img/map/layers/stunt.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:StuntJumps-GTAV-Jump1-LSIAEntry-Jump.png",
+  "what": "A car taking a stunt jump at LSIA"
+ },
+ "bridge": {
+  "file": "img/map/layers/bridge.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:UnderTheBridge-GTAV.png",
+  "what": "Flying under a bridge over the Los Santos river"
+ },
+ "knife": {
+  "file": "img/map/layers/knife.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:KnifeFlight-GTAV.jpg",
+  "what": "A jet knife-flying sideways between skyscrapers"
+ },
+ "figure": {
+  "file": "img/map/layers/figure.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:ActionFigures-GTAO-Advert.png",
+  "what": "Action figures — Pogo the monkey next to a garden gnome"
+ },
+ "jammer": {
+  "file": "img/map/layers/jammer.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:SignalJammers-GTAO-Example.png",
+  "what": "A signal jammer mounted on a building wall"
+ },
+ "epscar": {
+  "file": "img/map/layers/epscar.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:SuperDiamond-GTAV-front.png",
+  "what": "Enus Super Diamond — one of the five Epsilon cars"
+ },
+ "killer": {
+  "file": "img/map/layers/killer.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:MerleAbrahams-GTAV-Merle%27sHouse8WallEtc.png",
+  "what": "“There will be 8” scrawled in Merle Abrahams’ house"
+ },
+ "monster": {
+  "file": "img/map/layers/monster.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:WhaleSkeleton-GTAV.png",
+  "what": "The whale-like skeleton lying on the seabed off Banham Canyon"
+ },
+ "wreck": {
+  "file": "img/map/layers/wreck.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Wreck_Olifantus_Zancudo_GTAV_SideView.png",
+  "what": "A sunken tugboat wreck seen from a submersible"
+ },
+ "ufo": {
+  "file": "img/map/layers/ufo.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:UFO-100%25_Completion-GTAV.png",
+  "what": "A FIB-marked UFO hovering above the clouds"
+ },
+ "secret": {
+  "file": "img/map/layers/secret.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Alien-GTAV-NorthYankton.jpg",
+  "what": "The alien frozen in the ice in North Yankton"
+ },
+ "ghost": {
+  "file": "img/map/layers/ghost.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:JoleneCranleyEvans-GTAV-Ghost.png",
+  "what": "The ghost of Jolene Cranley-Evans on Mount Gordo at night"
+ },
+ "ufo_desert": {
+  "file": "img/map/layers/ufo_desert.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:UFO-GTAVe-SandyShores.png",
+  "what": "The UFO hovering over the Sandy Shores hippie camp"
+ },
+ "ufo_zancudo": {
+  "file": "img/map/layers/ufo_zancudo.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:UFO-Fort_Zancudo-GTAV.png",
+  "what": "The UFO hovering above Fort Zancudo"
+ },
+ "ufo_sunken": {
+  "file": "img/map/layers/ufo_sunken.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Sunken_UFO-GTAV.png",
+  "what": "The sunken UFO overgrown on the seabed off North Point"
+ },
+ "sea_monster": {
+  "file": "img/map/layers/sea_monster.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:WhaleSkeleton-GTAV.png",
+  "what": "The whale-like skeleton lying on the seabed off Banham Canyon"
+ },
+ "ww2_plane": {
+  "file": "img/map/layers/ww2_plane.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Wreck_Duster_North_GTAV_SideView.png",
+  "what": "A sunken Duster biplane wreck north of Mount Gordo"
+ },
+ "ww2_tank": {
+  "file": "img/map/layers/ww2_tank.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Wreck_MilitaryHardware_GTAV_Subview_Small_Tank.png",
+  "what": "A sunken WWII-style tank at the military wreck east of Humane Labs"
+ },
+ "sunken_sub": {
+  "file": "img/map/layers/sunken_sub.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Wreck_Submarine_GTAV_SubView.png",
+  "what": "The sunken military submarine seen from a submersible"
+ },
+ "cargo_ship": {
+  "file": "img/map/layers/cargo_ship.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Wreck_Container_Ship_GTAV_Containers.png",
+  "what": "Containers spilling from the sunken container ship"
+ },
+ "ancient_ship": {
+  "file": "img/map/layers/ancient_ship.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Wreck_Skeletal_Ship_GTAV_View.png",
+  "what": "The skeletal hull of an old sunken steamship"
+ },
+ "plane_alamo": {
+  "file": "img/map/layers/plane_alamo.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Wrecks-GTAV-CargoPlane-Nose.png",
+  "what": "The Cargo Plane wreck at the bottom of the Alamo Sea"
+ },
+ "plane": {
+  "file": "img/map/layers/plane.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Wreck_Airliner_Paleto_GTAV_Tail_Sub_View.png",
+  "what": "The sunken FlyUS airliner off Paleto Bay"
+ },
+ "hatch": {
+  "file": "img/map/layers/hatch.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:TheHatch-GTAVe.png",
+  "what": "The underwater hatch on the seabed"
+ },
+ "train_crash": {
+  "file": "img/map/layers/train_crash.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Train_Crash.png",
+  "what": "The derailed train hanging off the bridge"
+ },
+ "bulker": {
+  "file": "img/map/layers/bulker.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Wrecks_GTAVe_SSBulker.jpg",
+  "what": "The SS Bulker wreck under the bridge in the port"
+ },
+ "altruist": {
+  "file": "img/map/layers/altruist.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:AltruistCamp-GTAV.png",
+  "what": "The Altruist Cult camp on a mountain ridge"
+ },
+ "hippy": {
+  "file": "img/map/layers/hippy.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Hippies-GTAOe-BeamMeUp-Campsite.png",
+  "what": "Hippies relaxing at their desert campsite"
+ },
+ "plane_yard": {
+  "file": "img/map/layers/plane_yard.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Wrecks-GTAV-Jet-FlyUS.png",
+  "what": "A scrapped FlyUS jet at the desert airplane scrapyard"
+ },
+ "stab_city": {
+  "file": "img/map/layers/stab_city.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:StabCity-GTAV.png",
+  "what": "Stab City trailer camp by the Alamo Sea"
+ },
+ "mineshaft": {
+  "file": "img/map/layers/mineshaft.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Abandoned-Mine-Outside-GTAV.png",
+  "what": "The boarded-up entrance to the abandoned mine"
+ },
+ "infinity": {
+  "file": "img/map/layers/infinity.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:MerleAbrahams-GTAV-NorthPoint-Corpses-North.png",
+  "what": "A diver finds an Infinity Killer victim on the seabed"
+ },
+ "pogo": {
+  "file": "img/map/layers/pogo.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:ActionFigures-GTAO-SpaceMonkey.jpg",
+  "what": "Pogo the Monkey action figure"
+ },
+ "alien": {
+  "file": "img/map/layers/alien.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:ActionFigures-GTAO-Alien.jpg",
+  "what": "Alien action figure"
+ },
+ "imporage": {
+  "file": "img/map/layers/imporage.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:ActionFigures-GTAO-ImpotentRage.jpg",
+  "what": "Impotent Rage action figure"
+ },
+ "prbubble": {
+  "file": "img/map/layers/prbubble.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:ActionFigures-GTAO-Princess.jpg",
+  "what": "Princess Robot Bubblegum action figure"
+ },
+ "rsrcomm": {
+  "file": "img/map/layers/rsrcomm.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:ActionFigures-GTAO-SpaceRanger.jpg",
+  "what": "Republican Space Ranger commander action figure"
+ },
+ "rsrgeneric": {
+  "file": "img/map/layers/rsrgeneric.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:ActionFigures-GTAO-SpaceRanger2.jpg",
+  "what": "Republican Space Ranger action figure (helmet)"
+ },
+ "beast": {
+  "file": "img/map/layers/beast.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:ActionFigures-GTAO-Beast.jpg",
+  "what": "The Beast action figure"
+ },
+ "sasquatch": {
+  "file": "img/map/layers/sasquatch.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:ActionFigures-GTAO-Bigfoot.jpg",
+  "what": "Sasquatch (Bigfoot) action figure"
+ },
+ "double-t": {
+  "file": "img/map/layers/double-t.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:DoubleT-GTAV-front.png",
+  "what": "Western Double T motorcycle"
+ },
+ "super-diamond": {
+  "file": "img/map/layers/super-diamond.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:SuperDiamond-GTAV-front.png",
+  "what": "Enus Super Diamond sedan"
+ },
+ "surano": {
+  "file": "img/map/layers/surano.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:SuranoUp-GTAV-front.png",
+  "what": "Benefactor Surano sports car"
+ },
+ "tornado": {
+  "file": "img/map/layers/tornado.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Tornado-GTAV-front.png",
+  "what": "Declasse Tornado classic car"
+ },
+ "vacca": {
+  "file": "img/map/layers/vacca.jpg",
+  "credit": "© Rockstar Games · GTA Wiki",
+  "page": "https://gta.fandom.com/wiki/File:Vacca-GTAVee-FrontQuarter.png",
+  "what": "Pegassi Vacca supercar"
+ }
+}

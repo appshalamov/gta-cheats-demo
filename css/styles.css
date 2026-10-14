@@ -918,3 +918,13 @@ body[data-sheet="half"] .map-fabs, body[data-sheet="full"] .map-fabs { opacity: 
 .cmp-inline.ld, .mp-hero.ld .mp-shot { background: linear-gradient(100deg, #14171d 30%, #1e232c 50%, #14171d 70%) 0 0 / 300% 100%; animation: mpShim 1.1s linear infinite; }
 @keyframes mpShim { to { background-position: -150% 0; } }
 @media (prefers-reduced-motion: reduce) { .cmp-inline.ld, .mp-hero.ld .mp-shot { animation: none; } }
+
+/* Картинка в карточке слоя карты GTA (15.10.2026): секреты размыты до нажатия — «там что-то есть» */
+.gl-pic { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; padding: 0; margin: 2px 0 12px; border-radius: 14px; overflow: hidden; background: #111; cursor: pointer; }
+.gl-pic img { width: 100%; height: 100%; object-fit: cover; display: block; transition: filter .45s ease, transform .45s ease; }
+.gl-pic.spoil img { filter: blur(9px) saturate(1.5) brightness(1.25); transform: scale(1.08); }   /* видно цвета и силуэт — «там что-то есть» */
+.gl-pic.spoil::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,.05), rgba(0,0,0,.45)); }
+.gl-pic-t { z-index: 1; }
+.gl-pic-t { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #fff; font-size: 15px; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+.gl-pic-t svg { width: 26px; height: 26px; }
+@media (prefers-reduced-motion: reduce) { .gl-pic img { transition: none; } }

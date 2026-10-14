@@ -162,6 +162,7 @@ const W = {
   openGtaMap: { en: 'Open GTA map', ru: 'Открыть карту GTA', es: 'Abrir mapa de GTA', pt: 'Abrir mapa do GTA', fr: 'Ouvrir la carte GTA', de: 'GTA-Karte öffnen', it: 'Apri mappa GTA', tr: 'GTA haritasını aç', uk: 'Відкрити мапу GTA', pl: 'Otwórz mapę GTA', zh: '打开 GTA 地图', ja: 'GTAマップを開く', ko: 'GTA 지도 열기' },
   approxMap: { en: '≈ GTA 6 map inspired by Florida · exact map on release, Nov 19', ru: '≈ Карта GTA 6 по мотивам Флориды · точная — в день выхода, 19 ноября', es: '≈ Mapa de GTA 6 inspirado en Florida · el exacto, el 19 de noviembre', pt: '≈ Mapa do GTA 6 inspirado na Flórida · o exato em 19 de novembro', fr: '≈ Carte de GTA 6 inspirée de la Floride · la vraie le 19 novembre', de: '≈ GTA-6-Karte nach Florida · die genaue zum Release am 19. Nov.', it: '≈ Mappa di GTA 6 ispirata alla Florida · quella esatta il 19 novembre', tr: '≈ Florida esinli GTA 6 haritası · kesini 19 Kasım’da', uk: '≈ Мапа GTA 6 за мотивами Флориди · точна — 19 листопада', pl: '≈ Mapa GTA 6 na wzór Florydy · dokładna 19 listopada', zh: '≈ 以佛罗里达为原型的 GTA 6 地图 · 精确版 11月19日', ja: '≈ フロリダをもとにしたGTA 6マップ · 正確版は11月19日', ko: '≈ 플로리다 기반 GTA 6 지도 · 정확한 지도는 11월 19일' },
   glTitle: { en: 'Map layers', ru: 'Слои карты', es: 'Capas del mapa', pt: 'Camadas do mapa', fr: 'Calques', de: 'Kartenebenen', it: 'Livelli mappa', tr: 'Harita katmanları', uk: 'Шари мапи', pl: 'Warstwy mapy', zh: '地图图层', ja: 'マップレイヤー', ko: '지도 레이어' },
+  glReveal: { en: 'Tap to reveal the secret', ru: 'Нажми, чтобы раскрыть секрет', es: 'Toca para revelar el secreto', pt: 'Toque para revelar o segredo', fr: 'Touchez pour révéler le secret', de: 'Tippen, um das Geheimnis aufzudecken', it: 'Tocca per svelare il segreto', tr: 'Sırrı görmek için dokun', uk: 'Натисни, щоб розкрити секрет', pl: 'Dotknij, aby odkryć sekret', zh: '点击揭开秘密', ja: 'タップして秘密を見る', ko: '탭해서 비밀 보기' },
   glMark: { en: 'Mark as collected', ru: 'Отметить: собрано', es: 'Marcar como recogido', pt: 'Marcar como coletado', fr: 'Marquer comme récupéré', de: 'Als gesammelt markieren', it: 'Segna come raccolto', tr: 'Toplandı olarak işaretle', uk: 'Позначити: зібрано', pl: 'Oznacz jako zebrane', zh: '标记为已收集', ja: '収集済みにする', ko: '수집 완료로 표시' },
   glGot: { en: 'Collected', ru: 'Собрано', es: 'Recogido', pt: 'Coletado', fr: 'Récupéré', de: 'Gesammelt', it: 'Raccolto', tr: 'Toplandı', uk: 'Зібрано', pl: 'Zebrane', zh: '已收集', ja: '収集済み', ko: '수집 완료' },
   glAll: { en: 'Show all', ru: 'Показать все', es: 'Mostrar todo', pt: 'Mostrar tudo', fr: 'Tout afficher', de: 'Alle zeigen', it: 'Mostra tutti', tr: 'Tümünü göster', uk: 'Показати всі', pl: 'Pokaż wszystkie', zh: '全部显示', ja: 'すべて表示', ko: '모두 보기' },
@@ -235,6 +236,7 @@ const IC = {
   chevR: sv('<path d="m9 5 7 7-7 7"/>'),
   pano: sv('<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/>'),
   heart: sv('<path d="M12 20.5s-7.5-4.6-9.2-9.3C1.6 7.8 3.9 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.4 0 5.7 3.3 4.5 6.7-1.7 4.7-9.2 9.3-9.2 9.3z"/>'),
+  eye: sv('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
   share: sv('<path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>'),
   translate: sv('<path d="M4 5h9M8.5 3v2M6 5c.8 3 3 5.5 6 7M11 5c-.7 3.5-3.3 6.5-7 8"/><path d="m13 21 4-9 4 9M14.5 18h5"/>'),
   play: sv('<path fill="currentColor" stroke="none" d="M8 5.5v13a1 1 0 0 0 1.5.9l10.4-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/>'),
@@ -1096,7 +1098,7 @@ const GL_EGG = {   // свои короткие описания (без чуж�
   mineshaft: R('Заброшенная шахта.', 'An abandoned mineshaft.'),
   grave: R('Одинокая могила в глуши.', 'A lonely grave in the wilderness.'),
 };
-let glData = null, glSrc = [], glLoading = null;
+let glData = null, glSrc = [], glLoading = null, glImgs = {};
 function loadSet(k, def) { try { const v = JSON.parse(localStorage.getItem(k)); return new Set(Array.isArray(v) ? v : def); } catch { return new Set(def); } }
 function saveSet(k, set) { try { localStorage.setItem(k, JSON.stringify([...set])); } catch { } }
 const glOn = loadSet('secret.gl.on', ['ufo', 'ghost', 'killer', 'monster', 'wreck', 'secret']);
@@ -1105,6 +1107,8 @@ const glId = (p) => `${p.k}-${p.n || p.key}-${Math.round(p.x)}_${Math.round(p.y)
 const glShown = () => GL_ON && game === 'gta5' && tilesGame();
 function loadGL() {
   if (glData || glLoading) return glLoading || Promise.resolve(glData);
+  // картинки слоёв (Игорь 15.10.2026: «на пасхалки и секреты — фото, чтобы интереснее открывать; или блюрить»)
+  fetch('data/map/layers/images.json').then((r) => (r.ok ? r.json() : {})).then((j) => { glImgs = rebase(j || {}); }).catch(() => { });   // бета: картинки из общей ../img/map
   glLoading = Promise.all(GL_FILES.map((f) => fetch(`data/map/layers/${f}`).then((r) => r.json()).catch(() => null))).then((files) => {
     glData = []; glSrc = [];
     files.forEach((fl) => { if (!fl) return; const si = glSrc.push({ licence: fl.licence, credit: fl.credit }) - 1; for (const [x, y, k, n, key] of fl.points) if (GL[k]) glData.push({ x, y, k, n, key, src: si }); });
@@ -1133,6 +1137,17 @@ function addGLLayer(z) {
     paint: { 'icon-opacity': ['case', ['==', ['get', 'got'], 1], 0.35, 1] } });
   if (!glData) loadGL();
 }
+// картинка карточки слоя: своя у названного секрета (key), иначе — общая у вида (k). Секреты и пасхалки — размыты,
+// пока не нажмёшь (видно, что там что-то есть, но без спойлера); раскрытые помним.
+const glSeen = loadSet('secret.gl.seen', []);
+const glSlug = (s) => String(s || '').toLowerCase().replace(/\s+/g, '-');
+function glPic(p, L, id) {
+  const im = glImgs[glSlug(p.key)] || glImgs[p.k];
+  if (!im?.file) return '';
+  const spoil = L.g === 'eggs' && !glSeen.has(id);
+  return `<button class="gl-pic${spoil ? ' spoil' : ''}" data-mp="gl-reveal" data-id="${esc(id)}" aria-label="${esc(spoil ? w('glReveal') : tr(L.t))}">
+    <img src="${esc(im.file)}" alt="" decoding="async">${spoil ? `<span class="gl-pic-t">${IC.eye}<b>${esc(w('glReveal'))}</b></span>` : ''}</button>`;
+}
 function glSheet(i) {
   const p = glData[i], L = GL[p.k], id = glId(p), got = glGot.has(id);
   const coll = L.g !== 'eggs' || p.k === 'killer';
@@ -1140,12 +1155,13 @@ function glSheet(i) {
   const s = glSrc[p.src] || {};
   const desc = p.key && GL_EGG[p.key] ? tr(GL_EGG[p.key]) : L.d ? tr(L.d) : '';
   return `<div class="gl-card">
+    ${glPic(p, L, id)}
     <div class="gl-head"><span class="gl-ic">${L.ic}</span><div><small>${esc(tr(GL_GROUPS.find((x) => x[0] === L.g)[1]))}</small>
       <h2>${esc(tr(L.t))}${p.n ? ` <em>№ ${p.n}${L.n ? ` / ${L.n}` : ''}</em>` : p.k === 'epscar' && p.key ? ` <em>${esc(p.key)}</em>` : ''}</h2></div></div>
     ${desc ? `<p class="mp-text">${esc(desc)}</p>` : ''}
     ${coll ? `<button class="gl-got${got ? ' on' : ''}" data-mp="gl-got" data-i="${i}">${got ? '✓ ' : ''}${esc(w(got ? 'glGot' : 'glMark'))}</button>
       ${L.n ? `<div class="gl-prog"><i style="width:${Math.round(done / L.n * 100)}%"></i><span>${done} / ${L.n}</span></div>` : ''}` : ''}
-    <p class="gl-src">${esc(w('glSrc'))}: ${esc(s.credit || '')} · ${esc(s.licence || '')}</p></div>`;
+    <p class="gl-src">${esc(w('glSrc'))}: ${esc(s.credit || '')} · ${esc(s.licence || '')}${(glImgs[glSlug(p.key)] || glImgs[p.k])?.credit ? ` · ${esc((glImgs[glSlug(p.key)] || glImgs[p.k]).credit)}` : ''}</p></div>`;
 }
 function glPanel() {
   const cnt = (k) => (glData || []).filter((q) => q.k === k).length;
@@ -1468,6 +1484,7 @@ document.addEventListener('click', (e) => {
     el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 300);
   }
   else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t, el.dataset.k, el); }
+  else if (a === 'gl-reveal') { if (el.classList.contains('spoil')) { ctx?.haptic(); el.classList.remove('spoil'); el.querySelector('.gl-pic-t')?.remove(); glSeen.add(el.dataset.id); saveSet('secret.gl.seen', glSeen); } }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
   else if (a === 'mode') { ctx?.haptic(); switchMode(el.dataset.v); }
   else if (a === 'cat') {
