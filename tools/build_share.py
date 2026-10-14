@@ -48,6 +48,30 @@ def game_img(x):
     return "", ""
 
 
+def og_game_img(x):
+    """Кадр игры для превью ссылки: без персонажей, если можно (аналитика 15.10: у Marquis/Grayson был кадр трейлера
+    с героиней). Кадры gtadb — снимки места в игре, обычно без людей; кадры трейлеров — часто с героями. Но мутный
+    кадр хуже героини (Игорь 15.10: «не надо ужасных фото»): кадр gtadb берём, если он не заметно мутнее (og_render.quality: размер × резкость)."""
+    cands = []
+    for ph in [x.get("pg")] + (x.get("gg") or []) + [p.get("g") for p in x.get("pairs") or []]:
+        if ph and (ph.get("file") or ph.get("url")):
+            u = absu(ph.get("file") or ph.get("url"))
+            if u not in [c[0] for c in cands]:
+                cands.append((u, "gtadb" in (ph.get("credit") or "").lower() or "gta-map-assets" in u))
+    best, best_w = "", 0
+    for u, is_db in cands:
+        try:
+            im = _src(u) if Image is not None else None
+        except Exception:
+            im = None
+        if im is None:
+            continue
+        score = og_render.quality(im) * (1.3 if is_db else 1.0)   # резкость × размер; gtadb (без героев) — при равенстве
+        if score > best_w:
+            best, best_w = u, score
+    return best or (cands[0][0] if cands else "")
+
+
 def real_img(x):
     for ph in [x.get("pr")] + (x.get("gl") or []):
         if ph and "Wikimedia Commons" in (ph.get("credit") or ""):
@@ -58,8 +82,13 @@ def real_img(x):
 ASSETS = "https://appshalamov.github.io/gta-map-assets/"
 ASSETS_LOCAL = ROOT.parent / "хостинг-плиток" / "gta-map-assets"
 OGW, OGH = 1200, 630
+CACHE = ROOT.parent / "Карта локаций GTA — реальный мир" / "кэш" / "commons_для_превью"   # скачанные фото Commons (SSD)
+# рубильник «кадр игры в превью» (вопрос юристу до 04.11): false — только фото из жизни / карточка с названием
+CFG = json.loads((ROOT / "tools" / "share_config.json").read_text("utf-8")) if (ROOT / "tools" / "share_config.json").exists() else {}
 try:
     from PIL import Image, ImageDraw, ImageFilter, ImageFont
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    import og_render
 except ImportError:          # системный python3 без Pillow — превью не трогаем
     Image = None
 
@@ -70,6 +99,13 @@ def _src(u):
         p = ROOT / u[len(SITE):]
     elif u.startswith(ASSETS):
         p = ASSETS_LOCAL / u[len(ASSETS):]
+    elif "upload.wikimedia.org" in u:                 # свободное фото Commons, которое мы не копировали к себе
+        p = CACHE / hashlib.sha1(u.encode()).hexdigest()[:16]
+        if not p.exists():
+            CACHE.mkdir(parents=True, exist_ok=True)
+            req = urllib.request.Request(u, headers={"User-Agent": "SecretBase-share-preview/1.0 (app.shalamov@gmail.com)"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                p.write_bytes(r.read())
     else:
         return None                                   # чужие фото (gtadb ,rl.jpg) в превью не берём
     if p.exists():
@@ -78,111 +114,22 @@ def _src(u):
         return Image.open(io.BytesIO(r.read())).convert("RGB")
 
 
-def _cover(im, w, h):
-    k = max(w / im.width, h / im.height)
-    im = im.resize((round(im.width * k), round(im.height * k)), Image.LANCZOS)
-    x, y = (im.width - w) // 2, (im.height - h) // 2
-    return im.crop((x, y, x + w, y + h))
-
-
-def _font(size, bold=True):
-    return ImageFont.truetype("/System/Library/Fonts/HelveticaNeue.ttc", size, index=1 if bold else 10)
-
-
-def _label(d, xy, text, fg, bg, anchor_right=False):
-    f = _font(34)
-    w = d.textlength(text, font=f)
-    x, y = xy
-    if anchor_right:
-        x -= w + 44
-    d.rounded_rectangle((x, y, x + w + 44, y + 58), radius=29, fill=bg)
-    d.text((x + 22, y + 29), text, font=f, fill=fg, anchor="lm")
-
-
-def _fit(im, w, h):
-    k = min(w / im.width, h / im.height)
-    return im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.LANCZOS)
-
-
-def _credit_line(rcred):
-    """Подпись на самой картинке (лицензии CC требуют автора и лицензию): «Photo: автор · лицензия · Commons · Game © Rockstar Games»."""
-    who = (rcred or "").replace("Wikimedia Commons", "Commons").strip(" ·")
-    return (f"Photo: {who}   ·   " if who else "") + "Game © Rockstar Games   ·   Secret Base"
-
-
-def og_card(game, pid, gurl, rurl, rcred=""):
-    """Превью 1200×630 «игра | жизнь» → относительный путь от s/<игра>/ или ''.
-
-    Лицензии фото из жизни (аналитика 15.10.2026, 19 §7.2): CC BY-SA нельзя обрезать и склеивать с кадром игры
-    (это переработка — её пришлось бы выпускать под BY-SA, а кадр Rockstar так не выпустить). Поэтому:
-    - CC0 / общественное достояние / CC BY — «ползунок»: половины кадров, линия с кругом;
-    - CC BY-SA (и непонятная лицензия) — два снимка целиком рядом, без обрезки и надписей поверх фото (подборка);
-    - всегда — строка с автором и лицензией фото и «© Rockstar Games»."""
-    if not gurl:
+def og_card(game, pid, gurl, rurl, rcred="", title="", sub=""):
+    """Превью 1200×630 «игра | жизнь» → путь от s/ или ''. Как рисуется (по лицензии фото) — tools/og_render.py."""
+    if Image is None or not (gurl or rurl):
         return ""
-    sig = hashlib.sha1(f"v2|{gurl}|{rurl}|{rcred}".encode()).hexdigest()[:8]
+    gf = CFG.get("og_game_frame", True)
+    sig = hashlib.sha1(f"v3|{gf}|{gurl}|{rurl}|{rcred}|{title}".encode()).hexdigest()[:8]
     rel = f"og/{game}/{pid}.{sig}.jpg"
     fp = OUT / rel
     OG_MADE.add(fp)
-    if fp.exists() or Image is None:
-        return rel if fp.exists() else ""
-    g = _src(gurl)
+    if fp.exists():
+        return rel
+    g = _src(gurl) if (gurl and gf) else None
     r = _src(rurl) if rurl else None
-    if g is None:
-        return ""
-    lic = (rcred or "").upper()
-    split_ok = r is not None and "BY-SA" not in lic and ("CC0" in lic or "PUBLIC DOMAIN" in lic or "CC BY " in lic)
-    if r is not None and not split_ok:
-        return _og_side_by_side(fp, rel, g, r, rcred)
-    canvas = _cover(g, OGW, OGH)
-    if r is not None:
-        canvas.paste(_cover(r, OGW, OGH).crop((OGW // 2, 0, OGW, OGH)), (OGW // 2, 0))
-    # лёгкое затемнение сверху — подписи читаются на любом кадре
-    shade = Image.new("L", (1, OGH))
-    for yy in range(OGH):
-        shade.putpixel((0, yy), max(0, int(110 * (1 - yy / 170)) if yy < 170 else 0))
-    canvas.paste(Image.new("RGB", (OGW, OGH), (0, 0, 0)), (0, 0), shade.resize((OGW, OGH)))
-    d = ImageDraw.Draw(canvas)
-    _label(d, (28, 26), "IN GAME", (11, 13, 18), (34, 195, 217))
-    if r is not None:
-        _label(d, (OGW - 28, 26), "REAL LIFE", (255, 255, 255), (16, 18, 24), anchor_right=True)
-        cx, cy = OGW // 2, OGH // 2
-        glow = Image.new("RGBA", (OGW, OGH), (0, 0, 0, 0))
-        gd = ImageDraw.Draw(glow)
-        gd.rectangle((cx - 6, 0, cx + 6, OGH), fill=(0, 0, 0, 110))
-        gd.ellipse((cx - 58, cy - 58, cx + 58, cy + 58), fill=(0, 0, 0, 120))
-        canvas.paste(glow.filter(ImageFilter.GaussianBlur(10)), (0, 0), glow.filter(ImageFilter.GaussianBlur(10)))
-        d = ImageDraw.Draw(canvas)
-        d.rectangle((cx - 3, 0, cx + 3, OGH), fill=(255, 255, 255))
-        d.ellipse((cx - 48, cy - 48, cx + 48, cy + 48), fill=(255, 255, 255))
-        for sx in (-1, 1):
-            d.line([(cx + sx * 9, cy - 13), (cx + sx * 21, cy), (cx + sx * 9, cy + 13)], fill=(17, 17, 17), width=6, joint="curve")
-    else:
-        band = Image.new("RGBA", (OGW, 96), (11, 13, 18, 205))
-        canvas.paste(band, (0, OGH - 96), band)
-        d.text((OGW // 2, OGH - 48), "Compare with real life in Secret Base", font=_font(36), fill=(255, 255, 255), anchor="mm")
-    if r is not None:   # строка автора и лицензии — низ, на тёмной полосе
-        band = Image.new("RGBA", (OGW, 40), (0, 0, 0, 165))
-        canvas.paste(band, (0, OGH - 40), band)
-        ImageDraw.Draw(canvas).text((OGW // 2, OGH - 20), _credit_line(rcred), font=_font(19, False), fill=(235, 238, 244), anchor="mm")
+    im, _ = og_render.render(g, r, rcred, title, sub, game_frame=gf)
     fp.parent.mkdir(parents=True, exist_ok=True)
-    canvas.save(fp, "JPEG", quality=70, optimize=True, progressive=True, subsampling=2)
-    return rel
-
-
-def _og_side_by_side(fp, rel, g, r, rcred):
-    """Два снимка целиком рядом (для CC BY-SA): подписи над снимками, автор и лицензия — снизу."""
-    canvas = Image.new("RGB", (OGW, OGH), (11, 13, 18))
-    d = ImageDraw.Draw(canvas)
-    gap, top, boxw, boxh = 16, 84, (OGW - 3 * 16) // 2, 470
-    for i, (im, lab, col) in enumerate(((g, "In game", (34, 195, 217)), (r, "Real life", (255, 255, 255)))):
-        x0 = gap + i * (boxw + gap)
-        fit = _fit(im, boxw, boxh)
-        canvas.paste(fit, (x0 + (boxw - fit.width) // 2, top + (boxh - fit.height) // 2))
-        d.text((x0 + 4, top - 18), lab, font=_font(40), fill=col, anchor="ls")
-    d.text((OGW // 2, top + boxh + 44), _credit_line(rcred), font=_font(19, False), fill=(190, 196, 208), anchor="mm")
-    fp.parent.mkdir(parents=True, exist_ok=True)
-    canvas.save(fp, "JPEG", quality=72, optimize=True, progressive=True, subsampling=2)
+    im.save(fp, "JPEG", quality=74, optimize=True, progressive=True, subsampling=2)
     return rel
 
 
@@ -212,7 +159,7 @@ def page(game, kind, x):
     cg, cr = (absu(pr0["g"]["url"]), absu(pr0["r"]["url"])) if pr0 else (gimg, rimg)
     ccred = (pr0["g"].get("credit", "") + " · " + pr0["r"].get("credit", "")) if pr0 else ""
     # точки gtadb: своего фото из жизни нет (только gtadb) — превью ссылки = кадр игры с нашего хостинга, без новых файлов
-    og = og_card(game, fid, gimg, rimg, rcred) if kind != "db" else ""
+    og = og_card(game, fid, og_game_img(x), rimg, rcred, name_g or name_r, f"{name_r}" if name_g else "") if kind != "db" else ""
     og_abs = f"{SITE}s/{og}" if og else gimg
     title = f"{name_g} = {name_r}" if name_g and name_r else (name_g or name_r)
     og_title = f"{title} · {gt} in real life · Secret Base"
