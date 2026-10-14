@@ -804,4 +804,24 @@ body.in-ob #onboarding { display: flex; }
 .mc-promo-n { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-2); }
 .mc-promo-n em { font-style: normal; font-weight: 800; color: var(--text); }
 .mc-promo-n svg { width: 16px; height: 16px; margin-left: auto; color: var(--accent); }
+/* «Где в игре» — кнопка (карта GTA открывается в приложении); мини-карта ЧБ, как реальная */
+button.mp-ingame { width: 100%; padding: 0; text-align: left; font: inherit; cursor: pointer; }
+.mp-ingame .mp-ig-map, .mp-ingame .mp-ig-txt, .mp-ingame .mp-ig-open { display: block; }
+.mp-ingame .mp-ig-txt { display: grid; }
+.mp-ingame .mp-ig-open { display: flex; }
+.mp-ig-tiles img { filter: grayscale(1) brightness(.72) contrast(1.12); }
+.mp-ig-map { background: #0e0f12; }
+.mp-inreal .mp-ig-txt { padding-top: 12px; }
+/* прод: в режиме карты игры вверху — «← Реальная карта» */
+.map-games .mg-back { flex: none; flex-direction: row; align-items: center; gap: 4px; padding: 6px 10px; }
+.map-games .mg-back svg { width: 18px; height: 18px; }
+.map-games .mg-title b { display: inline-flex; align-items: center; gap: 6px; }
+.map-games .mg-title b svg { width: 15px; height: 15px; }
+/* ролики трейлеров — плеер внутри приложения */
+.mp-ytbtn, .mp-yt button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px 8px 10px; border-radius: 999px; background: rgba(255,0,0,.12); color: var(--text); font-size: 13.5px; font-weight: 600; border: 0; cursor: pointer; }
+.mp-ytbtn svg, .mp-yt button svg { width: 16px; height: 16px; color: #ff3b3b; }
+.mp-eggblk .mp-ytbtn { margin-top: 8px; font-size: 13px; padding: 6px 10px; }
+.mpv-video { width: 100%; padding: 0 0 calc(var(--safe-b) + 8px); }
+.mpv-video iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; background: #000; }
+.mp-src span { color: var(--text-2); }
 

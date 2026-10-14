@@ -24,9 +24,9 @@ const llPt = (q) => (mode === 'real' ? [q[5], q[4]] : q[11] ? G2M(q[11][0], q[11
 const gameStyle = (g) => ({
   version: 8, glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
   sources: { gtamap: { type: 'raster', tiles: [`https://gtadb-tile.invalid/${g}/{z}/{x}/{y}`], tileSize: 256, minzoom: 2, maxzoom: 8,
-    attribution: '<a href="https://gtadb.org" target="_blank" rel="noopener">gtadb.org</a> · © Rockstar Games' } },
-  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': g === 'gta5' ? '#1d3b4f' : '#173246' } },
-    { id: 'gtamap', type: 'raster', source: 'gtamap', paint: { 'raster-fade-duration': 150 } }],
+    attribution: 'gtadb.org (CC BY 4.0) · © Rockstar Games' } },
+  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#0e0f12' } },
+    { id: 'gtamap', type: 'raster', source: 'gtamap', paint: { 'raster-fade-duration': 150, 'raster-saturation': -1, ...(g === 'gta6' ? { 'raster-contrast': 0.35, 'raster-brightness-max': 0.42, 'raster-brightness-min': 0.04 } : { 'raster-contrast': 0.12, 'raster-brightness-max': 0.72 }) } }],
 });
 function tileUrl(url) {   // https://gtadb-tile.invalid/gta5/6/40/52 → плитка gtadb z−2 в репозитории на GitHub
   const m = url.match(/^https:\/\/gtadb-tile\.invalid\/(gta[56])\/(\d+)\/(\d+)\/(\d+)$/);
@@ -58,6 +58,10 @@ const W = {
   places_n: { en: 'places', ru: 'мест', es: 'lugares', pt: 'locais', fr: 'lieux', de: 'Orte', it: 'luoghi', tr: 'yer', uk: 'місць', pl: 'miejsc', zh: '个地点', ja: 'か所', ko: '곳' },
   modeReal: { en: 'Real map', ru: 'Реальная карта', es: 'Mapa real', pt: 'Mapa real', fr: 'Carte réelle', de: 'Echte Karte', it: 'Mappa reale', tr: 'Gerçek harita', uk: 'Реальна мапа', pl: 'Prawdziwa mapa', zh: '真实地图', ja: '実際の地図', ko: '실제 지도' },
   modeGame: { en: 'Game map', ru: 'Карта игры', es: 'Mapa del juego', pt: 'Mapa do jogo', fr: 'Carte du jeu', de: 'Spielkarte', it: 'Mappa del gioco', tr: 'Oyun haritası', uk: 'Мапа гри', pl: 'Mapa gry', zh: '游戏地图', ja: 'ゲームの地図', ko: '게임 지도' },
+  showInGame: { en: 'Show on the GTA map', ru: 'Показать на карте GTA', es: 'Ver en el mapa de GTA', pt: 'Ver no mapa do GTA', fr: 'Voir sur la carte GTA', de: 'Auf der GTA-Karte zeigen', it: 'Mostra sulla mappa GTA', tr: 'GTA haritasında göster', uk: 'Показати на мапі GTA', pl: 'Pokaż na mapie GTA', zh: '在 GTA 地图上显示', ja: 'GTAマップで表示', ko: 'GTA 지도에서 보기' },
+  showInReal: { en: 'Show on the real map', ru: 'Показать на реальной карте', es: 'Ver en el mapa real', pt: 'Ver no mapa real', fr: 'Voir sur la carte réelle', de: 'Auf der echten Karte zeigen', it: 'Mostra sulla mappa reale', tr: 'Gerçek haritada göster', uk: 'Показати на реальній мапі', pl: 'Pokaż na prawdziwej mapie', zh: '在真实地图上显示', ja: '実際の地図で表示', ko: '실제 지도에서 보기' },
+  whereReal: { en: 'Where in real life', ru: 'Где в жизни', es: 'Dónde en la vida real', pt: 'Onde na vida real', fr: 'Où dans la réalité', de: 'Wo in echt', it: 'Dove nella realtà', tr: 'Gerçekte nerede', uk: 'Де в житті', pl: 'Gdzie w rzeczywistości', zh: '现实中的位置', ja: '現実の場所', ko: '현실 속 위치' },
+  backReal: { en: 'Real map', ru: 'Реальная карта', es: 'Mapa real', pt: 'Mapa real', fr: 'Carte réelle', de: 'Echte Karte', it: 'Mappa reale', tr: 'Gerçek harita', uk: 'Реальна мапа', pl: 'Prawdziwa mapa', zh: '真实地图', ja: '実際の地図', ko: '실제 지도' },
   whereGame: { en: 'Where in the game', ru: 'Где в игре', es: 'Dónde en el juego', pt: 'Onde no jogo', fr: 'Où dans le jeu', de: 'Wo im Spiel', it: 'Dove nel gioco', tr: 'Oyunda nerede', uk: 'Де в грі', pl: 'Gdzie w grze', zh: '游戏中的位置', ja: 'ゲーム内の場所', ko: '게임 속 위치' },
   openGtaMap: { en: 'Open GTA map', ru: 'Открыть карту GTA', es: 'Abrir mapa de GTA', pt: 'Abrir mapa do GTA', fr: 'Ouvrir la carte GTA', de: 'GTA-Karte öffnen', it: 'Apri mappa GTA', tr: 'GTA haritasını aç', uk: 'Відкрити мапу GTA', pl: 'Otwórz mapę GTA', zh: '打开 GTA 地图', ja: 'GTAマップを開く', ko: 'GTA 지도 열기' },
   approxHere: { en: '≈ approximately here', ru: '≈ примерно здесь', es: '≈ aproximadamente aquí', pt: '≈ aproximadamente aqui', fr: '≈ à peu près ici', de: '≈ ungefähr hier', it: '≈ più o meno qui', tr: '≈ yaklaşık burada', uk: '≈ приблизно тут', pl: '≈ mniej więcej tutaj', zh: '≈ 大致在这里', ja: '≈ だいたいこの辺り', ko: '≈ 대략 여기' },
@@ -229,7 +233,7 @@ function ytLink(ref) {
   const m = /(Trailer\s*1|Trailer\s*2|Extended\s*Look)\D{0,12}(\d{1,2}):(\d{2})/i.exec(ref || '');
   if (!m) return null;
   const id = /trailer\s*1/i.test(m[1]) ? 'QdBZY2fkU-0' : /trailer\s*2/i.test(m[1]) ? 'VQRLujxTm3c' : 'tJbzMqJGH4k';
-  return { url: `https://www.youtube.com/watch?v=${id}&t=${(+m[2]) * 60 + (+m[3])}s`, label: `${/1/.test(m[1]) && /trailer/i.test(m[1]) ? 'Trailer 1' : /trailer/i.test(m[1]) ? 'Trailer 2' : 'Extended Look'} · ${m[2]}:${m[3]}` };
+  return { id, t: (+m[2]) * 60 + (+m[3]), url: '', label: `${/1/.test(m[1]) && /trailer/i.test(m[1]) ? 'Trailer 1' : /trailer/i.test(m[1]) ? 'Trailer 2' : 'Extended Look'} · ${m[2]}:${m[3]}` };
 }
 // кнопка «Перевести» — если текст не на языке устройства (часть советов пока только по-русски)
 function needsTranslate(text) {
@@ -319,20 +323,24 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
 // «Где в игре»: плитки карты игры из репозитория gtadb (GTA 5 — спутник, GTA 6 — фанатская карта Леониды «yanis»).
 // Мир игры −16384…16384 единиц; при z=4 одна точка картинки = 2 единицы, плитка 256 px = 512 единиц (~500 м).
 const GMAP = { gta5: { v: 5, key: 'V', set: 'satellite', z: 4 }, gta6: { v: 6, key: 'VI', set: 'yanis,16', z: 4 } };
-function gameBlock(gm, addr, region, gid) {
+function gameBlock(gm, addr, region, gid, ref = {}) {
   if (!gm) return '';
+  const at = `data-k="${ref.k || ''}" data-i="${ref.i ?? ''}"`;
+  if (mode === 'game') {   // на карте игры — обратный путь: где это в жизни
+    return `<button class="mp-ingame mp-inreal" data-mp="inreal" ${at}>
+      <span class="mp-ig-txt"><small>${IC.pin}${esc(w('whereReal'))}</small><b>${esc(ref.real || '')}</b></span>
+      <span class="mp-ig-open">${esc(w('showInReal'))}${IC.chevR}</span></button>`;
+  }
   const [gx, gy, acc] = gm, c = GMAP[game], k = 2 ** (5 - c.z);
   const px = (gx + 16384) / k, py = (16384 - gy) / k, tx = Math.floor(px / 256), ty = Math.floor(py / 256);
   let tiles = '';
   for (let y = ty - 1; y <= ty + 1; y++) for (let x = tx - 1; x <= tx + 1; x++)
     tiles += `<img src="https://raw.githubusercontent.com/rolux/gtadb.org/main/maps/tiles/${c.v}/${c.set}/${c.z}/${c.z},${y},${x}.jpg" style="left:${Math.round(x * 256 - px)}px;top:${Math.round(y * 256 - py)}px" alt="" loading="lazy" decoding="async" onerror="this.remove()">`;
-  const id = gid || (gm[3] || '');
-  const href = `https://map.gtadb.org/#${c.key},${gx},${gy},${acc === 2 ? 4 : 5}${id ? ',' + id : ''}`;
   const line = acc === 2 ? `${region ? esc(region) + ' · ' : ''}<em>${esc(w('approxHere'))}</em>` : esc(addr || region || '') + (acc === 1 ? ` <em>· ${esc(w('nextTo'))}</em>` : '');
-  return `<a class="mp-ingame" href="${href}" target="_blank" rel="noopener">
-      <div class="mp-ig-map"><div class="mp-ig-tiles">${tiles}</div><span class="mp-ig-pin${acc === 2 ? ' est' : ''}"></span></div>
-      <div class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))}</small><b>${line}</b></div>
-      <span class="mp-ig-open">${esc(w('openGtaMap'))}${IC.chevR}</span></a>`;
+  return `<button class="mp-ingame" data-mp="ingame" ${at}>
+      <span class="mp-ig-map"><span class="mp-ig-tiles">${tiles}</span><span class="mp-ig-pin${acc === 2 ? ' est' : ''}"></span></span>
+      <span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))}</small><b>${line}</b></span>
+      <span class="mp-ig-open">${esc(w('showInGame'))}${IC.chevR}</span></button>`;
 }
 function placeSheet(p, i) {
   const ck = catKey(p);
@@ -344,7 +352,7 @@ function placeSheet(p, i) {
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(p.g)}</b>${p.r ? `<small>${esc(p.r)}</small>` : ''}</div></div>
       <a class="mp-nm r mp-nm-link" href="${mapsLink(p.lat, p.lon, p.n)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(p.n)}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(p.n)}</b>${p.a ? `<small>${esc(p.a)}</small>` : ''}</div><span class="mp-nm-go">${IC.nav}</span></a>
     </div>
-    ${gameBlock(p.gm, p.ga, p.r)}
+    ${gameBlock(p.gm, p.ga, p.r, '', { k: 'p', i, real: [p.n, p.a].filter(Boolean).join(' · ') })}
     <div class="mp-picto">
       <span class="mp-pic">${IC[ck]}<small>${esc(w(ck))}</small></span>
       ${p.ac && IC[p.ac] ? `<span class="mp-pic ac-${p.ac}">${IC[p.ac]}<small>${esc(w(p.ac))}</small></span>` : ''}
@@ -352,15 +360,15 @@ function placeSheet(p, i) {
       ${dist ? `<span class="mp-pic">${IC.pin}<small>${dist}</small></span>` : ''}
     </div>
     ${actions(p.lat, p.lon, p.n, `${p.g} → ${p.n}`, favBtn('place', p.id), p.view)}
-    ${(p.eggs || []).map((e) => { const yt = (e.m || []).map(ytLink).filter(Boolean)[0]; return `<div class="mp-eggblk">${favBtn('egg', e.id, true)}<span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><b>${esc(txt(e.t))}</b><p>${esc(txt(e.d))}</p>${yt ? `<a href="${yt.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(yt.label)}</span></a>` : ''}</div></div>`; }).join('')}
+    ${(p.eggs || []).map((e) => { const yt = (e.m || []).map(ytLink).filter(Boolean)[0]; return `<div class="mp-eggblk">${favBtn('egg', e.id, true)}<span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><b>${esc(txt(e.t))}</b><p>${esc(txt(e.d))}</p>${yt ? `<button class="mp-ytbtn" data-mp="yt" data-v="${yt.id}" data-t="${yt.t}" data-l="${esc(yt.label)}">${IC.play}<span>${esc(yt.label)}</span></button>` : ''}</div></div>`; }).join('')}
     ${(p.alias || []).length ? `<p class="mp-alias">${IC.game}<span>${esc(w('also'))}: ${p.alias.map(esc).join(' · ')}</span></p>` : ''}
     ${txt(p.s) ? `<p class="mp-text">${esc(txt(p.s))}</p>` : ''}
     ${txt(p.why) ? `<div class="mp-blk">${IC.info}<div><b>${esc(w('why'))}</b><p>${esc(txt(p.why))}</p></div></div>` : ''}
     ${txt(p.tip) ? `<div class="mp-blk">${IC.bulb}<div><b>${esc(w('tip'))}</b><p>${esc(txt(p.tip))}</p></div></div>` : ''}
     ${txt(p.fun) ? `<div class="mp-blk">${IC.spark}<div><b>${esc(w('fun'))}</b><p>${esc(txt(p.fun))}</p></div></div>` : ''}
-    ${media.length ? `<div class="mp-yt">${media.map((m) => `<a href="${m.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(m.label)}</span></a>`).join('')}</div>` : ''}
+    ${media.length ? `<div class="mp-yt">${media.map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
     ${nearbyRow(p, i)}
-    ${(p.src || []).length ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a>`).join('')}</div>` : ''}
+    ${(p.src || []).length ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u) => `<span>${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span>`).join('')}</div>` : ''}
     <p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>`;
 }
 // ближайшие места (до 5 км) — следующий шаг прогулки в одно касание
@@ -378,20 +386,20 @@ function nearbyRow(p, i) {
 function eggSheet(e, i) {
   const yt = (e.m || []).map(ytLink).filter(Boolean);
   const cta = yt.length
-    ? `<a class="mp-cta mp-cta-yt" href="${yt[0].url}" target="_blank" rel="noopener">${IC.play}<span>${esc(w('seen'))} · ${esc(yt[0].label.split(' · ')[1] || '')}</span></a>`
+    ? `<button class="mp-cta mp-cta-yt" data-mp="yt" data-v="${yt[0].id}" data-t="${yt[0].t}" data-l="${esc(yt[0].label)}">${IC.play}<span>${esc(w('seen'))} · ${esc(yt[0].label.split(' · ')[1] || '')}</span></button>`
     : `<a class="mp-cta" href="${panoLink(e.lat, e.lon, e.view)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>`;
   return `
     ${heroBox('e' + i, e.pairs, gameList(e), realList(e), { g: txt(e.t), r: (e.p || '').split(',')[0] }, { egg: true })}
     <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><h2>${esc(txt(e.t))}</h2></div></div>
     ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(e.p.split(',')[0])}</b><small>${esc(e.p.split(',').slice(1).join(',').trim())}</small></div></div>` : ''}
-    ${gameBlock(e.gm, e.ga, '')}
+    ${gameBlock(e.gm, e.ga, '', '', { k: 'e', i, real: e.p || '' })}
     <div class="mp-picto"><span class="mp-pic">${meter(e.cf)}<small>${esc(w(e.cf || 'likely'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel(e)}</small></span>` : ''}</div>
     <div class="mp-acts">${cta}
       <a class="mp-ib" href="${mapsLink(e.lat, e.lon, e.p)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}">${IC.nav}</a>
       ${favBtn('egg', e.id)}<button class="mp-ib" data-mp="share" data-t="${esc(txt(e.t))}" aria-label="${esc(w('share'))}">${IC.share}</button></div>
     <p class="mp-text">${esc(txt(e.d))}</p>
-    ${yt.length > 1 ? `<div class="mp-yt">${yt.slice(1).map((m) => `<a href="${m.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(m.label)}</span></a>`).join('')}</div>` : ''}
-    ${e.src ? `<div class="mp-src">${IC.link}<a href="${esc(e.src)}" target="_blank" rel="noopener">${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a></div>` : ''}
+    ${yt.length > 1 ? `<div class="mp-yt">${yt.slice(1).map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
+    ${e.src ? `<div class="mp-src">${IC.link}<span>${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span></div>` : ''}
     <p class="mp-cred">${[e.pg, e.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>`;
 }
 // фото точек сообщества — из открытого репозитория gtadb.org на GitHub (CC BY 4.0; кадры игры © Rockstar Games)
@@ -409,11 +417,11 @@ function gtadbSheet(p, g, i) {
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(name || district || id)}</b>${name && district ? `<small>${esc(district)}</small>` : ''}</div></div>
       <a class="mp-nm r mp-nm-link" href="${mapsLink(lat, lon, real)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(real.split(',')[0])}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(real.split(',')[0])}</b><small>${esc(real.split(',').slice(1).join(',').trim())}</small></div><span class="mp-nm-go">${IC.nav}</span></a>
     </div>
-    ${p[11] ? gameBlock([p[11][0], p[11][1], 0], [name, district].filter(Boolean).join(', '), '', id) : ''}
+    ${p[11] ? gameBlock([p[11][0], p[11][1], 0], [name, district].filter(Boolean).join(', '), '', id, { k: 'd', i, real }) : ''}
     <div class="mp-picto"><span class="mp-pic">${IC.other}<small>${esc(type || w('other'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel({ lat, lon })}</small></span>` : ''}</div>
     ${(p[9] || []).length ? `<div class="mp-also"><small>${esc(w('also'))}</small><span class="mp-also-list">${p[9].map(esc).join(' · ')}</span></div>` : ''}
     ${actions(lat, lon, real, `${name || district || id} → ${real.split(',')[0]}`, '', p[10] || null)}
-    <div class="mp-src">${IC.link}<a href="https://map.gtadb.org/#${g},${esc(id)}" target="_blank" rel="noopener">gtadb.org</a></div>
+    <div class="mp-src">${IC.link}<span>gtadb.org (CC BY 4.0)</span></div>
     <p class="d-note">${t('map_gtadb_credit')}</p>`;
 }
 function helpSheet() {
@@ -624,9 +632,29 @@ function stepSection(d) {
   if (k < 0 || k >= secs.length) return false;
   viewer.sec = secs[k]; renderViewer(d > 0 ? 'from-r' : 'from-l'); return true;
 }
+function openVideo(id, t, label) {
+  if (!/^[\w-]{6,20}$/.test(id || '')) return;
+  const el = viewerEl();
+  clearTimeout(closeTimer); el.classList.remove('closing'); el.style.removeProperty('--dim');
+  lastFocus = document.activeElement; lastFocus?.blur?.();
+  viewer = { key: null, video: { id, t, label }, one: null, depth: 1 };
+  const push = () => history.pushState({ mpv: 1 }, '');
+  if (navPending) afterNav = push; else push();
+  renderViewer('in');
+}
 function renderViewer(anim = '') {
   const v = viewer;
   if (!v) return;
+  if (v.video) {
+    const el = viewerEl(), src = `https://www.youtube-nocookie.com/embed/${v.video.id}?start=${v.video.t}&autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+    el.innerHTML = `<div class="mpv-panel${anim === 'in' ? ' enter' : ''}" role="dialog" aria-modal="true" tabindex="-1">
+      <div class="mpv-top"><span class="mpv-grab" aria-hidden="true"></span>
+        <div class="mpv-head"><div class="mpv-ttl"><b>${IC.play}<span>${esc(v.video.label)}</span></b><small>Rockstar Games</small></div>
+          <button class="mpv-x" data-mp="viewer-close" aria-label="${esc(w('close'))}">${IC.close}</button></div></div>
+      <div class="mpv-body"><div class="mpv-video"><iframe src="${src}" title="${esc(v.video.label)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div></div></div>`;
+    el.classList.add('open');
+    return;
+  }
   const el = viewerEl(), key = v.key, names = galNames[key] || {};
   const P = pairsOf[key] || [], R = galleries[`r:${key}`] || [], G = galleries[`g:${key}`] || [];
   const secs = vSections(key);
@@ -961,7 +989,11 @@ function renderChips() {
     ['places', t('map_places'), COLORS.confirmed], ['eggs', t('map_eggs'), COLORS.egg], ['gtadb', t('map_all'), COLORS.gtadb],
   ].map(([k, label, c]) => `<button class="mchip${show[k] ? ' on' : ''}" data-action="map-layer" data-v="${k}" style="--c:${c}"><i></i>${label}${n[k] !== '' ? ` <em>${n[k]}</em>` : ''}</button>`).join('');
   const G = GAMES[game];
-  if (!BETA) {
+  if (!BETA && mode === 'game') {
+    document.getElementById('map-games').innerHTML =
+      `<button class="mg-back" data-mp="mode" data-v="real">${IC.chevL}<b>${esc(w('backReal'))}</b></button>` +
+      `<button class="on mg-title" data-mp="noop"><b>${IC.game}${esc(w('modeGame'))}</b><small>${esc(G.title)} · ${esc(tr(G.gameCity))}</small></button>`;
+  } else if (!BETA) {
     document.getElementById('map-games').innerHTML = Object.entries(GAMES).map(([id, g]) =>
       `<button class="${id === game ? 'on' : ''}" data-action="map-game" data-v="${id}"><b>${g.title}</b><small>${tr(g.place)}</small></button>`).join('');
   } else document.getElementById('map-games').innerHTML =
@@ -1003,6 +1035,8 @@ document.addEventListener('click', (e) => {
   else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t); }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
   else if (a === 'mode') { ctx?.haptic(); setMode(el.dataset.v); }
+  else if (a === 'ingame' || a === 'inreal') { ctx?.haptic(); showOnMap(a === 'ingame' ? 'game' : 'real', el.dataset.k, +el.dataset.i); }
+  else if (a === 'yt') { ctx?.haptic(); openVideo(el.dataset.v, +el.dataset.t || 0, el.dataset.l || ''); }
   else if (a === 'game') { ctx?.haptic(); userGame = el.dataset.v; setGame(el.dataset.v); }
 });
 addEventListener('keydown', (e) => {
@@ -1070,6 +1104,14 @@ function startView(d) {
   const mid = (k) => g.map((p) => p.gm[k]).sort((a, b) => a - b)[Math.floor(g.length / 2)] || 0;
   return { center: G2M(mid(0), mid(1)), zoom: 3.6 };
 }
+// «Показать на карте GTA» / «на реальной карте» из карточки: переключить вид и открыть это же место там
+async function showOnMap(m, k, i) {
+  await setMode(m);
+  const d = data[game];
+  if (k === 'p') openPlace(i, true);
+  else if (k === 'd') openPoint(i, true);
+  else if (k === 'e' && d.eggs[i]) { const e = d.eggs[i], c = ll(e); if (c) map.easeTo({ center: c, zoom: mode === 'game' ? 6.5 : 15, duration: 600, offset: [0, -90] }); ctx.openSheet(eggSheet(e, i), 'sheet-map'); }
+}
 // переключение «Реальная карта ⇄ Карта игры»: остаёмся у того же места (выбранного или ближайшего к центру)
 export async function setMode(m) {
   if (!map || (m !== 'real' && m !== 'game') || m === mode) return;
@@ -1082,7 +1124,7 @@ export async function setMode(m) {
   }
   const zr = map.getZoom();
   mode = m;
-  try { localStorage.setItem('secret.map.mode', m); } catch { }
+  if (BETA) try { localStorage.setItem('secret.map.mode', m); } catch { }
   styleKey = m === 'game' ? 'game:' + game : themeKey();
   map.setStyle(m === 'game' ? gameStyle(game) : STYLE[styleKey], { diff: false });   // style.load → addLayers (точки уже в координатах режима)
   const c = ref && ll(ref);
