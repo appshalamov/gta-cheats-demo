@@ -17,10 +17,12 @@ const store = (() => {
 function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch { } }
 
 // ───────── состояние экрана ─────────
-const ui = { tab: 'home', cat: DEFAULT_CATEGORY, query: '', obStep: 'game', obGame: null, obPlatform: null, stopPlay: null };
+const ui = { prevTab: 'home', tab: 'home', cat: DEFAULT_CATEGORY, query: '', obStep: 'game', obGame: null, obPlatform: null, stopPlay: null };
 const data = {}; // gameId -> {cheats, ...}
 
 const $ = (sel, root = document) => root.querySelector(sel);
+const mapMod = () => import('./map.js');
+const mapCtx = () => ({ openSheet, haptic, toast, I });
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const game = () => GAMES.find((g) => g.id === store.game) || GAMES[0];
 const cheats = () => (data[store.game]?.cheats) || [];
@@ -46,6 +48,24 @@ function toast(msg) {
   el.textContent = msg; el.classList.add('show');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
 }
+
+// ───────── высота окна ─────────
+// iOS в режиме «на экране Домой» иногда отдаёт окно короче экрана (под панелью вкладок — пустая полоса).
+// Меряем и растягиваем каркас на реальную высоту экрана.
+function fitViewport() {
+  let h = window.innerHeight;
+  const sa = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (sa) {
+    const portrait = window.innerHeight >= window.innerWidth;
+    const full = portrait ? Math.max(screen.height, screen.width) : Math.min(screen.height, screen.width);
+    if (full - h > 4 && full - h < 140) h = full;
+  }
+  document.documentElement.style.setProperty('--app-h', h + 'px');
+  window.__vp = { inner: window.innerHeight, screen: screen.height, used: h, standalone: !!sa };
+}
+fitViewport();
+addEventListener('resize', fitViewport);
+addEventListener('orientationchange', () => setTimeout(fitViewport, 300));
 
 // ───────── тема и язык ─────────
 function applyTheme() {
@@ -224,7 +244,12 @@ function renderAll() {
   $('#plat-btn').innerHTML = platformIcon(store.platform);
   const tabs = [...document.querySelectorAll('.tab')];
   tabs.forEach((b) => b.classList.toggle('on', b.dataset.tab === ui.tab));
-  $('#tabbar').style.setProperty('--i', Math.max(0, tabs.findIndex((b) => b.dataset.tab === ui.tab)));
+  const ti = tabs.findIndex((b) => b.dataset.tab === ui.tab);
+  $('#tabbar').style.setProperty('--i', Math.max(0, ti));
+  $('#tabbar').classList.toggle('no-pill', ti < 0);
+  document.body.dataset.tab = ui.tab;
+  $('#back-label').textContent = t('back');
+  if (ui.tab === 'map') mapMod().then((m) => m.open(mapCtx(), store.game)).catch(() => toast('Map error'));
   updateFavBadge();
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'view-' + ui.tab));
   const titles = { search: t('tab_search'), fav: t('tab_fav'), settings: t('tab_settings') };
@@ -375,7 +400,7 @@ function openHowto() {
   openSheet(`<h2 class="pick-t">${t('st_howto')}</h2>${g.platforms.map((p) => `<div class="howto"><div class="plat-h">${platformIcon(p)}<span>${L(PLATFORMS[p])}</span></div><p>${esc(howto(p))}</p></div>`).join('')}<p class="d-note">${t('howto_warn')}</p>`, 'sheet-pick');
 }
 function openAbout() {
-  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p><p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)}</div>`, 'sheet-pick');
+  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p><p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp ${__vp.inner}/${__vp.screen}→${__vp.used}${__vp.standalone ? ' sa' : ''}` : ''}</div>`, 'sheet-pick');
 }
 
 // ───────── пейвол ─────────
@@ -409,6 +434,7 @@ function renderOnboarding() {
   const g = ui.obGame || store.game;
   ob.innerHTML = `
     <div class="ob-progress"><i style="width:${step === 'game' ? 50 : 100}%"></i></div>
+    <div class="ob-brand"><img src="icons/icon-192.png" alt=""><span>${esc(APP.shortName)}</span></div>
     <div class="ob-top"><div class="ob-ic">${step === 'game' ? I.gamepad : platformIcon(ui.obPlatform || 'playstation')}</div>
       <h1>${step === 'game' ? t('ob_game_title') : t('ob_platform_title')}</h1><p>${t('ob_sub')}</p></div>
     <div class="opts">${step === 'game' ? gameListHTML(g, 'ob-game') : platListHTML(g, ui.obPlatform, 'ob-platform')}</div>
@@ -471,6 +497,7 @@ document.addEventListener('click', async (e) => {
       const tab = el.dataset.tab; haptic();
       el.classList.remove('bounce'); void el.offsetWidth; el.classList.add('bounce');
       if (tab === ui.tab) { // повторное нажатие — наверх, как в iOS
+        if (tab === 'map') { mapMod().then((m) => m.refit()); break; }
         const box = tab === 'home' ? document.querySelector(`.page[data-cat="${ui.cat}"]`) : document.querySelector(`#view-${tab} .scroll`);
         box?.scrollTo({ top: 0, behavior: 'smooth' });
         if (tab === 'search') $('#search-input').focus();
@@ -503,10 +530,16 @@ document.addEventListener('click', async (e) => {
     }
     case 'set-platform': haptic(); store.platform = v; save(); closeSheet(); renderAll(); break;
     case 'sheet-close': closeSheet(); break;
+    case 'open-settings': haptic(); if (ui.tab !== 'settings') ui.prevTab = ui.tab; ui.tab = 'settings'; renderAll(); break;
+    case 'settings-back': haptic(); ui.tab = ui.prevTab || 'home'; renderAll(); break;
+    case 'map-layer': haptic(); (await mapMod()).toggle(v); break;
+    case 'map-game': haptic(); (await mapMod()).setGame(v); break;
+    case 'map-locate': haptic(); (await mapMod()).locate(); break;
+    case 'map-fit': haptic(); (await mapMod()).refit(); break;
     case 'hint': ui.query = el.dataset.q; $('#search-input').value = ui.query; renderSearch(); break;
     case 'search-clear': ui.query = ''; $('#search-input').value = ''; renderSearch(); $('#search-input').focus(); break;
-    case 'theme': store.theme = v; save(); applyTheme(); renderSettings(); break;
-    case 'lang': store.lang = v; save(); setLang(v); renderAll(); break;
+    case 'theme': store.theme = v; save(); applyTheme(); renderSettings(); mapMod().then((m) => m.retheme()); break;
+    case 'lang': store.lang = v; save(); setLang(v); renderAll(); mapMod().then((m) => m.relang()); break;
     case 'haptic-toggle': store.haptic = !store.haptic; save(); haptic(); renderSettings(); break;
     case 'howto': openHowto(); break;
     case 'about': openAbout(); break;

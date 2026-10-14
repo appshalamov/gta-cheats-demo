@@ -2,6 +2,13 @@
 
 const T = {
   ru: {
+    tab_map: 'Карта', back: 'Назад',
+    map_places: 'Места', map_eggs: 'Пасхалки', map_all: 'Все точки', map_egg: 'Пасхалка',
+    map_in_game: 'В игре', map_in_real: 'В реальности', map_tip: 'Совет: ', map_where_seen: 'Где видно: ',
+    map_route: 'Маршрут', map_source: 'Источник', map_no_geo: 'Нет доступа к геопозиции',
+    map_en_note: 'Описание пока на английском — русский перевод появится в следующем обновлении.',
+    map_gtadb_credit: 'Точка из базы сообщества gtadb.org and contributors (CC BY 4.0).',
+    conf_confirmed: 'Подтверждено', conf_likely: 'Вероятно', conf_speculative: 'Догадка',
     tab_home: 'Главная', tab_search: 'Поиск', tab_fav: 'Избранное', tab_settings: 'Настройки',
     ob_game_title: 'Во что вы играете?', ob_platform_title: 'На какой платформе?',
     ob_sub: 'Настроим чит-коды под вас', continue: 'Продолжить', soon: 'Скоро',
@@ -39,6 +46,13 @@ const T = {
     install_btn: 'Установить', later: 'Позже',
   },
   en: {
+    tab_map: 'Map', back: 'Back',
+    map_places: 'Places', map_eggs: 'Easter eggs', map_all: 'All points', map_egg: 'Easter egg',
+    map_in_game: 'In game', map_in_real: 'In real life', map_tip: 'Tip: ', map_where_seen: 'Seen in: ',
+    map_route: 'Directions', map_source: 'Source', map_no_geo: 'Location access denied',
+    map_en_note: '',
+    map_gtadb_credit: 'Point from the community database gtadb.org and contributors (CC BY 4.0).',
+    conf_confirmed: 'Confirmed', conf_likely: 'Likely', conf_speculative: 'Speculative',
     tab_home: 'Home', tab_search: 'Search', tab_fav: 'Favorites', tab_settings: 'Settings',
     ob_game_title: 'Which game do you play?', ob_platform_title: 'Which platform do you use?',
     ob_sub: 'This will be used to customize your experience', continue: 'Continue', soon: 'Soon',
