@@ -1502,16 +1502,11 @@ async function showOnMap(m, k, i) {
   const want = SNAP_ON ? 'peek' : undefined;
   // переход с текущей шторкой (та же точка — в центр видимой части), затем шторка — в полоску, карта плавно доезжает
   await switchMode(m, () => {
-    const pt = SNAP_ON && visCenter();
+    // карта не двигается: точка уже стоит на том же пикселе, шторка просто уходит в полоску (без доводки камеры)
     const d = data[game];
     if (k === 'p') openPlace(i, false, want);
     else if (k === 'd') openPoint(i, false, want);
     else if (k === 'e' && d.eggs[i]) mapSheet(eggSheet(d.eggs[i], i), want);
-    if (pt) {
-      const cam = { center: camFor([pt.lng, pt.lat], map.getZoom(), visDy('peek')), duration: 320 };
-      map.easeTo(cam); if (ghost) ghost.easeTo(cam);   // запасная доезжает вместе, пока растворяется
-      map.once('moveend', () => { if (lastSwitch?.to.m === mode) lastSwitch.to = { m: mode, ...visNow() }; });
-    }
   });
 }
 // переключение «Реальная карта ⇄ Карта игры»: остаёмся у того же места (выбранного или ближайшего к центру)
@@ -1609,7 +1604,7 @@ function scaleAt(q, Wm) {
   const key = game + ':' + q.lat.toFixed(3) + ',' + q.lon.toFixed(3);
   let sc = scaleCache.get(key);
   if (!sc) { sc = [medScale(q, 600), medScale(q, 12000)]; if (scaleCache.size > 200) scaleCache.clear(); scaleCache.set(key, sc); }
-  const t = Math.min(1, Math.max(0, Math.log(Wm / 600) / Math.log(20)));
+  const t = Math.min(1, Math.max(0, Math.log(Wm / 600) / Math.log(100)));   // 600 м … 60 км — без резкого скачка масштаба
   return sc[0] ** (1 - t) * sc[1] ** t;
 }
 const M2G = (c) => { const fx = (c.lng + 180) / 360, fy = (1 - Math.log(Math.tan(Math.PI / 4 + c.lat * Math.PI / 360)) / Math.PI) / 2; return { x: fx * 32768 - 16384, y: 16384 - fy * 32768 }; };
@@ -1622,8 +1617,8 @@ const llM = (x, m) => (m === 'real' || approx() ? [x.lon, x.lat] : x.gm ? G2M(x.
 // «чтобы не сбивалось»). Карта GTA не повторяет город один в один — пересчёт обратно может найти другую точку,
 // поэтому помним пару «камера до ⇄ камера после» последнего переключения.
 let lastSwitch = null;   // { game, from: {m, pt, zoom}, to: {m, pt, zoom} } — pt: точка в центре видимой части (над шторкой)
-const visNow = () => { const c = visCenter(); return { pt: [c.lng, c.lat], zoom: map.getZoom() }; };
-const nearVis = (a) => { if (!a) return false; const p = map.project(a.pt), q = map.project(visCenter()); return Math.hypot(p.x - q.x, p.y - q.y) < 4 && Math.abs(a.zoom - map.getZoom()) < 0.02; };
+const visNow = () => { const r = refPx(); return { pt: r.ll, px: r.px, zoom: map.getZoom() }; };
+const nearVis = (a) => { if (!a) return false; const p = map.project(a.pt); return Math.hypot(p.x - a.px[0], p.y - a.px[1]) < 4 && Math.abs(a.zoom - map.getZoom()) < 0.02; };
 // Видимая часть карты — над шторкой (Игорь 15.10.2026: «карточка на половину, карта — верхняя треть экрана; переключаю —
 // точка уезжает в центр всего экрана, а не трети»). Высоту шторки берём по её положению (не по анимации).
 function visDy(snapAt) {   // на сколько пикселей центр видимой части выше центра карты (при шторке в положении snapAt)
@@ -1636,23 +1631,30 @@ function visDy(snapAt) {   // на сколько пикселей центр в
   return Math.max(0, H / 2 - Math.max(80, top) / 2);
 }
 // точка экрана в центре видимой части и камера, ставящая заданную точку туда же (сдвиг по Меркатору на dy пикселей)
-const visCenter = () => { const box = map.getContainer(); return map.unproject([box.clientWidth / 2, box.clientHeight / 2 - visDy()]); };
-function camFor(c, zoom, dy) {
-  const y = (1 - Math.log(Math.tan(Math.PI / 4 + c[1] * Math.PI / 360)) / Math.PI) / 2 + dy / (512 * 2 ** zoom);
-  return [c[0], Math.atan(Math.sinh(Math.PI * (1 - 2 * y))) * 180 / Math.PI];
+// Опорный пиксель (Игорь 15.10.2026: «точка, которая кликнута, и карта, как расположена, сохранялась — не скакала»):
+// открытое место, если оно видно над шторкой, иначе центр видимой части. После перехода та же точка — на том же пикселе.
+function refPx() {
+  const box = map.getContainer(), W = box.clientWidth, top = box.clientHeight - 2 * visDy();
+  const p = selected != null ? data[game]?.places[selected] : null, q = p && ll(p);
+  if (q) { const sp = map.project(q); if (sp.x >= 0 && sp.x <= W && sp.y >= 0 && sp.y <= top) return { px: [sp.x, sp.y], ll: q, p }; }
+  const px = [W / 2, top / 2], c = map.unproject(px);
+  return { px, ll: [c.lng, c.lat], p: null };
+}
+function camAt(c, zoom, px) {   // камера, при которой точка c окажется на пикселе px
+  const box = map.getContainer(), k = 512 * 2 ** zoom;
+  const x = (c[0] + 180) / 360 + (box.clientWidth / 2 - px[0]) / k;
+  const y = (1 - Math.log(Math.tan(Math.PI / 4 + c[1] * Math.PI / 360)) / Math.PI) / 2 + (box.clientHeight / 2 - px[1]) / k;
+  return [x * 360 - 180, Math.atan(Math.sinh(Math.PI * (1 - 2 * y))) * 180 / Math.PI];
 }
 // куда встанет карта при переходе в режим m (без побочных эффектов) — общий расчёт для setMode и «запасной» карты.
 // Точка отсчёта — центр видимой части; если там открытое место — его точная пара. Новая камера ставит пересчитанную
 // точку в центр видимой части (с той же шторкой) и сохраняет масштаб по реальным размерам.
-function targetFor(m, dyAfter) {
+function targetFor(m) {
   const d = data[game]; if (!d || !map) return null;
   if (lastSwitch && lastSwitch.game === game && lastSwitch.to.m === mode && lastSwitch.from.m === m && nearVis(lastSwitch.to))
-    return { center: camFor(lastSwitch.from.pt, lastSwitch.from.zoom, dyAfter ?? visDy()), zoom: lastSwitch.from.zoom, sel: selected != null, back: true };
-  const zr = map.getZoom(), dy = dyAfter ?? visDy(), vc = visCenter();
-  // открытое место в центре видимой части (± 60 px) — берём его точную пару «жизнь ⇄ игра»
-  let p = selected != null ? d.places[selected] : null;
-  if (p) { const q = ll(p), s = q && map.project(q), cpx = map.project(vc); if (!s || Math.hypot(s.x - cpx.x, s.y - cpx.y) > 60) p = null; }
-  if (approx()) { const c = p ? [p.lon, p.lat] : [vc.lng, vc.lat]; return { center: camFor(c, zr, dy), zoom: zr, sel: !!p }; }   // «Леонида» — та же география
+    return { center: camAt(lastSwitch.from.pt, lastSwitch.from.zoom, lastSwitch.to.px), zoom: lastSwitch.from.zoom, sel: selected != null, back: true };
+  const zr = map.getZoom(), R = refPx(), px = R.px, p = R.p, vc = { lng: R.ll[0], lat: R.ll[1] };
+  if (approx()) { const c = p ? [p.lon, p.lat] : R.ll; return { center: camAt(c, zr, px), zoom: zr, sel: !!p }; }   // «Леонида» — та же география
   const Wpx = map.getContainer().clientWidth;
   if (m === 'game') {
     const src = p ? { lat: p.lat, lon: p.lon } : { lat: vc.lat, lon: vc.lng };
@@ -1661,7 +1663,7 @@ function targetFor(m, dyAfter) {
     if (!pt0) return null;
     const mpp = realMpp(zr, src.lat), s = scaleAt(src, mpp * Wpx);
     const zoom = clampZ(Math.log2(64 / (mpp * s)), 2.5, 9);
-    return { center: camFor(pt0, zoom, dy), zoom, sel: !!p };
+    return { center: camAt(pt0, zoom, px), zoom, sel: !!p };
   }
   const g = p?.gm ? { x: p.gm[0], y: p.gm[1] } : M2G(vc);
   const cv = p ? null : convert(g, false);
@@ -1674,7 +1676,7 @@ function targetFor(m, dyAfter) {
   for (let it = 0; it < 30; it++) { const mid = (lo + hi) / 2, Wm = Math.exp(mid); if (Wm * scaleAt(q, Wm) < Wg) lo = mid; else hi = mid; }
   const s = scaleAt(q, Math.exp((lo + hi) / 2));
   const zoom = clampZ(Math.log2(EQ * Math.cos(pt0[1] * Math.PI / 180) / (512 * gameUpp(zr) / s)), 8, 18);
-  return { center: camFor(pt0, zoom, dy), zoom, sel: !!p };
+  return { center: camAt(pt0, zoom, px), zoom, sel: !!p };
 }
 export async function setMode(m, cam) {
   if (!map || (m !== 'real' && m !== 'game')) return;
@@ -1738,7 +1740,7 @@ const ghostReady = (m, T) => GHOST_ON && ghost && ghostFor && ghostFor.m === m &
 async function switchMode(m, after, opts) {
   clearTimeout(ghostTimer);
   const before = map && { m: mode, ...visNow() };
-  const T0 = targetFor(m, opts?.dy), ready = ghostReady(m, T0), el = ready && ghostEl();
+  const T0 = targetFor(m), ready = ghostReady(m, T0), el = ready && ghostEl();
   let cam = null;
   if (ready) {
     cam = { center: ghost.getCenter().toArray(), zoom: ghost.getZoom() };
