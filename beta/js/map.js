@@ -385,7 +385,7 @@ const realList = (o) => [o.pr, ...(o.gl || [])].filter(Boolean).map((ph) => asIt
 const pairsOf = {};     // key → [{g, r}] — только пары с одного ракурса (подобраны людьми в gtadb)
 function heroBox(key, pairs, gl, rl, names, o = {}) {
   galNames[key] = names; galleries[`g:${key}`] = gl; galleries[`r:${key}`] = rl;
-  pairsOf[key] = (pairs || []).map((x) => ({ g: asItem(x.g), r: asItem(x.r) }));
+  pairsOf[key] = (pairs || []).map((x) => ({ g: asItem(x.g), r: asItem(x.r), ap: !!x.ap }));
   const P = pairsOf[key];
   const all = gl.length + rl.length > 2
     ? `<button class="mp-allbtn" data-mp="all" data-key="${key}">${IC.grid}<span>${esc(w('allPhotos'))}</span><em>${IC.camera}${rl.length}</em><em>${IC.game}${gl.length}</em><i class="mp-chev">${IC.chevR}</i></button>`
@@ -401,6 +401,7 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
         <span class="cmp-lab r">${IC.camera}<b>${esc(w('real'))}</b></span>
         <div class="cmp-line"><span class="cmp-knob">${IC.chevL}${IC.chevR}</span></div>
         <button class="cmp-full" data-mp="compare" data-key="${key}" data-i="${o.i ?? ''}" aria-label="${esc(w('full'))}" title="${esc(w('full'))}">${IC.expand}</button>
+        ${P[0].ap ? `<span class="mp-approx cmp-approx" title="${esc(w('approxT'))}">${esc(w('approx'))}</span>` : ''}
       </div>
       ${P.length > 1 ? `<div class="cmp-ipairs">${P.map((x, k) => `<button class="${k ? '' : 'on'}" data-mp="ipair" data-key="${key}" data-n="${k}" aria-label="${k + 1}/${P.length}"><img src="${esc(x.g.url)}" alt="" loading="lazy"><img src="${esc(x.r.url)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
       ${all}</div>`;

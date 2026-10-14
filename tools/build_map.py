@@ -246,6 +246,31 @@ def attach_igframes(game, places, eggs):
         print(f"  кадры игры gtadb по названию: {n}")
 
 
+def pair_from_frame(game, places, eggs):
+    """Кадр игры из gtadb и фото из жизни — одна пара с одного ракурса (Игорь 14.10.2026: «где есть фото из GTA, должны быть
+    похожие фото из реальной жизни»). Если главный кадр игры — точка gtadb (Lxxx), у которой есть фото из жизни, а пары нет,
+    карточка показывает их ползунком. Пометка ap=1 — кадр не точно этого места («≈ рядом»).
+    Корень ошибки 14.10.2026: примерные фото подбирались по расстоянию — к кадру дома на сваях пришёл вид на холмы."""
+    lm = json.loads((SRC / "источники" / "gtadb.org (CC BY 4.0)" / f"landmarks_gta{5 if game == 'gta5' else 6}.json").read_text("utf-8"))
+    v = 5 if game == "gta5" else 6
+    n = 0
+    for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
+        pg = x.get("pg") or {}
+        m = re.search(r"/(L\d+),ig\.jpg", str(pg.get("url") or pg.get("file") or ""))
+        if x.get("pairs") or not m:
+            continue
+        gid = m.group(1)
+        it = lm.get(gid)
+        if not it or not it[5] or any(str(t).lower() == "events" or re.fullmatch(r"l\d+", str(t).lower()) for t in it[6]):
+            continue
+        x["pairs"] = [{"g": {"url": f"{ASSETS}map/photos/{v}/{gid},ig.jpg", "credit": f"© Rockstar Games · gtadb.org ({gid})"},
+                       "r": {"url": f"{GTADB_RAW}map/photos/{v}/{gid},rl.jpg", "credit": "gtadb.org and contributors (CC BY 4.0)"},
+                       **({"ap": 1} if pg.get("ap") else {})}]
+        n += 1
+    if n:
+        print(f"  пары из кадра игры gtadb: {n}")
+
+
 def gtadb_fixes(game):
     f = DATA / "правки_вручную.json"
     return (json.loads(f.read_text("utf-8")).get(game) or {}).get("gtadb_fix") or {} if f.exists() else {}
@@ -561,6 +586,7 @@ def build(game, cfg):
     eggs, pts, rep_ = dedupe(places, eggs, pts)
     attach_commons(game, places, eggs)   # после слияния дублей: галерея не должна менять, какое место остаётся
     attach_igframes(game, places, eggs)
+    pair_from_frame(game, places, eggs)
     for q in pts:   # вид 360° точки gtadb — 11-й элемент (после «здесь же»)
         if q[0] in gviews and gviews[q[0]]:
             while len(q) < 10:
