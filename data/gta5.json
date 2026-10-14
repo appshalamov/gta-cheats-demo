@@ -1,0 +1,1514 @@
+{
+ "game": "gta5",
+ "source": "GTA Wiki «Cheats in GTA V», сверено с IGN / Kotaku / Red Bull; номера посчитаны из слов",
+ "updated": "2026-10-14",
+ "cheats": [
+  {
+   "id": "sanchez",
+   "category": "vehicle",
+   "icon": "🏍️",
+   "name": {
+    "ru": "Мотоцикл Sanchez",
+    "en": "Spawn Sanchez"
+   },
+   "desc": {
+    "ru": "Кроссовый мотоцикл — для бездорожья, гор и трюков.",
+    "en": "Dirt bike for off-road, hills and stunts."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "O",
+     "X",
+     "L1",
+     "O",
+     "O",
+     "L1",
+     "O",
+     "R1",
+     "R2",
+     "L2",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "B",
+     "A",
+     "LB",
+     "B",
+     "B",
+     "LB",
+     "B",
+     "RB",
+     "RT",
+     "LT",
+     "LB",
+     "LB"
+    ],
+    "pc": "OFFROAD",
+    "phone": "1-999-633-7623"
+   },
+   "media": null
+  },
+  {
+   "id": "pcj600",
+   "category": "vehicle",
+   "icon": "🏍️",
+   "name": {
+    "ru": "Мотоцикл PCJ-600",
+    "en": "Spawn PCJ-600"
+   },
+   "desc": {
+    "ru": "Быстрый спортбайк для погонь по городу.",
+    "en": "Fast sport bike for city chases."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R1",
+     "→",
+     "←",
+     "→",
+     "R2",
+     "←",
+     "→",
+     "S",
+     "→",
+     "L2",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "RB",
+     "→",
+     "←",
+     "→",
+     "RT",
+     "←",
+     "→",
+     "X",
+     "→",
+     "LT",
+     "LB",
+     "LB"
+    ],
+    "pc": "ROCKET",
+    "phone": "1-999-762-538"
+   },
+   "media": null
+  },
+  {
+   "id": "caddy",
+   "category": "vehicle",
+   "icon": "⛳",
+   "name": {
+    "ru": "Гольф-кар Caddy",
+    "en": "Spawn Caddy"
+   },
+   "desc": {
+    "ru": "Тихий гольф-кар — для смешных роликов и прогулок.",
+    "en": "Golf cart for laughs and slow rides."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "O",
+     "L1",
+     "←",
+     "R1",
+     "L2",
+     "X",
+     "R1",
+     "L1",
+     "O",
+     "X"
+    ],
+    "xbox": [
+     "B",
+     "LB",
+     "←",
+     "RB",
+     "LT",
+     "A",
+     "RB",
+     "LB",
+     "B",
+     "A"
+    ],
+    "pc": "HOLEIN1",
+    "phone": "1-999-465-3461"
+   },
+   "media": null
+  },
+  {
+   "id": "rapidgt",
+   "category": "vehicle",
+   "icon": "🏎️",
+   "name": {
+    "ru": "Спорткар Rapid GT",
+    "en": "Spawn Rapid GT"
+   },
+   "desc": {
+    "ru": "Кабриолет-спорткар с отличным разгоном.",
+    "en": "Convertible sports car with strong acceleration."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R2",
+     "L1",
+     "O",
+     "→",
+     "L1",
+     "R1",
+     "→",
+     "←",
+     "O",
+     "R2"
+    ],
+    "xbox": [
+     "RT",
+     "LB",
+     "B",
+     "→",
+     "LB",
+     "RB",
+     "→",
+     "←",
+     "B",
+     "RT"
+    ],
+    "pc": "RAPIDGT",
+    "phone": "1-999-727-4348"
+   },
+   "media": null
+  },
+  {
+   "id": "comet",
+   "category": "vehicle",
+   "icon": "🏎️",
+   "name": {
+    "ru": "Спорткар Comet",
+    "en": "Spawn Comet"
+   },
+   "desc": {
+    "ru": "Классический спорткар в стиле Porsche 911.",
+    "en": "Classic sports car styled after a 911."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R1",
+     "O",
+     "R2",
+     "→",
+     "L1",
+     "L2",
+     "X",
+     "X",
+     "S",
+     "R1"
+    ],
+    "xbox": [
+     "RB",
+     "B",
+     "RT",
+     "→",
+     "LB",
+     "LT",
+     "A",
+     "A",
+     "X",
+     "RB"
+    ],
+    "pc": "COMET",
+    "phone": "1-999-266-38"
+   },
+   "media": null
+  },
+  {
+   "id": "stretch",
+   "category": "vehicle",
+   "icon": "🚘",
+   "name": {
+    "ru": "Лимузин Stretch",
+    "en": "Spawn Stretch Limo"
+   },
+   "desc": {
+    "ru": "Длинный лимузин — для «звёздных» роликов.",
+    "en": "Stretch limo for celebrity-style rides."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R2",
+     "→",
+     "L2",
+     "←",
+     "←",
+     "R1",
+     "L1",
+     "O",
+     "→"
+    ],
+    "xbox": [
+     "RT",
+     "→",
+     "LT",
+     "←",
+     "←",
+     "RB",
+     "LB",
+     "B",
+     "→"
+    ],
+    "pc": "VINEWOOD",
+    "phone": "1-999-846-396-63"
+   },
+   "media": null
+  },
+  {
+   "id": "trashmaster",
+   "category": "vehicle",
+   "icon": "🚛",
+   "name": {
+    "ru": "Мусоровоз Trashmaster",
+    "en": "Spawn Trashmaster"
+   },
+   "desc": {
+    "ru": "Тяжёлый мусоровоз — таранит всё на пути.",
+    "en": "Heavy garbage truck that rams through traffic."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "O",
+     "R1",
+     "O",
+     "R1",
+     "←",
+     "←",
+     "R1",
+     "L1",
+     "O",
+     "→"
+    ],
+    "xbox": [
+     "B",
+     "RB",
+     "B",
+     "RB",
+     "←",
+     "←",
+     "RB",
+     "LB",
+     "B",
+     "→"
+    ],
+    "pc": "TRASHED",
+    "phone": "1-999-872-7433"
+   },
+   "media": null
+  },
+  {
+   "id": "bmx",
+   "category": "vehicle",
+   "icon": "🚲",
+   "name": {
+    "ru": "Велосипед BMX",
+    "en": "Spawn BMX"
+   },
+   "desc": {
+    "ru": "Трюковой велосипед для прыжков и парков.",
+    "en": "Stunt bike for jumps and skate parks."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "←",
+     "←",
+     "→",
+     "→",
+     "←",
+     "→",
+     "S",
+     "O",
+     "T",
+     "R1",
+     "R2"
+    ],
+    "xbox": [
+     "←",
+     "←",
+     "→",
+     "→",
+     "←",
+     "→",
+     "X",
+     "B",
+     "Y",
+     "RB",
+     "RT"
+    ],
+    "pc": "BANDIT",
+    "phone": "1-999-226-348"
+   },
+   "media": null
+  },
+  {
+   "id": "buzzard",
+   "category": "vehicle",
+   "icon": "🚁",
+   "name": {
+    "ru": "Вертолёт Buzzard",
+    "en": "Spawn Buzzard"
+   },
+   "desc": {
+    "ru": "Боевой вертолёт с пулемётами и ракетами.",
+    "en": "Attack helicopter with miniguns and rockets."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "O",
+     "O",
+     "L1",
+     "O",
+     "O",
+     "O",
+     "L1",
+     "L2",
+     "R1",
+     "T",
+     "O",
+     "T"
+    ],
+    "xbox": [
+     "B",
+     "B",
+     "LB",
+     "B",
+     "B",
+     "B",
+     "LB",
+     "LT",
+     "RB",
+     "Y",
+     "B",
+     "Y"
+    ],
+    "pc": "BUZZOFF",
+    "phone": "1-999-289-9633"
+   },
+   "media": null
+  },
+  {
+   "id": "duster",
+   "category": "vehicle",
+   "icon": "🛩️",
+   "name": {
+    "ru": "Самолёт Duster",
+    "en": "Spawn Crop Duster"
+   },
+   "desc": {
+    "ru": "Кукурузник — медленный, но очень послушный.",
+    "en": "Crop duster plane — slow but easy to fly."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "→",
+     "←",
+     "R1",
+     "R1",
+     "R1",
+     "←",
+     "T",
+     "T",
+     "X",
+     "O",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "→",
+     "←",
+     "RB",
+     "RB",
+     "RB",
+     "←",
+     "Y",
+     "Y",
+     "A",
+     "B",
+     "LB",
+     "LB"
+    ],
+    "pc": "FLYSPRAY",
+    "phone": "1-999-359-777-29"
+   },
+   "media": null
+  },
+  {
+   "id": "mallard",
+   "category": "vehicle",
+   "icon": "🛩️",
+   "name": {
+    "ru": "Трюковой самолёт Mallard",
+    "en": "Spawn Stunt Plane"
+   },
+   "desc": {
+    "ru": "Пилотажный самолёт для бочек и петель.",
+    "en": "Aerobatic plane for rolls and loops."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "O",
+     "→",
+     "L1",
+     "L2",
+     "←",
+     "R1",
+     "L1",
+     "L1",
+     "←",
+     "←",
+     "X",
+     "T"
+    ],
+    "xbox": [
+     "B",
+     "→",
+     "LB",
+     "LT",
+     "←",
+     "RB",
+     "LB",
+     "LB",
+     "←",
+     "←",
+     "A",
+     "Y"
+    ],
+    "pc": "BARNSTORM",
+    "phone": "1-999-227-678-676"
+   },
+   "media": null
+  },
+  {
+   "id": "dodo",
+   "category": "vehicle",
+   "icon": "🛬",
+   "name": {
+    "ru": "Гидроплан Dodo",
+    "en": "Spawn Dodo"
+   },
+   "desc": {
+    "ru": "Самолёт, который садится на воду.",
+    "en": "Seaplane that lands on water."
+   },
+   "note": {
+    "ru": "Только PC и телефон. Нужно открыть: задание Sea Plane.",
+    "en": "PC and phone only. Unlock: Sea Plane."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": "EXTINCT",
+    "phone": "1-999-398-4628"
+   },
+   "media": null
+  },
+  {
+   "id": "duke",
+   "category": "vehicle",
+   "icon": "🚙",
+   "name": {
+    "ru": "Бронемашина Duke O'Death",
+    "en": "Spawn Duke O'Death"
+   },
+   "desc": {
+    "ru": "Бронированный маслкар — почти неуязвим.",
+    "en": "Armored muscle car that shrugs off damage."
+   },
+   "note": {
+    "ru": "Только PC и телефон. Нужно открыть: событие Duel.",
+    "en": "PC and phone only. Unlock: the Duel random event."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": "DEATHCAR",
+    "phone": "1-999-332-842-27"
+   },
+   "media": null
+  },
+  {
+   "id": "kraken",
+   "category": "vehicle",
+   "icon": "🐙",
+   "name": {
+    "ru": "Подлодка Kraken",
+    "en": "Spawn Kraken Sub"
+   },
+   "desc": {
+    "ru": "Мини-субмарина для глубоководных съёмок.",
+    "en": "Mini submarine for deep-sea exploring."
+   },
+   "note": {
+    "ru": "Только PC и телефон. Нужно открыть: испытание Wildlife Photography.",
+    "en": "PC and phone only. Unlock: Wildlife Photography Challenge."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": "BUBBLES",
+    "phone": "1-999-282-2537"
+   },
+   "media": null
+  },
+  {
+   "id": "weapons",
+   "category": "weapon",
+   "icon": "🔫",
+   "name": {
+    "ru": "Оружие и патроны",
+    "en": "Weapons & Ammo"
+   },
+   "desc": {
+    "ru": "Дробовик, РПГ, гранаты, SMG и автомат с патронами.",
+    "en": "Pump shotgun, RPG, grenades, SMG and rifle with ammo."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "T",
+     "R2",
+     "←",
+     "L1",
+     "X",
+     "→",
+     "T",
+     "↓",
+     "S",
+     "L1",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "Y",
+     "RT",
+     "←",
+     "LB",
+     "A",
+     "→",
+     "Y",
+     "↓",
+     "X",
+     "LB",
+     "LB",
+     "LB"
+    ],
+    "pc": "TOOLUP",
+    "phone": "1-999-866-587"
+   },
+   "media": null
+  },
+  {
+   "id": "flaming",
+   "category": "weapon",
+   "icon": "🔥",
+   "name": {
+    "ru": "Огненные пули",
+    "en": "Flaming Bullets"
+   },
+   "desc": {
+    "ru": "Пули поджигают всё, во что попадают.",
+    "en": "Bullets set targets on fire."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "L1",
+     "R1",
+     "S",
+     "R1",
+     "←",
+     "R2",
+     "R1",
+     "←",
+     "S",
+     "→",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "LB",
+     "RB",
+     "X",
+     "RB",
+     "←",
+     "RT",
+     "RB",
+     "←",
+     "X",
+     "→",
+     "LB",
+     "LB"
+    ],
+    "pc": "INCENDIARY",
+    "phone": "1-999-462-363-4279"
+   },
+   "media": null
+  },
+  {
+   "id": "explosive_ammo",
+   "category": "weapon",
+   "icon": "💥",
+   "name": {
+    "ru": "Взрывные пули",
+    "en": "Explosive Ammo"
+   },
+   "desc": {
+    "ru": "Каждое попадание — взрыв.",
+    "en": "Every hit explodes."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "→",
+     "S",
+     "X",
+     "←",
+     "R1",
+     "R2",
+     "←",
+     "→",
+     "→",
+     "L1",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "→",
+     "X",
+     "A",
+     "←",
+     "RB",
+     "RT",
+     "←",
+     "→",
+     "→",
+     "LB",
+     "LB",
+     "LB"
+    ],
+    "pc": "HIGHEX",
+    "phone": "1-999-444-439"
+   },
+   "media": null
+  },
+  {
+   "id": "explosive_melee",
+   "category": "weapon",
+   "icon": "👊",
+   "name": {
+    "ru": "Взрывные удары",
+    "en": "Explosive Punches"
+   },
+   "desc": {
+    "ru": "Удар кулаком отправляет врага в полёт.",
+    "en": "Punches send enemies flying."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "→",
+     "←",
+     "X",
+     "T",
+     "R1",
+     "O",
+     "O",
+     "O",
+     "L2"
+    ],
+    "xbox": [
+     "→",
+     "←",
+     "A",
+     "Y",
+     "RB",
+     "B",
+     "B",
+     "B",
+     "LT"
+    ],
+    "pc": "HOTHANDS",
+    "phone": "1-999-468-426-37"
+   },
+   "media": null
+  },
+  {
+   "id": "slowmo_aim",
+   "category": "weapon",
+   "icon": "🎯",
+   "name": {
+    "ru": "Замедление при прицеливании",
+    "en": "Slow Motion Aim"
+   },
+   "desc": {
+    "ru": "Время замедляется, пока целитесь. До 3 раз — сильнее; 4-й ввод выключает.",
+    "en": "Time slows while aiming. Stack up to 3x; the 4th entry turns it off."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "S",
+     "L2",
+     "R1",
+     "T",
+     "←",
+     "S",
+     "L2",
+     "→",
+     "X"
+    ],
+    "xbox": [
+     "X",
+     "LT",
+     "RB",
+     "Y",
+     "←",
+     "X",
+     "LT",
+     "→",
+     "A"
+    ],
+    "pc": "DEADEYE",
+    "phone": "1-999-332-3393"
+   },
+   "media": null
+  },
+  {
+   "id": "invincible",
+   "category": "player",
+   "icon": "🛡️",
+   "name": {
+    "ru": "Бессмертие",
+    "en": "Invincibility"
+   },
+   "desc": {
+    "ru": "Неуязвимость на 5 минут.",
+    "en": "God mode for 5 minutes."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "→",
+     "X",
+     "→",
+     "←",
+     "→",
+     "R1",
+     "→",
+     "←",
+     "X",
+     "T"
+    ],
+    "xbox": [
+     "→",
+     "A",
+     "→",
+     "←",
+     "→",
+     "RB",
+     "→",
+     "←",
+     "A",
+     "Y"
+    ],
+    "pc": "PAINKILLER",
+    "phone": "1-999-724-654-5537"
+   },
+   "media": null
+  },
+  {
+   "id": "health",
+   "category": "player",
+   "icon": "❤️",
+   "name": {
+    "ru": "Здоровье и броня",
+    "en": "Max Health & Armor"
+   },
+   "desc": {
+    "ru": "Полное здоровье и броня. В машине ещё и чинит её.",
+    "en": "Full health and armor; also repairs your car."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "O",
+     "L1",
+     "T",
+     "R2",
+     "X",
+     "S",
+     "O",
+     "→",
+     "S",
+     "L1",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "B",
+     "LB",
+     "Y",
+     "RT",
+     "A",
+     "X",
+     "B",
+     "→",
+     "X",
+     "LB",
+     "LB",
+     "LB"
+    ],
+    "pc": "TURTLE",
+    "phone": "1-999-887-853"
+   },
+   "media": null
+  },
+  {
+   "id": "parachute",
+   "category": "player",
+   "icon": "🪂",
+   "name": {
+    "ru": "Парашют",
+    "en": "Give Parachute"
+   },
+   "desc": {
+    "ru": "Выдаёт парашют.",
+    "en": "Gives you a parachute."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "←",
+     "→",
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "R2",
+     "←",
+     "←",
+     "→",
+     "L1"
+    ],
+    "xbox": [
+     "←",
+     "→",
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "RT",
+     "←",
+     "←",
+     "→",
+     "LB"
+    ],
+    "pc": "SKYDIVE",
+    "phone": "1-999-759-3483"
+   },
+   "media": null
+  },
+  {
+   "id": "superjump",
+   "category": "player",
+   "icon": "🦘",
+   "name": {
+    "ru": "Суперпрыжок",
+    "en": "Super Jump"
+   },
+   "desc": {
+    "ru": "Прыжок на высоту дома.",
+    "en": "Jump as high as a house."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "←",
+     "←",
+     "T",
+     "T",
+     "→",
+     "→",
+     "←",
+     "→",
+     "S",
+     "R1",
+     "R2"
+    ],
+    "xbox": [
+     "←",
+     "←",
+     "Y",
+     "Y",
+     "→",
+     "→",
+     "←",
+     "→",
+     "X",
+     "RB",
+     "RT"
+    ],
+    "pc": "HOPTOIT",
+    "phone": "1-999-467-8648"
+   },
+   "media": null
+  },
+  {
+   "id": "fastrun",
+   "category": "player",
+   "icon": "🏃",
+   "name": {
+    "ru": "Быстрый бег",
+    "en": "Fast Run"
+   },
+   "desc": {
+    "ru": "Персонаж бегает заметно быстрее.",
+    "en": "Run noticeably faster."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "←",
+     "→",
+     "→",
+     "L2",
+     "L1",
+     "S"
+    ],
+    "xbox": [
+     "Y",
+     "←",
+     "→",
+     "→",
+     "LT",
+     "LB",
+     "X"
+    ],
+    "pc": "CATCHME",
+    "phone": "1-999-228-2463"
+   },
+   "media": null
+  },
+  {
+   "id": "fastswim",
+   "category": "player",
+   "icon": "🏊",
+   "name": {
+    "ru": "Быстрое плавание",
+    "en": "Fast Swim"
+   },
+   "desc": {
+    "ru": "Плавает быстрее любого катера.",
+    "en": "Swim faster than a jet ski."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "←",
+     "←",
+     "L1",
+     "→",
+     "→",
+     "R2",
+     "←",
+     "L2",
+     "→"
+    ],
+    "xbox": [
+     "←",
+     "←",
+     "LB",
+     "→",
+     "→",
+     "RT",
+     "←",
+     "LT",
+     "→"
+    ],
+    "pc": "GOTGILLS",
+    "phone": "1-999-468-445-57"
+   },
+   "media": null
+  },
+  {
+   "id": "recharge",
+   "category": "player",
+   "icon": "⚡",
+   "name": {
+    "ru": "Заряд способности",
+    "en": "Recharge Special Ability"
+   },
+   "desc": {
+    "ru": "Полностью заряжает особую способность героя.",
+    "en": "Refills your character's special ability."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "X",
+     "X",
+     "S",
+     "R1",
+     "L1",
+     "X",
+     "→",
+     "←",
+     "X"
+    ],
+    "xbox": [
+     "A",
+     "A",
+     "X",
+     "RB",
+     "LB",
+     "A",
+     "→",
+     "←",
+     "A"
+    ],
+    "pc": "POWERUP",
+    "phone": "1-999-769-3787"
+   },
+   "media": null
+  },
+  {
+   "id": "skyfall",
+   "category": "player",
+   "icon": "🌤️",
+   "name": {
+    "ru": "Прыжок с неба",
+    "en": "Skyfall"
+   },
+   "desc": {
+    "ru": "Забрасывает героя высоко в небо — свободное падение.",
+    "en": "Launches you into the sky for a free fall."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "←",
+     "→",
+     "←",
+     "→",
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "←",
+     "→",
+     "←",
+     "→"
+    ],
+    "xbox": [
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "←",
+     "→",
+     "←",
+     "→",
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "←",
+     "→",
+     "←",
+     "→"
+    ],
+    "pc": "SKYFALL",
+    "phone": "1-999-759-3255"
+   },
+   "media": null
+  },
+  {
+   "id": "drunk",
+   "category": "player",
+   "icon": "🍺",
+   "name": {
+    "ru": "Пьяный режим",
+    "en": "Drunk Mode"
+   },
+   "desc": {
+    "ru": "Походка и камера как после бара.",
+    "en": "Wobbly walk and camera."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "→",
+     "→",
+     "←",
+     "→",
+     "S",
+     "O",
+     "←"
+    ],
+    "xbox": [
+     "Y",
+     "→",
+     "→",
+     "←",
+     "→",
+     "X",
+     "B",
+     "←"
+    ],
+    "pc": "LIQUOR",
+    "phone": "1-999-547-867"
+   },
+   "media": null
+  },
+  {
+   "id": "wanted_up",
+   "category": "player",
+   "icon": "🚨",
+   "name": {
+    "ru": "Повысить розыск",
+    "en": "Raise Wanted Level"
+   },
+   "desc": {
+    "ru": "+1 звезда розыска за каждый ввод.",
+    "en": "+1 wanted star per use."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R1",
+     "R1",
+     "O",
+     "R2",
+     "←",
+     "→",
+     "←",
+     "→",
+     "←",
+     "→"
+    ],
+    "xbox": [
+     "RB",
+     "RB",
+     "B",
+     "RT",
+     "←",
+     "→",
+     "←",
+     "→",
+     "←",
+     "→"
+    ],
+    "pc": "FUGITIVE",
+    "phone": "1-999-384-484-83"
+   },
+   "media": null
+  },
+  {
+   "id": "wanted_down",
+   "category": "player",
+   "icon": "👮",
+   "name": {
+    "ru": "Снизить розыск",
+    "en": "Lower Wanted Level"
+   },
+   "desc": {
+    "ru": "−1 звезда розыска за каждый ввод.",
+    "en": "−1 wanted star per use."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R1",
+     "R1",
+     "O",
+     "R2",
+     "→",
+     "←",
+     "→",
+     "←",
+     "→",
+     "←"
+    ],
+    "xbox": [
+     "RB",
+     "RB",
+     "B",
+     "RT",
+     "→",
+     "←",
+     "→",
+     "←",
+     "→",
+     "←"
+    ],
+    "pc": "LAWYERUP",
+    "phone": "1-999-529-937-87"
+   },
+   "media": null
+  },
+  {
+   "id": "weather",
+   "category": "world",
+   "icon": "🌦️",
+   "name": {
+    "ru": "Смена погоды",
+    "en": "Change Weather"
+   },
+   "desc": {
+    "ru": "Перебирает погоду: солнце, смог, дождь, гроза, снег.",
+    "en": "Cycles weather: sun, smog, rain, storm, snow."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R2",
+     "X",
+     "L1",
+     "L1",
+     "L2",
+     "L2",
+     "L2",
+     "S"
+    ],
+    "xbox": [
+     "RT",
+     "A",
+     "LB",
+     "LB",
+     "LT",
+     "LT",
+     "LT",
+     "X"
+    ],
+    "pc": "MAKEITRAIN",
+    "phone": "1-999-625-348-7246"
+   },
+   "media": null
+  },
+  {
+   "id": "gravity",
+   "category": "world",
+   "icon": "🌙",
+   "name": {
+    "ru": "Лунная гравитация",
+    "en": "Moon Gravity"
+   },
+   "desc": {
+    "ru": "Низкая гравитация — машины и люди летают.",
+    "en": "Low gravity — cars and people float."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "←",
+     "←",
+     "L1",
+     "R1",
+     "L1",
+     "→",
+     "←",
+     "L1",
+     "←"
+    ],
+    "xbox": [
+     "←",
+     "←",
+     "LB",
+     "RB",
+     "LB",
+     "→",
+     "←",
+     "LB",
+     "←"
+    ],
+    "pc": "FLOATER",
+    "phone": "1-999-356-2837"
+   },
+   "media": null
+  },
+  {
+   "id": "slidey",
+   "category": "world",
+   "icon": "🧊",
+   "name": {
+    "ru": "Скользкие машины",
+    "en": "Slidey Cars"
+   },
+   "desc": {
+    "ru": "Машины скользят, как по льду.",
+    "en": "Cars slide like on ice."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "R1",
+     "R1",
+     "←",
+     "R1",
+     "L1",
+     "R2",
+     "L1"
+    ],
+    "xbox": [
+     "Y",
+     "RB",
+     "RB",
+     "←",
+     "RB",
+     "LB",
+     "RT",
+     "LB"
+    ],
+    "pc": "SNOWDAY",
+    "phone": "1-999-766-9329"
+   },
+   "media": null
+  },
+  {
+   "id": "slowmo",
+   "category": "world",
+   "icon": "⏱️",
+   "name": {
+    "ru": "Замедление времени",
+    "en": "Slow Motion"
+   },
+   "desc": {
+    "ru": "Весь мир замедляется. До 3 раз — сильнее; 4-й ввод выключает.",
+    "en": "Slows the whole world. Stack up to 3x; the 4th entry turns it off."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "←",
+     "→",
+     "→",
+     "S",
+     "R2",
+     "R1"
+    ],
+    "xbox": [
+     "Y",
+     "←",
+     "→",
+     "→",
+     "X",
+     "RT",
+     "RB"
+    ],
+    "pc": "SLOWMO",
+    "phone": "1-999-756-966"
+   },
+   "media": null
+  },
+  {
+   "id": "cellphone",
+   "category": "world",
+   "icon": "📱",
+   "name": {
+    "ru": "Чёрный телефон",
+    "en": "Black Cellphone"
+   },
+   "desc": {
+    "ru": "Меняет телефон на чёрный и вызывает взрыв над головой.",
+    "en": "Black phone skin plus an explosion overhead."
+   },
+   "note": {
+    "ru": "Только через телефон.",
+    "en": "Phone only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "1-999-367-3767"
+   },
+   "media": null
+  },
+  {
+   "id": "director",
+   "category": "world",
+   "icon": "🎬",
+   "name": {
+    "ru": "Режиссёрский режим",
+    "en": "Director Mode"
+   },
+   "desc": {
+    "ru": "Открывает режиссёрский режим для съёмки роликов.",
+    "en": "Opens Director Mode for making videos."
+   },
+   "note": {
+    "ru": "Только через телефон.",
+    "en": "Phone only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "1-999-578-253-68"
+   },
+   "media": null
+  }
+ ]
+}

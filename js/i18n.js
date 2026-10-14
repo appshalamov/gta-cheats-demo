@@ -1,0 +1,102 @@
+// Тексты интерфейса. Язык выбирается в Настройках.
+
+const T = {
+  ru: {
+    tab_home: 'Главная', tab_search: 'Поиск', tab_fav: 'Избранное', tab_settings: 'Настройки',
+    ob_game_title: 'Во что вы играете?', ob_platform_title: 'На какой платформе?',
+    ob_sub: 'Настроим чит-коды под вас', continue: 'Продолжить', soon: 'Скоро',
+    forecast: 'Прогноз', release_in: 'До выхода', days: 'дн.', released: 'Игра вышла!',
+    forecast_banner: 'Подтверждённых кодов GTA 6 пока нет. Здесь — коды GTA 5, которые, скорее всего, сохранятся. В день релиза проверим каждый.',
+    confidence: 'Вероятность',
+    phone_code: 'Телефон', pc_code: 'Код на ПК', type_on_pc: 'Нажмите ~ и введите код',
+    phone_only: 'Только через телефон', dial: 'Наберите в телефоне героя',
+    no_code_yet: 'Код появится после выхода игры',
+    search_ph: 'Поиск чит-кода', search_hint: 'Например:', search_empty: 'Ничего не нашлось',
+    fav_empty_t: 'Пока пусто', fav_empty: 'Нажмите ♡ на любом чите — он появится здесь.',
+    play: 'Озвучить код', stop: 'Стоп', share: 'Поделиться', copy: 'Скопировать', copied: 'Скопировано',
+    all_platforms: 'Все платформы', how_works: 'Что делает', video_demo: 'Видео-демонстрация',
+    video_soon: 'Видео скоро',
+    st_game: 'Игра', st_platform: 'Платформа', st_theme: 'Тема', st_lang: 'Язык',
+    th_dark: 'Тёмная', th_light: 'Светлая', th_auto: 'Авто',
+    st_pro: 'PRO-доступ', st_pro_on: 'PRO активен', st_get_pro: 'Открыть все читы',
+    st_howto: 'Как вводить читы', st_share_app: 'Поделиться приложением', st_rate: 'Оценить приложение',
+    st_reset: 'Сбросить демо (заново онбординг)', st_about: 'О приложении', st_haptic: 'Виброотклик',
+    about_text: 'Неофициальный справочник чит-кодов. Не связан с Rockstar Games и Take-Two Interactive. Все торговые марки принадлежат их владельцам. Приложение не изменяет игру.',
+    select_game: 'Выберите игру', select_platform: 'Выберите платформу',
+    pw_title: 'Все читы без ограничений', pw_f1: 'Все 36 чит-кодов GTA 5', pw_f2: 'GTA 6 — коды в день релиза',
+    pw_f3: 'Озвучка кодов «без рук»', pw_f4: 'Без рекламы, работает офлайн',
+    pw_trial: '3 дня бесплатно, затем', pw_cta: 'Попробовать бесплатно', pw_cta2: 'Продолжить',
+    pw_restore: 'Восстановить', pw_terms: 'Условия', pw_privacy: 'Конфиденциальность',
+    pw_demo: 'Демо-версия: оплата не списывается.', pro_unlocked: 'PRO открыт (демо)',
+    locked: 'PRO', rated: 'Спасибо! ⭐️',
+    howto_ps: 'Во время игры (не на паузе) быстро нажмите кнопки по порядку. Если код сработал — внизу экрана появится надпись «Cheat activated».',
+    howto_xbox: 'Во время игры (не на паузе) быстро нажмите кнопки по порядку. Если код сработал — появится надпись «Cheat activated».',
+    howto_pc: 'Нажмите клавишу ~ (тильда), чтобы открыть строку ввода, наберите код и нажмите Enter.',
+    howto_phone: 'Откройте телефон героя (стрелка ↑), зайдите в «Контакты», откройте клавиатуру и наберите номер.',
+    howto_warn: 'Читы работают только в сюжетном режиме, отключают достижения до перезагрузки и не сохраняются.',
+    share_text: 'Чит-код', open_app: 'Все коды — в приложении',
+    install_t: 'Установите на экран «Домой»', install_ios: 'Нажмите «Поделиться» ⬆︎ → «На экран Домой»',
+    install_btn: 'Установить', later: 'Позже',
+  },
+  en: {
+    tab_home: 'Home', tab_search: 'Search', tab_fav: 'Favorites', tab_settings: 'Settings',
+    ob_game_title: 'Which game do you play?', ob_platform_title: 'Which platform do you use?',
+    ob_sub: 'This will be used to customize your experience', continue: 'Continue', soon: 'Soon',
+    forecast: 'Forecast', release_in: 'Release in', days: 'days', released: 'Out now!',
+    forecast_banner: 'No GTA 6 codes are confirmed yet. These are GTA 5 codes likely to return. We will verify each one on launch day.',
+    confidence: 'Likelihood',
+    phone_code: 'Phone code', pc_code: 'PC code', type_on_pc: 'Press ~ and type the code',
+    phone_only: 'Phone only', dial: 'Dial on your character\'s phone',
+    no_code_yet: 'Code will appear after launch',
+    search_ph: 'Search cheat code', search_hint: 'Try:', search_empty: 'Nothing found',
+    fav_empty_t: 'No favorites yet', fav_empty: 'Tap ♡ on any cheat to save it here.',
+    play: 'Play Cheat Code', stop: 'Stop', share: 'Share', copy: 'Copy', copied: 'Copied',
+    all_platforms: 'All platforms', how_works: 'What it does', video_demo: 'Video demo',
+    video_soon: 'Video coming soon',
+    st_game: 'Game', st_platform: 'Platform', st_theme: 'Theme', st_lang: 'Language',
+    th_dark: 'Dark', th_light: 'Light', th_auto: 'Auto',
+    st_pro: 'PRO-доступ', st_pro_on: 'PRO active', st_get_pro: 'Unlock all cheats',
+    st_howto: 'How to enter cheats', st_share_app: 'Share the app', st_rate: 'Rate the app',
+    st_reset: 'Reset demo (replay onboarding)', st_about: 'About', st_haptic: 'Haptics',
+    about_text: 'Unofficial cheat code reference. Not affiliated with Rockstar Games or Take-Two Interactive. All trademarks belong to their owners. The app does not modify the game.',
+    select_game: 'Select Game', select_platform: 'Select Platform',
+    pw_title: 'Unlock every cheat', pw_f1: 'All 36 GTA 5 cheat codes', pw_f2: 'GTA 6 codes on launch day',
+    pw_f3: 'Hands-free voice codes', pw_f4: 'No ads, works offline',
+    pw_trial: '3-day free trial, then', pw_cta: 'Start free trial', pw_cta2: 'Continue',
+    pw_restore: 'Restore', pw_terms: 'Terms', pw_privacy: 'Privacy',
+    pw_demo: 'Demo build: no payment is taken.', pro_unlocked: 'PRO unlocked (demo)',
+    locked: 'PRO', rated: 'Thanks! ⭐️',
+    howto_ps: 'During gameplay (not paused) quickly press the buttons in order. A "Cheat activated" message confirms it.',
+    howto_xbox: 'During gameplay (not paused) quickly press the buttons in order. A "Cheat activated" message confirms it.',
+    howto_pc: 'Press the ~ (tilde) key to open the cheat box, type the code and press Enter.',
+    howto_phone: 'Open your phone (D-pad Up), go to Contacts, open the keypad and dial the number.',
+    howto_warn: 'Cheats work in Story Mode only, disable achievements until reload and are not saved.',
+    share_text: 'Cheat code', open_app: 'All codes in the app',
+    install_t: 'Add to Home Screen', install_ios: 'Tap Share ⬆︎ → "Add to Home Screen"',
+    install_btn: 'Install', later: 'Later',
+  },
+};
+
+// Как произносить кнопки при озвучке
+export const SPEAK = {
+  ru: {
+    O: 'круг', X: 'крест', T: 'треугольник', S: 'квадрат',
+    '←': 'влево', '→': 'вправо', '↑': 'вверх', '↓': 'вниз',
+    L1: 'эл один', R1: 'эр один', L2: 'эл два', R2: 'эр два',
+    LB: 'эл би', RB: 'эр би', LT: 'эл ти', RT: 'эр ти',
+    xA: 'эй', xB: 'би', xX: 'икс', xY: 'уай',
+  },
+  en: {
+    O: 'circle', X: 'cross', T: 'triangle', S: 'square',
+    '←': 'left', '→': 'right', '↑': 'up', '↓': 'down',
+    L1: 'L1', R1: 'R1', L2: 'L2', R2: 'R2', LB: 'LB', RB: 'RB', LT: 'LT', RT: 'RT',
+    xA: 'A', xB: 'B', xX: 'X', xY: 'Y',
+  },
+};
+
+let lang = 'ru';
+export function setLang(l) { lang = T[l] ? l : 'ru'; document.documentElement.lang = lang; }
+export function getLang() { return lang; }
+export function t(key) { return (T[lang] && T[lang][key]) ?? T.ru[key] ?? key; }
+// Текст из данных: {ru, en} или строка
+export function L(v) { if (v == null) return ''; return typeof v === 'string' ? v : (v[lang] ?? v.ru ?? v.en ?? ''); }
