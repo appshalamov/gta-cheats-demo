@@ -161,6 +161,13 @@ const W = {
   whereGame: { en: 'Where in the game', ru: 'Где в игре', es: 'Dónde en el juego', pt: 'Onde no jogo', fr: 'Où dans le jeu', de: 'Wo im Spiel', it: 'Dove nel gioco', tr: 'Oyunda nerede', uk: 'Де в грі', pl: 'Gdzie w grze', zh: '游戏中的位置', ja: 'ゲーム内の場所', ko: '게임 속 위치' },
   openGtaMap: { en: 'Open GTA map', ru: 'Открыть карту GTA', es: 'Abrir mapa de GTA', pt: 'Abrir mapa do GTA', fr: 'Ouvrir la carte GTA', de: 'GTA-Karte öffnen', it: 'Apri mappa GTA', tr: 'GTA haritasını aç', uk: 'Відкрити мапу GTA', pl: 'Otwórz mapę GTA', zh: '打开 GTA 地图', ja: 'GTAマップを開く', ko: 'GTA 지도 열기' },
   approxMap: { en: '≈ GTA 6 map inspired by Florida · exact map on release, Nov 19', ru: '≈ Карта GTA 6 по мотивам Флориды · точная — в день выхода, 19 ноября', es: '≈ Mapa de GTA 6 inspirado en Florida · el exacto, el 19 de noviembre', pt: '≈ Mapa do GTA 6 inspirado na Flórida · o exato em 19 de novembro', fr: '≈ Carte de GTA 6 inspirée de la Floride · la vraie le 19 novembre', de: '≈ GTA-6-Karte nach Florida · die genaue zum Release am 19. Nov.', it: '≈ Mappa di GTA 6 ispirata alla Florida · quella esatta il 19 novembre', tr: '≈ Florida esinli GTA 6 haritası · kesini 19 Kasım’da', uk: '≈ Мапа GTA 6 за мотивами Флориди · точна — 19 листопада', pl: '≈ Mapa GTA 6 na wzór Florydy · dokładna 19 listopada', zh: '≈ 以佛罗里达为原型的 GTA 6 地图 · 精确版 11月19日', ja: '≈ フロリダをもとにしたGTA 6マップ · 正確版は11月19日', ko: '≈ 플로리다 기반 GTA 6 지도 · 정확한 지도는 11월 19일' },
+  glTitle: { en: 'Map layers', ru: 'Слои карты', es: 'Capas del mapa', pt: 'Camadas do mapa', fr: 'Calques', de: 'Kartenebenen', it: 'Livelli mappa', tr: 'Harita katmanları', uk: 'Шари мапи', pl: 'Warstwy mapy', zh: '地图图层', ja: 'マップレイヤー', ko: '지도 레이어' },
+  glMark: { en: 'Mark as collected', ru: 'Отметить: собрано', es: 'Marcar como recogido', pt: 'Marcar como coletado', fr: 'Marquer comme récupéré', de: 'Als gesammelt markieren', it: 'Segna come raccolto', tr: 'Toplandı olarak işaretle', uk: 'Позначити: зібрано', pl: 'Oznacz jako zebrane', zh: '标记为已收集', ja: '収集済みにする', ko: '수집 완료로 표시' },
+  glGot: { en: 'Collected', ru: 'Собрано', es: 'Recogido', pt: 'Coletado', fr: 'Récupéré', de: 'Gesammelt', it: 'Raccolto', tr: 'Toplandı', uk: 'Зібрано', pl: 'Zebrane', zh: '已收集', ja: '収集済み', ko: '수집 완료' },
+  glAll: { en: 'Show all', ru: 'Показать все', es: 'Mostrar todo', pt: 'Mostrar tudo', fr: 'Tout afficher', de: 'Alle zeigen', it: 'Mostra tutti', tr: 'Tümünü göster', uk: 'Показати всі', pl: 'Pokaż wszystkie', zh: '全部显示', ja: 'すべて表示', ko: '모두 보기' },
+  glNone: { en: 'Hide all', ru: 'Скрыть все', es: 'Ocultar todo', pt: 'Ocultar tudo', fr: 'Tout masquer', de: 'Alle ausblenden', it: 'Nascondi tutti', tr: 'Tümünü gizle', uk: 'Сховати всі', pl: 'Ukryj wszystkie', zh: '全部隐藏', ja: 'すべて非表示', ko: '모두 숨기기' },
+  glSrc: { en: 'Coordinates', ru: 'Координаты', es: 'Coordenadas', pt: 'Coordenadas', fr: 'Coordonnées', de: 'Koordinaten', it: 'Coordinate', tr: 'Koordinatlar', uk: 'Координати', pl: 'Współrzędne', zh: '坐标', ja: '座標', ko: '좌표' },
+  glSrcAll: { en: 'Coordinate sources', ru: 'Источники координат', es: 'Fuentes de coordenadas', pt: 'Fontes das coordenadas', fr: 'Sources des coordonnées', de: 'Quellen der Koordinaten', it: 'Fonti delle coordinate', tr: 'Koordinat kaynakları', uk: 'Джерела координат', pl: 'Źródła współrzędnych', zh: '坐标来源', ja: '座標の出典', ko: '좌표 출처' },
   soon6: { en: 'The exact spot on the GTA 6 map — on release day, Nov 19', ru: 'Точное место на карте GTA 6 — в день выхода, 19 ноября', es: 'El lugar exacto en el mapa de GTA 6, el día del lanzamiento: 19 de noviembre', pt: 'O local exato no mapa do GTA 6 — no lançamento, 19 de novembro', fr: 'L’endroit exact sur la carte de GTA 6 — à la sortie, le 19 novembre', de: 'Die genaue Stelle auf der GTA-6-Karte — zum Release am 19. November', it: 'Il punto esatto sulla mappa di GTA 6 — all’uscita, il 19 novembre', tr: 'GTA 6 haritasındaki tam yer — çıkış günü, 19 Kasım', uk: 'Точне місце на мапі GTA 6 — у день виходу, 19 листопада', pl: 'Dokładne miejsce na mapie GTA 6 — w dniu premiery, 19 listopada', zh: 'GTA 6 地图上的确切位置——11月19日发售当天公布', ja: 'GTA 6マップでの正確な場所は発売日の11月19日に', ko: 'GTA 6 지도의 정확한 위치는 출시일인 11월 19일에' },
   approxHere: { en: '≈ approximately here', ru: '≈ примерно здесь', es: '≈ aproximadamente aquí', pt: '≈ aproximadamente aqui', fr: '≈ à peu près ici', de: '≈ ungefähr hier', it: '≈ più o meno qui', tr: '≈ yaklaşık burada', uk: '≈ приблизно тут', pl: '≈ mniej więcej tutaj', zh: '≈ 大致在这里', ja: '≈ だいたいこの辺り', ko: '≈ 대략 여기' },
   nextTo: { en: 'next to', ru: 'рядом', es: 'junto a', pt: 'perto de', fr: 'à côté de', de: 'neben', it: 'accanto a', tr: 'yanında', uk: 'поруч', pl: 'obok', zh: '旁边', ja: '近く', ko: '옆' },
@@ -1007,6 +1014,7 @@ function geo(kind) {
   if (kind === 'places') return fc((d?.places || []).map((p, i) => at(ll(p), { i, cf: p.cf, egg: (p.eggs || []).length ? 1 : 0, est: est(p), gc: p.gc || '' })).filter(Boolean));
   if (kind === 'eggs') return fc((d?.eggs || []).map((e, i) => at(ll(e), { i, cf: e.cf, est: est(e) })).filter(Boolean));
   if (kind === 'gtadb') return fc(show.gtadb && gtadb[game] ? gtadb[game].points.map((p, i) => at(llPt(p), { i, gc: p[12] || '' })).filter(Boolean) : []);
+  if (kind === 'gl') return fc(glShown() && glData ? glData.map((p, i) => (glOn.has(p.k) ? pt(...G2M(p.x, p.y), { i, k: p.k, got: glGot.has(glId(p)) ? 1 : 0 }) : null)).filter(Boolean) : []);
   if (kind === 'sel') {
     const p = selected != null && d?.places[selected];
     if (p) return fc([at(ll(p), {})].filter(Boolean));
@@ -1016,6 +1024,123 @@ function geo(kind) {
   return fc([]);
 }
 
+// ───── общая карта GTA: пасхалки и секреты, коллекции сюжета, GTA Online (Игорь 14.10.2026: «общая интерактивная карта GTA,
+// совпадения с жизнью — одна из функций; всё из GTA Online»). Бета, карта игры GTA 5. Данные — data/map/layers/*.json,
+// по файлу на лицензию (собирает «Слои карты GTA — исходники/инструменты/собрать_слои.py»), координаты — мир игры.
+const GL_ON = BETA;
+const GL_FILES = ['gta5_ent.json', 'gta5_dh.json', 'gtao_rc.json'];
+const R = (ru, en) => ({ ru, en });
+const GL = {   // слой → группа, значок, название, сколько в наборе, что это
+  ufo: { g: 'eggs', ic: '👽', t: R('НЛО', 'UFOs') },
+  ghost: { g: 'eggs', ic: '👻', t: R('Призрак', 'Ghost') },
+  killer: { g: 'eggs', ic: '💀', t: R('Убийца бесконечности', 'Infinity Killer'), n: 8 },
+  monster: { g: 'eggs', ic: '🐙', t: R('Морское чудовище', 'Sea monster') },
+  wreck: { g: 'eggs', ic: '⚓', t: R('Затонувшее', 'Sunken wrecks') },
+  secret: { g: 'eggs', ic: '🔍', t: R('Тайные места', 'Secret spots') },
+  ship: { g: 'story', ic: '🚀', t: R('Части корабля', 'Spaceship Parts'), n: 50, d: R('Собери все 50 для Омеги — в награду машина Space Docker.', 'Collect all 50 for Omega to unlock the Space Docker.') },
+  letter: { g: 'story', ic: '📜', t: R('Обрывки письма', 'Letter Scraps'), n: 50, d: R('Все 50 складываются в письмо и раскрывают тайну убийцы.', 'All 50 piece together a letter that reveals a killer.') },
+  nuke: { g: 'story', ic: '☢️', t: R('Ядерные отходы', 'Nuclear Waste'), n: 30, d: R('Бочки с отходами на морском дне.', 'Waste barrels on the seabed.') },
+  sub: { g: 'story', ic: '🔩', t: R('Детали подлодки', 'Submarine Pieces'), n: 30, d: R('Детали на морском дне.', 'Pieces on the seabed.') },
+  cash: { g: 'story', ic: '💰', t: R('Тайники с деньгами', 'Hidden Packages'), n: 13, d: R('Кейсы с деньгами на морском дне.', 'Cash cases on the seabed.') },
+  epsilon: { g: 'story', ic: '🔺', t: R('Брошюры Эпсилон', 'Epsilon Tracts'), n: 10, d: R('Брошюры культа Эпсилон.', 'Epsilon Program tracts.') },
+  epscar: { g: 'story', ic: '🚘', t: R('Машины Эпсилон', 'Epsilon Cars'), n: 5, d: R('Машины для заданий Эпсилон.', 'Cars for the Epsilon missions.') },
+  monkey: { g: 'story', ic: '🐵', t: R('Мозаики обезьян', 'Monkey Mosaics'), n: 50, d: R('Граффити-мозаики: сфотографируй все. Только в изданиях 2014+ (PS4/Xbox One и новее, ПК).', 'Mosaic graffiti — photograph them all. 2014+ editions only (PS4/Xbox One and later, PC).') },
+  peyote: { g: 'story', ic: '🌵', t: R('Пейот', 'Peyote Plants'), n: 27, d: R('Съешь — и станешь животным. Только в изданиях 2014+.', 'Eat one to turn into an animal. 2014+ editions only.') },
+  sale: { g: 'story', ic: '🪧', t: R('Таблички «Продаётся»', 'For Sale Signs'), n: 15, d: R('Таблички на склонах — часть побочного задания.', 'Signs on the hillsides — part of a side mission.') },
+  stunt: { g: 'story', ic: '🏁', t: R('Трюковые прыжки', 'Stunt Jumps'), n: 50, d: R('Прыжок на машине — засчитывается при чистом приземлении.', 'A car jump — counts if you land it cleanly.') },
+  bridge: { g: 'story', ic: '🌉', t: R('Пролёты под мостами', 'Under the Bridge'), n: 50, d: R('Пролети на самолёте под мостом.', 'Fly a plane under the bridge.') },
+  knife: { g: 'story', ic: '✈️', t: R('Полёты «на ребре»', 'Knife Flights'), n: 15, d: R('Пролёт между препятствиями с самолётом на крыле. Точки примерные.', 'Fly between obstacles with the plane on its side. Approximate spots.') },
+  figure: { g: 'online', ic: '🧸', t: R('Экшн-фигурки', 'Action Figures'), n: 100, d: R('Коллекционные фигурки в GTA Online.', 'Collectible figures in GTA Online.') },
+  jammer: { g: 'online', ic: '📡', t: R('Глушилки сигнала', 'Signal Jammers'), n: 50, d: R('Уничтожь все 50 в GTA Online.', 'Destroy all 50 in GTA Online.') },
+};
+const GL_GROUPS = [['eggs', R('Пасхалки и секреты', 'Easter eggs & secrets')], ['story', R('Сюжет GTA V — коллекции', 'GTA V Story — collectibles')], ['online', R('GTA Online', 'GTA Online')]];
+const GL_EGG = {   // свои короткие описания (без чужих текстов)
+  ufo_desert: R('Летающая тарелка над пустыней — сцена игры, появляется не всегда.', 'A flying saucer over the desert — an in-game scene that does not always appear.'),
+  ufo_zancudo: R('НЛО над базой Форт-Занкудо — сцена игры, появляется не всегда.', 'A UFO over Fort Zancudo — an in-game scene that does not always appear.'),
+  ufo_sunken: R('Затонувшая летающая тарелка на дне — нужен акваланг или подлодка.', 'A sunken flying saucer on the seabed — bring scuba gear or a sub.'),
+  ghost: R('Призрак Джолин Крэнли-Эванс на горе Гордо — ночью, с 23:00 до 0:00 по игровому времени.', 'The ghost of Jolene Cranley-Evans on Mount Gordo — at night, 23:00 to 00:00 in-game time.'),
+  sea_monster: R('Останки морского чудовища на дне.', 'Remains of a sea monster on the seabed.'),
+  infinity: R('Тело жертвы «Убийцы бесконечности» на дне — одна из самых мрачных тайн GTA V.', 'A victim of the Infinity Killer on the seabed — one of GTA V\'s darkest mysteries.'),
+  ww2_plane: R('Затонувший самолёт времён Второй мировой.', 'A sunken World War II plane.'),
+  ww2_tank: R('Затонувший танк времён Второй мировой.', 'A sunken World War II tank.'),
+  sunken_sub: R('Затонувшая подводная лодка.', 'A sunken submarine.'),
+  cargo_ship: R('Затонувший сухогруз.', 'A sunken cargo ship.'),
+  ancient_ship: R('Затонувший старинный корабль.', 'A sunken ancient ship.'),
+  plane_alamo: R('Самолёт на дне озера Аламо-Си.', 'A plane at the bottom of the Alamo Sea.'),
+  plane: R('Затонувший самолёт.', 'A sunken plane.'),
+  missiles: R('Затонувшие ракеты.', 'Sunken missiles.'),
+  hatch: R('Подводный люк — одна из загадок морского дна.', 'An underwater hatch — one of the seabed mysteries.'),
+  armored: R('Затонувший бронированный фургон.', 'A sunken armored van.'),
+  train_crash: R('Мост с потерпевшим крушение поездом — сцена появляется по ходу сюжета.', 'A bridge with a crashed train — the scene appears during the story.'),
+  bulker: R('Затонувший сухогруз — сцена появляется по ходу сюжета.', 'A sunken bulk carrier — the scene appears during the story.'),
+  altruist: R('Лагерь культа альтруистов в горах.', 'The Altruist cult camp in the mountains.'),
+  hippy: R('Лагерь хиппи.', 'A hippie camp.'),
+  plane_yard: R('Кладбище самолётов.', 'An airplane graveyard.'),
+  stab_city: R('Стэб-Сити — трейлерный лагерь у озера.', 'Stab City — a trailer camp by the lake.'),
+  mineshaft: R('Заброшенная шахта.', 'An abandoned mineshaft.'),
+  grave: R('Одинокая могила в глуши.', 'A lonely grave in the wilderness.'),
+};
+let glData = null, glSrc = [], glLoading = null;
+function loadSet(k, def) { try { const v = JSON.parse(localStorage.getItem(k)); return new Set(Array.isArray(v) ? v : def); } catch { return new Set(def); } }
+function saveSet(k, set) { try { localStorage.setItem(k, JSON.stringify([...set])); } catch { } }
+const glOn = loadSet('secret.gl.on', ['ufo', 'ghost', 'killer', 'monster', 'wreck', 'secret']);
+const glGot = loadSet('secret.gl.got', []);
+const glId = (p) => `${p.k}-${p.n || p.key}-${Math.round(p.x)}_${Math.round(p.y)}`;
+const glShown = () => GL_ON && game === 'gta5' && tilesGame();
+function loadGL() {
+  if (glData || glLoading) return glLoading || Promise.resolve(glData);
+  glLoading = Promise.all(GL_FILES.map((f) => fetch(`data/map/layers/${f}`).then((r) => r.json()).catch(() => null))).then((files) => {
+    glData = []; glSrc = [];
+    files.forEach((fl) => { if (!fl) return; const si = glSrc.push({ licence: fl.licence, credit: fl.credit }) - 1; for (const [x, y, k, n, key] of fl.points) if (GL[k]) glData.push({ x, y, k, n, key, src: si }); });
+    glLoading = null;
+    if (map?.getSource('gl')) map.getSource('gl').setData(geo('gl'));
+    renderChips();
+    return glData;
+  });
+  return glLoading;
+}
+function glImage(k) {
+  const S = 64, c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d');
+  g.beginPath(); g.arc(S / 2, S / 2, 25, 0, Math.PI * 2); g.fillStyle = 'rgba(16,18,22,.92)'; g.fill();
+  g.lineWidth = 3; g.strokeStyle = GL[k].g === 'eggs' ? COLORS.egg : GL[k].g === 'online' ? '#ff9a5c' : '#ffffff'; g.stroke();
+  g.font = '28px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(GL[k].ic, S / 2, S / 2 + 2);
+  return g.getImageData(0, 0, S, S);
+}
+function addGLLayer(z) {
+  if (!glShown()) return;
+  for (const k of Object.keys(GL)) if (!map.hasImage('gl-' + k)) map.addImage('gl-' + k, glImage(k), { pixelRatio: 2 });
+  if (!map.getSource('gl')) map.addSource('gl', { type: 'geojson', data: geo('gl') });
+  if (!map.getLayer('gl')) map.addLayer({ id: 'gl', type: 'symbol', source: 'gl',
+    layout: { 'icon-image': ['concat', 'gl-', ['get', 'k']], 'icon-size': z(0.55, 0.95), 'icon-allow-overlap': true, 'icon-ignore-placement': true },
+    paint: { 'icon-opacity': ['case', ['==', ['get', 'got'], 1], 0.35, 1] } });
+  if (!glData) loadGL();
+}
+function glSheet(i) {
+  const p = glData[i], L = GL[p.k], id = glId(p), got = glGot.has(id);
+  const coll = L.g !== 'eggs' || p.k === 'killer';
+  const done = coll && L.n ? glData.filter((q) => q.k === p.k && glGot.has(glId(q))).length : 0;
+  const s = glSrc[p.src] || {};
+  const desc = p.key && GL_EGG[p.key] ? tr(GL_EGG[p.key]) : L.d ? tr(L.d) : '';
+  return `<div class="gl-card">
+    <div class="gl-head"><span class="gl-ic">${L.ic}</span><div><small>${esc(tr(GL_GROUPS.find((x) => x[0] === L.g)[1]))}</small>
+      <h2>${esc(tr(L.t))}${p.n ? ` <em>№ ${p.n}${L.n ? ` / ${L.n}` : ''}</em>` : p.k === 'epscar' && p.key ? ` <em>${esc(p.key)}</em>` : ''}</h2></div></div>
+    ${desc ? `<p class="mp-text">${esc(desc)}</p>` : ''}
+    ${coll ? `<button class="gl-got${got ? ' on' : ''}" data-mp="gl-got" data-i="${i}">${got ? '✓ ' : ''}${esc(w(got ? 'glGot' : 'glMark'))}</button>
+      ${L.n ? `<div class="gl-prog"><i style="width:${Math.round(done / L.n * 100)}%"></i><span>${done} / ${L.n}</span></div>` : ''}` : ''}
+    <p class="gl-src">${esc(w('glSrc'))}: ${esc(s.credit || '')} · ${esc(s.licence || '')}</p></div>`;
+}
+function glPanel() {
+  const cnt = (k) => (glData || []).filter((q) => q.k === k).length;
+  const gotN = (k) => (glData || []).filter((q) => q.k === k && glGot.has(glId(q))).length;
+  return `<h2 class="pick-t">${esc(w('glTitle'))}</h2>` + GL_GROUPS.map(([g, title]) => `<div class="gl-grp"><div class="gl-grp-h"><b>${esc(tr(title))}</b>
+      <button data-mp="gl-all" data-v="${g}">${esc(w(Object.keys(GL).filter((k) => GL[k].g === g).every((k) => glOn.has(k)) ? 'glNone' : 'glAll'))}</button></div>
+    ${Object.keys(GL).filter((k) => GL[k].g === g).map((k) => `<button class="gl-row${glOn.has(k) ? ' on' : ''}" data-mp="gl-toggle" data-v="${k}" aria-pressed="${glOn.has(k)}">
+      <span class="gl-ic">${GL[k].ic}</span><span class="gl-row-t">${esc(tr(GL[k].t))}</span>
+      <em>${GL[k].g !== 'eggs' && GL[k].n ? `${gotN(k)} / ${GL[k].n}` : cnt(k)}</em><i class="gl-sw"></i></button>`).join('')}</div>`).join('')
+    + `<p class="gl-src">${esc(w('glSrcAll'))}: ${glSrc.map((s) => `${esc(s.credit)} (${esc(s.licence)})`).join(' · ')}</p>`;
+}
 // ───── метки на карте игры — как значки (blips) в GTA: белый силуэт с тёмной обводкой ─────
 const BLIP = {
   w: 'M2 7h18v4h-8.5l-1.2 2.2H8.6L7.4 19H3.2l1.6-8H2z',                                             // пистолет — оружие
@@ -1087,6 +1212,7 @@ function addGameLayers(z) {
   if (!map.getLayer('places-egg')) map.addLayer({ id: 'places-egg', type: 'circle', source: 'places', filter: ['==', ['get', 'egg'], 1],
     paint: { 'circle-radius': z(3, 4.5), 'circle-color': COLORS.egg, 'circle-stroke-width': 1.5, 'circle-stroke-color': '#000', 'circle-translate': [9, -9] } });
   if (!map.getLayer('eggs')) sym('eggs', 'eggs', 'blip-egg', z(0.62, 1.05));
+  addGLLayer(z);
   if (!map.getLayer('sel')) map.addLayer({ id: 'sel', type: 'circle', source: 'sel',
     paint: { 'circle-radius': z(13, 19), 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' } });
   if (!map.getSource('me')) {
@@ -1163,7 +1289,7 @@ function cancelTap() { if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; 
 function pickAt(e) {
   if (!map) return;
   const r = 14, { x, y } = e.point;
-  const layers = ['eggs', 'places', 'gtadb'].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, 'visibility') !== 'none');
+  const layers = ['eggs', 'places', 'gl', 'gtadb'].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, 'visibility') !== 'none');
   const hits = map.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]], { layers });
   if (!hits.length) {   // пустое место: шторка на ступень ниже — половина/весь экран → полоска → закрыть
     const s = SNAP_ON && ctx.sheetSnap?.();
@@ -1179,6 +1305,7 @@ function pickAt(e) {
   ctx.haptic();
   if (l === 'eggs') mapSheet(eggSheet(data[game].eggs[i], i));
   else if (l === 'places') openPlace(i, false);
+  else if (l === 'gl') mapSheet(glSheet(i));
   else openPoint(i, false);
 }
 function chooserSheet(hits) {
@@ -1187,6 +1314,7 @@ function chooserSheet(hits) {
     let img = '', title = '', sub = '', ic = IC.pin;
     if (l === 'places') { const p = data[game].places[i]; img = (p.pg || p.pr || {}).thumb || (p.pg || p.pr || {}).file || ''; title = p.n; sub = p.g; }
     else if (l === 'eggs') { const e = data[game].eggs[i]; img = (e.pg || e.pr || {}).thumb || (e.pg || e.pr || {}).file || ''; title = txt(e.t); sub = w('egg'); ic = IC.egg; }
+    else if (l === 'gl') { const p = glData[i], L = GL[p.k]; title = tr(L.t) + (p.n ? ` № ${p.n}` : ''); sub = p.key && GL_EGG[p.key] ? tr(GL_EGG[p.key]) : tr(GL_GROUPS.find((x) => x[0] === L.g)[1]); ic = `<span class="gl-ic">${L.ic}</span>`; }
     else { const q = gtadb[game].points[i]; const ph = gtadbPhotos(q, gtadb[game].game); img = (ph.pg || ph.pr || {}).file || ''; title = q[3].split(',')[0]; sub = q[1] || q[2]; }
     return `<button class="mp-ch" data-mp="pick" data-l="${l}" data-i="${i}">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : `<span class="mp-ch-ic">${ic}</span>`}<span><b>${esc(title)}</b><small>${IC.game}${esc(sub || '')}</small></span></button>`;
   };
@@ -1211,7 +1339,7 @@ function dist(f, e) {
 function renderChips() {
   const d = data[game]; if (!d) return;
   const n = { places: d.places.length, eggs: d.eggs.length, gtadb: gtadb[game]?.points.length ?? '' };
-  document.getElementById('map-chips').innerHTML = [
+  document.getElementById('map-chips').innerHTML = (glShown() ? `<button class="mchip mchip-gl" data-mp="gl-panel">⚙️ ${esc(w('glTitle'))} <em>${glOn.size}</em></button>` : '') + [
     ['places', t('map_places'), COLORS.confirmed], ['eggs', t('map_eggs'), COLORS.egg], ['gtadb', t('map_all'), COLORS.gtadb],
   ].map(([k, label, c]) => `<button class="mchip${show[k] ? ' on' : ''}" data-action="map-layer" data-v="${k}" style="--c:${c}"><i></i>${label}${n[k] !== '' ? ` <em>${n[k]}</em>` : ''}</button>`).join('')
     + (BETA ? Object.entries(CATS).map(([k, c]) => {
@@ -1259,7 +1387,24 @@ document.addEventListener('click', (e) => {
   else if (a === 'all') { ctx?.haptic(); openAll(el.dataset.key, 'r'); }
   else if (a === 'viewer-close') closeViewer();
   else if (a === 'peekup') { ctx?.haptic(); ctx.setSnap?.('half'); }
-  else if (a === 'pick') { const i = +el.dataset.i, l = el.dataset.l; backToChooser = true; if (l === 'places') openPlace(i, false); else if (l === 'eggs') mapSheet(eggSheet(data[game].eggs[i], i)); else openPoint(i, false); }
+  else if (a === 'pick') { const i = +el.dataset.i, l = el.dataset.l; backToChooser = true; if (l === 'places') openPlace(i, false); else if (l === 'eggs') mapSheet(eggSheet(data[game].eggs[i], i)); else if (l === 'gl') mapSheet(glSheet(i)); else openPoint(i, false); }
+  else if (a === 'gl-panel') { ctx?.haptic(); loadGL().then(() => ctx.openSheet(glPanel(), 'sheet-map', null, snapOpt('half'))); }
+  else if (a === 'gl-toggle' || a === 'gl-all') {
+    ctx?.haptic();
+    const keys = a === 'gl-all' ? Object.keys(GL).filter((k) => GL[k].g === el.dataset.v) : [el.dataset.v];
+    const on = a === 'gl-all' ? !keys.every((k) => glOn.has(k)) : !glOn.has(keys[0]);
+    keys.forEach((k) => (on ? glOn.add(k) : glOn.delete(k))); saveSet('secret.gl.on', glOn);
+    map?.getSource('gl')?.setData(geo('gl'));
+    const body = document.getElementById('sheet-body'); if (body) { const st = body.scrollTop; body.innerHTML = glPanel(); body.scrollTop = st; }
+    renderChips();
+  }
+  else if (a === 'gl-got') {
+    ctx?.haptic();
+    const i = +el.dataset.i, id = glId(glData[i]);
+    glGot.has(id) ? glGot.delete(id) : glGot.add(id); saveSet('secret.gl.got', glGot);
+    map?.getSource('gl')?.setData(geo('gl'));
+    const body = document.getElementById('sheet-body'); if (body) body.innerHTML = glSheet(i);
+  }
   else if (a === 'fav') {
     e.stopPropagation(); ctx?.haptic?.();
     const on = !!ctx?.toggleFav?.(favKey(el.dataset.kind, el.dataset.id), { kind: el.dataset.kind, game, id: el.dataset.id });

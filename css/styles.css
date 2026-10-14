@@ -877,3 +877,30 @@ body[data-sheet="half"] .map-fabs, body[data-sheet="full"] .map-fabs { opacity: 
 .mp-peek .mp-chev { transform: rotate(-90deg); color: var(--text-2); }
 .mp-peek .mp-chev { display: grid; place-items: center; width: 22px; height: 22px; flex: none; }
 .mp-peek .mp-chev svg { width: 18px; height: 18px; }
+
+/* Общая карта GTA (бета): слои пасхалок, коллекций и GTA Online — карточка точки и панель «Слои карты» */
+.mchip-gl { --c: #ff9a5c; font-weight: 700; }
+.gl-head { display: flex; gap: 12px; align-items: center; margin: 4px 0 10px; }
+.gl-head small { display: block; font-size: 12px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .04em; }
+.gl-head h2 { margin: 2px 0 0; font-size: 20px; line-height: 1.2; }
+.gl-head h2 em { font-style: normal; color: var(--text-2); font-weight: 700; font-size: 15px; }
+.gl-ic { display: inline-grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 50%; background: rgba(16,18,22,.92); border: 2px solid var(--line-2); font-size: 22px; line-height: 1; }
+.mp-ch .gl-ic { width: 40px; height: 40px; font-size: 20px; }
+.gl-got { width: 100%; min-height: 46px; margin: 6px 0 10px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--card); color: var(--text); font-weight: 700; font-size: 15px; }
+.gl-got.on { background: color-mix(in srgb, #22c55e 22%, var(--card)); border-color: #22c55e; color: #86efac; }
+.gl-prog { position: relative; height: 22px; border-radius: 11px; background: var(--card); overflow: hidden; margin-bottom: 12px; }
+.gl-prog i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #22c55e, #86efac); }
+.gl-prog span { position: relative; display: block; text-align: center; font-size: 12.5px; font-weight: 800; line-height: 22px; }
+.gl-src { font-size: 11.5px; color: var(--text-2); line-height: 1.4; margin: 6px 0 4px; overflow-wrap: anywhere; }
+.gl-grp { margin: 0 0 14px; }
+.gl-grp-h { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 6px; }
+.gl-grp-h b { font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-2); }
+.gl-grp-h button { background: none; border: 0; color: var(--accent); font-weight: 700; font-size: 13.5px; padding: 6px 0; }
+.gl-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 54px; padding: 6px 4px; background: none; border: 0; border-bottom: 1px solid var(--line-2); color: var(--text); text-align: left; }
+.gl-row .gl-ic { width: 38px; height: 38px; font-size: 19px; }
+.gl-row-t { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; }
+.gl-row em { font-style: normal; color: var(--text-2); font-size: 13px; font-weight: 700; }
+.gl-sw { position: relative; width: 42px; height: 26px; flex: none; border-radius: 13px; background: var(--line-2); transition: background .2s; }
+.gl-sw::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .2s; }
+.gl-row.on .gl-sw { background: var(--accent); }
+.gl-row.on .gl-sw::after { transform: translateX(16px); }
