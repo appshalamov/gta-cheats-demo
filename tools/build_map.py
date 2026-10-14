@@ -81,6 +81,22 @@ def region_gate(game, places, eggs):
                          f"или внесите в «вне_региона», если это законная отсылка:\n  " + "\n  ".join(bad))
 
 
+def attach_approx(game, places, eggs):
+    """Примерные фото (данные/фото_примерные.json, выбраны агентами по просьбе Игоря 14.10.2026): только там, где своих нет.
+    Помечаются ap=1 — в карточке подпись «≈ рядом» (снято поблизости, не точно это место)."""
+    f = DATA / "фото_примерные.json"
+    sel = (json.loads(f.read_text("utf-8")) if f.exists() else {}).get(game) or {}
+    n = 0
+    for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
+        s = sel.get(x["id"]) or {}
+        if s.get("game") and not (x.get("pg") or x.get("pairs") or x.get("gg")):
+            x["pg"] = {"url": s["game"]["url"], "credit": s["game"]["credit"], "ap": 1}; n += 1
+        if s.get("real") and not (x.get("pr") or x.get("pairs") or x.get("gl")):
+            x["pr"] = {"url": s["real"]["url"], "thumb": s["real"].get("thumb") or s["real"]["url"], "credit": s["real"]["credit"], "ap": 1}; n += 1
+    if n:
+        print(f"  примерных фото: {n}")
+
+
 def gtadb_fixes(game):
     f = DATA / "правки_вручную.json"
     return (json.loads(f.read_text("utf-8")).get(game) or {}).get("gtadb_fix") or {} if f.exists() else {}
@@ -317,17 +333,20 @@ def build(game, cfg):
     # Пары «кадр игры + фото из жизни» с одного ракурса (их подбирали люди в gtadb) — только они идут в «Сравнить»
     raw = lambda gid, k: f"https://raw.githubusercontent.com/rolux/gtadb.org/main/map/photos/{5 if game == 'gta5' else 6}/{gid},{k}.jpg"
     lay = {x["id"]: x for x in layer if x.get("ig") and x.get("rl") and not x.get("leak_tag")}
-    def pairs_for(lat, lon, names, own=""):
+    def pairs_for(lat, lon, names, own="", wide=False):
+        # своя привязка gtadb — всегда; соседние пары — с общим словом в названии в 120 м (район/пляж/парк/природа — 1,5 км).
+        # 14.10.2026: при 60 м уточнение точки на 3–6 м отрезало пары у Del Perro Pier.
         ids = [own] if own in lay else []
-        for x in lay.values():
-            if len(ids) >= 4:
+        rad = 1500 if wide else 120
+        for x in sorted(lay.values(), key=lambda x: meters((lat, lon), (x["lat"], x["lon"]))):
+            if len(ids) >= 4 or meters((lat, lon), (x["lat"], x["lon"])) > rad:
                 break
-            if x["id"] not in ids and meters((lat, lon), (x["lat"], x["lon"])) <= 60 and toks(x["name"], x["real"]) & toks(*names):
+            if x["id"] not in ids and toks(x["name"], x["real"]) & toks(*names):
                 ids.append(x["id"])
         return [{"g": {"url": raw(i, "ig"), "credit": f"© Rockstar Games · gtadb.org ({i})"},
                  "r": {"url": raw(i, "rl"), "credit": "gtadb.org and contributors (CC BY 4.0)"}} for i in ids]
     for pl in places:
-        pr = pairs_for(pl["lat"], pl["lon"], (pl["g"], pl["n"]), pl.get("_gtadb", ""))
+        pr = pairs_for(pl["lat"], pl["lon"], (pl["g"], pl["n"]), pl.get("_gtadb", ""), pl.get("c") in ("neighborhood", "beach", "park", "nature"))
         if pr:
             pl["pairs"] = pr
     for e in eggs:
@@ -335,6 +354,7 @@ def build(game, cfg):
         if pr:
             e["pairs"] = pr
     region_gate(game, places, eggs)
+    attach_approx(game, places, eggs)
     eggs, pts, rep_ = dedupe(places, eggs, pts)
     for q in pts:   # вид 360° точки gtadb — 11-й элемент (после «здесь же»)
         if q[0] in gviews and gviews[q[0]]:

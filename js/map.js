@@ -27,6 +27,9 @@ const W = {
   back:   { en: 'Back', ru: 'Назад', es: 'Atrás', pt: 'Voltar', fr: 'Retour', de: 'Zurück', it: 'Indietro', tr: 'Geri', uk: 'Назад', pl: 'Wstecz', zh: '返回', ja: '戻る', ko: '뒤로' },
   close:  { en: 'Close', ru: 'Закрыть', es: 'Cerrar', pt: 'Fechar', fr: 'Fermer', de: 'Schließen', it: 'Chiudi', tr: 'Kapat', uk: 'Закрити', pl: 'Zamknij', zh: '关闭', ja: '閉じる', ko: '닫기' },
   vhint:  { en: 'Swipe ↔ to switch · ↓ to close', ru: 'Листайте ↔ разделы · ↓ закрыть', es: 'Desliza ↔ para cambiar · ↓ para cerrar', pt: 'Deslize ↔ para trocar · ↓ para fechar', fr: 'Glissez ↔ pour changer · ↓ pour fermer', de: 'Wischen ↔ wechseln · ↓ schließen', it: 'Scorri ↔ per cambiare · ↓ per chiudere', tr: '↔ kaydır değiştir · ↓ kapat', uk: 'Гортайте ↔ розділи · ↓ закрити', pl: 'Przesuń ↔ zmiana · ↓ zamknij', zh: '左右滑动切换 · 下滑关闭', ja: '左右にスワイプで切替 · 下で閉じる', ko: '좌우로 넘기기 · 아래로 닫기' },
+  approx: { en: '≈ nearby', ru: '≈ рядом', es: '≈ cerca', pt: '≈ perto', fr: '≈ à côté', de: '≈ in der Nähe', it: '≈ vicino', tr: '≈ yakında', uk: '≈ поруч', pl: '≈ w pobliżu', zh: '≈ 附近', ja: '≈ 近く', ko: '≈ 근처' },
+  approxT: { en: 'Approximate photo: taken nearby, not exactly this spot', ru: 'Примерное фото: снято рядом, не точно это место', es: 'Foto aproximada: tomada cerca, no exactamente aquí', pt: 'Foto aproximada: tirada perto, não exatamente aqui', fr: 'Photo approximative : prise à proximité', de: 'Ungefähres Foto: in der Nähe aufgenommen', it: 'Foto approssimativa: scattata nelle vicinanze', tr: 'Yaklaşık fotoğraf: yakında çekildi', uk: 'Приблизне фото: знято поруч, не точно тут', pl: 'Zdjęcie przybliżone: zrobione w pobliżu', zh: '近似照片：在附近拍摄', ja: '参考写真：近くで撮影', ko: '참고 사진: 근처에서 촬영' },
+  noPhoto: { en: 'No photo yet', ru: 'Фото пока нет', es: 'Aún sin foto', pt: 'Ainda sem foto', fr: 'Pas encore de photo', de: 'Noch kein Foto', it: 'Ancora nessuna foto', tr: 'Henüz fotoğraf yok', uk: 'Фото поки немає', pl: 'Brak zdjęcia', zh: '暂无照片', ja: '写真はまだありません', ko: '아직 사진 없음' },
   nearby: { en: 'Nearby', ru: 'Рядом', es: 'Cerca', pt: 'Perto', fr: 'À proximité', de: 'In der Nähe', it: 'Nelle vicinanze', tr: 'Yakında', uk: 'Поруч', pl: 'W pobliżu', zh: '附近', ja: '近く', ko: '근처' },
   full:   { en: 'Full screen', ru: 'На весь экран', es: 'Pantalla completa', pt: 'Tela cheia', fr: 'Plein écran', de: 'Vollbild', it: 'Schermo intero', tr: 'Tam ekran', uk: 'На весь екран', pl: 'Pełny ekran', zh: '全屏', ja: '全画面', ko: '전체 화면' },
   allPhotos: { en: 'All photos', ru: 'Все фото', es: 'Todas las fotos', pt: 'Todas as fotos', fr: 'Toutes les photos', de: 'Alle Fotos', it: 'Tutte le foto', tr: 'Tüm fotoğraflar', uk: 'Усі фото', pl: 'Wszystkie zdjęcia', zh: '全部照片', ja: 'すべての写真', ko: '모든 사진' },
@@ -238,7 +241,7 @@ const galNames = {};    // 'p12' → {g: имя в игре, r: имя в жиз
 const placeKey = (p) => `${game}:${p.id}`;
 function asItem(ph) {
   const url = ph.url || ph.file;
-  return { url, thumb: ph.thumb || url, credit: ph.credit || '' };
+  return { url, thumb: ph.thumb || url, credit: ph.credit || '', ap: !!ph.ap };
 }
 const gameList = (o) => [o.pg, ...(o.gg || [])].filter(Boolean).map((ph) => asItem(ph));
 const realList = (o) => [o.pr, ...(o.gl || [])].filter(Boolean).map((ph) => asItem(ph));
@@ -270,9 +273,9 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
     const icon = kind === 'g' ? IC.game : IC.camera, label = w(kind === 'g' ? 'game' : 'real');
     if (!ph && kind === 'r' && o.pano)   // нет фото из жизни — плитка ведёт в Street View на это место
       return `<a class="mp-shot empty r mp-shot-360" href="${o.pano}" target="_blank" rel="noopener"><span class="mp-shot-ic">${IC.pano}</span><small>${esc(w('look'))}</small></a>`;
-    if (!ph) return `<div class="mp-shot empty ${kind}"><span class="mp-shot-ic">${icon}</span></div>`;
+    if (!ph) return `<div class="mp-shot empty ${kind}"><span class="mp-shot-ic">${icon}</span><small>${esc(w('noPhoto'))}</small></div>`;
     const act = `data-mp="view" data-ref="${kind}:${key}" data-n="0" data-i="${o.i ?? ''}"`;
-    return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}" alt="${esc(label)}" loading="lazy" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span><span class="mp-shot-exp" aria-hidden="true">${IC.expand}</span></button>`;
+    return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}" alt="${esc(label)}" loading="lazy" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span>${ph.ap ? `<span class="mp-approx" title="${esc(w('approxT'))}">${esc(w('approx'))}</span>` : ''}<span class="mp-shot-exp" aria-hidden="true">${IC.expand}</span></button>`;
   };
   const mid = `<span class="mp-vs">${o.egg ? IC.egg : IC.swap}</span>`;
   return `<div class="mp-media-box" data-key="${key}"><div class="mp-hero">${tile(cov[0], 'g')}${tile(cov[1], 'r')}${mid}</div>${all}</div>`;
@@ -286,7 +289,7 @@ function placeSheet(p, i) {
     ${heroBox('p' + i, p.pairs, gameList(p), realList(p), { g: p.g, r: p.n }, { pano: panoLink(p.lat, p.lon, p.view) })}
     <div class="mp-names">
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(p.g)}</b>${p.r ? `<small>${esc(p.r)}</small>` : ''}</div></div>
-      <div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(p.n)}</b>${p.a ? `<small>${esc(p.a)}</small>` : ''}</div></div>
+      <a class="mp-nm r mp-nm-link" href="${mapsLink(p.lat, p.lon, p.n)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(p.n)}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(p.n)}</b>${p.a ? `<small>${esc(p.a)}</small>` : ''}</div><span class="mp-nm-go">${IC.nav}</span></a>
     </div>
     <div class="mp-picto">
       <span class="mp-pic">${IC[ck]}<small>${esc(w(ck))}</small></span>
@@ -349,10 +352,10 @@ function gtadbSheet(p, g, i) {
     ${heroBox('d' + i, ph.pg && ph.pr ? [{ g: ph.pg, r: ph.pr }] : [], gameList(ph), realList(ph), { g: name || district || id, r: real.split(',')[0] })}
     <div class="mp-names">
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(name || district || id)}</b>${name && district ? `<small>${esc(district)}</small>` : ''}</div></div>
-      <div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(real.split(',')[0])}</b><small>${esc(real.split(',').slice(1).join(',').trim())}</small></div></div>
+      <a class="mp-nm r mp-nm-link" href="${mapsLink(lat, lon, real)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(real.split(',')[0])}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(real.split(',')[0])}</b><small>${esc(real.split(',').slice(1).join(',').trim())}</small></div><span class="mp-nm-go">${IC.nav}</span></a>
     </div>
     <div class="mp-picto"><span class="mp-pic">${IC.other}<small>${esc(type || w('other'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel({ lat, lon })}</small></span>` : ''}</div>
-    ${(p[9] || []).length ? `<div class="mp-also"><small>${esc(w('also'))}</small>${p[9].map((x) => `<span>${IC.game}${esc(x)}</span>`).join('')}</div>` : ''}
+    ${(p[9] || []).length ? `<div class="mp-also"><small>${esc(w('also'))}</small><span class="mp-also-list">${p[9].map(esc).join(' · ')}</span></div>` : ''}
     ${actions(lat, lon, real, `${name || district || id} → ${real.split(',')[0]}`, '', p[10] || null)}
     <div class="mp-src">${IC.link}<a href="https://map.gtadb.org/#${g},${esc(id)}" target="_blank" rel="noopener">gtadb.org</a></div>
     <p class="d-note">${t('map_gtadb_credit')}</p>`;
@@ -580,7 +583,7 @@ function renderViewer(anim = '') {
     body = `<div class="mpv-stage" id="mpv-stage"><img src="${esc(ph.url)}" alt="" draggable="false">
         ${n > 0 ? `<button class="mpv-arr l" data-mp="viewer-step" data-d="-1" aria-label="‹">${IC.chevL}</button>` : ''}
         ${n < list.length - 1 ? `<button class="mpv-arr r" data-mp="viewer-step" data-d="1" aria-label="›">${IC.chevR}</button>` : ''}</div>
-      <p class="mpv-credit">${esc(ph.credit || '')}</p>`;
+      <p class="mpv-credit">${ph.ap ? `<b class="mpv-approx">${esc(w('approxT'))}</b> · ` : ''}${esc(ph.credit || '')}</p>`;
   } else {
     const lab = { cmp: [IC.swap, w('compare'), P.length > 1 ? P.length : ''], r: [IC.camera, w('real'), R.length], g: [IC.game, w('game'), G.length] };
     head = `<div class="mpv-ttl"><b>${IC.game}<span>${esc(names.g || '')}</span></b><small>${esc(names.r || '')}</small></div>`;
@@ -702,6 +705,7 @@ function bindViewerGestures(el) {
   }, { passive: false });
   const end = (e) => {
     const g = vg; vg = null;
+    if (g && viewer && !g.mode && g.stage && e.type === 'touchend' && e.timeStamp - g.t0 < 350) { setCmpX(g.stage, g.x0); return; }   // тап по фото — ползунок сюда
     if (!g || !viewer || !g.mode || g.mode === 'native' || g.mode === 'slider') return;
     const panel = el.querySelector('.mpv-panel'), body = el.querySelector('.mpv-body');
     const dt = Math.max(1, e.timeStamp - g.t0), vx = g.dx / dt, vy = g.dy / dt;
