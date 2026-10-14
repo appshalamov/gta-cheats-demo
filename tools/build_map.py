@@ -236,6 +236,26 @@ def build(game, cfg):
     pts = [[p["id"], p.get("name") or "", p.get("district") or p.get("region") or "", p.get("real") or "",
             num(p["lat"]), num(p["lon"]), p.get("type") or "", 1 if p.get("ig") else 0, 1 if p.get("rl") else 0] for p in layer
            if not p.get("leak_tag") and num(p.get("lat")) is not None]
+    # Пары «кадр игры + фото из жизни» с одного ракурса (их подбирали люди в gtadb) — только они идут в «Сравнить»
+    raw = lambda gid, k: f"https://raw.githubusercontent.com/rolux/gtadb.org/main/map/photos/{5 if game == 'gta5' else 6}/{gid},{k}.jpg"
+    lay = {x["id"]: x for x in layer if x.get("ig") and x.get("rl") and not x.get("leak_tag")}
+    def pairs_for(lat, lon, names, own=""):
+        ids = [own] if own in lay else []
+        for x in lay.values():
+            if len(ids) >= 4:
+                break
+            if x["id"] not in ids and meters((lat, lon), (x["lat"], x["lon"])) <= 60 and toks(x["name"], x["real"]) & toks(*names):
+                ids.append(x["id"])
+        return [{"g": {"url": raw(i, "ig"), "credit": f"© Rockstar Games · gtadb.org ({i})"},
+                 "r": {"url": raw(i, "rl"), "credit": "gtadb.org and contributors (CC BY 4.0)"}} for i in ids]
+    for pl in places:
+        pr = pairs_for(pl["lat"], pl["lon"], (pl["g"], pl["n"]), pl.get("_gtadb", ""))
+        if pr:
+            pl["pairs"] = pr
+    for e in eggs:
+        pr = pairs_for(e["lat"], e["lon"], (e["t"].get("en"), e.get("p")))
+        if pr:
+            e["pairs"] = pr
     eggs, pts, rep_ = dedupe(places, eggs, pts)
     for pl in places:
         pl.pop("_gtadb", None)
@@ -243,7 +263,7 @@ def build(game, cfg):
             "source": pf.name if pf else None, "places": places, "eggs": eggs}
     (OUT / f"{game}.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), "utf-8")
     (OUT / f"gtadb_{game}.json").write_text(json.dumps({"game": cfg["gtadb"], "points": pts}, ensure_ascii=False, separators=(",", ":")), "utf-8")
-    print(f"{game}: мест {len(places)} ({pf.name if pf else '—'}), пасхалок отдельно {len(eggs)}, точек gtadb {len(pts)} · без дублей: {rep_}")
+    print(f"{game}: мест {len(places)} ({pf.name if pf else '—'}), с парой для сравнения {sum(1 for x in places if x.get('pairs'))}, пасхалок отдельно {len(eggs)}, точек gtadb {len(pts)} · без дублей: {rep_}")
 
 
 def main():

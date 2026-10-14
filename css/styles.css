@@ -628,3 +628,32 @@ body.in-ob #onboarding { display: flex; }
 .mp-ch small svg { width: 13px; height: 13px; flex: none; }
 #mp-viewer { background: #000; }
 .mpv-tabs button { white-space: nowrap; flex: none; }
+
+/* ───── карта: «Все фото» отдельным режимом, пары для сравнения ───── */
+.mp-allbtn { width: 100%; display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 10px 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--line-2); font-size: 14.5px; font-weight: 600; }
+.mp-allbtn > svg { width: 20px; height: 20px; color: var(--accent); flex: none; }
+.mp-allbtn span { margin-right: auto; }
+.mp-allbtn em { display: inline-flex; align-items: center; gap: 4px; font-style: normal; font-size: 13px; color: var(--text-2); }
+.mp-allbtn em svg { width: 15px; height: 15px; }
+.mp-allbtn em.add { width: 26px; height: 26px; padding: 5px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); justify-content: center; }
+.mp-thumbs, .mp-trow { display: none; }
+.mpa-tabs { display: flex; gap: 8px; width: 100%; padding: 0 12px; margin-bottom: 10px; }
+.mpa-tabs button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; border-radius: 12px; background: rgba(255,255,255,.1); color: #fff; font-size: 14px; font-weight: 600; }
+.mpa-tabs button svg { width: 18px; height: 18px; }
+.mpa-tabs button em { font-style: normal; opacity: .7; font-size: 12px; }
+.mpa-tabs button.on { background: var(--accent); color: var(--accent-ink); }
+.mpa-grid { width: 100%; flex: 1; min-height: 0; overflow-y: auto; touch-action: pan-y; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 0 12px calc(var(--safe-b) + 16px); align-content: start; }
+.mpa-cell { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #111; }
+.mpa-img { display: block; width: 100%; height: 100%; padding: 0; }
+.mpa-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mpa-cell .mp-like { right: 5px; top: 5px; height: 26px; min-width: 26px; padding: 0 6px; }
+.mpa-add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1.5px dashed color-mix(in srgb, var(--accent) 60%, transparent); background: color-mix(in srgb, var(--accent) 14%, #000); color: var(--accent); }
+.mpa-add b { font-size: 12.5px; color: #fff; }
+.mpa-add em { display: inline-flex; gap: 3px; align-items: center; font-style: normal; font-size: 11px; font-weight: 700; color: #f5b942; }
+.mpa-add em svg { width: 12px; height: 12px; }
+.cmp-pairs { display: flex; gap: 8px; max-width: 100%; overflow-x: auto; padding: 4px 14px; touch-action: pan-x; scrollbar-width: none; }
+.cmp-pairs::-webkit-scrollbar { display: none; }
+.cmp-pairs button { flex: none; display: flex; width: 88px; height: 48px; border-radius: 9px; overflow: hidden; padding: 0; border: 2px solid transparent; opacity: .6; gap: 1px; background: #222; }
+.cmp-pairs button img { width: 50%; height: 100%; object-fit: cover; }
+.cmp-pairs button.on { opacity: 1; border-color: var(--accent); }
+.mpv-cap b svg { width: 15px; height: 15px; display: inline-block; vertical-align: -2px; }
