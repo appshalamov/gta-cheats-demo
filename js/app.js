@@ -54,6 +54,13 @@ function toast(msg) {
 // iOS в режиме «на экране Домой» иногда отдаёт окно, которое кончается НАД полосой жеста,
 // но env(safe-area-inset-bottom) всё равно ~34px — тогда нижний отступ двойной и панель «висит».
 // Если окно короче экрана на ≥20px — низ уже отрезан системой, свой отступ снизу обнуляем.
+// Проверка без iPhone: ?vptest=805x852 — окно 805 при экране 852 в режиме «на экране Домой» (как iOS с багом).
+const VPTEST = /[?&]vptest=(\d+)x(\d+)/.exec(location.search);
+if (VPTEST) {
+  Object.defineProperty(screen, 'height', { get: () => +VPTEST[2], configurable: true });
+  Object.defineProperty(navigator, 'standalone', { get: () => true, configurable: true });
+}
+
 function fitViewport() {
   const root = document.documentElement;
   const h = window.innerHeight;
@@ -63,8 +70,22 @@ function fitViewport() {
   const full = portrait ? Math.max(screen.height, screen.width) : Math.min(screen.height, screen.width);
   const gap = sa ? full - h : 0;
   if (gap >= 20) root.style.setProperty('--safe-b', '0px'); else root.style.removeProperty('--safe-b');
-  window.__vp = { inner: h, screen: full, gap, standalone: !!sa };
+  window.__vp = { inner: h, screen: full, gap, standalone: !!sa, guard: false };
+  requestAnimationFrame(guardTabbar);
 }
+// Предохранитель: панель вкладок обязана целиком быть в видимом окне. Ниже innerHeight iOS не рисует —
+// если панель (из-за любой будущей правки CSS) вылезла, каркас ужимается до окна, нижний отступ обнуляется.
+function guardTabbar() {
+  const tb = document.getElementById('tabbar');
+  if (!tb || !tb.offsetParent) return;
+  const r = tb.getBoundingClientRect();
+  if (r.bottom > window.innerHeight + 1) {
+    document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
+    document.documentElement.style.setProperty('--safe-b', '0px');
+    if (window.__vp) window.__vp.guard = true;
+  }
+}
+window.__guardTabbar = guardTabbar; // для проверки: ?vptest=805x852
 fitViewport();
 addEventListener('resize', fitViewport);
 addEventListener('orientationchange', () => setTimeout(fitViewport, 300));
@@ -402,7 +423,7 @@ function openHowto() {
   openSheet(`<h2 class="pick-t">${t('st_howto')}</h2>${g.platforms.map((p) => `<div class="howto"><div class="plat-h">${platformIcon(p)}<span>${L(PLATFORMS[p])}</span></div><p>${esc(howto(p))}</p></div>`).join('')}<p class="d-note">${t('howto_warn')}</p>`, 'sheet-pick');
 }
 function openAbout() {
-  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p><p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp ${__vp.inner}/${__vp.screen} gap ${__vp.gap}${__vp.standalone ? ' sa' : ''}` : ''}</div>`, 'sheet-pick');
+  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p><p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp ${__vp.inner}/${__vp.screen} gap ${__vp.gap}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}` : ''}</div>`, 'sheet-pick');
 }
 
 // ───────── пейвол ─────────
@@ -583,4 +604,5 @@ addEventListener('resize', () => scrollToCat(ui.cat, false));
   renderAll();
   if (!store.onboarded) showOnboarding();
   document.body.classList.add('ready');
+  requestAnimationFrame(guardTabbar);
 })();
