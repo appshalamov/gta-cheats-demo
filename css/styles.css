@@ -146,12 +146,11 @@ body.ready #main { opacity: 1; }
 /* ───── нижняя панель ───── */
 .tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--tabbar-h) + var(--safe-b)); padding: 0 6px var(--safe-b); display: flex; z-index: 5;
   background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: blur(24px) saturate(1.8); -webkit-backdrop-filter: blur(24px) saturate(1.8); }
-.tabbar::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 120px; background: inherit; backdrop-filter: inherit; -webkit-backdrop-filter: inherit; }
 .tabbar.no-pill .tab-pill { opacity: 0; }
 .tab-pill { transition: transform .42s cubic-bezier(.3,1.35,.45,1), opacity .2s; }
 .tabbar::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--line-2) 20%, var(--line-2) 80%, transparent); }
 /* капсула-подсветка под активной вкладкой */
-.tab-pill { position: absolute; top: 6px; left: 6px; width: calc((100% - 12px) / 4); height: 40px; pointer-events: none;
+.tab-pill { position: absolute; top: 6px; left: 6px; width: calc((100% - 12px) / var(--n, 5)); height: 40px; pointer-events: none;
   transform: translateX(calc(var(--i) * 100%)); transition: transform .42s cubic-bezier(.3,1.35,.45,1); }
 .tab-pill::before { content: ""; position: absolute; left: 50%; top: 0; width: 56px; height: 30px; margin-left: -28px; border-radius: 999px;
   background: var(--accent-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent); }

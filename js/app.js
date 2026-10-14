@@ -50,18 +50,20 @@ function toast(msg) {
 }
 
 // ───────── высота окна ─────────
-// iOS в режиме «на экране Домой» иногда отдаёт окно короче экрана (под панелью вкладок — пустая полоса).
-// Меряем и растягиваем каркас на реальную высоту экрана.
+// Каркас = ровно окно, которое даёт браузер (window.innerHeight): ниже него iOS ничего не рисует.
+// iOS в режиме «на экране Домой» иногда отдаёт окно, которое кончается НАД полосой жеста,
+// но env(safe-area-inset-bottom) всё равно ~34px — тогда нижний отступ двойной и панель «висит».
+// Если окно короче экрана на ≥20px — низ уже отрезан системой, свой отступ снизу обнуляем.
 function fitViewport() {
-  let h = window.innerHeight;
+  const root = document.documentElement;
+  const h = window.innerHeight;
+  root.style.setProperty('--app-h', h + 'px');
   const sa = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-  if (sa) {
-    const portrait = window.innerHeight >= window.innerWidth;
-    const full = portrait ? Math.max(screen.height, screen.width) : Math.min(screen.height, screen.width);
-    if (full - h > 4 && full - h < 140) h = full;
-  }
-  document.documentElement.style.setProperty('--app-h', h + 'px');
-  window.__vp = { inner: window.innerHeight, screen: screen.height, used: h, standalone: !!sa };
+  const portrait = window.innerHeight >= window.innerWidth;
+  const full = portrait ? Math.max(screen.height, screen.width) : Math.min(screen.height, screen.width);
+  const gap = sa ? full - h : 0;
+  if (gap >= 20) root.style.setProperty('--safe-b', '0px'); else root.style.removeProperty('--safe-b');
+  window.__vp = { inner: h, screen: full, gap, standalone: !!sa };
 }
 fitViewport();
 addEventListener('resize', fitViewport);
@@ -246,9 +248,9 @@ function renderAll() {
   tabs.forEach((b) => b.classList.toggle('on', b.dataset.tab === ui.tab));
   const ti = tabs.findIndex((b) => b.dataset.tab === ui.tab);
   $('#tabbar').style.setProperty('--i', Math.max(0, ti));
+  $('#tabbar').style.setProperty('--n', tabs.length);
   $('#tabbar').classList.toggle('no-pill', ti < 0);
   document.body.dataset.tab = ui.tab;
-  $('#back-label').textContent = t('back');
   if (ui.tab === 'map') mapMod().then((m) => m.open(mapCtx(), store.game)).catch(() => toast('Map error'));
   updateFavBadge();
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'view-' + ui.tab));
@@ -400,7 +402,7 @@ function openHowto() {
   openSheet(`<h2 class="pick-t">${t('st_howto')}</h2>${g.platforms.map((p) => `<div class="howto"><div class="plat-h">${platformIcon(p)}<span>${L(PLATFORMS[p])}</span></div><p>${esc(howto(p))}</p></div>`).join('')}<p class="d-note">${t('howto_warn')}</p>`, 'sheet-pick');
 }
 function openAbout() {
-  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p><p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp ${__vp.inner}/${__vp.screen}→${__vp.used}${__vp.standalone ? ' sa' : ''}` : ''}</div>`, 'sheet-pick');
+  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p><p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp ${__vp.inner}/${__vp.screen} gap ${__vp.gap}${__vp.standalone ? ' sa' : ''}` : ''}</div>`, 'sheet-pick');
 }
 
 // ───────── пейвол ─────────
@@ -530,8 +532,6 @@ document.addEventListener('click', async (e) => {
     }
     case 'set-platform': haptic(); store.platform = v; save(); closeSheet(); renderAll(); break;
     case 'sheet-close': closeSheet(); break;
-    case 'open-settings': haptic(); if (ui.tab !== 'settings') ui.prevTab = ui.tab; ui.tab = 'settings'; renderAll(); break;
-    case 'settings-back': haptic(); ui.tab = ui.prevTab || 'home'; renderAll(); break;
     case 'map-layer': haptic(); (await mapMod()).toggle(v); break;
     case 'map-game': haptic(); (await mapMod()).setGame(v); break;
     case 'map-locate': haptic(); (await mapMod()).locate(); break;

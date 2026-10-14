@@ -26,7 +26,7 @@
       <div id="map"></div>
       <div class="map-top">
         <div class="map-games" id="map-games"></div>
-        <button class="hdr-btn" data-action="open-settings" aria-label="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+        
       </div>
       <div class="map-chips" id="map-chips"></div>
       <div class="map-legend" id="map-legend"></div>
@@ -39,7 +39,7 @@
     <section class="view on" id="view-home">
       <header class="hdr">
         <h1 id="home-title">GTA 5</h1>
-        <div class="hdr-actions"><button class="plat-btn" id="plat-btn" data-action="plat" aria-label="platform"></button><button class="hdr-btn" data-action="open-settings" aria-label="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+        <button class="plat-btn" id="plat-btn" data-action="plat" aria-label="platform"></button>
       </header>
       <div id="home-banner"></div>
       <nav class="segs" id="segs"></nav>
@@ -47,7 +47,7 @@
     </section>
 
     <section class="view" id="view-search">
-      <header class="hdr"><h1 id="search-title">Поиск</h1><button class="hdr-btn" data-action="open-settings" aria-label="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></header>
+      <header class="hdr"><h1 id="search-title">Поиск</h1></header>
       <div class="search-box">
         <input id="search-input" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
         <button class="search-x" data-action="search-clear" aria-label="clear">×</button>
@@ -56,21 +56,17 @@
     </section>
 
     <section class="view" id="view-fav">
-      <header class="hdr"><h1 id="fav-title">Избранное</h1><button class="hdr-btn" data-action="open-settings" aria-label="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></header>
+      <header class="hdr"><h1 id="fav-title">Избранное</h1></header>
       <div class="scroll" id="fav-list"></div>
     </section>
 
     <section class="view" id="view-settings">
-      <header class="hdr hdr-back"><button class="back-btn" data-action="settings-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg><span id="back-label">Назад</span></button><h1 id="settings-title">Настройки</h1></header>
+      <header class="hdr"><h1 id="settings-title">Настройки</h1></header>
       <div class="scroll" id="settings-body"></div>
     </section>
 
-    <nav class="tabbar" id="tabbar" style="--i:1">
+    <nav class="tabbar" id="tabbar" style="--i:0;--n:5">
       <span class="tab-pill"></span>
-      <button class="tab" data-action="tab" data-tab="map"><span class="tab-ic">
-        <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3.6 6.2a1 1 0 0 0-.6.9V19.5a.5.5 0 0 0 .7.5L9 18l6 2 5.4-2.2a1 1 0 0 0 .6-.9V4.5a.5.5 0 0 0-.7-.5L15 6z"/><path d="M9 4v14M15 6v14"/></svg>
-        <svg class="ic-f" viewBox="0 0 24 24"><path fill="currentColor" d="M8.2 3.3v14.2l-4.6 1.9a.9.9 0 0 1-1.2-.8V7.2c0-.6.4-1.1.9-1.3zM9.8 3.4l4.4 1.5v14.3l-4.4-1.5zM21.6 4.6v11.4c0 .6-.4 1.1-.9 1.3l-4.9 2v-14.3l4.6-1.9a.9.9 0 0 1 1.2.8z"/></svg>
-      </span><span class="tab-l" data-k="map">Карта</span></button>
       <button class="tab on" data-action="tab" data-tab="home"><span class="tab-ic">
         <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
         <svg class="ic-f" viewBox="0 0 24 24"><path fill="currentColor" d="M11.3 2.4a1.1 1.1 0 0 1 1.4 0l8.6 7.2c.4.3.7.8.7 1.3V20a2 2 0 0 1-2 2h-4.5a.5.5 0 0 1-.5-.5V16a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5.5a.5.5 0 0 1-.5.5H4a2 2 0 0 1-2-2v-9.1c0-.5.3-1 .7-1.3z"/></svg>
@@ -79,11 +75,19 @@
         <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <svg class="ic-f" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.6" fill="currentColor" fill-opacity=".22"/><path d="m20 20-3.6-3.6"/></svg>
       </span><span class="tab-l" data-k="search">Поиск</span></button>
+      <button class="tab" data-action="tab" data-tab="map"><span class="tab-ic">
+        <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3.6 6.2a1 1 0 0 0-.6.9V19.5a.5.5 0 0 0 .7.5L9 18l6 2 5.4-2.2a1 1 0 0 0 .6-.9V4.5a.5.5 0 0 0-.7-.5L15 6z"/><path d="M9 4v14M15 6v14"/></svg>
+        <svg class="ic-f" viewBox="0 0 24 24"><path fill="currentColor" d="M8.2 3.3v14.2l-4.6 1.9a.9.9 0 0 1-1.2-.8V7.2c0-.6.4-1.1.9-1.3zM9.8 3.4l4.4 1.5v14.3l-4.4-1.5zM21.6 4.6v11.4c0 .6-.4 1.1-.9 1.3l-4.9 2v-14.3l4.6-1.9a.9.9 0 0 1 1.2.8z"/></svg>
+      </span><span class="tab-l" data-k="map">Карта</span></button>
       <button class="tab" data-action="tab" data-tab="fav"><span class="tab-ic">
         <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.2-9.3C1.6 7.8 3.9 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.4 0 5.7 3.3 4.5 6.7-1.7 4.7-9.2 9.3-9.2 9.3z"/></svg>
         <svg class="ic-f" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.2c-.2 0-.4 0-.5-.1-.3-.2-7.9-4.9-9.6-9.8C.6 7.4 3.2 3.5 7.3 3.5c1.9 0 3.6.9 4.7 2.3 1.1-1.4 2.8-2.3 4.7-2.3 4.1 0 6.7 3.9 5.4 7.8-1.7 4.9-9.3 9.6-9.6 9.8-.1.1-.3.1-.5.1z"/></svg>
         <b class="tab-badge" id="fav-badge"></b>
       </span><span class="tab-l" data-k="fav">Избранное</span></button>
+      <button class="tab" data-action="tab" data-tab="settings"><span class="tab-ic">
+        <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+        <svg class="ic-f" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h9M19 7h1M4 17h3M13 17h7"/><circle cx="16" cy="7" r="2.6" fill="currentColor"/><circle cx="10" cy="17" r="2.6" fill="currentColor"/></svg>
+      </span><span class="tab-l" data-k="settings">Настройки</span></button>
     </nav>
   </main>
 

@@ -4,7 +4,7 @@
 export const APP = {
   name: 'Secret Base — Cheats & Codes GTA 6',
   shortName: 'Secret Base',
-  version: '0.3.0 demo',
+  version: '0.3.1 demo',
 };
 
 export const CATEGORIES = [
