@@ -9,11 +9,23 @@
 - Фото из жизни gtadb (часто Street View) в превью не кладём; своих копий не делаем.
 - Наружу — только Google Maps (правило «не уводить из приложения»).
 
+- Превью в мессенджере (Игорь 15.10.2026: «превьюху In game / Real life, ползунок посередине — чтобы понимали суть»):
+  своя картинка s/og/<игра>/<id>.<хеш>.jpg 1200×630 — слева кадр игры, справа фото из жизни, белая линия с кругом
+  посередине, подписи IN GAME / REAL LIFE. Фото из жизни в превью — только Commons (своих копий фото gtadb не делаем);
+  где Commons нет — кадр игры с подписью «сравни с жизнью». Хеш в имени — мессенджеры не держат старое превью.
+  ПОКА ВЫКЛЮЧЕНО (Игорь 15.10.2026: «на все точки сейчас не делать — генерировать в момент, когда делюсь; на все —
+  когда утвердим дизайн»): картинку рисует приложение при «Поделиться» (js/map.js shareCard). Включить на все места:
+  ~/.video-venv/bin/python tools/build_share.py --og   (нужен Pillow; ≈250 КБ на место — перед этим ужать).
+
 Запуск: python3 tools/build_share.py   (после build_map.py; пишет s/ в корне приложения)
 """
+import hashlib
 import html
+import io
 import json
 import pathlib
+import sys
+import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE = "https://appshalamov.github.io/gta-cheats-demo/"
@@ -41,6 +53,100 @@ def real_img(x):
     return "", ""
 
 
+ASSETS = "https://appshalamov.github.io/gta-map-assets/"
+ASSETS_LOCAL = ROOT.parent / "хостинг-плиток" / "gta-map-assets"
+OGW, OGH = 1200, 630
+try:
+    if "--og" not in sys.argv:
+        raise ImportError
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+except ImportError:          # системный python3 без Pillow — превью не трогаем
+    Image = None
+
+
+def _src(u):
+    """Картинка по адресу: свой файл приложения, своя копия хостинга кадров или (на крайний случай) скачать."""
+    if u.startswith(SITE):
+        p = ROOT / u[len(SITE):]
+    elif u.startswith(ASSETS):
+        p = ASSETS_LOCAL / u[len(ASSETS):]
+    else:
+        return None                                   # чужие фото (gtadb ,rl.jpg) в превью не берём
+    if p.exists():
+        return Image.open(p).convert("RGB")
+    with urllib.request.urlopen(u, timeout=20) as r:
+        return Image.open(io.BytesIO(r.read())).convert("RGB")
+
+
+def _cover(im, w, h):
+    k = max(w / im.width, h / im.height)
+    im = im.resize((round(im.width * k), round(im.height * k)), Image.LANCZOS)
+    x, y = (im.width - w) // 2, (im.height - h) // 2
+    return im.crop((x, y, x + w, y + h))
+
+
+def _font(size, bold=True):
+    return ImageFont.truetype("/System/Library/Fonts/HelveticaNeue.ttc", size, index=1 if bold else 10)
+
+
+def _label(d, xy, text, fg, bg, anchor_right=False):
+    f = _font(34)
+    w = d.textlength(text, font=f)
+    x, y = xy
+    if anchor_right:
+        x -= w + 44
+    d.rounded_rectangle((x, y, x + w + 44, y + 58), radius=29, fill=bg)
+    d.text((x + 22, y + 29), text, font=f, fill=fg, anchor="lm")
+
+
+def og_card(game, pid, gurl, rurl):
+    """Превью 1200×630 «игра | жизнь» → относительный путь от s/<игра>/ или ''."""
+    if not gurl:
+        return ""
+    sig = hashlib.sha1(f"v1|{gurl}|{rurl}".encode()).hexdigest()[:8]
+    rel = f"og/{game}/{pid}.{sig}.jpg"
+    fp = OUT / rel
+    OG_MADE.add(fp)
+    if Image is None:
+        return ""
+    g = _src(gurl)
+    r = _src(rurl) if rurl else None
+    if g is None:
+        return ""
+    canvas = _cover(g, OGW, OGH)
+    if r is not None:
+        canvas.paste(_cover(r, OGW, OGH).crop((OGW // 2, 0, OGW, OGH)), (OGW // 2, 0))
+    # лёгкое затемнение сверху — подписи читаются на любом кадре
+    shade = Image.new("L", (1, OGH))
+    for yy in range(OGH):
+        shade.putpixel((0, yy), max(0, int(110 * (1 - yy / 170)) if yy < 170 else 0))
+    canvas.paste(Image.new("RGB", (OGW, OGH), (0, 0, 0)), (0, 0), shade.resize((OGW, OGH)))
+    d = ImageDraw.Draw(canvas)
+    _label(d, (28, 26), "IN GAME", (11, 13, 18), (34, 195, 217))
+    if r is not None:
+        _label(d, (OGW - 28, 26), "REAL LIFE", (255, 255, 255), (16, 18, 24), anchor_right=True)
+        cx, cy = OGW // 2, OGH // 2
+        glow = Image.new("RGBA", (OGW, OGH), (0, 0, 0, 0))
+        gd = ImageDraw.Draw(glow)
+        gd.rectangle((cx - 6, 0, cx + 6, OGH), fill=(0, 0, 0, 110))
+        gd.ellipse((cx - 58, cy - 58, cx + 58, cy + 58), fill=(0, 0, 0, 120))
+        canvas.paste(glow.filter(ImageFilter.GaussianBlur(10)), (0, 0), glow.filter(ImageFilter.GaussianBlur(10)))
+        d = ImageDraw.Draw(canvas)
+        d.rectangle((cx - 3, 0, cx + 3, OGH), fill=(255, 255, 255))
+        d.ellipse((cx - 48, cy - 48, cx + 48, cy + 48), fill=(255, 255, 255))
+        d.text((cx, cy - 3), "‹  ›", font=_font(44), fill=(17, 17, 17), anchor="mm")
+    else:
+        band = Image.new("RGBA", (OGW, 96), (11, 13, 18, 205))
+        canvas.paste(band, (0, OGH - 96), band)
+        d.text((OGW // 2, OGH - 48), "Compare with real life in Secret Base  →", font=_font(36), fill=(255, 255, 255), anchor="mm")
+    fp.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(fp, "JPEG", quality=80, optimize=True, progressive=True)
+    return rel
+
+
+OG_MADE = set()
+
+
 def t(o, lang):
     if isinstance(o, dict):
         return o.get(lang) or o.get("en") or o.get("ru") or ""
@@ -62,6 +168,8 @@ def page(game, kind, x):
     pr0 = (x.get("pairs") or [None])[0]
     cg, cr = (absu(pr0["g"]["url"]), absu(pr0["r"]["url"])) if pr0 else (gimg, rimg)
     ccred = (pr0["g"].get("credit", "") + " · " + pr0["r"].get("credit", "")) if pr0 else ""
+    og = og_card(game, x["id"], gimg, rimg)
+    og_abs = f"{SITE}s/{og}" if og else gimg
     title = f"{name_g} = {name_r}" if name_g and name_r else (name_g or name_r)
     og_title = f"{title} · {gt} in real life · Secret Base"
     og_desc = (d_en or d_ru)[:190]
@@ -90,18 +198,19 @@ def page(game, kind, x):
 <meta property="og:type" content="website"><meta property="og:site_name" content="Secret Base">
 <meta property="og:title" content="{e(og_title)}"><meta property="og:description" content="{e(og_desc)}">
 <meta property="og:url" content="{SITE}s/{game}/{e(x['id'])}.html">
-{f'<meta property="og:image" content="{e(gimg)}">' if gimg else ''}
+{f'<meta property="og:image" content="{e(og_abs)}">' if og_abs else ''}{'<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' if og else ''}
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{e(og_title)}">
-<meta name="twitter:description" content="{e(og_desc)}">{f'<meta name="twitter:image" content="{e(gimg)}">' if gimg else ''}
+<meta name="twitter:description" content="{e(og_desc)}">{f'<meta name="twitter:image" content="{e(og_abs)}">' if og_abs else ''}
 <meta name="theme-color" content="#0b0d12"><link rel="icon" href="../../icons/icon-192.png">
 <style>
 :root{{color-scheme:dark}}*{{box-sizing:border-box}}body{{margin:0;background:#0b0d12;color:#eef1f6;font:16px/1.45 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif}}
-main{{max-width:560px;margin:0 auto;padding:20px 16px 40px}}.brand{{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.02em}}
-.brand img{{width:34px;height:34px;border-radius:9px}}.tag{{display:inline-block;margin:18px 0 6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800;
-background:linear-gradient(90deg,#ff4fa3,#ffb547);color:#111}}h1{{margin:6px 0 2px;font-size:26px;line-height:1.15}}.real{{color:#a9b2c3;margin:0 0 14px}}
+main{{max-width:520px;margin:0 auto;padding:max(10px,env(safe-area-inset-top)) 16px 32px}}.brand{{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;letter-spacing:.02em}}
+.brand img{{width:26px;height:26px;border-radius:7px}}.tag{{margin-left:auto;font-size:12px;font-weight:700;color:#a9b2c3;text-align:right}}
+h1{{margin:10px 0 1px;font-size:19px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
+.real{{color:#a9b2c3;font-size:13px;line-height:1.35;margin:0 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
 .pics{{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px}}figure{{margin:0;position:relative;border-radius:16px;overflow:hidden;background:#151922;aspect-ratio:4/3}}
 figure img{{width:100%;height:100%;object-fit:cover;display:block}}figcaption{{position:absolute;left:8px;top:8px;padding:3px 9px;border-radius:999px;background:rgba(0,0,0,.6);font-size:12px;font-weight:700}}
-p.d{{margin:14px 0}}.cta{{display:block;margin:18px 0 10px;padding:16px;border-radius:16px;text-align:center;font-weight:800;font-size:17px;color:#0b0d12;text-decoration:none;
+p.d{{margin:16px 0 8px;font-size:14.5px;color:#cfd5e0}}.cta{{display:block;margin:12px 0 8px;padding:14px;border-radius:14px;text-align:center;font-weight:800;font-size:16px;color:#0b0d12;text-decoration:none;
 background:linear-gradient(90deg,#22c3d9,#7ee0ff)}}.sub{{display:block;text-align:center;color:#7ee0ff;font-weight:700;text-decoration:none;margin:6px 0}}
 .cred{{color:#6f7787;font-size:11.5px;margin-top:22px}}
 .cmp{{position:relative;aspect-ratio:4/3;border-radius:18px;overflow:hidden;background:#151922;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:ew-resize}}
@@ -109,15 +218,15 @@ background:linear-gradient(90deg,#22c3d9,#7ee0ff)}}.sub{{display:block;text-alig
 .cmp .line{{position:absolute;top:0;bottom:0;left:var(--x);width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 12px rgba(0,0,0,.5)}}
 .cmp .knob{{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center;font-weight:900;font-size:16px;box-shadow:0 4px 18px rgba(0,0,0,.45)}}
 .cmp .lab{{position:absolute;top:10px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:800;background:rgba(0,0,0,.6)}}.cmp .lg{{left:10px;background:#22c3d9;color:#0b0d12}}.cmp .lr{{right:10px}}
-.hint{{text-align:center;color:#a9b2c3;font-size:13px;margin:8px 0 0}}
+.hint{{text-align:center;color:#a9b2c3;font-size:12.5px;margin:6px 0 0}}
+@media (max-height:620px){{.cmp,figure{{aspect-ratio:16/10}}}}
 </style></head><body><main>
-<div class="brand"><img src="../../icons/icon-192.png" alt=""><span>Secret Base</span></div>
-<span class="tag">{e(gt)} · <span data-ru="{e(city_ru)} в реальной жизни" data-en="{e(city_en)} in real life">{e(city_en)} in real life</span></span>
+<div class="brand"><img src="../../icons/icon-192.png" alt=""><span>Secret Base</span><span class="tag">{e(gt)} · <span data-ru="{e(city_ru)} в жизни" data-en="{e(city_en)} in real life">{e(city_en)} in real life</span></span></div>
 <h1>{e(name_g or name_r)}</h1>
 <p class="real">📍 {e(name_r)}{(' · ' + e(addr)) if addr and addr != name_r else ''}</p>
 {imgs if 'class="cmp"' in imgs else f'<div class="pics">{imgs}</div>'}
+<a class="cta" href="{e(app)}" data-ru="Открыть в Secret Base" data-en="Open in Secret Base">Open in Secret Base</a>
 <p class="d" data-ru="{e(d_ru)}" data-en="{e(d_en)}">{e(d_en or d_ru)}</p>
-<a class="cta" href="{e(app)}" data-ru="Открыть в Secret Base — сравнить игру и жизнь" data-en="Open in Secret Base — compare game and real life">Open in Secret Base — compare game and real life</a>
 <a class="sub" href="{e(maps)}" data-ru="Как добраться — Google Maps" data-en="Directions — Google Maps">Directions — Google Maps</a>
 <p class="cred">{e(credits)}{' · ' if credits else ''}Secret Base — fan app, not affiliated with Rockstar Games.</p>
 </main>
@@ -152,7 +261,11 @@ def main():
     for fp in OUT.glob("*/*.html"):
         if fp not in made and not fp.name.startswith("._"):
             fp.unlink(missing_ok=True)
-    print(f"страниц «поделиться»: {n}")
+    if Image is not None:
+        for fp in (OUT / "og").glob("*/*.jpg"):
+            if fp not in OG_MADE and not fp.name.startswith("._"):
+                fp.unlink(missing_ok=True)
+    print(f"страниц «поделиться»: {n}, превью: {sum(1 for p in OG_MADE if p.exists())}" + ("" if Image else " (картинки превью выключены — рисует приложение)"))
 
 
 if __name__ == "__main__":

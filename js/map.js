@@ -371,11 +371,69 @@ function actions(lat, lon, name, shareText, fav = '', view = null, key = '') {
 }
 // «Поделиться местом»: ссылка на страницу-превью s/<игра>/<id>.html (в мессенджерах — карточка с кадром и названием,
 // на странице — превью и «Открыть в Secret Base»). Страницы собирает tools/build_share.py; ссылка всегда на прод.
-async function sharePlace(text, key) {
+// Картинка «игра | жизнь» с ползунком посередине рисуется в момент «Поделиться» (Игорь 15.10.2026: «превью In game /
+// Real life, чтобы понимали суть; генерировать, когда делюсь, — на все места заранее не делать, пока демо»).
+// Берём то, что сейчас в карточке: пару с одного ракурса (ту, что выбрана) или кадр игры + фото из жизни.
+function loadCors(src) {
+  return new Promise((ok, no) => {
+    const im = new Image(); im.crossOrigin = 'anonymous'; im.decoding = 'async';
+    im.onload = () => ok(im); im.onerror = no;
+    im.src = src + (src.includes('?') ? '&' : '?') + 'cors=1';   // отдельный адрес: не взять из кэша ответ без CORS
+  });
+}
+async function shareCard(el, title) {
+  let box = el; while (box && box !== document.body && !box.querySelector?.('.mp-media-box')) box = box.parentElement;
+  const mb = box?.querySelector?.('.mp-media-box'); if (!mb) return null;
+  const pick = (sel) => mb.querySelector(sel)?.currentSrc || mb.querySelector(sel)?.src || '';
+  const gs = pick('.cmp-g') || pick('.mp-shot.g img'), rs = pick('.cmp-r') || pick('.mp-shot.r img');
+  if (!gs || !rs) return null;
+  const [g, r] = await Promise.all([loadCors(gs), loadCors(rs)]);
+  const W = 1200, H = 900, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const cover = (im, x0, w0) => {   // кадр «обложкой» на весь холст, видна его часть x0…x0+w0 — как в ползунке
+    const k = Math.max(W / im.naturalWidth, H / im.naturalHeight), iw = im.naturalWidth * k, ih = im.naturalHeight * k;
+    x.save(); x.beginPath(); x.rect(x0, 0, w0, H); x.clip(); x.drawImage(im, (W - iw) / 2, (H - ih) / 2, iw, ih); x.restore();
+  };
+  cover(g, 0, W / 2); cover(r, W / 2, W / 2);
+  let gr = x.createLinearGradient(0, 0, 0, 170); gr.addColorStop(0, 'rgba(0,0,0,.45)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = gr; x.fillRect(0, 0, W, 170);
+  gr = x.createLinearGradient(0, H - 230, 0, H); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.8)');
+  x.fillStyle = gr; x.fillRect(0, H - 230, W, 230);
+  const font = (px, wt = 800) => `${wt} ${px}px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif`;
+  const pill = (tx, px, right, fg, bg) => {
+    x.font = font(34); const tw = x.measureText(tx).width, w0 = tw + 46, x0 = right ? W - 28 - w0 : 28;
+    x.fillStyle = bg; x.beginPath(); x.roundRect(x0, 28, w0, 60, 30); x.fill(); x.fillStyle = fg; x.textBaseline = 'middle'; x.fillText(tx, x0 + 23, 59);
+  };
+  pill('IN GAME', 34, false, '#0b0d12', '#22c3d9');
+  pill('REAL LIFE', 34, true, '#fff', 'rgba(12,14,20,.78)');
+  // линия и круг — как ползунок в приложении
+  x.shadowColor = 'rgba(0,0,0,.5)'; x.shadowBlur = 18; x.fillStyle = '#fff'; x.fillRect(W / 2 - 3, 0, 6, H);
+  x.beginPath(); x.arc(W / 2, H / 2, 46, 0, Math.PI * 2); x.fill(); x.shadowBlur = 0;
+  x.strokeStyle = '#111'; x.lineWidth = 6; x.lineCap = 'round'; x.lineJoin = 'round'; x.beginPath();
+  x.moveTo(W / 2 - 10, H / 2 - 13); x.lineTo(W / 2 - 22, H / 2); x.lineTo(W / 2 - 10, H / 2 + 13);
+  x.moveTo(W / 2 + 10, H / 2 - 13); x.lineTo(W / 2 + 22, H / 2); x.lineTo(W / 2 + 10, H / 2 + 13); x.stroke();
+  // название места и подпись приложения
+  x.fillStyle = '#fff'; x.textBaseline = 'alphabetic'; x.font = font(44);
+  let t = title || ''; while (t.length > 8 && x.measureText(t).width > W - 64) t = t.slice(0, -2).trimEnd() + '…';
+  x.fillText(t, 32, H - 74); x.font = font(28, 700); x.fillStyle = 'rgba(255,255,255,.75)';
+  x.fillText(`Secret Base · ${GAMES[game]?.title || game.toUpperCase()}`, 32, H - 32);
+  const blob = await new Promise((ok) => c.toBlob(ok, 'image/jpeg', 0.86));
+  return blob ? new File([blob], 'secret-base.jpg', { type: 'image/jpeg' }) : null;
+}
+async function sharePlace(text, key, el) {
   const base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '').replace(/beta\/$/, '');
   const k = key ? key.split(':') : null;
   const url = k && k.length >= 3 ? `${base}s/${k[1]}/${k.slice(2).join(':')}.html` : location.href.split('#')[0];
-  try { if (navigator.share) { await navigator.share({ title: text, text, url }); return; } } catch { return; }
+  if (navigator.share) {
+    // картинка — если успела за 2,5 с и телефон умеет делиться файлами; иначе — просто ссылка (как раньше)
+    let file = null;
+    try { file = await Promise.race([shareCard(el, text), new Promise((ok) => setTimeout(() => ok(null), 2500))]); } catch { }
+    if (file && navigator.canShare?.({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: text, text: `${text}\n${url}` }); return; }
+      catch (e) { if (e?.name === 'AbortError') return; }   // NotAllowed (жест «остыл») — ниже ссылкой
+    }
+    try { await navigator.share({ title: text, text, url }); return; } catch { return; }
+  }
   try { await navigator.clipboard.writeText(`${text}\n${url}`); ctx?.toast?.(w('copied')); } catch { }
 }
 function translateLink(text) {
@@ -1416,7 +1474,7 @@ document.addEventListener('click', (e) => {
     el.classList.toggle('on', on); el.setAttribute('aria-pressed', String(on));
     el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 300);
   }
-  else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t, el.dataset.k); }
+  else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t, el.dataset.k, el); }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
   else if (a === 'mode') { ctx?.haptic(); switchMode(el.dataset.v); }
   else if (a === 'cat') {
