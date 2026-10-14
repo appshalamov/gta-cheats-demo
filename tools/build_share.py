@@ -140,7 +140,7 @@ def _src(u):
         p = GTADB_CACHE / u[len(GTADB_RAW):]
         if not p.exists():
             _fetch(u, p)
-    elif "upload.wikimedia.org" in u:                 # свободное фото Commons, которое мы не копировали к себе
+    elif "upload.wikimedia.org" in u or "thumb.wikimedia.org" in u:                 # свободное фото Commons, которое мы не копировали к себе
         p = CACHE / hashlib.sha1(u.encode()).hexdigest()[:16]
         if not p.exists():
             CACHE.mkdir(parents=True, exist_ok=True)
@@ -155,6 +155,15 @@ def _src(u):
         return Image.open(io.BytesIO(r.read())).convert("RGB")
 
 
+# свободные фото на замену CC BY-SA (уверенные, проверены глазами; поиск 15.10.2026, файл исследования T13):
+# только для превью мест без пары с одного ракурса — фото в карточке приложения не меняем
+_RF = ROOT.parent / "Ресерч — приложение Secret Base" / "_сырьё" / "T13-права" / "замены_BY-SA.json"
+REPL = {}
+if _RF.exists():
+    for _x in json.loads(_RF.read_text("utf-8")):
+        _c = _x.get("candidate") or {}
+        if _x.get("confidence") == "high" and _c.get("thumb_url"):
+            REPL[_x["id"]] = (_c["thumb_url"], f"{' '.join(str(_c.get('artist') or 'Unknown').split())[:60]} · {_c.get('license')} · Wikimedia Commons")
 WEAK_FRAME = 1500   # og_render.quality: меньше — кадр в превью не ставим (GTA 6: 68 точек gtadb; Вашингтон-Бич — 411)
 
 
@@ -226,7 +235,8 @@ def page(game, kind, x):
     ccred = (pr0["g"].get("credit", "") + " · " + pr0["r"].get("credit", "")) if pr0 else ""
     prs = tuple((absu(p["g"].get("url") or p["g"].get("file") or ""), absu(p["r"].get("url") or p["r"].get("file") or ""), p["r"].get("credit", ""), bool(p.get("own")))
                 for p in (x.get("pairs") or []) if p.get("g") and p.get("r"))[:3]
-    og = og_card(game, fid, gimg if kind == "db" else og_game_img(x), rimg, rcred, name_g or name_r, f"{name_r}" if name_g else "", prs)
+    o_r, o_c = (REPL[x["id"]] if (x["id"] in REPL and "BY-SA" in (rcred or "") and not prs) else (rimg, rcred))
+    og = og_card(game, fid, gimg if kind == "db" else og_game_img(x), o_r, o_c, name_g or name_r, f"{name_r}" if name_g else "", prs)
     og_abs = f"{SITE}s/{og}" if og else gimg
     title = f"{name_g} = {name_r}" if name_g and name_r else (name_g or name_r)
     og_title = f"{title} · {gt} in real life · Secret Base"
