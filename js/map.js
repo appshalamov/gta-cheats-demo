@@ -20,6 +20,9 @@ const W = {
   game:   { en: 'In game', ru: 'В игре', es: 'En el juego', pt: 'No jogo', fr: 'En jeu', de: 'Im Spiel', it: 'Nel gioco', tr: 'Oyunda', uk: 'У грі', pl: 'W grze', zh: '游戏中', ja: 'ゲーム内', ko: '게임 속' },
   real:   { en: 'Real life', ru: 'В жизни', es: 'En la vida real', pt: 'Na vida real', fr: 'En vrai', de: 'In echt', it: 'Dal vivo', tr: 'Gerçekte', uk: 'У житті', pl: 'W realu', zh: '现实中', ja: '実際', ko: '실제' },
   route:  { en: 'Go there', ru: 'Проложить путь', es: 'Cómo llegar', pt: 'Como chegar', fr: 'Y aller', de: 'Route', it: 'Indicazioni', tr: 'Yol tarifi', uk: 'Маршрут', pl: 'Trasa', zh: '导航', ja: '経路', ko: '길찾기' },
+  look:   { en: 'Look around 360°', ru: 'Осмотреться 360°', es: 'Ver en 360°', pt: 'Ver em 360°', fr: 'Voir à 360°', de: '360°-Ansicht', it: 'Vista a 360°', tr: '360° bak', uk: 'Огляд 360°', pl: 'Widok 360°', zh: '360° 街景', ja: '360°で見る', ko: '360° 둘러보기' },
+  share:  { en: 'Share', ru: 'Поделиться', es: 'Compartir', pt: 'Compartilhar', fr: 'Partager', de: 'Teilen', it: 'Condividi', tr: 'Paylaş', uk: 'Поділитися', pl: 'Udostępnij', zh: '分享', ja: '共有', ko: '공유' },
+  copied: { en: 'Link copied', ru: 'Ссылка скопирована', es: 'Enlace copiado', pt: 'Link copiado', fr: 'Lien copié', de: 'Link kopiert', it: 'Link copiato', tr: 'Bağlantı kopyalandı', uk: 'Посилання скопійовано', pl: 'Skopiowano link', zh: '链接已复制', ja: 'リンクをコピーしました', ko: '링크 복사됨' },
   trans:  { en: 'Translate', ru: 'Перевести', es: 'Traducir', pt: 'Traduzir', fr: 'Traduire', de: 'Übersetzen', it: 'Traduci', tr: 'Çevir', uk: 'Перекласти', pl: 'Przetłumacz', zh: '翻译', ja: '翻訳', ko: '번역' },
   why:    { en: 'Why it matches', ru: 'Почему похоже', es: 'Por qué coincide', pt: 'Por que combina', fr: 'Pourquoi', de: 'Warum', it: 'Perché', tr: 'Neden', uk: 'Чому схоже', pl: 'Dlaczego', zh: '为何相似', ja: '似ている理由', ko: '닮은 이유' },
   tip:    { en: 'Visit tip', ru: 'Совет', es: 'Consejo', pt: 'Dica', fr: 'Conseil', de: 'Tipp', it: 'Consiglio', tr: 'İpucu', uk: 'Порада', pl: 'Wskazówka', zh: '提示', ja: 'ヒント', ko: '팁' },
@@ -72,6 +75,8 @@ const IC = {
   camera: sv('<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>'),
   pin: sv('<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>'),
   nav: sv('<path d="M3 11.5 21 3l-8.5 18-2-7.5z"/>'),
+  pano: sv('<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/>'),
+  share: sv('<path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>'),
   translate: sv('<path d="M4 5h9M8.5 3v2M6 5c.8 3 3 5.5 6 7M11 5c-.7 3.5-3.3 6.5-7 8"/><path d="m13 21 4-9 4 9M14.5 18h5"/>'),
   play: sv('<path fill="currentColor" stroke="none" d="M8 5.5v13a1 1 0 0 0 1.5.9l10.4-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/>'),
   close: sv('<path d="M6 6l12 12M18 6 6 18"/>'),
@@ -173,6 +178,20 @@ function needsTranslate(text) {
   if (dl === 'en') return cyr;
   return true;
 }
+// ряд действий: главная кнопка «Осмотреться 360°» (Street View — место видно из любой страны), маленькие «маршрут» и «поделиться»
+const panoLink = (lat, lon) => `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`;
+function actions(lat, lon, name, shareText) {
+  return `<div class="mp-acts">
+    <a class="mp-cta" href="${panoLink(lat, lon)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>
+    <a class="mp-ib" href="${mapsLink(lat, lon, name)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}" title="${esc(w('route'))}">${IC.nav}</a>
+    <button class="mp-ib" data-mp="share" data-t="${esc(shareText)}" aria-label="${esc(w('share'))}" title="${esc(w('share'))}">${IC.share}</button>
+  </div>`;
+}
+async function sharePlace(text) {
+  const url = location.href.split('#')[0];
+  try { if (navigator.share) { await navigator.share({ title: text, text, url }); return; } } catch { return; }
+  try { await navigator.clipboard.writeText(`${text}\n${url}`); ctx?.toast?.(w('copied')); } catch { }
+}
 function translateLink(text) {
   const tl = devLang();
   return `https://translate.google.com/?sl=auto&tl=${encodeURIComponent(tl)}&text=${encodeURIComponent(text.slice(0, 1800))}&op=translate`;
@@ -190,8 +209,6 @@ function shot(ph, kind, ref) {
 function placeSheet(p, i) {
   const ck = catKey(p);
   const dist = distLabel(p);
-  const body = [txt(p.s), txt(p.why)].filter(Boolean).join(' ');
-  const showTr = needsTranslate([body, txt(p.tip), txt(p.fun)].join(' '));
   const media = (p.m || []).map(ytLink).filter(Boolean);
   return `
     <div class="mp-hero">${shot(p.pg, 'g', 'p' + i)}${shot(p.pr, 'r', 'p' + i)}<span class="mp-vs">${IC.swap}</span></div>
@@ -205,13 +222,12 @@ function placeSheet(p, i) {
       <span class="mp-pic">${meter(p.cf)}<small>${esc(w(p.cf || 'likely'))}</small></span>
       ${dist ? `<span class="mp-pic">${IC.pin}<small>${dist}</small></span>` : ''}
     </div>
-    <a class="btn-primary mp-go" href="${mapsLink(p.lat, p.lon, p.n)}" target="_blank" rel="noopener">${IC.nav}<span>${esc(w('route'))}</span></a>
+    ${actions(p.lat, p.lon, p.n, `${p.g} → ${p.n}`)}
     ${txt(p.s) ? `<p class="mp-text">${esc(txt(p.s))}</p>` : ''}
     ${txt(p.why) ? `<div class="mp-blk">${IC.info}<div><b>${esc(w('why'))}</b><p>${esc(txt(p.why))}</p></div></div>` : ''}
     ${txt(p.tip) ? `<div class="mp-blk">${IC.bulb}<div><b>${esc(w('tip'))}</b><p>${esc(txt(p.tip))}</p></div></div>` : ''}
     ${txt(p.fun) ? `<div class="mp-blk">${IC.spark}<div><b>${esc(w('fun'))}</b><p>${esc(txt(p.fun))}</p></div></div>` : ''}
     ${media.length ? `<div class="mp-yt">${media.map((m) => `<a href="${m.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(m.label)}</span></a>`).join('')}</div>` : ''}
-    ${showTr ? `<a class="btn-ghost mp-tr" href="${translateLink([p.g + ' — ' + p.n, txt(p.s), txt(p.why), txt(p.tip)].filter(Boolean).join('\n\n'))}" target="_blank" rel="noopener">${IC.translate}<span>${esc(w('trans'))}</span></a>` : ''}
     ${(p.src || []).length ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u, k) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a>`).join('')}</div>` : ''}
     ${[p.pg, p.pr].filter(Boolean).length ? `<p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>` : ''}`;
 }
@@ -222,8 +238,7 @@ function eggSheet(e) {
     ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(e.p)}</b></div></div>` : ''}
     <p class="mp-text">${esc(txt(e.d))}</p>
     ${(e.m || []).map(ytLink).filter(Boolean).length ? `<div class="mp-yt">${(e.m || []).map(ytLink).filter(Boolean).map((m) => `<a href="${m.url}" target="_blank" rel="noopener">${IC.play}<span>${esc(m.label)}</span></a>`).join('')}</div>` : ''}
-    <a class="btn-primary mp-go" href="${mapsLink(e.lat, e.lon, e.p)}" target="_blank" rel="noopener">${IC.nav}<span>${esc(w('route'))}</span></a>
-    ${needsTranslate(txt(e.d)) ? `<a class="btn-ghost mp-tr" href="${translateLink([txt(e.t), txt(e.d)].join('\n\n'))}" target="_blank" rel="noopener">${IC.translate}<span>${esc(w('trans'))}</span></a>` : ''}
+    ${actions(e.lat, e.lon, e.p, txt(e.t))}
     ${e.src ? `<div class="mp-src">${IC.link}<a href="${esc(e.src)}" target="_blank" rel="noopener">${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a></div>` : ''}`;
 }
 // фото точек сообщества — из открытого репозитория gtadb.org на GitHub (CC BY 4.0; кадры игры © Rockstar Games)
@@ -242,8 +257,8 @@ function gtadbSheet(p, g, i) {
       <div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(real.split(',')[0])}</b><small>${esc(real.split(',').slice(1).join(',').trim())}</small></div></div>
     </div>
     <div class="mp-picto"><span class="mp-pic">${IC.other}<small>${esc(type || w('other'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel({ lat, lon })}</small></span>` : ''}</div>
-    <a class="btn-primary mp-go" href="${mapsLink(lat, lon, real)}" target="_blank" rel="noopener">${IC.nav}<span>${esc(w('route'))}</span></a>
-    <a class="btn-ghost" href="https://map.gtadb.org/#${g},${esc(id)}" target="_blank" rel="noopener">${IC.link}<span>gtadb.org</span></a>
+    ${actions(lat, lon, real, `${name || district || id} → ${real.split(',')[0]}`)}
+    <div class="mp-src">${IC.link}<a href="https://map.gtadb.org/#${g},${esc(id)}" target="_blank" rel="noopener">gtadb.org</a></div>
     <p class="d-note">${t('map_gtadb_credit')}</p>`;
 }
 function helpSheet() {
@@ -453,6 +468,7 @@ document.addEventListener('click', (e) => {
   else if (a === 'viewer-k') openViewer(viewer.ref, el.dataset.k);
   else if (a === 'viewer-next') { const p = subject(viewer.ref); if (p.pg && p.pr) openViewer(viewer.ref, viewer.k === 'g' ? 'r' : 'g'); }
   else if (a === 'viewer-close') closeViewer();
+  else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t); }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
 });
 addEventListener('keydown', (e) => { if (e.key === 'Escape') closeViewer(); });

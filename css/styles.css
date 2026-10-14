@@ -475,3 +475,9 @@ body.in-ob #onboarding { display: flex; }
 @media (min-width: 700px) { #mp-viewer { left: 50%; right: auto; width: 393px; transform: translateX(-50%); top: 50%; bottom: auto; height: min(852px, 100vh); margin-top: max(-426px, -50vh); border-radius: 44px; } }
 .mc-d { border-style: dashed; }
 .mc-dot { width: 8px; height: 8px; border-radius: 50%; background: #8b93a1; }
+.mp-acts { display: flex; gap: 8px; margin: 2px 0 14px; }
+.mp-cta { flex: 1; min-width: 0; height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); font-size: 15px; font-weight: 700; text-decoration: none; }
+.mp-cta svg { width: 20px; height: 20px; flex: none; }
+.mp-cta span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-ib { flex: none; width: 44px; height: 44px; padding: 11px; border-radius: 12px; background: var(--card); border: 1px solid var(--line-2); color: var(--text); display: inline-grid; place-items: center; }
+.mp-ib:active, .mp-cta:active { transform: scale(.96); }
