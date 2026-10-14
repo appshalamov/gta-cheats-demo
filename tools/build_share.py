@@ -164,6 +164,10 @@ def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=()):
     if Image is None or not (gurl or rurl or pairs):
         return ""
     gf = CFG.get("og_game_frame", True)
+    # рубильник og_gtadb_pairs (аналитика 15.10, вопрос юристу до 04.11): false — пары со снимками gtadb (Street View)
+    # в превью не берём, остаются варианты Commons; старые картинки с парами удалит эта же сборка (их нет в OG_MADE)
+    if not CFG.get("og_gtadb_pairs", True):
+        pairs = tuple(p for p in pairs if not p[1].startswith(GTADB_RAW))
     pk = "|".join(f"{a}>{b}" for a, b in pairs) if gf else ""
     sig = hashlib.sha1(f"v6|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}|{pk}".encode()).hexdigest()[:8]
     rel = f"og/{game}/{pid}.{sig}.jpg"
