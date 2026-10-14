@@ -24,6 +24,9 @@ const W = {
   share:  { en: 'Share', ru: 'Поделиться', es: 'Compartir', pt: 'Compartilhar', fr: 'Partager', de: 'Teilen', it: 'Condividi', tr: 'Paylaş', uk: 'Поділитися', pl: 'Udostępnij', zh: '分享', ja: '共有', ko: '공유' },
   here:   { en: 'Several places here', ru: 'Здесь несколько мест', es: 'Varios lugares aquí', pt: 'Vários lugares aqui', fr: 'Plusieurs lieux ici', de: 'Mehrere Orte hier', it: 'Più luoghi qui', tr: 'Burada birkaç yer', uk: 'Тут кілька місць', pl: 'Kilka miejsc tutaj', zh: '这里有多个地点', ja: 'ここに複数の場所', ko: '여기에 여러 장소' },
   also:   { en: 'Also here', ru: 'Здесь же', es: 'También aquí', pt: 'Também aqui', fr: 'Aussi ici', de: 'Auch hier', it: 'Anche qui', tr: 'Burada ayrıca', uk: 'Тут же', pl: 'Także tutaj', zh: '这里还有', ja: 'ここにも', ko: '여기도' },
+  back:   { en: 'Back', ru: 'Назад', es: 'Atrás', pt: 'Voltar', fr: 'Retour', de: 'Zurück', it: 'Indietro', tr: 'Geri', uk: 'Назад', pl: 'Wstecz', zh: '返回', ja: '戻る', ko: '뒤로' },
+  close:  { en: 'Close', ru: 'Закрыть', es: 'Cerrar', pt: 'Fechar', fr: 'Fermer', de: 'Schließen', it: 'Chiudi', tr: 'Kapat', uk: 'Закрити', pl: 'Zamknij', zh: '关闭', ja: '閉じる', ko: '닫기' },
+  vhint:  { en: 'Swipe ↔ to switch · ↓ to close', ru: 'Листайте ↔ разделы · ↓ закрыть', es: 'Desliza ↔ para cambiar · ↓ para cerrar', pt: 'Deslize ↔ para trocar · ↓ para fechar', fr: 'Glissez ↔ pour changer · ↓ pour fermer', de: 'Wischen ↔ wechseln · ↓ schließen', it: 'Scorri ↔ per cambiare · ↓ per chiudere', tr: '↔ kaydır değiştir · ↓ kapat', uk: 'Гортайте ↔ розділи · ↓ закрити', pl: 'Przesuń ↔ zmiana · ↓ zamknij', zh: '左右滑动切换 · 下滑关闭', ja: '左右にスワイプで切替 · 下で閉じる', ko: '좌우로 넘기기 · 아래로 닫기' },
   nearby: { en: 'Nearby', ru: 'Рядом', es: 'Cerca', pt: 'Perto', fr: 'À proximité', de: 'In der Nähe', it: 'Nelle vicinanze', tr: 'Yakında', uk: 'Поруч', pl: 'W pobliżu', zh: '附近', ja: '近く', ko: '근처' },
   full:   { en: 'Full screen', ru: 'На весь экран', es: 'Pantalla completa', pt: 'Tela cheia', fr: 'Plein écran', de: 'Vollbild', it: 'Schermo intero', tr: 'Tam ekran', uk: 'На весь екран', pl: 'Pełny ekran', zh: '全屏', ja: '全画面', ko: '전체 화면' },
   allPhotos: { en: 'All photos', ru: 'Все фото', es: 'Todas las fotos', pt: 'Todas as fotos', fr: 'Toutes les photos', de: 'Alle Fotos', it: 'Tutte le foto', tr: 'Tüm fotoğraflar', uk: 'Усі фото', pl: 'Wszystkie zdjęcia', zh: '全部照片', ja: 'すべての写真', ko: '모든 사진' },
@@ -245,7 +248,7 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
   pairsOf[key] = (pairs || []).map((x) => ({ g: asItem(x.g), r: asItem(x.r) }));
   const P = pairsOf[key];
   const all = gl.length + rl.length > 2
-    ? `<button class="mp-allbtn" data-mp="all" data-key="${key}">${IC.grid}<span>${esc(w('allPhotos'))}</span><em>${IC.camera}${rl.length}</em><em>${IC.game}${gl.length}</em></button>`
+    ? `<button class="mp-allbtn" data-mp="all" data-key="${key}">${IC.grid}<span>${esc(w('allPhotos'))}</span><em>${IC.camera}${rl.length}</em><em>${IC.game}${gl.length}</em><i class="mp-chev">${IC.chevR}</i></button>`
     : '';
   if (P.length) {
     inl[key] = { pi: 0, x: 50 };
@@ -269,7 +272,7 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
       return `<a class="mp-shot empty r mp-shot-360" href="${o.pano}" target="_blank" rel="noopener"><span class="mp-shot-ic">${IC.pano}</span><small>${esc(w('look'))}</small></a>`;
     if (!ph) return `<div class="mp-shot empty ${kind}"><span class="mp-shot-ic">${icon}</span></div>`;
     const act = `data-mp="view" data-ref="${kind}:${key}" data-n="0" data-i="${o.i ?? ''}"`;
-    return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}" alt="${esc(label)}" loading="lazy" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span></button>`;
+    return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}" alt="${esc(label)}" loading="lazy" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span><span class="mp-shot-exp" aria-hidden="true">${IC.expand}</span></button>`;
   };
   const mid = `<span class="mp-vs">${o.egg ? IC.egg : IC.swap}</span>`;
   return `<div class="mp-media-box" data-key="${key}"><div class="mp-hero">${tile(cov[0], 'g')}${tile(cov[1], 'r')}${mid}</div>${all}</div>`;
@@ -350,7 +353,7 @@ function gtadbSheet(p, g, i) {
     </div>
     <div class="mp-picto"><span class="mp-pic">${IC.other}<small>${esc(type || w('other'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel({ lat, lon })}</small></span>` : ''}</div>
     ${(p[9] || []).length ? `<div class="mp-also"><small>${esc(w('also'))}</small>${p[9].map((x) => `<span>${IC.game}${esc(x)}</span>`).join('')}</div>` : ''}
-    ${actions(lat, lon, real, `${name || district || id} → ${real.split(',')[0]}`)}
+    ${actions(lat, lon, real, `${name || district || id} → ${real.split(',')[0]}`, '', p[10] || null)}
     <div class="mp-src">${IC.link}<a href="https://map.gtadb.org/#${g},${esc(id)}" target="_blank" rel="noopener">gtadb.org</a></div>
     <p class="d-note">${t('map_gtadb_credit')}</p>`;
 }
@@ -468,7 +471,7 @@ function endInlineDrag(e) {
   if (d.mode === 'h') setInlineX(d.st, d.v0);
   ctx?.haptic?.();                                     // короткое нажатие — на весь экран
   const s = inl[d.st.dataset.key] || {};
-  if (d.st.dataset.i) viewer = { ...(viewer || {}), i: d.st.dataset.i };
+  ghostUntil = performance.now() + 450;   // click этого же касания не должен попасть в открывшуюся панель (вкладку, крестик)
   openCompare(d.st.dataset.key, s.pi || 0, s.x ?? 50);
 }
 document.addEventListener('pointerup', endInlineDrag);
@@ -487,6 +490,7 @@ addEventListener('touchmove', (e) => {
   if (hTouch.h) e.stopPropagation();
 }, { capture: true, passive: true });
 addEventListener('keydown', (e) => {
+  if (viewer) return;
   const st = e.target.closest?.('.cmp-inline');
   if (!st || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
   e.preventDefault();
@@ -494,92 +498,226 @@ addEventListener('keydown', (e) => {
 });
 
 // ───── просмотр на весь экран ─────
-// «Сравнить» — только пары с одного ракурса, ползунок двигается пальцем. «Все фото» — сетка всех снимков (жизнь / игра),
-// отсюда же «＋ Ваше фото». Нажатие на снимок — на весь экран со стрелками и свайпом.
+// Одна панель в стиле карточки: ручка, название, вкладки «Сравнить · Жизнь · Игра».
+// Вбок — соседняя вкладка (на фото «Сравнить» вбок двигает ползунок), в открытом снимке — соседний снимок.
+// Вниз — закрыть. «Назад» (кнопка ‹, системный жест Android, свайп от левого края на iPhone, Esc) — на шаг:
+// из снимка в сетку, из панели в карточку. Каждый уровень — запись в истории (тот же адрес, только state).
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 function viewerEl() {
   let el = document.getElementById('mp-viewer');
-  if (!el) { el = document.createElement('div'); el.id = 'mp-viewer'; document.body.appendChild(el); }
+  if (!el) { el = document.createElement('div'); el.id = 'mp-viewer'; document.body.appendChild(el); bindViewerGestures(el); }
   return el;
 }
-function vTabs(key, active) {
-  const tabs = [];
-  if ((pairsOf[key] || []).length) tabs.push(['compare', IC.swap, w('compare'), '']);
-  tabs.push(['all', IC.grid, w('allPhotos'), (galleries[`r:${key}`] || []).length + (galleries[`g:${key}`] || []).length]);
-  return `<div class="mpv-tabs">${tabs.map(([m, ic, lab, cnt]) => `<button class="${m === active ? 'on' : ''}" data-mp="${m}" data-key="${key}" data-i="${viewer?.i ?? ''}">${ic}<span>${esc(lab)}</span>${cnt ? `<em>${cnt}</em>` : ''}</button>`).join('')}</div>`;
+function vSections(key) {
+  const s = [];
+  if ((pairsOf[key] || []).length) s.push('cmp');
+  if ((galleries[`r:${key}`] || []).length) s.push('r');
+  if ((galleries[`g:${key}`] || []).length) s.push('g');
+  return s;
 }
+let closeTimer = 0, ghostUntil = 0, lastFocus = null;
+let navPending = false, afterNav = null;   // своя перемотка истории после закрытия ещё не дошла — новую запись ставим после неё
+function openViewerAt(key, sec, o = {}) {
+  const el = viewerEl();
+  clearTimeout(closeTimer); el.classList.remove('closing'); el.style.removeProperty('--dim');
+  lastFocus = document.activeElement; lastFocus?.blur?.();
+  viewer = { key, sec, pi: o.pi ?? 0, x: o.x ?? 50, one: o.one || null, depth: 1 };
+  const push = () => history.pushState({ mpv: 1 }, '');
+  if (navPending) afterNav = push; else push();
+  renderViewer('in');
+}
+addEventListener('click', (e) => {
+  if (performance.now() < ghostUntil && e.target.closest?.('#mp-viewer')) { e.preventDefault(); e.stopPropagation(); }
+}, true);
 function openViewer(ref, n = 0) { openSingle(ref, n); }
 function openCompare(key, pi = 0, x = 50) {
-  const P = pairsOf[key] || [];
-  if (!P.length) return openAll(key, 'r');
+  if (!vSections(key).includes('cmp')) return openAll(key, 'r');
+  const P = pairsOf[key];
   pi = (pi + P.length) % P.length;
-  viewer = { mode: 'cmp', key, pi, x, i: viewer?.i };
-  const names = galNames[key] || {}, pr = P[pi];
-  const el = viewerEl();
-  el.innerHTML = `
-    <button class="mpv-x" data-mp="viewer-close" aria-label="close">${IC.close}</button>
-    ${vTabs(key, 'compare')}
-    <div class="cmp-stage" id="cmp-stage" style="--x:${x}%">
-      <img class="cmp-g" src="${esc(pr.g.url)}" alt="" draggable="false">
-      <img class="cmp-r" src="${esc(pr.r.url)}" alt="" draggable="false">
-      <span class="cmp-lab g">${IC.game}<b>${esc(w('game'))}</b></span>
-      <span class="cmp-lab r">${IC.camera}<b>${esc(w('real'))}</b></span>
-      <div class="cmp-line"><span class="cmp-knob">${IC.chevL}${IC.chevR}</span></div>
-    </div>
-    <div class="mpv-cap"><b>${esc(names.g || '')} ⇄ ${esc(names.r || '')}${P.length > 1 ? ` · ${pi + 1}/${P.length}` : ''}</b></div>
-    ${P.length > 1 ? `<div class="cmp-pairs">${P.map((x, k) => `<button class="${k === pi ? 'on' : ''}" data-mp="pair" data-n="${k}"><img src="${esc(x.g.url)}" alt="" loading="lazy"><img src="${esc(x.r.url)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
-    <p class="mpv-credit">${esc(pr.g.credit)} · ${esc(pr.r.credit)}</p>`;
-  el.classList.add('open');
-  const stage = el.querySelector('#cmp-stage');
-  const setX = (cx) => { const b = stage.getBoundingClientRect(); const v = Math.max(0, Math.min(100, ((cx - b.left) / b.width) * 100)); stage.style.setProperty('--x', v + '%'); viewer.x = v; };
-  let drag = false;
-  stage.onpointerdown = (e) => { drag = true; stage.setPointerCapture?.(e.pointerId); setX(e.clientX); };
-  stage.onpointermove = (e) => { if (drag) setX(e.clientX); };
-  stage.onpointerup = stage.onpointercancel = () => { drag = false; };
-  if (!openCompare.hinted && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    openCompare.hinted = true;
-    stage.classList.add('hint'); setTimeout(() => stage.classList.remove('hint'), 1600);
-  }
+  if (viewer && viewer.key === key) { Object.assign(viewer, { sec: 'cmp', pi, x }); renderViewer(); return; }
+  openViewerAt(key, 'cmp', { pi, x });
 }
-function openAll(key, tab = 'r', i = viewer?.i) {
-  viewer = { mode: 'all', key, tab, i };
-  const R = galleries[`r:${key}`] || [], G = galleries[`g:${key}`] || [];
-  const list = tab === 'r' ? R : G;
-  const el = viewerEl();
-  el.innerHTML = `
-    <button class="mpv-x" data-mp="viewer-close" aria-label="close">${IC.close}</button>
-    ${vTabs(key, 'all')}
-    <div class="mpa-tabs">
-      <button class="${tab === 'r' ? 'on' : ''}" data-mp="all-tab" data-t="r">${IC.camera}<span>${esc(w('real'))}</span><em>${R.length}</em></button>
-      <button class="${tab === 'g' ? 'on' : ''}" data-mp="all-tab" data-t="g">${IC.game}<span>${esc(w('game'))}</span><em>${G.length}</em></button>
-    </div>
-    <div class="mpa-grid">
-      ${list.map((ph, k) => `<div class="mpa-cell"><button class="mpa-img" data-mp="view" data-ref="${tab}:${key}" data-n="${k}"><img src="${esc(ph.thumb)}" alt="" loading="lazy" decoding="async"></button></div>`).join('')}
-    </div>`;
-  el.classList.add('open');
+function openAll(key, tab = 'r') {
+  const secs = vSections(key).filter((x) => x !== 'cmp');
+  const sec = secs.includes(tab) ? tab : secs[0];
+  if (!sec) return;
+  if (viewer && viewer.key === key) { viewer.sec = sec; renderViewer(); return; }
+  openViewerAt(key, sec);
 }
 function openSingle(ref, n = 0) {
   const list = galleries[ref] || [];
   if (!list.length) return;
+  const kind = ref[0], key = ref.slice(2);
   n = (n + list.length) % list.length;
-  const kind = ref[0], key = ref.slice(2), names = galNames[key] || {};
-  viewer = { mode: 'one', ref, n, key, i: viewer?.i };
-  const ph = list[n];
-  const el = viewerEl();
-  el.innerHTML = `
-    <button class="mpv-x" data-mp="viewer-close" aria-label="close">${IC.close}</button>
-    ${vTabs(key, '')}
-    <div class="mpv-stage" id="mpv-stage">
-      <img src="${esc(ph.url)}" alt="" draggable="false">
-      ${list.length > 1 ? `<button class="mpv-arr l" data-mp="viewer-step" data-d="-1" aria-label="‹">${IC.chevL}</button><button class="mpv-arr r" data-mp="viewer-step" data-d="1" aria-label="›">${IC.chevR}</button>` : ''}
-    </div>
-    <div class="mpv-cap"><b>${kind === 'g' ? IC.game : IC.camera} ${esc(kind === 'g' ? names.g || '' : names.r || '')}${list.length > 1 ? ` · ${n + 1}/${list.length}` : ''}</b><small>${esc(ph.credit || '')}</small></div>`;
-  el.classList.add('open');
-  const stage = el.querySelector('#mpv-stage');
-  let x0 = null;
-  stage.onpointerdown = (e) => { x0 = e.clientX; };
-  stage.onpointerup = (e) => { if (x0 == null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 40 && list.length > 1) openSingle(ref, n + (dx < 0 ? 1 : -1)); };
+  if (viewer && viewer.key === key) {
+    if (!viewer.one) { viewer.depth = 2; history.pushState({ mpv: 2 }, ''); }
+    viewer.one = { list: kind, n }; renderViewer('in-one'); return;
+  }
+  openViewerAt(key, kind, { one: { list: kind, n } });   // прямо из карточки: «назад» сразу в карточку
 }
-function closeViewer() { document.getElementById('mp-viewer')?.classList.remove('open'); viewer = null; resetDocScroll(); }
+function stepSingle(d) {
+  const v = viewer, list = galleries[`${v.one.list}:${v.key}`] || [], n = v.one.n + d;
+  if (n < 0 || n >= list.length) return false;
+  v.one.n = n; renderViewer(d > 0 ? 'from-r' : 'from-l'); return true;
+}
+function stepSection(d) {
+  const secs = vSections(viewer.key), k = secs.indexOf(viewer.sec) + d;
+  if (k < 0 || k >= secs.length) return false;
+  viewer.sec = secs[k]; renderViewer(d > 0 ? 'from-r' : 'from-l'); return true;
+}
+function renderViewer(anim = '') {
+  const v = viewer;
+  if (!v) return;
+  const el = viewerEl(), key = v.key, names = galNames[key] || {};
+  const P = pairsOf[key] || [], R = galleries[`r:${key}`] || [], G = galleries[`g:${key}`] || [];
+  const secs = vSections(key);
+  if (!secs.includes(v.sec)) v.sec = secs[0];
+  let head, tabs = '', body;
+  if (v.one) {
+    const list = v.one.list === 'r' ? R : G, n = v.one.n, ph = list[n] || {};
+    head = `<button class="mpv-back" data-mp="viewer-back" aria-label="${esc(w('back'))}" title="${esc(w('back'))}">${IC.chevL}</button>
+      <div class="mpv-ttl"><b>${v.one.list === 'g' ? IC.game : IC.camera}<span>${esc(v.one.list === 'g' ? names.g || '' : names.r || '')}</span></b><small>${n + 1} / ${list.length}</small></div>`;
+    body = `<div class="mpv-stage" id="mpv-stage"><img src="${esc(ph.url)}" alt="" draggable="false">
+        ${n > 0 ? `<button class="mpv-arr l" data-mp="viewer-step" data-d="-1" aria-label="‹">${IC.chevL}</button>` : ''}
+        ${n < list.length - 1 ? `<button class="mpv-arr r" data-mp="viewer-step" data-d="1" aria-label="›">${IC.chevR}</button>` : ''}</div>
+      <p class="mpv-credit">${esc(ph.credit || '')}</p>`;
+  } else {
+    const lab = { cmp: [IC.swap, w('compare'), P.length > 1 ? P.length : ''], r: [IC.camera, w('real'), R.length], g: [IC.game, w('game'), G.length] };
+    head = `<div class="mpv-ttl"><b>${IC.game}<span>${esc(names.g || '')}</span></b><small>${esc(names.r || '')}</small></div>`;
+    tabs = secs.length > 1 ? `<div class="mpv-seg" role="tablist">${secs.map((s) => `<button role="tab" aria-selected="${s === v.sec}" class="${s === v.sec ? 'on' : ''}" data-mp="sec" data-s="${s}">${lab[s][0]}<span>${esc(lab[s][1])}</span>${lab[s][2] ? `<em>${lab[s][2]}</em>` : ''}</button>`).join('')}</div>` : '';
+    if (v.sec === 'cmp') {
+      const pr = P[v.pi];
+      body = `<div class="cmp-stage mpv-cmp" id="cmp-stage" style="--x:${v.x}%">
+          <img class="cmp-g" src="${esc(pr.g.url)}" alt="" draggable="false">
+          <img class="cmp-r" src="${esc(pr.r.url)}" alt="" draggable="false">
+          <span class="cmp-lab g">${IC.game}<b>${esc(w('game'))}</b></span>
+          <span class="cmp-lab r">${IC.camera}<b>${esc(w('real'))}</b></span>
+          <div class="cmp-line"><span class="cmp-knob">${IC.chevL}${IC.chevR}</span></div>
+        </div>
+        ${P.length > 1 ? `<div class="cmp-pairs">${P.map((x, k) => `<button class="${k === v.pi ? 'on' : ''}" data-mp="pair" data-n="${k}" aria-label="${k + 1}/${P.length}"><img src="${esc(x.g.url)}" alt="" loading="lazy"><img src="${esc(x.r.url)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
+        <p class="mpv-credit">${esc(pr.g.credit)} · ${esc(pr.r.credit)}</p>`;
+    } else {
+      const list = v.sec === 'r' ? R : G;
+      body = `<div class="mpa-grid">${list.map((ph, k) => `<button class="mpa-img" data-mp="view" data-ref="${v.sec}:${key}" data-n="${k}"><img src="${esc(ph.thumb)}" alt="" loading="lazy" decoding="async"></button>`).join('')}</div>`;
+    }
+  }
+  const hint = !renderViewer.hinted && (secs.length > 1 || v.one) ? `<p class="mpv-hint">${esc(w('vhint'))}</p>` : '';
+  if (hint) renderViewer.hinted = true;
+  el.innerHTML = `<div class="mpv-panel${anim === 'in' ? ' enter' : ''}" role="dialog" aria-modal="true" tabindex="-1">
+      <div class="mpv-top"><span class="mpv-grab" aria-hidden="true"></span>
+        <div class="mpv-head">${head}<button class="mpv-x" data-mp="viewer-close" aria-label="${esc(w('close'))}" title="${esc(w('close'))}">${IC.close}</button></div>${tabs}</div>
+      <div class="mpv-body ${anim}">${body}</div>${hint}</div>`;
+  el.classList.add('open');
+  if (anim === 'in') el.querySelector('.mpv-panel')?.focus({ preventScroll: true });
+  const stage = el.querySelector('#cmp-stage');
+  if (stage) {   // мышь: тянуть ползунок (касания — в жестах панели)
+    let drag = false;
+    stage.onpointerdown = (e) => { if (e.pointerType === 'touch') return; stage.classList.remove('hint'); drag = true; stage.setPointerCapture?.(e.pointerId); setCmpX(stage, e.clientX); };
+    stage.onpointermove = (e) => { if (drag) setCmpX(stage, e.clientX); };
+    stage.onpointerup = stage.onpointercancel = () => { drag = false; };
+    if (!openCompare.hinted && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      openCompare.hinted = true; stage.classList.add('hint'); setTimeout(() => stage.classList.remove('hint'), 1600);
+    }
+  }
+}
+function setCmpX(stage, cx) {
+  const b = stage.getBoundingClientRect(), v = Math.max(0, Math.min(100, ((cx - b.left) / b.width) * 100));
+  stage.style.setProperty('--x', v + '%'); if (viewer) viewer.x = v;
+}
+function viewerBack() { if (viewer) history.back(); }          // popstate сделает шаг
+function hideViewer() {
+  const el = document.getElementById('mp-viewer');
+  viewer = null; vg = null; resetDocScroll();
+  if (!el?.classList.contains('open')) return;
+  const panel = el.querySelector('.mpv-panel');
+  const done = () => { if (viewer) return; el.classList.remove('open', 'closing'); el.style.removeProperty('--dim'); el.innerHTML = ''; };
+  if (panel && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.classList.add('closing'); panel.style.transition = ''; panel.style.transform = 'translateY(100%)';
+    clearTimeout(closeTimer); closeTimer = setTimeout(done, 230);
+  } else done();
+  if (lastFocus?.isConnected) lastFocus.focus?.({ preventScroll: true });
+  lastFocus = null;
+}
+// закрыть крестиком/свайпом: убрать свои записи из истории (popstate придёт при viewer = null и ничего не сделает)
+function closeViewer() {
+  if (!viewer) return;
+  const d = viewer.depth || 1;
+  hideViewer();
+  navPending = true; history.go(-d);
+  setTimeout(() => { if (navPending) finishNav(); }, 800);   // страховка, если popstate не придёт
+}
+function finishNav() { navPending = false; const f = afterNav; afterNav = null; f?.(); }
+addEventListener('popstate', (e) => {
+  if (navPending) { finishNav(); return; }   // это наша перемотка после закрытия
+  const to = e.state?.mpv || 0;
+  if (!viewer) { if (to) history.go(-to); return; }      // устаревшая запись просмотра (вперёд после закрытия, перезагрузка) — пройти её
+  if (to > viewer.depth) { history.go(viewer.depth - to); return; }   // «вперёд» дальше текущего уровня — вернуться
+  if (to === 0) { hideViewer(); return; }
+  if (to === 1 && viewer.depth === 2) { viewer.one = null; viewer.depth = 1; renderViewer('back'); }
+});
+if (history.state?.mpv) history.go(-history.state.mpv);   // map.js загрузился после перезагрузки на записи просмотра
+// жесты панели (касания): решаем направление на первом touchmove — иначе iOS успеет начать свою прокрутку
+let vg = null;
+function bindViewerGestures(el) {
+  const reset = () => {
+    const panel = el.querySelector('.mpv-panel'), body = el.querySelector('.mpv-body');
+    for (const n of [panel, body]) if (n) { n.style.transition = ''; n.style.transform = ''; }
+    el.style.removeProperty('--dim');
+  };
+  el.addEventListener('touchstart', (e) => {
+    if (!viewer || e.touches.length !== 1) { if (vg?.mode) reset(); vg = null; return; }   // второй палец — отпустить жест
+    const t = e.touches[0], tg = e.target;
+    vg = { x0: t.clientX, y0: t.clientY, t0: e.timeStamp, dx: 0, dy: 0, mode: null,
+      stage: tg.closest('.mpv-cmp'), grid: tg.closest('.mpa-grid'), strip: tg.closest('.cmp-pairs, .mpv-seg'),
+      edge: isStandalone() && t.clientX < 20 && !(tg.closest('.mpv-cmp') && (viewer.x ?? 50) < 15) };
+  }, { passive: true });
+  el.addEventListener('touchmove', (e) => {
+    const g = vg;
+    if (!g || !viewer) return;
+    const t = e.touches[0];
+    g.dx = t.clientX - g.x0; g.dy = t.clientY - g.y0;
+    if (!g.mode) {
+      const ax = Math.abs(g.dx), ay = Math.abs(g.dy);
+      const scroller = g.grid || (g.strip && g.strip.scrollWidth > g.strip.clientWidth + 2 ? g.strip : null);
+      if (!scroller && ax + ay < 6) { if (e.cancelable) e.preventDefault(); return; }   // своей прокрутки нет — ждём явного направления
+      if (scroller && ax + ay < 1) return;
+      if (g.edge && g.dx > 0 && ax >= ay) g.mode = 'edge';
+      else if (g.grid) g.mode = ax > ay * 2 && ax >= 2 ? 'swipe' : (g.dy > 0 && ay > ax && g.grid.scrollTop <= 0 ? 'dismiss' : 'native');   // в сетке спорное — прокрутка
+      else if (ay > ax * 1.2) g.mode = g.dy > 0 ? 'dismiss' : 'native';
+      else if (g.stage) { g.mode = 'slider'; g.stage.classList.remove('hint'); }
+      else if (g.strip && scroller) g.mode = 'native';
+      else g.mode = 'swipe';
+    }
+    if (g.mode === 'native') return;
+    if (e.cancelable) e.preventDefault();
+    const panel = el.querySelector('.mpv-panel'), body = el.querySelector('.mpv-body');
+    if (g.mode === 'dismiss') { panel.style.transition = 'none'; panel.style.transform = `translateY(${Math.max(0, g.dy)}px)`; el.style.setProperty('--dim', String(Math.max(0, 1 - g.dy / 500))); }
+    else if (g.mode === 'edge') { panel.style.transition = 'none'; panel.style.transform = `translateX(${Math.max(0, g.dx)}px)`; }
+    else if (g.mode === 'slider') setCmpX(g.stage, t.clientX);
+    else if (g.mode === 'swipe') {
+      const can = viewer.one ? (g.dx < 0 ? viewer.one.n < (galleries[`${viewer.one.list}:${viewer.key}`] || []).length - 1 : viewer.one.n > 0)
+        : (() => { const s = vSections(viewer.key), k = s.indexOf(viewer.sec); return g.dx < 0 ? k < s.length - 1 : k > 0; })();
+      body.style.transition = 'none'; body.style.transform = `translateX(${g.dx * (can ? 1 : 0.25)}px)`;
+    }
+  }, { passive: false });
+  const end = (e) => {
+    const g = vg; vg = null;
+    if (!g || !viewer || !g.mode || g.mode === 'native' || g.mode === 'slider') return;
+    const panel = el.querySelector('.mpv-panel'), body = el.querySelector('.mpv-body');
+    const dt = Math.max(1, e.timeStamp - g.t0), vx = g.dx / dt, vy = g.dy / dt;
+    const snap = (node) => { if (!node) return; node.style.transition = ''; node.style.transform = ''; el.style.removeProperty('--dim'); };
+    if (e.type === 'touchcancel' || e.touches.length) { reset(); return; }
+    if (g.mode === 'dismiss') { if (g.dy > 110 || (vy > 0.6 && g.dy > 30)) { ctx?.haptic?.(); closeViewer(); } else snap(panel); }
+    else if (g.mode === 'edge') { snap(panel); if (g.dx > 80 || (vx > 0.5 && g.dx > 30)) viewerBack(); }
+    else if (g.mode === 'swipe') {
+      const d = g.dx < 0 ? 1 : -1;
+      const go = (Math.abs(g.dx) > 60 || (Math.abs(vx) > 0.45 && Math.abs(g.dx) > 20)) && (viewer.one ? stepSingle(d) : stepSection(d));
+      if (go) ctx?.haptic?.(); else snap(body);
+    }
+  };
+  el.addEventListener('touchend', end);
+  el.addEventListener('touchcancel', end);
+}
 
 // Страница приложения никогда не прокручивается целиком (иначе на iPhone вылезают спрятанные слои — например, экран оплаты).
 // Любую прокрутку документа сразу возвращаем в ноль. Корень и проверка — tools/check_no_doc_scroll.js.
@@ -764,19 +902,19 @@ document.addEventListener('click', (e) => {
   const a = el.dataset.mp;
   if (a === 'card') { ctx?.haptic(); openPlace(+el.dataset.i, true); }
   else if (a === 'dcard') { ctx?.haptic(); openPoint(+el.dataset.i, true); }
-  else if (a === 'view') { ctx?.haptic(); if (el.dataset.i) viewer = { ...(viewer || {}), i: el.dataset.i }; openViewer(el.dataset.ref, +(el.dataset.n || 0)); }
-  else if (a === 'viewer-step') openSingle(viewer.ref, viewer.n + (+el.dataset.d));
+  else if (a === 'view') { ctx?.haptic(); openViewer(el.dataset.ref, +(el.dataset.n || 0)); }
+  else if (a === 'viewer-step') { if (viewer?.one) stepSingle(+el.dataset.d); }
+  else if (a === 'viewer-back') { ctx?.haptic(); viewerBack(); }
+  else if (a === 'sec') { ctx?.haptic(); const k = vSections(viewer.key).indexOf(viewer.sec), j = vSections(viewer.key).indexOf(el.dataset.s); viewer.sec = el.dataset.s; renderViewer(j > k ? 'from-r' : j < k ? 'from-l' : ''); }
   else if (a === 'compare') {
     ctx?.haptic(); const st = inl[el.dataset.key];
-    if (el.dataset.i !== undefined && el.dataset.i !== '') viewer = { ...(viewer || {}), i: el.dataset.i };
-    if (viewer?.mode === 'cmp') openCompare(el.dataset.key, viewer.pi, viewer.x ?? 50);
+    if (viewer?.key === el.dataset.key) openCompare(el.dataset.key, viewer.pi, viewer.x ?? 50);
     else openCompare(el.dataset.key, st?.pi ?? 0, st?.x ?? 50);
   }
   else if (a === 'ipair') { ctx?.haptic(); setInlinePair(el); }
   else if (a === 'near') { ctx?.haptic(); openPlace(+el.dataset.i, true); }
-  else if (a === 'pair') openCompare(viewer.key, +el.dataset.n, viewer.x ?? 50);
-  else if (a === 'all') { ctx?.haptic(); openAll(el.dataset.key, viewer?.mode === 'all' ? viewer.tab : 'r', el.dataset.i !== undefined && el.dataset.i !== '' ? el.dataset.i : viewer?.i); }
-  else if (a === 'all-tab') openAll(viewer.key, el.dataset.t, viewer.i);
+  else if (a === 'pair') { if (viewer) { viewer.pi = +el.dataset.n; viewer.x = 50; renderViewer(); } }
+  else if (a === 'all') { ctx?.haptic(); openAll(el.dataset.key, 'r'); }
   else if (a === 'viewer-close') closeViewer();
   else if (a === 'pick') { const i = +el.dataset.i, l = el.dataset.l; if (l === 'places') openPlace(i, false); else if (l === 'eggs') ctx.openSheet(eggSheet(data[game].eggs[i], i), 'sheet-map'); else openPoint(i, false); }
   else if (a === 'fav') {
@@ -788,7 +926,12 @@ document.addEventListener('click', (e) => {
   else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t); }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
 });
-addEventListener('keydown', (e) => { if (e.key === 'Escape') closeViewer(); });
+addEventListener('keydown', (e) => {
+  if (!viewer) return;
+  if (e.key === 'Escape') viewerBack();
+  else if (e.key === 'ArrowRight') viewer.one ? stepSingle(1) : stepSection(1);
+  else if (e.key === 'ArrowLeft') viewer.one ? stepSingle(-1) : stepSection(-1);
+});
 
 let opening = null;   // карта создаётся один раз: второй open() во время загрузки ждёт первый
 export async function open(c, preferGame) {

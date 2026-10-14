@@ -65,6 +65,11 @@ def parse_view(v):
     return out if ("pano" in out or "heading" in out) else None
 
 
+def gtadb_fixes(game):
+    f = DATA / "правки_вручную.json"
+    return (json.loads(f.read_text("utf-8")).get(game) or {}).get("gtadb_fix") or {} if f.exists() else {}
+
+
 def load_views(game):
     if not VIEWS.exists():
         return {}
@@ -285,9 +290,14 @@ def build(game, cfg):
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"), "gg": gal(it, game, "game_gallery", 4),
         })
     layer = json.loads((DATA / f"gtadb_layer_{game}.json").read_text("utf-8"))
+    gfix = gtadb_fixes(game)   # проверенные вручную точки gtadb (у части адрес вида «Wilshire Boulevard, CA» без номера — координаты примерные)
+    for x in layer:
+        if x["id"] in gfix:
+            x.update({k: v for k, v in gfix[x["id"]].items() if k in ("lat", "lon", "real")})
     pts = [[p["id"], p.get("name") or "", p.get("district") or p.get("region") or "", p.get("real") or "",
             num(p["lat"]), num(p["lon"]), p.get("type") or "", 1 if p.get("ig") else 0, 1 if p.get("rl") else 0] for p in layer
            if not p.get("leak_tag") and num(p.get("lat")) is not None]
+    gviews = {gid: parse_view(v["view"]) for gid, v in gfix.items() if v.get("view")}
     # Пары «кадр игры + фото из жизни» с одного ракурса (их подбирали люди в gtadb) — только они идут в «Сравнить»
     raw = lambda gid, k: f"https://raw.githubusercontent.com/rolux/gtadb.org/main/map/photos/{5 if game == 'gta5' else 6}/{gid},{k}.jpg"
     lay = {x["id"]: x for x in layer if x.get("ig") and x.get("rl") and not x.get("leak_tag")}
@@ -309,6 +319,11 @@ def build(game, cfg):
         if pr:
             e["pairs"] = pr
     eggs, pts, rep_ = dedupe(places, eggs, pts)
+    for q in pts:   # вид 360° точки gtadb — 11-й элемент (после «здесь же»)
+        if q[0] in gviews and gviews[q[0]]:
+            while len(q) < 10:
+                q.append([])
+            q[10:] = [gviews[q[0]]]
     views = load_views(game)
     used = set()
     for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:

@@ -692,3 +692,64 @@ body.in-ob #onboarding { display: flex; }
 .mp-shot-360 { align-content: center; gap: 8px; text-decoration: none; color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line-2)); background: var(--accent-soft); }
 .mp-shot-360 .mp-shot-ic { color: var(--accent); }
 .mp-shot-360 small { font-size: 13px; font-weight: 700; text-align: center; padding: 0 10px; }
+
+/* ───── карта: просмотр фото v2 — панель в стиле карточки (ручка, вкладки, свайпы) ───── */
+#mp-viewer { padding: 0; gap: 0; justify-content: flex-end; align-items: stretch; background: rgba(0,0,0,calc(.62 * var(--dim, 1))); touch-action: none; overflow: hidden; }
+#mp-viewer.closing { background: rgba(0,0,0,0); transition: background .22s; }
+.mpv-panel { position: relative; display: flex; flex-direction: column; height: calc(100% - var(--safe-t) - 8px); background: #0c0c0e; color: #fff; border-radius: 22px 22px 0 0; overflow: hidden; box-shadow: 0 -10px 40px rgba(0,0,0,.45); transition: transform .24s cubic-bezier(.2,.8,.2,1); will-change: transform; }
+#mp-viewer.open:not(.closing) .mpv-panel.enter { animation: mpvUp .26s cubic-bezier(.2,.8,.2,1); }
+.mpv-panel:focus { outline: none; }
+@keyframes mpvUp { from { transform: translateY(48px); opacity: 0; } to { transform: none; opacity: 1; } }
+.mpv-top { flex: none; padding: 6px 12px 10px; }
+.mpv-grab { display: block; width: 40px; height: 5px; margin: 2px auto 8px; border-radius: 3px; background: rgba(255,255,255,.3); }
+.mpv-head { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+.mpv-ttl { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.mpv-ttl b { display: flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 800; min-width: 0; }
+.mpv-ttl b svg { width: 16px; height: 16px; flex: none; color: var(--accent); }
+.mpv-ttl b span, .mpv-ttl small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mpv-ttl small { font-size: 12.5px; color: rgba(255,255,255,.6); }
+#mp-viewer .mpv-x, #mp-viewer .mpv-back { position: static; flex: none; width: 38px; height: 38px; padding: 9px; border-radius: 50%; background: rgba(255,255,255,.14); color: #fff; }
+#mp-viewer .mpv-x:active, #mp-viewer .mpv-back:active { transform: scale(.92); }
+.mpv-seg { display: flex; gap: 4px; margin-top: 10px; padding: 3px; border-radius: 12px; background: rgba(255,255,255,.08); }
+.mpv-seg button { flex: 1; min-width: 0; height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 9px; color: rgba(255,255,255,.75); font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+.mpv-seg button svg { width: 16px; height: 16px; flex: none; }
+.mpv-seg button span { overflow: hidden; text-overflow: ellipsis; }
+.mpv-seg button em { font-style: normal; font-size: 11.5px; opacity: .7; }
+.mpv-seg button.on { background: var(--accent); color: var(--accent-ink); }
+.mpv-body { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding-bottom: calc(var(--safe-b) + 8px); transition: transform .22s ease; }
+.mpv-body.from-r { animation: mpvFromR .24s ease; } .mpv-body.from-l { animation: mpvFromL .24s ease; }
+.mpv-body.in-one { animation: mpvZoom .22s ease; } .mpv-body.back { animation: mpvFromL .22s ease; }
+@keyframes mpvFromR { from { transform: translateX(30%); opacity: .15; } }
+@keyframes mpvFromL { from { transform: translateX(-30%); opacity: .15; } }
+@keyframes mpvZoom { from { transform: scale(.94); opacity: .2; } }
+#mp-viewer .mpa-grid { align-self: stretch; padding-top: 2px; }
+#mp-viewer .mpa-img { aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #111; }
+#mp-viewer .mpa-img img, #mp-viewer .cmp-stage img, #mp-viewer .cmp-pairs img { max-width: none; max-height: none; object-fit: cover; }
+#mp-viewer .mpv-cmp { border-radius: 0; touch-action: none; }
+#mp-viewer .mpv-stage { position: relative; flex: 1; min-height: 0; width: 100%; }
+#mp-viewer .mpv-stage img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; object-fit: contain; }
+#mp-viewer .mpv-arr { z-index: 2; }
+.mpv-hint { flex: none; margin: 0; padding: 6px 16px calc(var(--safe-b) + 10px); text-align: center; font-size: 12px; color: rgba(255,255,255,.55); }
+.mpv-hint + .mpv-body, .mpv-body:has(+ .mpv-hint) { padding-bottom: 4px; }
+@media (prefers-reduced-motion: reduce) { .mpv-body, .mpv-panel { animation: none !important; transition: none !important; } }
+
+/* ───── карточка: что нажимается, а что — подпись ───── */
+/* подписи-факты (тип места, доступ, насколько похоже, расстояние) — строка текста, а не плитки-кнопки */
+.mp-picto { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 0 0 14px; }
+.mp-picto .mp-pic { flex-direction: row; align-items: center; gap: 6px; padding: 0; background: none; border: 0; border-radius: 0; text-align: left; }
+.mp-picto .mp-pic > svg { width: 16px; height: 16px; color: var(--text-2); }
+.mp-picto .mp-pic.ac-public > svg { color: #3ccf91; } .mp-picto .mp-pic.ac-business > svg { color: var(--accent); }
+.mp-picto .mp-pic.ac-view_from_street > svg { color: var(--warn); } .mp-picto .mp-pic.ac-restricted > svg, .mp-picto .mp-pic.ac-gone > svg { color: #ff6b6b; }
+.mp-picto .mp-pic small { font-size: 13px; color: var(--text-2); }
+.mp-picto .mp-meter { height: 14px; gap: 2px; } .mp-picto .mp-meter i { width: 4px; }
+.mp-picto .mp-meter i:nth-child(1) { height: 5px; } .mp-picto .mp-meter i:nth-child(2) { height: 9px; } .mp-picto .mp-meter i:nth-child(3) { height: 13px; }
+.mp-nic { background: none !important; padding: 3px; }
+/* всё, что нажимается, — с рамкой, тенью и откликом */
+.mp-ib { background: var(--card-2, var(--card)); border-color: var(--line-2); box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 2px 8px rgba(0,0,0,.22); }
+.mp-allbtn { box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+.mp-allbtn:active, .mp-near-c:active { transform: scale(.98); }
+.mp-allbtn .mp-chev { display: inline-flex; width: 18px; height: 18px; color: var(--text-3); margin-left: 2px; }
+.mp-allbtn .mp-chev svg { width: 18px; height: 18px; }
+.mp-src a { text-decoration: underline; text-underline-offset: 2px; text-decoration-color: color-mix(in srgb, var(--text-2) 45%, transparent); }
+.mp-shot-exp { position: absolute; right: 7px; top: 7px; width: 28px; height: 28px; padding: 6px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; pointer-events: none; }
+
