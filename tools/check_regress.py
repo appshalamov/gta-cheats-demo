@@ -2,7 +2,7 @@
 """Перед выкладкой карты: новая сборка data/map/*.json не должна молча терять то, что уже было в проде.
 
 Сравнивает с версией в git (по умолчанию HEAD = текущий прод): пропавшие места, пропавшие пары «игра ⇄ жизнь»,
-пропавшие фото (игра / жизнь), места, уехавшие дальше 2 км. Код выхода 1, если потери есть и не разрешены.
+пропавшие фото (игра / жизнь), места, уехавшие дальше 2 км, фото из жизни без права показа (gtadb = Street View). Код выхода 1, если потери есть и не разрешены.
 Разрешить осознанную потерю — перечислить id в tools/regress_ok.txt (по строке, с причиной после #).
 
 Запуск:  python3 tools/check_regress.py [git-ref]
@@ -28,6 +28,17 @@ def km(a, b):
     return 2 * R * math.asin(math.sqrt(x))
 
 
+def banned(ph):
+    """Фото из жизни, которые сняты по праву (14.10.2026): снимки gtadb — в основном скриншоты Google Street View.
+    Их пропажа — не потеря (то же правило, что banned_real в build_map.py)."""
+    s = " ".join(str(ph.get(k) or "") for k in ("source", "credit", "url", "file")).lower()
+    return "gtadb" in s or ",rl.jpg" in s
+
+
+def real(x):
+    return [ph for ph in [x.get("pr")] + (x.get("gl") or []) if ph and not banned(ph)]
+
+
 def items(d):
     out = {p["id"]: p for p in d["places"]}
     out.update({e["id"]: e for e in d["eggs"]})
@@ -51,15 +62,19 @@ for g in ("gta6", "gta5"):
         n = new.get(k)
         if n is None:
             problems.append(f"пропало место/пасхалка {k} ({o.get('g') or (o.get('t') or {}).get('ru', '')})"); continue
-        if o.get("pairs") and not n.get("pairs"):
-            problems.append(f"{k}: пропали пары «игра ⇄ жизнь» (было {len(o['pairs'])})")
-        if (o.get("pg") or o.get("gg")) and not (n.get("pg") or n.get("gg") or n.get("pairs")):
+        # пары gtadb сняты (их фото из жизни — Street View), их кадры игры должны остаться в игровой галерее
+        if o.get("pairs") and not (n.get("pairs") or n.get("gg")):
+            problems.append(f"{k}: пропали пары и их кадры игры (было {len(o['pairs'])})")
+        if (o.get("pg") or o.get("gg") or o.get("pairs")) and not (n.get("pg") or n.get("gg") or n.get("pairs")):
             problems.append(f"{k}: пропал кадр игры")
-        if (o.get("pr") or o.get("gl")) and not (n.get("pr") or n.get("gl") or n.get("pairs")):
+        if real(o) and not (real(n) or n.get("pairs")):
             problems.append(f"{k}: пропало фото из жизни")
         d = km((o["lat"], o["lon"]), (n["lat"], n["lon"]))
         if d > 2:
             problems.append(f"{k}: точка уехала на {d:.1f} км")
+    for k, n in new.items():   # запрещённые фото из жизни не должны попасть в приложение ни через сборку, ни правкой руками
+        if any(banned(ph) for ph in [n.get("pr")] + (n.get("gl") or []) + [p.get("r") for p in n.get("pairs") or []] if ph):
+            problems.append(f"{k}: фото из жизни без права показа (gtadb / Street View)")
     print(f"{g}: было {len(old)}, стало {len(new)}, потерь {len(problems)}")
     for line in problems[:40]:
         print("   ✗", line)

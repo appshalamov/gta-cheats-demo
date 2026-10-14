@@ -142,10 +142,9 @@ def attach_ingame(game, cfg, places, eggs, pts):
         ws = [1 / max(d, 50) ** 2 for d, _ in near]
         return [round(sum(w * ig[0] for w, (_, ig) in zip(ws, near)) / sum(ws), 1), round(sum(w * ig[1] for w, (_, ig) in zip(ws, near)) / sum(ws), 1)]
     def gid_of(x):
-        for pr in x.get("pairs") or []:
-            m = re.search(r"/(L\d+),ig\.jpg", pr["g"]["url"])
-            if m and m.group(1) in lm and lm[m.group(1)][1]:
-                return m.group(1)
+        for i in x.get("_pid") or []:
+            if i in lm and lm[i][1]:
+                return i
         return None
     n = {0: 0, 1: 0, 2: 0}
     for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
@@ -182,12 +181,23 @@ def attach_approx(game, places, eggs):
     n = 0
     for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
         s = sel.get(x["id"]) or {}
-        if s.get("game") and not (x.get("pg") or x.get("pairs") or x.get("gg")):
+        if s.get("game") and not (x.get("pg") or x.get("gg")):
             x["pg"] = {"url": s["game"]["url"], "credit": s["game"]["credit"], "ap": 1}; n += 1
-        if s.get("real") and not (x.get("pr") or x.get("pairs") or x.get("gl")):
+        if s.get("real") and not (x.get("pr") or x.get("gl")) and not banned_real(s["real"]):
             x["pr"] = {"url": s["real"]["url"], "thumb": s["real"].get("thumb") or s["real"]["url"], "credit": s["real"]["credit"], "ap": 1}; n += 1
     if n:
         print(f"  примерных фото: {n}")
+
+
+def photo_rights_gate(game, places, eggs):
+    """Стоп сборки, если в приложение попадает запрещённое фото из жизни (см. banned_real) или пара с ним."""
+    bad = []
+    for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
+        for ph in [x.get("pr")] + (x.get("gl") or []) + [p.get("r") for p in x.get("pairs") or []]:
+            if ph and banned_real(ph):
+                bad.append(f"{x['id']}: {(ph.get('url') or ph.get('file') or '')[-60:]}")
+    if bad:
+        raise SystemExit(f"{game}: СТОП — фото из жизни без права показа ({len(bad)}): " + "; ".join(bad[:5]))
 
 
 def gtadb_fixes(game):
@@ -265,9 +275,19 @@ def media(item):
     return out[:4]
 
 
+def banned_real(p):
+    """Реальные фото, которые нельзя показывать (14.10.2026, ресёрч прав + своя выборка): снимки из gtadb без автора —
+    в основном скриншоты Google Street View / Google Earth («© Google» на кадре); условия Google запрещают их показ."""
+    s = " ".join(str(p.get(k) or "") for k in ("source", "credit", "url", "file", "page")).lower()
+    who = " ".join(str(p.get(k) or "") for k in ("source", "credit")).lower()   # «google» — только в подписи: на Commons есть
+    return "gtadb" in s or ",rl.jpg" in s or "google" in who                    # законные фото зданий Google (Lifeinvader)
+
+
 def photo(item, game, key="photo_real"):
     p = item.get(key) or (item.get("photo") if key == "photo_real" else None)
     if not isinstance(p, dict) or not p.get("file"):
+        return None
+    if key == "photo_real" and banned_real(p):
         return None
     src = SRC / "карта" / p["file"]
     if not src.exists():
@@ -287,6 +307,8 @@ def gal(item, game, key, limit=5):
     """Список фото галереи: локальные файлы (file, относительно «карта/») копируются как photo(), ссылки (url) — как есть."""
     out = []
     for g in (item.get(key) or []):
+        if key == "gallery" and banned_real(g):
+            continue
         if g.get("file"):
             ph = photo({"photo_real": g}, game)
             if ph:
@@ -320,7 +342,9 @@ def dedupe(places, eggs, pts):
     Возвращает (eggs_left, pts_left, отчёт)."""
     rep_ = {"places_merged": 0, "gtadb_dup": 0, "gtadb_stacked": 0, "eggs_into_place": 0}
     # 0) два наших места про одну и ту же реальную точку (≤ 20 м и общее слово в реальном названии) — оставить лучшее
-    score = lambda pl: (pl.get("v", False), bool(pl.get("pg")) + bool(pl.get("pr")), len(pl.get("gl", [])), pl.get("cf") == "confirmed")
+    # _hadr — фото из жизни было, но снято по праву (banned_real): слияние не должно меняться от снятия фото,
+    # иначе пропадают id карточек (избранное пользователей) — 14.10.2026 так пропал бы Davis Fire Station
+    score = lambda pl: (pl.get("v", False), bool(pl.get("pg")) + bool(pl.get("pr") or pl.get("_hadr")), len(pl.get("gl", [])), pl.get("cf") == "confirmed")
     places.sort(key=score, reverse=True)
     kept = []
     for pl in places:
@@ -404,11 +428,12 @@ def build(game, cfg):
             "ac": it.get("access", ""), "v": it.get("verified", True) is not False and pf.name.startswith("locations_"),
             "s": summary, "why": bi(it, "match_evidence") if has_sum else None,
             "tip": bi(it, "visit_tips"), "fun": bi(it, "trivia") if (it.get("trivia") or it.get("trivia_ru")) else None,
-            "m": media(it), "src": [u for u in srcs if str(u).startswith("http")][:3],
+            "m": media(it), "src": [u for u in srcs if str(u).startswith("http") and not str(u).endswith((",rl.jpg", ",ig.jpg"))][:3],
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"),
             "gl": gal(it, game, "gallery"), "gg": gal(it, game, "game_gallery", 4),
             "_gtadb": it.get("gtadb_id") or "",
             "_gxy": it.get("game_xy"), "_gaddr": it.get("game_addr"), "_ggid": it.get("game_gid"),
+            "_hadr": 1 if isinstance(it.get("photo_real"), dict) and banned_real(it["photo_real"]) else 0,
         }
         places.append({k: v for k, v in place.items() if v not in (None, "", [], {"ru": "", "en": ""})})
     skipped = []
@@ -435,10 +460,12 @@ def build(game, cfg):
         if x["id"] in gfix:
             x.update({k: v for k, v in gfix[x["id"]].items() if k in ("lat", "lon", "real")})
     pts = [[p["id"], p.get("name") or "", p.get("district") or p.get("region") or "", p.get("real") or "",
-            num(p["lat"]), num(p["lon"]), p.get("type") or "", 1 if p.get("ig") else 0, 1 if p.get("rl") else 0] for p in layer
+            num(p["lat"]), num(p["lon"]), p.get("type") or "", 1 if p.get("ig") else 0, 0] for p in layer
            if not p.get("leak_tag") and num(p.get("lat")) is not None]
     gviews = {gid: parse_view(v["view"]) for gid, v in gfix.items() if v.get("view")}
-    # Пары «кадр игры + фото из жизни» с одного ракурса (их подбирали люди в gtadb) — только они идут в «Сравнить»
+    # Пары gtadb «кадр игры + фото из жизни»: фото из жизни там — скриншоты Street View (14.10.2026), их не показываем.
+    # Кадры игры из пар идут в игровую галерею, id пар — в _pid (для «Где в игре»). Слайдер «Сравнить» вернётся,
+    # когда у пары будет фото из жизни со свободной лицензией (Commons, своё фото пользователя).
     raw = lambda gid, k: f"https://raw.githubusercontent.com/rolux/gtadb.org/main/map/photos/{5 if game == 'gta5' else 6}/{gid},{k}.jpg"
     lay = {x["id"]: x for x in layer if x.get("ig") and x.get("rl") and not x.get("leak_tag")}
     def pairs_for(lat, lon, names, own="", wide=False):
@@ -451,16 +478,19 @@ def build(game, cfg):
                 break
             if x["id"] not in ids and toks(x["name"], x["real"]) & toks(*names):
                 ids.append(x["id"])
-        return [{"g": {"url": raw(i, "ig"), "credit": f"© Rockstar Games · gtadb.org ({i})"},
-                 "r": {"url": raw(i, "rl"), "credit": "gtadb.org and contributors (CC BY 4.0)"}} for i in ids]
+        return ids
+    def add_pair_shots(x, ids):
+        if not ids:
+            return
+        x["_pid"] = ids
+        have = {ph.get("url") or ph.get("file") for ph in [x.get("pg")] + (x.get("gg") or []) if ph}
+        extra = [{"url": raw(i, "ig"), "thumb": raw(i, "ig"), "credit": f"© Rockstar Games · gtadb.org ({i})"} for i in ids if raw(i, "ig") not in have]
+        if extra:
+            x["gg"] = ((x.get("gg") or []) + extra)[:6]
     for pl in places:
-        pr = pairs_for(pl["lat"], pl["lon"], (pl["g"], pl["n"]), pl.get("_gtadb", ""), pl.get("c") in ("neighborhood", "beach", "park", "nature"))
-        if pr:
-            pl["pairs"] = pr
+        add_pair_shots(pl, pairs_for(pl["lat"], pl["lon"], (pl["g"], pl["n"]), pl.get("_gtadb", ""), pl.get("c") in ("neighborhood", "beach", "park", "nature")))
     for e in eggs:
-        pr = pairs_for(e["lat"], e["lon"], (e["t"].get("en"), e.get("p")))
-        if pr:
-            e["pairs"] = pr
+        add_pair_shots(e, pairs_for(e["lat"], e["lon"], (e["t"].get("en"), e.get("p"))))
     region_gate(game, places, eggs)
     attach_approx(game, places, eggs)
     eggs, pts, rep_ = dedupe(places, eggs, pts)
@@ -480,14 +510,15 @@ def build(game, cfg):
         print(f"  виды 360°: {len(used)} из {len(views)}")
     attach_ingame(game, cfg, places, eggs, pts)
     attach_cats(places, pts)
-    for pl in places:
-        for k in ("_gtadb", "_gxy", "_gaddr", "_ggid"):
-            pl.pop(k, None)
+    for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
+        for k in ("_gtadb", "_gxy", "_gaddr", "_ggid", "_pid", "_hadr"):
+            x.pop(k, None)
+    photo_rights_gate(game, places, eggs)
     data = {"game": game, "center": cfg["center"], "zoom": cfg["zoom"],
             "source": pf.name if pf else None, "places": places, "eggs": eggs}
     (OUT / f"{game}.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), "utf-8")
     (OUT / f"gtadb_{game}.json").write_text(json.dumps({"game": cfg["gtadb"], "points": pts}, ensure_ascii=False, separators=(",", ":")), "utf-8")
-    print(f"{game}: мест {len(places)} ({pf.name if pf else '—'}), с парой для сравнения {sum(1 for x in places if x.get('pairs'))}, пасхалок отдельно {len(eggs)}, точек gtadb {len(pts)} · без дублей: {rep_}")
+    print(f"{game}: мест {len(places)} ({pf.name if pf else '—'}), с кадрами игры из пар gtadb {sum(1 for x in places if any('gtadb.org (L' in (g.get('credit') or '') for g in x.get('gg') or []))}, пасхалок отдельно {len(eggs)}, точек gtadb {len(pts)} · без дублей: {rep_}")
 
 
 def main():
