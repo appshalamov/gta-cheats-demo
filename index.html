@@ -16,6 +16,7 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/onboarding.css">
+  <link rel="stylesheet" href="css/hub.css">
   <link rel="stylesheet" href="css/layout.css">
 </head>
 <body>
@@ -38,10 +39,20 @@
       </div>
     </section>
 
+    <!-- Главная: центр приложения -->
     <section class="view on" id="view-home">
-      <header class="hdr">
-        <h1 id="home-title">GTA 5</h1>
+      <header class="hdr hub-hdr">
+        <div class="hub-brand"><img src="icons/icon-192.png" alt=""><span>Secret Base</span></div>
         <button class="plat-btn" id="plat-btn" data-action="plat" aria-label="platform"></button>
+      </header>
+      <div class="scroll hub" id="home-body"></div>
+    </section>
+
+    <!-- Все читы (открывается с Главной) -->
+    <section class="view" id="view-cheats">
+      <header class="hdr hdr-stack">
+        <button class="back-btn" data-action="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg><span data-t="tab_home">Главная</span></button>
+        <div class="hdr-row"><h1 id="home-title">GTA 5</h1><button class="plat-btn" id="plat-btn2" data-action="plat" aria-label="platform"></button></div>
       </header>
       <div id="home-banner"></div>
       <nav class="segs" id="segs"></nav>
@@ -54,11 +65,13 @@
         <input id="search-input" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
         <button class="search-x" data-action="search-clear" aria-label="clear">×</button>
       </div>
+      <div class="sfilters" id="search-filters"></div>
       <div class="scroll" id="search-results"></div>
     </section>
 
     <section class="view" id="view-fav">
       <header class="hdr"><h1 id="fav-title">Избранное</h1></header>
+      <div class="sfilters" id="fav-filters"></div>
       <div class="scroll" id="fav-list"></div>
     </section>
 

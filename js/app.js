@@ -5,10 +5,11 @@
 import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL } from './config.js';
 import { t, L, setLang, getLang, SPEAK } from './i18n.js';
 import { I, platformIcon, comboHTML } from './icons.js';
+import { loadPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, searchPlaces, titleOf, realOf, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
 // ───────── хранилище ─────────
 const KEY = 'cheats.v1';
-const DEFAULTS = { onboarded: false, game: 'gta5', platform: 'playstation', favs: [], pro: false, theme: 'dark', lang: null, haptic: true, installHint: false };
+const DEFAULTS = { onboarded: false, game: 'gta5', platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, theme: 'dark', lang: null, haptic: true, installHint: false };
 const store = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { }
@@ -22,7 +23,7 @@ const data = {}; // gameId -> {cheats, ...}
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const mapMod = () => import('./map.js');
-const mapCtx = () => ({ openSheet, haptic, toast, I });
+const mapCtx = () => ({ openSheet, haptic, toast, I, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k) });
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const game = () => GAMES.find((g) => g.id === store.game) || GAMES[0];
 const cheats = () => (data[store.game]?.cheats) || [];
@@ -174,7 +175,7 @@ function cardHTML(c) {
   </article>`;
 }
 
-// ───────── Главная ─────────
+// ───────── Главная (центр приложения) ─────────
 function daysTo(dateStr) {
   const ms = new Date(dateStr + 'T00:00:00').getTime() - Date.now();
   return Math.ceil(ms / 86400000);
@@ -189,8 +190,79 @@ function forecastBanner() {
     <div class="fc-text"><div class="fc-title">${d > 0 ? `${t('release_in')} · ${date}` : t('released')}</div><div class="fc-sub">${t('forecast_banner')}</div></div>
   </div>`;
 }
+const POPULAR = {
+  gta5: ['invincible', 'weapons', 'health', 'wanted_down', 'buzzard', 'superjump', 'sanchez', 'weather'],
+  gta6: ['g6_invincible', 'g6_weapons', 'g6_health', 'g6_wanted_down', 'g6_v_heli', 'g6_superjump', 'g6_v_super', 'g6_weather'],
+};
+const liveGames = () => GAMES.filter((g) => g.status !== 'soon');
+const mapPlaceName = (gid) => ({ gta6: t('place_gta6'), gta5: t('place_gta5') }[gid] || '');
 
-function renderHome() {
+function miniCheat(c) {
+  const k = c.codes || {}, p = store.platform, locked = isLocked(c);
+  let code = '';
+  if ((p === 'playstation' || p === 'xbox') && k[p]?.length) code = comboHTML(k[p].slice(0, 5), p) + (k[p].length > 5 ? `<i class="more">+${k[p].length - 5}</i>` : '');
+  else if (p === 'pc' && k.pc) code = `<span class="mc-pc">${esc(k.pc)}</span>`;
+  else if (k.phone) code = `<span class="mc-pc">${esc(k.phone)}</span>`;
+  return `<button class="mini-cheat${locked ? ' is-locked' : ''}" data-action="open" data-id="${c.id}">
+    <span class="mc-top"><span class="mc-ic">${c.icon || '🎮'}</span>${locked ? `<span class="mc-lock">${I.lock}</span>` : ''}</span>
+    <b>${esc(L(c.name))}</b><span class="mc-code">${code}</span></button>`;
+}
+function placeCard(o, opt = {}) {
+  const key = placeKey(o), fav = store.favPlaces.includes(key), img = thumbOf(o, o.kind === 'egg' ? 'game' : 'real');
+  return `<div class="pcard${opt.grid ? ' pcard-grid' : ''}" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
+    ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pc-ph">${o.kind === 'egg' ? '🥚' : catIcon(o.c)}</span>`}
+    <span class="pc-grad"></span>
+    <span class="pc-tags">${o.kind === 'egg' ? `<i class="tag-egg">${t('map_egg')}</i>` : `<i class="conf conf-${o.cf}">${t('conf_' + o.cf)}</i>`}${opt.game ? `<i class="tag-game">${GAMES.find((g) => g.id === o.game)?.title || ''}</i>` : ''}</span>
+    <button class="pc-fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
+    <span class="pc-txt"><b>${esc(titleOf(o))}</b><small>${o.kind === 'egg' ? esc(realOf(o)) : `${I.pin}${esc(realOf(o))}`}</small></span>
+  </div>`;
+}
+function placeRow(o) {
+  const key = placeKey(o), fav = store.favPlaces.includes(key), img = thumbOf(o, o.kind === 'egg' ? 'game' : 'real');
+  const city = cityOf(o);
+  return `<div class="prow" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
+    ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${o.kind === 'egg' ? '🥚' : catIcon(o.c)}</span>`}
+    <span class="pr-t"><b>${esc(titleOf(o))}</b><small>→ ${esc(realOf(o))}</small>
+      <span class="pr-meta"><i class="dot conf-${o.cf}"></i>${t('conf_' + o.cf)}${o.kind === 'place' && o.c ? ` · ${esc(catLabel(o.c))}` : ''}${city ? ` · ${esc(city)}` : ''}</span></span>
+    <button class="fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
+  </div>`;
+}
+function hubSection(title, sub, action, body, extra = '') {
+  return `<section class="hub-sec"><div class="hub-h"><div><h2>${title}</h2>${sub ? `<small>${sub}</small>` : ''}</div>${action || ''}</div>${body}${extra}</section>`;
+}
+
+let hubSeq = 0;
+async function renderHub() {
+  const my = ++hubSeq;
+  const g = game(), box = $('#home-body');
+  const pd = MAP_GAMES.includes(store.game) ? await loadPlaces(store.game) : null;
+  const favCount = store.favs.length + store.favPlaces.length;
+  if (my !== hubSeq) return;
+  const list = cheats();
+  const popular = (POPULAR[store.game] || []).map((id) => list.find((c) => c.id === id)).filter(Boolean);
+  const places = pd ? featured(pd, 'place', 14) : [];
+  const eggs = pd ? featured(pd, 'egg', 12) : [];
+  const favPreview = await favItems();
+  if (my !== hubSeq) return;
+  box.innerHTML = `
+    <div class="hub-games">${liveGames().map((x) => `<button class="${x.id === store.game ? 'on' : ''}" data-action="hub-game" data-v="${x.id}">
+      <b>${esc(x.title)}</b><small>${x.status === 'forecast' ? t('hub_forecast') : t('hub_live')}</small></button>`).join('')}</div>
+    ${forecastBanner()}
+    ${hubSection(t('hub_cheats'), L(PLATFORMS[store.platform]), `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
+      `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
+        <span class="ct-ic">${c.icon}</span><b>${L(c)}</b><small>${list.filter((x) => x.category === c.id).length} ${t('codes_n')}</small></button>`).join('')}</div>`)}
+    ${popular.length ? hubSection(t('hub_popular'), '', '', `<div class="hscroll">${popular.map(miniCheat).join('')}</div>`) : ''}
+    ${places.length ? hubSection(t('hub_places'), mapPlaceName(store.game), `<button class="hub-more" data-action="tab" data-tab="map">${t('open_map')}${I.chevron}</button>`,
+      `<div class="hscroll">${places.map((o) => placeCard(o)).join('')}</div>`) : ''}
+    ${eggs.length ? hubSection(t('hub_eggs'), t('hub_eggs_sub'), `<button class="hub-more" data-action="search-browse" data-type="eggs">${t('see_all')}${I.chevron}</button>`,
+      `<div class="hscroll">${eggs.map((o) => placeCard(o)).join('')}</div>`) : ''}
+    ${favCount ? hubSection(t('hub_favs'), '', `<button class="hub-more" data-action="tab" data-tab="fav">${t('see_all')}${I.chevron}</button>`,
+      `<div class="hscroll">${favPreview.slice(0, 10).map((x) => (x.kind ? placeCard(x, { game: x.game !== store.game }) : miniCheat(x))).join('')}</div>`) : ''}
+    <div class="hub-foot">${t('hub_foot')}</div>`;
+}
+
+// Все читы (экран внутри Главной)
+function renderCheats() {
   const g = game();
   $('#home-title').textContent = L(g.header);
   $('#home-banner').innerHTML = forecastBanner();
@@ -201,6 +273,7 @@ function renderHome() {
   }).join('');
   requestAnimationFrame(() => { scrollToCat(ui.cat, false); moveInk(); });
 }
+function renderHome() { renderHub(); renderCheats(); }
 
 function scrollToCat(cat, smooth = true) {
   const i = CATEGORIES.findIndex((c) => c.id === cat);
@@ -209,7 +282,7 @@ function scrollToCat(cat, smooth = true) {
 }
 function moveInk() {
   const p = $('#pager'); const segs = [...document.querySelectorAll('#segs .seg')]; const ink = $('#segs .seg-ink');
-  if (!p || !segs.length || !ink || !p.clientWidth) return; // вкладка скрыта — не трогаем выбор
+  if (!p || !segs.length || !ink || !p.clientWidth) return; // экран скрыт — не трогаем выбор
   const pos = p.scrollLeft / Math.max(1, p.clientWidth);
   const i0 = Math.floor(pos), f = pos - i0;
   const a = segs[Math.min(i0, segs.length - 1)], b = segs[Math.min(i0 + 1, segs.length - 1)];
@@ -221,30 +294,141 @@ function moveInk() {
   if (CATEGORIES[idx]) ui.cat = CATEGORIES[idx].id;
 }
 
-// ───────── Поиск ─────────
-const SYN = { vehicle: 'транспорт машина авто тачка vehicle car', weapon: 'оружие пушка патроны weapon gun', player: 'игрок герой player', world: 'мир погода world' };
-const norm = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е');
-function renderSearch() {
-  const q = norm(ui.query.trim());
-  const box = $('#search-results');
-  if (!q) {
-    const hints = getLang() === 'ru' ? ['вертолёт', 'бессмертие', 'оружие', 'погода', 'мотоцикл', 'розыск'] : ['helicopter', 'invincibility', 'weapons', 'weather', 'bike', 'wanted'];
-    box.innerHTML = `<div class="hints"><div class="hints-t">${t('search_hint')}</div>${hints.map((h) => `<button class="chip" data-action="hint" data-q="${h}">${h}</button>`).join('')}</div>`;
-    return;
-  }
-  const qd = q.replace(/\D/g, '');
-  const res = cheats().filter((c) => {
-    const hay = norm([c.name.ru, c.name.en, c.desc?.ru, c.desc?.en, c.codes.pc, SYN[c.category]].join(' '));
-    return hay.includes(q) || (qd.length >= 3 && (c.codes.phone || '').replace(/\D/g, '').includes(qd));
-  });
-  box.innerHTML = res.map(cardHTML).join('') || `<div class="empty">${t('search_empty')}</div>`;
+// Карта открывается одним общим обещанием: два одновременных open() создавали карту дважды.
+let mapOpening = null;
+function openMap(preferGame = store.game) {
+  if (!mapOpening) mapOpening = mapMod().then((m) => m.open(mapCtx(), preferGame).then(() => m)).catch((e) => { mapOpening = null; toast('Map error'); throw e; });
+  else mapOpening.then((m) => m.open(mapCtx(), preferGame)).catch(() => { });
+  return mapOpening;
+}
+// открыть место на карте
+async function openOnMap(key) {
+  const { kind, game: g, id } = parseKey(key);
+  closeSheet();
+  if (!mapOpening) openMap(g);
+  ui.tab = 'map'; renderAll();
+  try {
+    const m = await mapOpening;
+    if (m.focus) await m.focus(g, kind, id);
+    else { await m.setGame(g); toast(t('map_find_hint')); }
+  } catch { }
 }
 
-// ───────── Избранное ─────────
-function renderFavs() {
-  const list = cheats().filter((c) => store.favs.includes(c.id));
-  $('#fav-list').innerHTML = list.map(cardHTML).join('') ||
-    `<div class="empty-big">${I.heart}<h3>${t('fav_empty_t')}</h3><p>${t('fav_empty')}</p></div>`;
+// ───────── Поиск: читы, места, пасхалки ─────────
+const SYN = { vehicle: 'транспорт машина авто тачка vehicle car', weapon: 'оружие пушка патроны weapon gun', player: 'игрок герой player', world: 'мир погода world' };
+const norm = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е');
+const sf = ui.sf = { type: 'all', game: null, cat: '', conf: '' };
+function searchCheats(list, q, cat) {
+  const qq = norm(q.trim()), qd = qq.replace(/\D/g, '');
+  return list.filter((c) => {
+    if (cat && c.category !== cat) return false;
+    if (!qq) return true;
+    const hay = norm([c.name.ru, c.name.en, c.desc?.ru, c.desc?.en, c.codes.pc, SYN[c.category]].join(' '));
+    return qq.split(/\s+/).every((w) => hay.includes(w)) || (qd.length >= 3 && (c.codes.phone || '').replace(/\D/g, '').includes(qd));
+  });
+}
+function chip(action, v, label, on, extra = '') {
+  return `<button class="fchip${on ? ' on' : ''}" data-action="${action}" data-v="${esc(v)}" ${extra}>${label}</button>`;
+}
+function renderSearchFilters(counts = {}) {
+  const sg = sf.game || store.game;
+  const types = [['all', t('f_all')], ['cheats', t('f_cheats')], ['places', t('f_places')], ['eggs', t('f_eggs')]];
+  let row2 = liveGames().map((g) => chip('sf-game', g.id, esc(g.title), g.id === sg)).join('');
+  let row3 = '';
+  if (sf.type === 'cheats') row3 = chip('sf-cat', '', t('any'), !sf.cat) + CATEGORIES.map((c) => chip('sf-cat', c.id, `${c.icon} ${L(c)}`, sf.cat === c.id)).join('');
+  if (sf.type === 'places') {
+    const cats = Object.keys(CAT_LABELS).filter((c) => (loadedPlacesSync(sg)?.places || []).some((p) => p.c === c));
+    row3 = chip('sf-cat', '', t('any'), !sf.cat) + cats.map((c) => chip('sf-cat', c, `${catIcon(c)} ${esc(catLabel(c))}`, sf.cat === c)).join('');
+  }
+  if (sf.type === 'places' || sf.type === 'eggs') {
+    row2 += '<span class="fsep"></span>' + chip('sf-conf', '', t('any_conf'), !sf.conf) + CONF.map((k) => chip('sf-conf', k, `<i class="dot conf-${k}"></i>${t('conf_' + k)}`, sf.conf === k)).join('');
+  }
+  $('#search-filters').innerHTML = `
+    <div class="frow">${types.map(([k, l]) => chip('sf-type', k, `${l}${counts[k] != null ? ` <em>${counts[k]}</em>` : ''}`, sf.type === k)).join('')}</div>
+    <div class="frow">${row2}</div>${row3 ? `<div class="frow">${row3}</div>` : ''}`;
+}
+const placesSync = {};
+const loadedPlacesSync = (g) => placesSync[g];
+let searchSeq = 0;
+async function renderSearch() {
+  const my = ++searchSeq;
+  const sg = sf.game || store.game;
+  const q = ui.query.trim();
+  const box = $('#search-results');
+  const [pd] = await Promise.all([loadPlaces(sg), loadGame(sg).catch(() => null)]);
+  placesSync[sg] = pd;
+  if (my !== searchSeq) return;
+  const browsing = !q && sf.type === 'all' && !sf.cat && !sf.conf;
+  const cheatList = data[sg]?.cheats || [];
+  const R = {
+    cheats: searchCheats(cheatList, q, sf.type === 'cheats' ? sf.cat : ''),
+    places: searchPlaces(pd, q, { kind: 'place', cat: sf.type === 'places' ? sf.cat : '', conf: sf.conf }),
+    eggs: searchPlaces(pd, q, { kind: 'egg', conf: sf.conf }),
+  };
+  renderSearchFilters(browsing ? {} : { all: R.cheats.length + R.places.length + R.eggs.length, cheats: R.cheats.length, places: R.places.length, eggs: R.eggs.length });
+  if (browsing) {
+    const hints = getLang() === 'ru' ? ['вертолёт', 'бессмертие', 'Ocean Drive', 'мост', 'отель', 'розыск'] : ['helicopter', 'invincibility', 'Ocean Drive', 'bridge', 'hotel', 'wanted'];
+    box.innerHTML = `
+      ${store.recent.length ? `<div class="s-sec"><div class="s-h">${t('recent')}<button data-action="recent-clear">${t('clear')}</button></div>${store.recent.map((h) => `<button class="chip" data-action="hint" data-q="${esc(h)}">${esc(h)}</button>`).join('')}</div>` : ''}
+      <div class="s-sec"><div class="s-h">${t('search_hint')}</div>${hints.map((h) => `<button class="chip" data-action="hint" data-q="${esc(h)}">${esc(h)}</button>`).join('')}</div>
+      <div class="s-sec"><div class="s-h">${t('browse')}</div>
+        <div class="browse">
+          <button data-action="search-browse" data-type="places"><span>🗺️</span><b>${t('browse_places')}</b><small>${pd.places.length}</small></button>
+          <button data-action="search-browse" data-type="eggs"><span>🥚</span><b>${t('browse_eggs')}</b><small>${pd.eggs.length}</small></button>
+          <button data-action="search-browse" data-type="cheats"><span>🎮</span><b>${t('browse_cheats')}</b><small>${cheatList.length}</small></button>
+        </div></div>`;
+    return;
+  }
+  const sec = (k, title, items, render, limit) => {
+    if (!items.length) return '';
+    const shown = limit ? items.slice(0, limit) : items.slice(0, 120);
+    return `<div class="s-sec"><div class="s-h">${title} <em>${items.length}</em>${limit && items.length > limit ? `<button data-action="sf-type" data-v="${k}">${t('show_all')}</button>` : ''}</div>${shown.map(render).join('')}</div>`;
+  };
+  const lim = sf.type === 'all' ? 4 : 0;
+  const html = (sf.type === 'all' || sf.type === 'cheats' ? sec('cheats', t('f_cheats'), R.cheats, cardHTML, lim) : '')
+    + (sf.type === 'all' || sf.type === 'places' ? sec('places', t('f_places'), R.places, placeRow, lim) : '')
+    + (sf.type === 'all' || sf.type === 'eggs' ? sec('eggs', t('f_eggs'), R.eggs, placeRow, lim) : '');
+  box.innerHTML = html || `<div class="empty-big">${I.search}<h3>${t('search_empty')}</h3><p>${t('search_empty_hint')}</p>${(sf.cat || sf.conf) ? `<button class="btn-ghost" data-action="sf-reset">${t('clear_filters')}</button>` : ''}</div>`;
+}
+function rememberQuery() {
+  const q = ui.query.trim();
+  if (q.length < 2) return;
+  store.recent = [q, ...store.recent.filter((x) => x.toLowerCase() !== q.toLowerCase())].slice(0, 6); save();
+}
+
+// ───────── Избранное: читы и места ─────────
+async function favItems() {
+  const games = [...new Set([...store.favPlaces.map((k) => parseKey(k).game), ...liveGames().map((g) => g.id)])];
+  await Promise.all(games.map((g) => Promise.all([loadGame(g).catch(() => null), MAP_GAMES.includes(g) ? loadPlaces(g) : null])));
+  const places = (await Promise.all(store.favPlaces.map(findByKey))).filter(Boolean);
+  const cheatsF = store.favs.map((id) => byId(id)).filter(Boolean);
+  return [...places, ...cheatsF];
+}
+let favSeq = 0;
+async function renderFavs() {
+  const my = ++favSeq;
+  const all = await favItems();
+  if (my !== favSeq) return;
+  const places = all.filter((x) => x.kind), cheatsF = all.filter((x) => !x.kind);
+  const f = ui.favFilter || 'all';
+  $('#fav-filters').innerHTML = all.length ? `<div class="frow">${[['all', t('f_all'), all.length], ['cheats', t('f_cheats'), cheatsF.length], ['places', t('f_places'), places.length]]
+    .map(([k, l, n]) => chip('fav-filter', k, `${l} <em>${n}</em>`, f === k)).join('')}</div>` : '';
+  if (!all.length) {
+    $('#fav-list').innerHTML = `<div class="empty-big">${I.heart}<h3>${t('fav_empty_t')}</h3><p>${t('fav_empty')}</p>
+      <div class="empty-acts"><button class="btn-ghost" data-action="open-cheats" data-cat="">🎮 ${t('browse_cheats')}</button><button class="btn-ghost" data-action="tab" data-tab="map">🗺️ ${t('open_map')}</button></div></div>`;
+    return;
+  }
+  const showP = f !== 'cheats' && places.length, showC = f !== 'places' && cheatsF.length;
+  $('#fav-list').innerHTML = (showP ? `<div class="s-sec"><div class="s-h">${t('f_places')} <em>${places.length}</em></div><div class="pgrid">${places.map((o) => placeCard(o, { grid: true, game: true })).join('')}</div></div>` : '')
+    + (showC ? `<div class="s-sec"><div class="s-h">${t('f_cheats')} <em>${cheatsF.length}</em></div>${cheatsF.map(cardHTML).join('')}</div>` : '')
+    || `<div class="empty">${t('search_empty')}</div>`;
+}
+function isFavPlace(key) { return store.favPlaces.includes(key); }
+function toggleFavPlace(key) {
+  const i = store.favPlaces.indexOf(key);
+  if (i >= 0) store.favPlaces.splice(i, 1); else store.favPlaces.push(key);
+  save(); haptic(); refreshFavUI();
+  return i < 0;
 }
 
 // ───────── Настройки ─────────
@@ -283,7 +467,7 @@ function renderSettings() {
 }
 
 function updateFavBadge(pulse = false) {
-  const n = cheats().filter((c) => store.favs.includes(c.id)).length;
+  const n = store.favs.length + store.favPlaces.length;
   const b = $('#fav-badge'); if (!b) return;
   b.textContent = n > 99 ? '99+' : n; b.classList.toggle('show', n > 0);
   if (pulse && n > 0) { b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); }
@@ -292,20 +476,23 @@ function updateFavBadge(pulse = false) {
 // ───────── общая перерисовка ─────────
 function renderAll() {
   $('#plat-btn').innerHTML = platformIcon(store.platform);
+  $('#plat-btn2').innerHTML = platformIcon(store.platform);
   const tabs = [...document.querySelectorAll('.tab')];
-  tabs.forEach((b) => b.classList.toggle('on', b.dataset.tab === ui.tab));
-  const ti = tabs.findIndex((b) => b.dataset.tab === ui.tab);
+  const tabOf = ui.tab === 'cheats' ? 'home' : ui.tab; // «Все читы» — экран внутри Главной
+  tabs.forEach((b) => b.classList.toggle('on', b.dataset.tab === tabOf));
+  const ti = tabs.findIndex((b) => b.dataset.tab === tabOf);
   $('#tabbar').style.setProperty('--i', Math.max(0, ti));
   $('#tabbar').style.setProperty('--n', tabs.length);
   $('#tabbar').classList.toggle('no-pill', ti < 0);
   document.body.dataset.tab = ui.tab;
-  if (ui.tab === 'map') mapMod().then((m) => m.open(mapCtx(), store.game)).catch(() => toast('Map error'));
+  if (ui.tab === 'map') openMap();
   updateFavBadge();
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'view-' + ui.tab));
   const titles = { search: t('tab_search'), fav: t('tab_fav'), settings: t('tab_settings') };
   $('#search-title').textContent = titles.search; $('#fav-title').textContent = titles.fav; $('#settings-title').textContent = titles.settings;
   $('#search-input').placeholder = t('search_ph');
   document.querySelectorAll('.tab-l').forEach((s) => { s.textContent = t('tab_' + s.dataset.k); });
+  document.querySelectorAll('[data-t]').forEach((s) => { s.textContent = t(s.dataset.t); });
   renderHome(); renderSearch(); renderFavs(); renderSettings();
 }
 
@@ -485,13 +672,26 @@ function obDefaultPlatform(gameId) {
   const g = GAMES.find((x) => x.id === gameId);
   return g.platforms.includes(store.platform) ? store.platform : g.platforms[0];
 }
+function welcomeHTML() {
+  const feats = [['🎮', 'w_f1'], ['🗺️', 'w_f2'], ['⭐', 'w_f3']];
+  return `
+    <div class="wl-hero">
+      <img class="wl-icon" src="icons/icon-512.png" alt="">
+      <h1>${esc(APP.shortName)}</h1>
+      <p>${t('w_sub')}</p>
+    </div>
+    <ul class="wl-feats">${feats.map(([ic, k]) => `<li><span>${ic}</span><div><b>${t(k)}</b><small>${t(k + 's')}</small></div></li>`).join('')}</ul>
+    <button class="btn-primary ob-cta" data-action="ob-start">${t('start')}</button>
+    <p class="wl-note">${t('w_note')}</p>`;
+}
 function renderOnboarding(dir = 0) {
   const ob = $('#onboarding');
   const step = ui.obStep;
   const g = ui.obGame || store.game;
+  if (step === 'welcome') { ob.innerHTML = `<div class="ob-body wl${dir < 0 ? ' ob-in-left' : ''}">${welcomeHTML()}</div>`; return; }
   ob.innerHTML = `
     <div class="ob-bar">
-      ${step === 'platform' ? `<button class="ob-back" data-action="ob-back">${I.back}<span>${t('back')}</span></button>` : '<span></span>'}
+      <button class="ob-back" data-action="ob-back">${I.back}<span>${t('back')}</span></button>
       <span class="ob-step">${step === 'game' ? 1 : 2} / 2</span>
     </div>
     <div class="ob-progress"><i style="width:${step === 'game' ? 50 : 100}%"></i></div>
@@ -504,14 +704,14 @@ function renderOnboarding(dir = 0) {
     <button class="btn-primary ob-cta" data-action="ob-next">${t('continue')}</button>`;
 }
 function showOnboarding() {
-  ui.obStep = 'game'; ui.obGame = store.game; ui.obPlatform = obDefaultPlatform(store.game); obBusy = false;
+  ui.obStep = 'welcome'; ui.obGame = store.game; ui.obPlatform = obDefaultPlatform(store.game); obBusy = false;
   document.body.classList.add('in-ob');
   renderOnboarding();
 }
-function obGo(step) {
+function obGo(step, dir) {
   ui.obStep = step;
   if (step === 'platform' && !GAMES.find((x) => x.id === ui.obGame).platforms.includes(ui.obPlatform)) ui.obPlatform = obDefaultPlatform(ui.obGame);
-  renderOnboarding(step === 'platform' ? 1 : -1);
+  renderOnboarding(dir ?? (step === 'platform' ? 1 : -1));
 }
 // подсветить выбор, дать увидеть его ~0,25 с, затем дальше
 function obPickThen(el, fn) {
@@ -563,6 +763,17 @@ function cheatShareText(c) {
 
 // ───────── события ─────────
 function refreshCards() { renderHome(); renderSearch(); renderFavs(); }
+// Сердечко меняется на месте: перерисовка экранов сбрасывала прокрутку лент и списков.
+function refreshFavUI() {
+  document.querySelectorAll('[data-action=fav][data-id]').forEach((b) => {
+    const on = store.favs.includes(b.dataset.id); b.classList.toggle('on', on);
+    b.innerHTML = on ? I.heartFill : I.heart;
+  });
+  refreshPlaceHearts();
+  if (ui.tab === 'fav') renderFavs();
+  updateFavBadge(true);
+}
+function refreshPlaceHearts() { document.querySelectorAll('[data-action=fav-place]').forEach((b) => { const on = isFavPlace(b.dataset.key); b.classList.toggle('on', on); b.innerHTML = on ? I.heartFill : I.heart; }); }
 
 document.addEventListener('click', async (e) => {
   const el = e.target.closest('[data-action]');
@@ -574,22 +785,20 @@ document.addEventListener('click', async (e) => {
       el.classList.remove('bounce'); void el.offsetWidth; el.classList.add('bounce');
       if (tab === ui.tab) { // повторное нажатие — наверх, как в iOS
         if (tab === 'map') { mapMod().then((m) => m.refit()); break; }
-        const box = tab === 'home' ? document.querySelector(`.page[data-cat="${ui.cat}"]`) : document.querySelector(`#view-${tab} .scroll`);
+        const box = document.querySelector(`#view-${tab} .scroll`);
         box?.scrollTo({ top: 0, behavior: 'smooth' });
         if (tab === 'search') $('#search-input').focus();
         break;
       }
-      ui.tab = tab; renderAll();
-      if (tab === 'search') $('#search-input').focus();
+      ui.tab = tab; renderAll(); // клавиатуру поиска не открываем сами: сначала видны фильтры и подборки
       break;
     }
     case 'cat': ui.cat = el.dataset.cat; haptic(); scrollToCat(ui.cat); break;
-    case 'open': openCheat(id); haptic(); break;
+    case 'open': if (ui.tab === 'search') rememberQuery(); openCheat(id); haptic(); break;
     case 'fav': {
       e.stopPropagation(); haptic();
       const i = store.favs.indexOf(id); if (i >= 0) store.favs.splice(i, 1); else store.favs.push(id);
-      save(); refreshCards(); updateFavBadge(true);
-      if (el.classList.contains('icon-btn')) el.innerHTML = store.favs.includes(id) ? I.heartFill : I.heart;
+      save(); refreshFavUI();
       el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 300);
       break;
     }
@@ -606,6 +815,27 @@ document.addEventListener('click', async (e) => {
     }
     case 'set-platform': haptic(); store.platform = v; save(); closeSheet(); renderAll(); break;
     case 'sheet-close': closeSheet(); break;
+    case 'open-cheats': haptic(); if (el.dataset.cat) ui.cat = el.dataset.cat; ui.tab = 'cheats'; renderAll(); setTimeout(() => scrollToCat(ui.cat, false), 0); break;
+    case 'back-home': haptic(); ui.tab = 'home'; renderAll(); break;
+    case 'hub-game': {
+      if (v === store.game) break;
+      haptic(); store.game = v;
+      const g2 = game(); if (!g2.platforms.includes(store.platform)) store.platform = g2.platforms[0];
+      save(); await loadGame(v); renderAll(); break;
+    }
+    case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
+    case 'fav-place': {
+      e.stopPropagation(); toggleFavPlace(el.dataset.key);
+      el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 300); break;
+    }
+    case 'search-browse': haptic(); sf.type = el.dataset.type; sf.cat = ''; sf.conf = ''; ui.tab = 'search'; renderAll(); break;
+    case 'sf-type': haptic(); sf.type = v; sf.cat = ''; if (v === 'cheats' || v === 'all') sf.conf = ''; renderSearch(); $('#search-results').scrollTop = 0; break;
+    case 'sf-game': haptic(); sf.game = v; sf.cat = ''; renderSearch(); break;
+    case 'sf-cat': haptic(); sf.cat = v; renderSearch(); break;
+    case 'sf-conf': haptic(); sf.conf = v; renderSearch(); break;
+    case 'sf-reset': sf.cat = ''; sf.conf = ''; renderSearch(); break;
+    case 'recent-clear': store.recent = []; save(); renderSearch(); break;
+    case 'fav-filter': haptic(); ui.favFilter = v; renderFavs(); break;
     case 'map-layer': haptic(); (await mapMod()).toggle(v); break;
     case 'map-game': haptic(); (await mapMod()).setGame(v); break;
     case 'map-locate': haptic(); (await mapMod()).locate(); break;
@@ -626,9 +856,10 @@ document.addEventListener('click', async (e) => {
     case 'plan': plan = v; haptic(); openPaywall(); $('#paywall .pw-close').classList.add('show'); break;
     case 'buy': store.pro = true; save(); haptic(); closePaywall(); toast(t('pro_unlocked')); refreshCards(); renderSettings(); break;
     case 'pw-close': closePaywall(); break;
-    case 'ob-game': haptic(); obPickThen(el, () => { ui.obGame = v; obGo('platform'); }); break;
+    case 'ob-game': haptic(); obPickThen(el, () => { ui.obGame = v; obGo('platform', 1); }); break;
     case 'ob-platform': haptic(); obPickThen(el, () => { ui.obPlatform = v; finishOnboarding(); }); break;
-    case 'ob-back': haptic(); if (!obBusy) obGo('game'); break;
+    case 'ob-back': haptic(); if (!obBusy) obGo(ui.obStep === 'platform' ? 'game' : 'welcome', -1); break;
+    case 'ob-start': haptic(); obGo('game', 1); break;
     case 'ob-next':
       haptic();
       if (obBusy) break;
@@ -641,6 +872,7 @@ document.addEventListener('click', async (e) => {
 });
 $('#sheet-layer').addEventListener('click', (e) => { if (e.target.id === 'sheet-layer') closeSheet(); });
 $('#search-input').addEventListener('input', (e) => { ui.query = e.target.value; renderSearch(); });
+$('#search-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { rememberQuery(); e.target.blur(); } });
 $('#pager').addEventListener('scroll', () => requestAnimationFrame(moveInk), { passive: true });
 addEventListener('resize', () => scrollToCat(ui.cat, false));
 
