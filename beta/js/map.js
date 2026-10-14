@@ -429,12 +429,13 @@ function eggSheet(e, i) {
     ${e.src ? `<div class="mp-src">${IC.link}<span>${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span></div>` : ''}
     <p class="mp-cred">${[e.pg, e.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>`;
 }
-// кадры игры точек сообщества — из открытого репозитория gtadb.org на GitHub (© Rockstar Games).
-// Фото из жизни оттуда не берём: это в основном скриншоты Google Street View, показывать их нельзя (14.10.2026).
+// фото точек сообщества — из открытого репозитория gtadb.org на GitHub (CC BY 4.0; кадры игры © Rockstar Games).
+// Пара «игра ⇄ жизнь» с одного ракурса — для сравнения ползунком (главная функция, Игорь 14.10.2026: не убирать).
+// Фото из жизни — ссылкой на gtadb (часто кадр Street View), у себя копию не храним.
 function gtadbPhotos(p, g) {
   const v = g === 'VI' ? 6 : 5, id = encodeURIComponent(p[0]);
   const u = (k) => `https://raw.githubusercontent.com/rolux/gtadb.org/main/map/photos/${v}/${id},${k}.jpg`;
-  return { pg: p[7] ? { file: u('ig'), credit: '© Rockstar Games · gtadb.org' } : null, pr: null };
+  return { pg: p[7] ? { file: u('ig'), credit: '© Rockstar Games · gtadb.org' } : null, pr: p[8] ? { file: u('rl'), credit: 'gtadb.org and contributors (CC BY 4.0)' } : null };
 }
 function gtadbSheet(p, g, i) {
   const [id, name, district, real, lat, lon, type] = p;

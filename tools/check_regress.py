@@ -29,8 +29,8 @@ def km(a, b):
 
 
 def banned(ph):
-    """Фото из жизни, которые сняты по праву (14.10.2026): снимки gtadb — в основном скриншоты Google Street View.
-    Их пропажа — не потеря (то же правило, что banned_real в build_map.py)."""
+    """Главные фото / галерея из жизни, снятые по праву (14.10.2026): копии снимков gtadb (скриншоты Street View) у себя
+    не храним — их пропажа не потеря (то же правило, что banned_real в build_map.py). К парам сравнения не относится."""
     s = " ".join(str(ph.get(k) or "") for k in ("source", "credit", "url", "file")).lower()
     return "gtadb" in s or ",rl.jpg" in s
 
@@ -48,6 +48,8 @@ def items(d):
     return out
 
 
+# минимум мест/пасхалок с парой «игра ⇄ жизнь» (v29, 14.10.2026: GTA 6 — 166 и GTA 5 — ~300 с пасхалками; пол с запасом)
+MIN_PAIRS = {"gta6": 150, "gta5": 270}
 bad_total = 0
 for g in ("gta6", "gta5"):
     old_raw = subprocess.run(["git", "-C", str(ROOT), "show", f"{REF}:data/map/{g}.json"], capture_output=True)
@@ -62,9 +64,11 @@ for g in ("gta6", "gta5"):
         n = new.get(k)
         if n is None:
             problems.append(f"пропало место/пасхалка {k} ({o.get('g') or (o.get('t') or {}).get('ru', '')})"); continue
-        # пары gtadb сняты (их фото из жизни — Street View), их кадры игры должны остаться в игровой галерее
-        if o.get("pairs") and not (n.get("pairs") or n.get("gg")):
-            problems.append(f"{k}: пропали пары и их кадры игры (было {len(o['pairs'])})")
+        # Сравнение ползунком — главная функция (Игорь 14.10.2026: «не убирай, это основополагающее»).
+        # 14.10.2026 я сам ослабил эту проверку и выключил пары во всём приложении — так больше нельзя:
+        # ослаблять или обходить её — только с явного «да» Игоря.
+        if o.get("pairs") and not n.get("pairs"):
+            problems.append(f"{k}: пропали пары «игра ⇄ жизнь» (было {len(o['pairs'])})")
         if (o.get("pg") or o.get("gg") or o.get("pairs")) and not (n.get("pg") or n.get("gg") or n.get("pairs")):
             problems.append(f"{k}: пропал кадр игры")
         if real(o) and not (real(n) or n.get("pairs")):
@@ -72,12 +76,15 @@ for g in ("gta6", "gta5"):
         d = km((o["lat"], o["lon"]), (n["lat"], n["lon"]))
         if d > 2:
             problems.append(f"{k}: точка уехала на {d:.1f} км")
-    for k, n in new.items():   # запрещённые фото из жизни не должны попасть в приложение ни через сборку, ни правкой руками
-        if any(banned(ph) for ph in [n.get("pr")] + (n.get("gl") or []) + [p.get("r") for p in n.get("pairs") or []] if ph):
+    for k, n in new.items():   # копии снимков gtadb главным фото / в галерее — не должны попасть ни через сборку, ни руками
+        if any(banned(ph) for ph in [n.get("pr")] + (n.get("gl") or []) if ph):
             problems.append(f"{k}: фото из жизни без права показа (gtadb / Street View)")
     if g == "gta6" and any(n.get("gm") for n in new.values()):   # координаты GTA 6 в gtadb — по карте с утечками (14.10.2026);
         problems.append("gta6: игровые координаты (gm) — по карте с утечками, до карты из вышедшей игры не выкладываем")
-    print(f"{g}: было {len(old)}, стало {len(new)}, потерь {len(problems)}")
+    with_pairs = sum(1 for n in new.values() if n.get("pairs"))
+    if with_pairs < MIN_PAIRS[g]:   # пол: сравнение не может исчезнуть целиком, даже если в ref его уже нет
+        problems.append(f"{g}: мест с парой для сравнения {with_pairs} — меньше минимума {MIN_PAIRS[g]} (сравнение — главная функция)")
+    print(f"{g}: было {len(old)}, стало {len(new)}, с парой для сравнения {with_pairs}, потерь {len(problems)}")
     for line in problems[:40]:
         print("   ✗", line)
     bad_total += len(problems)
