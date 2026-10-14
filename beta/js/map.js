@@ -1126,9 +1126,18 @@ function openPlace(i, fly) {
   const c = ll(p);
   if (fly && c) map.easeTo({ center: c, zoom: Math.max(map.getZoom(), tilesGame() ? 6.5 : 14.5), duration: 700, offset: [0, -90] });
   renderCards(); scrollCardIntoView(i);
-  ctx.openSheet(placeSheet(p, i), 'sheet-map');
+  mapSheet(placeSheet(p, i));
 }
 
+// «Несколько мест здесь»: карточку, открытую из этого списка, смахнули вниз — снова открывается список,
+// чтобы не терять, откуда пришёл (Игорь 14.10.2026). Повторное смахивание закрывает список как обычно.
+let chooserHtml = null, backToChooser = false;
+function mapSheet(html) {
+  const back = backToChooser && chooserHtml; backToChooser = false;
+  ctx.openSheet(html, 'sheet-map', back ? () => setTimeout(() => {
+    if (document.body.dataset.tab === 'map' && !document.getElementById('sheet-layer')?.classList.contains('open')) ctx.openSheet(back, 'sheet-map');
+  }, 120) : null);
+}
 // нажатие по карте ждёт 250 мс: если за это время началось второе касание (двойной тап или «тап и тяни» —
 // масштаб одним пальцем, как в навигаторе), точку не открываем (Игорь 14.10.2026: «палец попадает на точку — она открывается»)
 let tapTimer = null;
@@ -1148,11 +1157,12 @@ function pickAt(e) {
   if (!hits.length) return;
   const uniq = []; const seenHit = new Set();
   for (const h of hits.sort((a, b) => dist(a, e) - dist(b, e))) { const k = h.layer.id + ':' + h.properties.i; if (!seenHit.has(k)) { seenHit.add(k); uniq.push(h); } }
-  if (uniq.length > 1) { ctx.haptic(); ctx.openSheet(chooserSheet(uniq.slice(0, 12)), 'sheet-map'); return; }
+  if (uniq.length > 1) { ctx.haptic(); chooserHtml = chooserSheet(uniq.slice(0, 12)); backToChooser = false; ctx.openSheet(chooserHtml, 'sheet-map'); return; }
+  chooserHtml = null;
   const nearest = uniq[0];
   const i = nearest.properties.i, l = nearest.layer.id;
   ctx.haptic();
-  if (l === 'eggs') ctx.openSheet(eggSheet(data[game].eggs[i], i), 'sheet-map');
+  if (l === 'eggs') mapSheet(eggSheet(data[game].eggs[i], i));
   else if (l === 'places') openPlace(i, false);
   else openPoint(i, false);
 }
@@ -1175,7 +1185,7 @@ function openPoint(i, fly) {
   if (fly && c) map.easeTo({ center: c, zoom: Math.max(map.getZoom(), tilesGame() ? 7 : 15), duration: 700, offset: [0, -90] });
   renderCards();
   document.querySelector(`#map-cards .mc[data-d="${i}"]`)?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-  ctx.openSheet(gtadbSheet(q, gtadb[game].game, i), 'sheet-map');
+  mapSheet(gtadbSheet(q, gtadb[game].game, i));
 }
 function dist(f, e) {
   const p = map.project(f.geometry.coordinates);
@@ -1233,7 +1243,7 @@ document.addEventListener('click', (e) => {
   else if (a === 'pair') { if (viewer) { viewer.pi = +el.dataset.n; viewer.x = 50; renderViewer(); } }
   else if (a === 'all') { ctx?.haptic(); openAll(el.dataset.key, 'r'); }
   else if (a === 'viewer-close') closeViewer();
-  else if (a === 'pick') { const i = +el.dataset.i, l = el.dataset.l; if (l === 'places') openPlace(i, false); else if (l === 'eggs') ctx.openSheet(eggSheet(data[game].eggs[i], i), 'sheet-map'); else openPoint(i, false); }
+  else if (a === 'pick') { const i = +el.dataset.i, l = el.dataset.l; backToChooser = true; if (l === 'places') openPlace(i, false); else if (l === 'eggs') mapSheet(eggSheet(data[game].eggs[i], i)); else openPoint(i, false); }
   else if (a === 'fav') {
     e.stopPropagation(); ctx?.haptic?.();
     const on = !!ctx?.toggleFav?.(favKey(el.dataset.kind, el.dataset.id), { kind: el.dataset.kind, game, id: el.dataset.id });

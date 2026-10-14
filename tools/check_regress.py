@@ -51,7 +51,7 @@ def items(d):
 
 
 # минимум мест/пасхалок с парой «игра ⇄ жизнь» (v29, 14.10.2026: GTA 6 — 166 и GTA 5 — ~300 с пасхалками; пол с запасом)
-MIN_PAIRS = {"gta6": 150, "gta5": 270}
+MIN_PAIRS = {"gta6": 165, "gta5": 300}   # v40: 176 и 316
 bad_total = 0
 for g in ("gta6", "gta5"):
     old_raw = subprocess.run(["git", "-C", str(ROOT), "show", f"{REF}:data/map/{g}.json"], capture_output=True)
