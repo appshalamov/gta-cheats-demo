@@ -1331,7 +1331,17 @@ let chooserHtml = null, backToChooser = false;
 // Фото «в игре» и «в жизни» показываются вместе (Игорь 15.10.2026: «сначала грузится фото из игры, потом из жизни —
 // нужно в синхроне»): пока оба не загрузились (не дольше 2,5 с), на их месте мягкая заглушка, потом оба проявляются разом.
 const MEDIA_WAIT = 2500;
+// Мелкий кадр игры (вырезка из трейлера, как Вашингтон-Бич 98×131): не растягиваем — целиком, по центру, на размытом фоне
+// из него же (решение Игоря 15.10.2026: «проверка глазами», где источник не нашёлся — «вписать целиком»).
+const TINY_W = 360;
+function fitTiny(im) {
+  if (!im || im.dataset.tiny || !im.naturalWidth || im.naturalWidth >= TINY_W) return;
+  im.dataset.tiny = '1'; im.classList.add('tiny');
+  const bg = document.createElement('div'); bg.className = 'tiny-bg'; bg.style.backgroundImage = `url("${im.currentSrc || im.src}")`;
+  im.before(bg);
+}
 function syncMedia(root) {
+  root?.querySelectorAll('.cmp-inline .cmp-g, .mp-shot.g img').forEach((im) => (im.complete ? fitTiny(im) : im.addEventListener('load', () => fitTiny(im), { once: true })));
   root?.querySelectorAll('.cmp-inline, .mp-hero').forEach((box) => {
     const imgs = [...box.querySelectorAll('img')]; if (!imgs.length) return;
     if (imgs.every((im) => im.complete && im.naturalWidth)) { box.classList.remove('ld'); return; }
