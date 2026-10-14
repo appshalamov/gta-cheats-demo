@@ -371,12 +371,19 @@ function actions(lat, lon, name, shareText, fav = '', view = null, key = '') {
 }
 // «Поделиться местом»: ссылка на страницу-превью s/<игра>/<id>.html (в мессенджерах — карточка с кадром и названием,
 // на странице — превью и «Открыть в Secret Base»). Страницы собирает tools/build_share.py; ссылка всегда на прод.
+// метки превью грузим заранее (при первой карточке): на iOS «Поделиться» должно сработать сразу по нажатию, без ожидания сети
+let ogTagsP = null, ogTagsV = null;
+const ogTags = () => (ogTagsP ||= fetch(`${location.pathname.includes('/beta/') ? '../' : ''}s/og/p.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})).then((j) => (ogTagsV = j)));
 async function sharePlace(text, key, el) {
   const base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '').replace(/beta\/$/, '');
   const k = key ? key.split(':') : null;
   // точки сообщества gtadb (db:<игра>:L123) — страницы s/<игра>/db-L123.html (Игорь 15.10.2026: на пирсе «американские
   // горки» — ссылки нет; у точек gtadb ключа не было и уходила ссылка на само приложение)
-  const url = k && k.length >= 3 ? `${base}s/${k[1]}/${k[0] === 'db' ? 'db-' : ''}${k.slice(2).join(':')}.html` : location.href.split('#')[0];
+  const file = k && k.length >= 3 ? `${k[1]}/${k[0] === 'db' ? 'db-' : ''}${k.slice(2).join(':')}` : '';
+  // ?p=<метка превью>: картинку перерисовали — у ссылки новый адрес, Telegram/X/Discord берут свежее превью (старые сообщения не меняются)
+  if (!ogTagsV) ogTags();
+  const ph = file ? ogTagsV?.[file] : '';
+  const url = file ? `${base}s/${file}.html${ph ? `?p=${ph}` : ''}` : location.href.split('#')[0];
   // только ссылка: картинку «игра | жизнь» мессенджер возьмёт со страницы (og:image, tools/build_share.py).
   // Файл к ссылке не прикладываем — Telegram тогда шлёт фото без ссылки (проверил Игорь 15.10.2026).
   try { if (navigator.share) { await navigator.share({ title: text, text, url }); return; } } catch { return; }
@@ -430,7 +437,7 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
       return `<a class="mp-shot empty r mp-shot-360" href="${o.pano}" target="_blank" rel="noopener"><span class="mp-shot-ic">${IC.pano}</span><small>${esc(w('look'))}</small></a>`;
     if (!ph) return `<div class="mp-shot empty ${kind}"><span class="mp-shot-ic">${icon}</span><small>${esc(w('noPhoto'))}</small></div>`;
     const act = `data-mp="view" data-ref="${kind}:${key}" data-n="0" data-i="${o.i ?? ''}"`;
-    return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}" alt="${esc(label)}" loading="lazy" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span>${ph.ap ? `<span class="mp-approx" title="${esc(w('approxT'))}">${esc(w('approx'))}</span>` : ''}<span class="mp-shot-exp" aria-hidden="true">${IC.expand}</span></button>`;
+    return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}" alt="${esc(label)}" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span>${ph.ap ? `<span class="mp-approx" title="${esc(w('approxT'))}">${esc(w('approx'))}</span>` : ''}<span class="mp-shot-exp" aria-hidden="true">${IC.expand}</span></button>`;
   };
   const mid = `<span class="mp-vs">${o.egg ? IC.egg : IC.swap}</span>`;
   return `<div class="mp-media-box" data-key="${key}"><div class="mp-hero">${tile(cov[0], 'g')}${tile(cov[1], 'r')}${mid}</div>${all}</div>`;
@@ -603,6 +610,7 @@ function setInlinePair(btn) {
   const box = btn.closest('.mp-media-box'), st = box?.querySelector('.cmp-inline');
   if (!pr || !st) return;
   st.querySelector('.cmp-g').src = pr.g.url; st.querySelector('.cmp-r').src = pr.r.url;
+  syncMedia(box);
   box.querySelectorAll('.cmp-ipairs button').forEach((b) => b.classList.toggle('on', b === btn));
   (inl[key] ||= {}).pi = n; setInlineX(st, 50);   // новый ракурс — снова пополам
 }
@@ -1277,12 +1285,51 @@ const camOffset = (want) => [0, -Math.round((SNAP_ON && ctx?.sheetPx ? ctx.sheet
 // «Несколько мест здесь»: карточку, открытую из этого списка, смахнули вниз — снова открывается список,
 // чтобы не терять, откуда пришёл (Игорь 14.10.2026). Повторное смахивание закрывает список как обычно.
 let chooserHtml = null, backToChooser = false;
+// Фото «в игре» и «в жизни» показываются вместе (Игорь 15.10.2026: «сначала грузится фото из игры, потом из жизни —
+// нужно в синхроне»): пока оба не загрузились (не дольше 2,5 с), на их месте мягкая заглушка, потом оба проявляются разом.
+const MEDIA_WAIT = 2500;
+function syncMedia(root) {
+  root?.querySelectorAll('.cmp-inline, .mp-hero').forEach((box) => {
+    const imgs = [...box.querySelectorAll('img')]; if (!imgs.length) return;
+    if (imgs.every((im) => im.complete && im.naturalWidth)) { box.classList.remove('ld'); return; }
+    box.classList.add('ld');
+    const one = (im) => (im.complete ? Promise.resolve() : new Promise((ok) => { im.addEventListener('load', ok, { once: true }); im.addEventListener('error', ok, { once: true }); }));
+    Promise.race([Promise.all(imgs.map(one)), new Promise((ok) => setTimeout(ok, MEDIA_WAIT))]).then(() => box.classList.remove('ld'));
+  });
+}
+// Заранее подгружаем фото мест рядом с центром карты (тихо, с низким приоритетом) — карточка открывается сразу.
+// На «экономии трафика» и 2G не подгружаем.
+const prefetched = new Set();
+let prefetchT = 0;
+function prefetchNear() {
+  clearTimeout(prefetchT);
+  prefetchT = setTimeout(() => {
+    const cn = navigator.connection;
+    if (!map || cn?.saveData || /2g/.test(cn?.effectiveType || '')) return;
+    const d = data[game]; if (!d) return;
+    const b = map.getBounds(), c = map.getCenter(), near = [];
+    for (const p of d.places) { const q = ll(p); if (q && b.contains(q)) near.push([(q[0] - c.lng) ** 2 + (q[1] - c.lat) ** 2, p]); }
+    near.sort((a, z) => a[0] - z[0]);
+    const urls = [];
+    for (const [, p] of near.slice(0, 6)) {
+      const pr = (p.pairs || [])[0];
+      if (pr) urls.push(pr.g.url || pr.g.file, pr.r.url || pr.r.file); else urls.push(p.pg?.url || p.pg?.file, p.pr?.url || p.pr?.file);
+    }
+    for (const u of urls) {
+      if (!u || prefetched.has(u) || prefetched.size > 400) continue;
+      prefetched.add(u);
+      const im = new Image(); im.decoding = 'async'; try { im.fetchPriority = 'low'; } catch { } im.src = u;
+    }
+  }, 600);
+}
 function mapSheet(html, want) {
+  ogTags();
   ghostPrep();   // запасная карта — сразу на это место в другом мире
   const back = backToChooser && chooserHtml; backToChooser = false;
   ctx.openSheet(html, 'sheet-map', back ? () => setTimeout(() => {
     if (document.body.dataset.tab === 'map' && !document.getElementById('sheet-layer')?.classList.contains('open')) ctx.openSheet(back, 'sheet-map', null, snapOpt('half'));
   }, 120) : null, snapOpt(want));
+  syncMedia(document.getElementById('sheet-body'));
 }
 // нажатие по карте ждёт 250 мс: если за это время началось второе касание (двойной тап или «тап и тяни» —
 // масштаб одним пальцем, как в навигаторе), точку не открываем (Игорь 14.10.2026: «палец попадает на точку — она открывается»)
@@ -1474,6 +1521,7 @@ async function create(preferGame) {
     map.on('load', () => { box.classList.remove('loading'); renderCards(); });
     map.on('moveend', renderCards);
     map.on('moveend', () => ghostPrep(400));
+    map.on('moveend', prefetchNear);
     map.on('click', onTap);
     for (const ev of ['touchstart', 'mousedown', 'dblclick', 'zoomstart', 'dragstart']) map.on(ev, cancelTap);
     renderChips();
@@ -1507,7 +1555,9 @@ function startView(d) {
 // Игорь 14.10.2026: «нажимаю “где в жизни / где в GTA” — карточка сворачивается вниз, а на весь экран открывается другая карта;
 // карточку можно поднять обратно или переключить карту»
 async function showOnMap(m, k, i) {
-  const want = SNAP_ON ? 'peek' : undefined;
+  // Игорь 15.10.2026 (запись экрана): «карточка уходит почти полностью вниз, и непонятно, что с точкой». Теперь карточка
+  // встаёт на половину (с «весь экран» тоже), точка — в видимой части над ней, на том же пикселе, что и до перехода.
+  const want = SNAP_ON ? postSnap() || 'half' : undefined;
   // переход с текущей шторкой (та же точка — в центр видимой части), затем шторка — в полоску, карта плавно доезжает
   await switchMode(m, () => {
     // карта не двигается: точка уже стоит на том же пикселе, шторка просто уходит в полоску (без доводки камеры)
@@ -1641,8 +1691,11 @@ function visDy(snapAt) {   // на сколько пикселей центр в
 // точка экрана в центре видимой части и камера, ставящая заданную точку туда же (сдвиг по Меркатору на dy пикселей)
 // Опорный пиксель (Игорь 15.10.2026: «точка, которая кликнута, и карта, как расположена, сохранялась — не скакала»):
 // открытое место, если оно видно над шторкой, иначе центр видимой части. После перехода та же точка — на том же пикселе.
+// положение шторки ПОСЛЕ перехода «жизнь ⇄ игра»: с «весь экран» — половина (видно и карту, и карточку), иначе как есть.
+// Опорный пиксель считаем под него: раньше с «весь экран» точка ставилась в узкую полоску над шторкой — к самому верху.
+const postSnap = () => { const s = SNAP_ON && ctx?.sheetSnap?.(); return s === 'full' ? 'half' : (s || null); };
 function refPx() {
-  const box = map.getContainer(), W = box.clientWidth, top = box.clientHeight - 2 * visDy();
+  const box = map.getContainer(), W = box.clientWidth, top = box.clientHeight - 2 * visDy(postSnap() || undefined);
   const p = selected != null ? data[game]?.places[selected] : null, q = p && ll(p);
   if (q) { const sp = map.project(q); if (sp.x >= 0 && sp.x <= W && sp.y >= 0 && sp.y <= top) return { px: [sp.x, sp.y], ll: q, p }; }
   const px = [W / 2, top / 2], c = map.unproject(px);
@@ -1660,9 +1713,9 @@ function camAt(c, zoom, px) {   // камера, при которой точк�
 function targetFor(m) {
   const d = data[game]; if (!d || !map) return null;
   if (lastSwitch && lastSwitch.game === game && lastSwitch.to.m === mode && lastSwitch.from.m === m && nearVis(lastSwitch.to))
-    return { center: camAt(lastSwitch.from.pt, lastSwitch.from.zoom, lastSwitch.to.px), zoom: lastSwitch.from.zoom, sel: selected != null, back: true };
+    return { center: camAt(lastSwitch.from.pt, lastSwitch.from.zoom, lastSwitch.to.px), zoom: lastSwitch.from.zoom, sel: selected != null, back: true, pt: lastSwitch.from.pt };
   const zr = map.getZoom(), R = refPx(), px = R.px, p = R.p, vc = { lng: R.ll[0], lat: R.ll[1] };
-  if (approx()) { const c = p ? [p.lon, p.lat] : R.ll; return { center: camAt(c, zr, px), zoom: zr, sel: !!p }; }   // «Леонида» — та же география
+  if (approx()) { const c = p ? [p.lon, p.lat] : R.ll; return { center: camAt(c, zr, px), zoom: zr, sel: !!p, pt: c }; }   // «Леонида» — та же география
   const Wpx = map.getContainer().clientWidth;
   if (m === 'game') {
     const src = p ? { lat: p.lat, lon: p.lon } : { lat: vc.lat, lon: vc.lng };
@@ -1671,7 +1724,7 @@ function targetFor(m) {
     if (!pt0) return null;
     const mpp = realMpp(zr, src.lat), s = scaleAt(src, mpp * Wpx);
     const zoom = clampZ(Math.log2(64 / (mpp * s)), 2.5, 9);
-    return { center: camAt(pt0, zoom, px), zoom, sel: !!p };
+    return { center: camAt(pt0, zoom, px), zoom, sel: !!p, pt: pt0 };
   }
   const g = p?.gm ? { x: p.gm[0], y: p.gm[1] } : M2G(vc);
   const cv = p ? null : convert(g, false);
@@ -1684,7 +1737,7 @@ function targetFor(m) {
   for (let it = 0; it < 30; it++) { const mid = (lo + hi) / 2, Wm = Math.exp(mid); if (Wm * scaleAt(q, Wm) < Wg) lo = mid; else hi = mid; }
   const s = scaleAt(q, Math.exp((lo + hi) / 2));
   const zoom = clampZ(Math.log2(EQ * Math.cos(pt0[1] * Math.PI / 180) / (512 * gameUpp(zr) / s)), 8, 18);
-  return { center: camAt(pt0, zoom, px), zoom, sel: !!p };
+  return { center: camAt(pt0, zoom, px), zoom, sel: !!p, pt: pt0 };
 }
 export async function setMode(m, cam) {
   if (!map || (m !== 'real' && m !== 'game')) return;
@@ -1718,7 +1771,9 @@ function ghostLayers() {
   if (!ghost.getSource('gsel')) ghost.addSource('gsel', { type: 'geojson', data: fc([]) });
   if (!ghost.getLayer('gsel')) ghost.addLayer({ id: 'gsel', type: 'circle', source: 'gsel',
     paint: { 'circle-radius': 13, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' } });
-  if (ghostFor?.t) ghost.getSource('gsel').setData(fc(ghostFor.t.sel ? [pt(ghostFor.t.center[0], ghostFor.t.center[1], {})] : []));
+  // кольцо — на самом месте (t.pt), а не в центре камеры: иначе после смены карт кольцо «прыгало» (запись Игоря 15.10)
+  const tp = ghostFor?.t?.pt;
+  if (ghostFor?.t) ghost.getSource('gsel').setData(fc(ghostFor.t.sel && tp ? [pt(tp[0], tp[1], {})] : []));
 }
 // камера с учётом шторки в полоске: место — над шторкой, а не под ней
 function ghostCam(t) { ghost.jumpTo({ center: t.center, zoom: t.zoom }); }   // сдвиг под шторку уже в камере targetFor
@@ -1755,6 +1810,7 @@ async function switchMode(m, after, opts) {
     el.style.transition = 'none'; el.style.opacity = '1';
   }
   const T = !cam && T0;
+  if (SNAP_ON && ctx?.sheetSnap?.() === 'full') ctx.setSnap('half');   // переход с карточки на весь экран — карточку на половину
   await setMode(m, cam || T);
   after?.(true);   // камера уже стоит: та же точка и масштаб — карточке лететь не нужно
   if (before && mode === m) lastSwitch = { game, from: before, to: { m, ...visNow() } };

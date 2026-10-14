@@ -113,8 +113,10 @@ def render(g=None, r=None, rcred="", title="", sub="", game_frame=True):
         g = None
     if g is not None and r is not None:
         if licence(rcred) == "split":
-            c.paste(_cover(g, W, TOP).crop((0, 0, W // 2, TOP)), (0, 0))
-            c.paste(_cover(r, W, TOP).crop((W // 2, 0, W, TOP)), (W // 2, 0))
+            # каждая половина — свой снимок «обложкой» в свою половину (15.10: «картинка из жизни сильно увеличена» —
+            # раньше снимок растягивался на всю ширину превью и от него оставалась четверть)
+            c.paste(_cover(g, W // 2, TOP), (0, 0))
+            c.paste(_cover(r, W - W // 2, TOP), (W // 2, 0))
             _knob(c, W // 2, TOP // 2)
             _band(c, "In game", "Real life", credits=(GAME_CREDIT, _photo_credit(rcred, True)))
             return c, "split"

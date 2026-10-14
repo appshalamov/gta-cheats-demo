@@ -1,7 +1,7 @@
 // Офлайн-кэш. Оболочка — из кэша (быстро), данные data/*.json — сначала из сети,
 // чтобы новые коды (например, GTA 6 после релиза) появлялись без обновления приложения.
 // При изменении файлов оболочки поднимите VERSION.
-const VERSION = 'beta-v54';
+const VERSION = 'beta-v55';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css',
   'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/places.js',
@@ -15,10 +15,33 @@ self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSION).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSION && k !== PHOTOS).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
+// Фото мест (кадры игры, фото из жизни) — отдельный кэш, переживает обновления приложения: второй раз карточка
+// открывается мгновенно и на слабом интернете (Игорь 15.10.2026: «на слабом интернете хуже открывается»).
+// Чужие сайты (хостинг кадров, gtadb, Commons) отдают CORS — берём копию в режиме cors (не «непрозрачную»).
+const PHOTOS = 'photos-v1', PHOTOS_MAX = 600;
+const isPhoto = (u) => /\.(jpe?g|png|webp)$/i.test(u.pathname) && (
+  (u.origin === location.origin && u.pathname.includes('/img/map/'))
+  || u.host === 'appshalamov.github.io' && u.pathname.startsWith('/gta-map-assets/map/photos/')
+  || u.host === 'raw.githubusercontent.com' && u.pathname.startsWith('/rolux/gtadb.org/')
+  || u.host === 'upload.wikimedia.org');
+async function photo(req) {
+  const c = await caches.open(PHOTOS);
+  const hit = await c.match(req.url);
+  if (hit) return hit;
+  const r = await fetch(req.url, { mode: 'cors', credentials: 'omit' }).catch(() => null);
+  if (r && r.ok) {
+    c.put(req.url, r.clone()).then(async () => {   // держим не больше PHOTOS_MAX снимков: старые — вон
+      const ks = await c.keys(); for (const k of ks.slice(0, Math.max(0, ks.length - PHOTOS_MAX))) c.delete(k);
+    }).catch(() => { });
+    return r;
+  }
+  return fetch(req);   // CORS не дали — как обычная картинка
+}
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
+  if (e.request.method === 'GET' && e.request.destination === 'image' && isPhoto(url)) { e.respondWith(photo(e.request)); return; }
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   if (url.pathname.includes('/data/')) {
     e.respondWith(fetch(e.request).then((r) => {

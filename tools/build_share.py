@@ -59,6 +59,15 @@ def og_game_img(x):
             if u not in [c[0] for c in cands]:
                 cands.append((u, "gtadb" in (ph.get("credit") or "").lower() or "gta-map-assets" in u))
     best, best_w = "", 0
+    # главный кадр места (pg) подобран под фото из жизни — берём его, если он не мутный (15.10, gta5-c4: «лучший»
+    # по резкости кадр оказался другим зданием)
+    if cands:
+        try:
+            im0 = _src(cands[0][0]) if Image is not None else None
+            if im0 is not None and og_render.quality(im0) >= WEAK_FRAME * 2:
+                return cands[0][0]
+        except Exception:
+            pass
     for u, is_db in cands:
         try:
             im = _src(u) if Image is not None else None
@@ -122,7 +131,7 @@ def og_card(game, pid, gurl, rurl, rcred="", title="", sub=""):
     if Image is None or not (gurl or rurl):
         return ""
     gf = CFG.get("og_game_frame", True)
-    sig = hashlib.sha1(f"v3|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}".encode()).hexdigest()[:8]
+    sig = hashlib.sha1(f"v4|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}".encode()).hexdigest()[:8]
     rel = f"og/{game}/{pid}.{sig}.jpg"
     fp = OUT / rel
     OG_MADE.add(fp)
@@ -174,8 +183,8 @@ def page(game, kind, x):
     e = html.escape
     imgs = ""
     if cg and cr:
-        imgs = (f'<div class="cmp" style="--x:50%" role="slider" aria-label="compare" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">'
-                f'<img class="g" src="{e(cg)}" alt="{e(gt)}" draggable="false"><img class="r" src="{e(cr)}" alt="real life" draggable="false">'
+        imgs = (f'<div class="cmp ld" style="--x:50%" role="slider" aria-label="compare" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">'
+                f'<img class="g" src="{e(cg)}" alt="{e(gt)}" draggable="false" fetchpriority="high"><img class="r" src="{e(cr)}" alt="real life" draggable="false" fetchpriority="high">'
                 f'<span class="lab lg">🎮 <span data-ru="В игре" data-en="In game">In game</span></span>'
                 f'<span class="lab lr">📷 <span data-ru="В жизни" data-en="Real life">Real life</span></span>'
                 f'<div class="line"><span class="knob">‹ ›</span></div></div>'
@@ -209,7 +218,7 @@ p.d{{margin:16px 0 8px;font-size:14.5px;color:#cfd5e0}}.cta{{display:block;margi
 background:linear-gradient(90deg,#22c3d9,#7ee0ff)}}.sub{{display:block;text-align:center;color:#7ee0ff;font-weight:700;text-decoration:none;margin:6px 0}}
 .cred{{color:#6f7787;font-size:11.5px;margin-top:22px}}
 .cmp{{position:relative;aspect-ratio:4/3;border-radius:18px;overflow:hidden;background:#151922;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:ew-resize}}
-.cmp img{{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}}.cmp .r{{clip-path:inset(0 0 0 var(--x))}}
+.cmp img{{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .22s}}.cmp.ld img{{opacity:0}}.cmp .r{{clip-path:inset(0 0 0 var(--x))}}
 .cmp .line{{position:absolute;top:0;bottom:0;left:var(--x);width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 12px rgba(0,0,0,.5)}}
 .cmp .knob{{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center;font-weight:900;font-size:16px;box-shadow:0 4px 18px rgba(0,0,0,.45)}}
 .cmp .lab{{position:absolute;top:10px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:800;background:rgba(0,0,0,.6)}}.cmp .lg{{left:10px;background:#22c3d9;color:#0b0d12}}.cmp .lr{{right:10px}}
@@ -227,7 +236,9 @@ background:linear-gradient(90deg,#22c3d9,#7ee0ff)}}.sub{{display:block;text-alig
 </main>
 <script>(()=>{{const ru=(navigator.language||'').toLowerCase().startsWith('ru')||(navigator.language||'').toLowerCase().startsWith('uk');
 document.documentElement.lang=ru?'ru':'en';document.querySelectorAll('[data-ru]').forEach(n=>{{const v=n.dataset[ru?'ru':'en'];if(v)n.textContent=v;}});
-const c=document.querySelector('.cmp');if(!c)return;let drag=false,x0=0,y0=0,dir=null,a=0;
+const c=document.querySelector('.cmp');if(!c)return;
+// оба снимка проявляются вместе (не «сначала игра, потом жизнь»), но не дольше 2,5 с ожидания
+Promise.race([Promise.all([...c.querySelectorAll('img')].map(i=>i.complete?0:new Promise(o=>{{i.onload=i.onerror=o;}}))),new Promise(o=>setTimeout(o,2500))]).then(()=>c.classList.remove('ld'));let drag=false,x0=0,y0=0,dir=null,a=0;
 const set=(cx)=>{{const b=c.getBoundingClientRect();const v=Math.max(0,Math.min(100,(cx-b.left)/b.width*100));c.style.setProperty('--x',v+'%');c.setAttribute('aria-valuenow',Math.round(v));}};
 c.addEventListener('pointerdown',e=>{{clearInterval(a);drag=true;dir=e.pointerType==='touch'?null:'h';x0=e.clientX;y0=e.clientY;if(dir)set(e.clientX);}});
 addEventListener('pointermove',e=>{{if(!drag)return;if(!dir){{const dx=Math.abs(e.clientX-x0),dy=Math.abs(e.clientY-y0);if(dx+dy<6)return;dir=dx>=dy*.7?'h':'v';if(dir==='v'){{drag=false;return;}}}}set(e.clientX);}});
@@ -272,6 +283,8 @@ def db_items(game):
 
 
 def main():
+    if Image is None:   # 15.10: системный python3 без Pillow тихо переписал страницы на кадр игры вместо превью «игра | жизнь»
+        sys.exit("нужен Pillow: ~/.video-venv/bin/python tools/build_share.py (страницы не тронуты)")
     n, made = 0, set()
     for game in GAMES:
         d = json.loads((ROOT / "data" / "map" / f"{game}.json").read_text("utf-8"))
@@ -292,6 +305,14 @@ def main():
         for fp in (OUT / "og").glob("*/*.jpg"):
             if fp not in OG_MADE and not fp.name.startswith("._"):
                 fp.unlink(missing_ok=True)
+    # метки превью для ссылки «поделиться» (?p=<метка>): приложение берёт их отсюда — новая картинка = новый адрес
+    tags = {}
+    for fp in OG_MADE:
+        if fp.exists():
+            stem, sig = fp.name.rsplit(".", 2)[0], fp.name.rsplit(".", 2)[1]
+            tags[f"{fp.parent.name}/{stem}"] = sig
+    if tags:
+        (OUT / "og" / "p.json").write_text(json.dumps(tags, ensure_ascii=False, separators=(",", ":"), sort_keys=True), "utf-8")
     print(f"страниц «поделиться»: {n}, превью: {sum(1 for p in OG_MADE if p.exists())}" + ("" if Image else " (нет Pillow — превью не обновлялись)"))
 
 
