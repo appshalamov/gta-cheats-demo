@@ -9,7 +9,7 @@ import { loadPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, searchP
 
 // ───────── хранилище ─────────
 const KEY = 'cheats.v1';
-const DEFAULTS = { onboarded: false, game: 'gta5', platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, theme: 'dark', lang: null, haptic: true, installHint: false };
+const DEFAULTS = { onboarded: false, game: 'gta5', platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google' };
 const store = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { }
@@ -23,7 +23,7 @@ const data = {}; // gameId -> {cheats, ...}
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const mapMod = () => import('./map.js');
-const mapCtx = () => ({ openSheet, closeSheet, setSnap, sheetSnap: () => snap, sheetPx: snapPx, restSheet, haptic, toast, I, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k) });
+const mapCtx = () => ({ mapsApp: () => store.mapsApp || 'google', openSheet, closeSheet, setSnap, sheetSnap: () => snap, sheetPx: snapPx, restSheet, haptic, toast, I, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k) });
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const game = () => GAMES.find((g) => g.id === store.game) || GAMES[0];
 const cheats = () => (data[store.game]?.cheats) || [];
@@ -435,6 +435,9 @@ function toggleFavPlace(key) {
 function row(action, icon, label, value = '', chevron = true) {
   return `<button class="row" data-action="${action}"><span class="row-ic">${icon}</span><span class="row-l">${label}</span><span class="row-v">${value}</span>${chevron ? `<span class="row-chev">${I.chevron}</span>` : ''}</button>`;
 }
+// карты для маршрута (Игорь 15.10.2026: «Google по умолчанию, в настройках — Apple, потом любые другие»).
+// Новая карта — строка здесь и ветка в mapsLink (map.js); наружу — только карты (правило «не уводить из приложения»).
+const MAPS_APPS = [['google', 'Google'], ['apple', 'Apple']];
 function renderSettings() {
   const g = game();
   const th = { dark: t('th_dark'), light: t('th_light'), auto: t('th_auto') };
@@ -453,6 +456,8 @@ function renderSettings() {
         <span class="mini-seg">${['dark', 'light', 'auto'].map((k) => `<button class="${store.theme === k ? 'on' : ''}" data-action="theme" data-v="${k}">${th[k]}</button>`).join('')}</span></div>
       <div class="row row-static"><span class="row-ic">${I.globe}</span><span class="row-l">${t('st_lang')}</span>
         <span class="mini-seg">${[['ru', 'RU'], ['en', 'EN']].map(([k, n]) => `<button class="${getLang() === k ? 'on' : ''}" data-action="lang" data-v="${k}">${n}</button>`).join('')}</span></div>
+      <div class="row row-static"><span class="row-ic">${I.globe}</span><span class="row-l">${t('st_maps')}</span>
+        <span class="mini-seg">${MAPS_APPS.map(([k, n]) => `<button class="${(store.mapsApp || 'google') === k ? 'on' : ''}" data-action="maps-app" data-v="${k}">${n}</button>`).join('')}</span></div>
       <div class="row row-static"><span class="row-ic">${I.vibe}</span><span class="row-l">${t('st_haptic')}</span>
         <button class="switch${store.haptic ? ' on' : ''}" data-action="haptic-toggle" aria-label="haptics"><i></i></button></div>
     </div>
@@ -938,6 +943,7 @@ document.addEventListener('click', async (e) => {
     case 'hint': ui.query = el.dataset.q; $('#search-input').value = ui.query; renderSearch(); break;
     case 'search-clear': ui.query = ''; $('#search-input').value = ''; renderSearch(); $('#search-input').focus(); break;
     case 'theme': store.theme = v; save(); applyTheme(); renderSettings(); mapMod().then((m) => m.retheme()); break;
+    case 'maps-app': haptic(); store.mapsApp = v; save(); renderSettings(); break;
     case 'lang': store.lang = v; save(); setLang(v); renderAll(); mapMod().then((m) => m.relang()); break;
     case 'haptic-toggle': store.haptic = !store.haptic; save(); haptic(); renderSettings(); break;
     case 'howto': openHowto(); break;

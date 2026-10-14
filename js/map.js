@@ -310,10 +310,10 @@ async function loadGtadb(g) {
 }
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
-const mapsLink = (lat, lon, q) => isIOS()
+// маршрут: Google Maps по умолчанию, Apple — в настройках (Игорь 15.10.2026)
+const mapsLink = (lat, lon, q) => (ctx?.mapsApp?.() === 'apple'
   ? `https://maps.apple.com/?daddr=${lat},${lon}&q=${encodeURIComponent(q || `${lat},${lon}`)}`
-  : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
+  : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`);
 const themeKey = () => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
 const txt = (o) => (o ? tr(o) : '');
 
