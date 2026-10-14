@@ -199,12 +199,13 @@ def attach_approx(game, places, eggs):
 
 
 def photo_rights_gate(game, places, eggs):
-    """Стоп сборки, если главным фото или в галерее «из жизни» стоит снимок gtadb (см. banned_real).
+    """Стоп сборки, если главным фото или в галерее «из жизни» стоит СВОЯ КОПИЯ снимка gtadb (см. banned_real).
+    Ссылка на снимок в репозитории gtadb (url) разрешена — так же, как в парах.
     Пары сравнения не проверяются: это ссылка на кадр в репозитории gtadb, у себя мы его не храним (решение Игоря 14.10.2026)."""
     bad = []
     for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
         for ph in [x.get("pr")] + (x.get("gl") or []):
-            if ph and banned_real(ph):
+            if ph and ph.get("file") and banned_real(ph):
                 bad.append(f"{x['id']}: {(ph.get('url') or ph.get('file') or '')[-60:]}")
     if bad:
         raise SystemExit(f"{game}: СТОП — фото из жизни без права показа ({len(bad)}): " + "; ".join(bad[:5]))
@@ -294,12 +295,22 @@ def banned_real(p):
     return "gtadb" in s or ",rl.jpg" in s or "google" in who                    # законные фото зданий Google (Lifeinvader)
 
 
+def gtadb_link(p, item, game):
+    """Фото из жизни gtadb — ссылкой на их репозиторий (v33, 14.10.2026): копии у себя не храним (часто это кадр Street View),
+    но карточка, лента, список и «Все фото» выглядят как в v29 (до v30 тут была своя копия — её снятие испортило ленту)."""
+    m = re.search(r"\((L\d+)\)", str(p.get("credit") or "")) or re.fullmatch(r"(L\d+)", str(item.get("gtadb_id") or ""))
+    if not m:
+        return None
+    u = f"https://raw.githubusercontent.com/rolux/gtadb.org/main/map/photos/{5 if game == 'gta5' else 6}/{m.group(1)},rl.jpg"
+    return {"url": u, "thumb": u, "credit": f"фото: gtadb.org ({m.group(1)}) and contributors, CC BY 4.0"}
+
+
 def photo(item, game, key="photo_real"):
     p = item.get(key) or (item.get("photo") if key == "photo_real" else None)
     if not isinstance(p, dict) or not p.get("file"):
         return None
-    if key == "photo_real" and banned_real(p):
-        return None
+    if key == "photo_real" and banned_real(p):   # снимок gtadb: не копию у себя, а ссылку на gtadb — как в парах сравнения
+        return gtadb_link(p, item, game)
     src = SRC / "карта" / p["file"]
     if not src.exists():
         return None

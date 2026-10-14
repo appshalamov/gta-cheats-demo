@@ -29,10 +29,12 @@ def km(a, b):
 
 
 def banned(ph):
-    """Главные фото / галерея из жизни, снятые по праву (14.10.2026): копии снимков gtadb (скриншоты Street View) у себя
-    не храним — их пропажа не потеря (то же правило, что banned_real в build_map.py). К парам сравнения не относится."""
-    s = " ".join(str(ph.get(k) or "") for k in ("source", "credit", "url", "file")).lower()
-    return "gtadb" in s or ",rl.jpg" in s
+    """СВОИ КОПИИ снимков gtadb главным фото / в галерее (14.10.2026): у себя не храним (часто скриншоты Street View) —
+    их пропажа не потеря, а появление — стоп. Ссылка на gtadb (url) разрешена. К парам сравнения не относится."""
+    if not ph.get("file"):   # ссылка на снимок в репозитории gtadb (url) — разрешена, как в парах (v33)
+        return False
+    s = " ".join(str(ph.get(k) or "") for k in ("source", "credit", "file")).lower()
+    return "gtadb" in s
 
 
 def real(x):
