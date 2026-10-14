@@ -513,24 +513,41 @@ function closeSheet() {
   const cb = sheetOnClose; sheetOnClose = null; cb?.();
 }
 
-// перетаскивание шторки вниз
+// Перетаскивание шторки вниз — с фиксацией направления, как в iOS.
+// Направление решается по первым ~10px: шторка едет, только если палец идёт явно вниз
+// (|dy| > 1.6·|dx|). Если первым пошло движение вбок — весь жест отдаётся листанию
+// (фото, ползунок «игра ⇄ жизнь», ленты), и шторка не двигается до отпускания пальца.
+const SHEET_LOCK_PX = 10, SHEET_V_RATIO = 1.6, SHEET_CLOSE_PX = 110, SHEET_FLICK_PX_MS = 0.6;
 (() => {
-  const sheet = $('#sheet'); let y0 = null, dy = 0;
+  const sheet = $('#sheet');
+  let x0 = 0, y0 = null, t0 = 0, dy = 0, dir = null;
   sheet.addEventListener('touchstart', (e) => {
     const body = $('#sheet-body');
-    if (body.scrollTop > 0 && !e.target.closest('.grab')) return;
-    y0 = e.touches[0].clientY; dy = 0; sheet.style.transition = 'none';
+    if (e.touches.length > 1 || (body.scrollTop > 0 && !e.target.closest('.grab'))) { y0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = e.timeStamp; dy = 0; dir = null;
   }, { passive: true });
   sheet.addEventListener('touchmove', (e) => {
-    if (y0 == null) return;
-    dy = Math.max(0, e.touches[0].clientY - y0);
-    if (dy > 0) sheet.style.transform = `translateY(${dy}px)`;
+    if (y0 == null || dir === 'h') return;
+    const dx = e.touches[0].clientX - x0, d = e.touches[0].clientY - y0;
+    if (!dir) {
+      if (Math.abs(dx) < SHEET_LOCK_PX && Math.abs(d) < SHEET_LOCK_PX) return;
+      dir = d > 0 && Math.abs(d) > Math.abs(dx) * SHEET_V_RATIO ? 'v' : 'h';
+      if (dir === 'h') return;
+      sheet.style.transition = 'none';
+    }
+    dy = Math.max(0, d - SHEET_LOCK_PX);
+    sheet.style.transform = dy ? `translateY(${dy}px)` : '';
   }, { passive: true });
-  sheet.addEventListener('touchend', () => {
+  const end = (e) => {
     if (y0 == null) return;
-    sheet.style.transition = ''; y0 = null;
-    if (dy > 110) closeSheet(); else sheet.style.transform = '';
-  });
+    const wasV = dir === 'v', speed = dy / Math.max(1, e.timeStamp - t0);
+    y0 = null; dir = null;
+    if (!wasV) return;
+    sheet.style.transition = '';
+    if (dy > SHEET_CLOSE_PX || (dy > 40 && speed > SHEET_FLICK_PX_MS)) closeSheet(); else sheet.style.transform = '';
+  };
+  sheet.addEventListener('touchend', end);
+  sheet.addEventListener('touchcancel', end);
 })();
 
 // Экран чита
