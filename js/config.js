@@ -2,8 +2,9 @@
 // Добавить игру = добавить запись в GAMES и файл data/<id>.json.
 
 export const APP = {
-  name: 'Чит-коды GTA',
-  version: '0.1.0 demo',
+  name: 'Secret Base — Cheats & Codes GTA 6',
+  shortName: 'Secret Base',
+  version: '0.2.0 demo',
 };
 
 export const CATEGORIES = [

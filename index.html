@@ -3,13 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-  <title>Чит-коды GTA</title>
+  <title>Secret Base — Cheats &amp; Codes GTA 6</title>
   <meta name="description" content="Чит-коды GTA 5 и прогноз GTA 6 для PlayStation, Xbox, ПК и телефона в игре.">
   <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Чит-коды">
+  <meta name="apple-mobile-web-app-title" content="Secret Base">
+  <meta name="application-name" content="Secret Base">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -50,11 +51,25 @@
       <div class="scroll" id="settings-body"></div>
     </section>
 
-    <nav class="tabbar">
-      <button class="tab on" data-action="tab" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span data-k="home">Главная</span></button>
-      <button class="tab" data-action="tab" data-tab="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span data-k="search">Поиск</span></button>
-      <button class="tab" data-action="tab" data-tab="fav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.2-9.3C1.6 7.8 3.9 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.4 0 5.7 3.3 4.5 6.7-1.7 4.7-9.2 9.3-9.2 9.3z"/></svg><span data-k="fav">Избранное</span></button>
-      <button class="tab" data-action="tab" data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span data-k="settings">Настройки</span></button>
+    <nav class="tabbar" id="tabbar" style="--i:0">
+      <span class="tab-pill"></span>
+      <button class="tab on" data-action="tab" data-tab="home"><span class="tab-ic">
+        <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+        <svg class="ic-f" viewBox="0 0 24 24"><path fill="currentColor" d="M11.3 2.4a1.1 1.1 0 0 1 1.4 0l8.6 7.2c.4.3.7.8.7 1.3V20a2 2 0 0 1-2 2h-4.5a.5.5 0 0 1-.5-.5V16a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5.5a.5.5 0 0 1-.5.5H4a2 2 0 0 1-2-2v-9.1c0-.5.3-1 .7-1.3z"/></svg>
+      </span><span class="tab-l" data-k="home">Главная</span></button>
+      <button class="tab" data-action="tab" data-tab="search"><span class="tab-ic">
+        <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <svg class="ic-f" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.6" fill="currentColor" fill-opacity=".22"/><path d="m20 20-3.6-3.6"/></svg>
+      </span><span class="tab-l" data-k="search">Поиск</span></button>
+      <button class="tab" data-action="tab" data-tab="fav"><span class="tab-ic">
+        <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.2-9.3C1.6 7.8 3.9 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.4 0 5.7 3.3 4.5 6.7-1.7 4.7-9.2 9.3-9.2 9.3z"/></svg>
+        <svg class="ic-f" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.2c-.2 0-.4 0-.5-.1-.3-.2-7.9-4.9-9.6-9.8C.6 7.4 3.2 3.5 7.3 3.5c1.9 0 3.6.9 4.7 2.3 1.1-1.4 2.8-2.3 4.7-2.3 4.1 0 6.7 3.9 5.4 7.8-1.7 4.9-9.3 9.6-9.6 9.8-.1.1-.3.1-.5.1z"/></svg>
+        <b class="tab-badge" id="fav-badge"></b>
+      </span><span class="tab-l" data-k="fav">Избранное</span></button>
+      <button class="tab" data-action="tab" data-tab="settings"><span class="tab-ic">
+        <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+        <svg class="ic-f" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h9M19 7h1M4 17h3M13 17h7"/><circle cx="16" cy="7" r="2.6" fill="currentColor"/><circle cx="10" cy="17" r="2.6" fill="currentColor"/></svg>
+      </span><span class="tab-l" data-k="settings">Настройки</span></button>
     </nav>
   </main>
 

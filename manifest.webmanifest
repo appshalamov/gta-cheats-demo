@@ -1,6 +1,6 @@
 {
-  "name": "Чит-коды GTA",
-  "short_name": "Чит-коды",
+  "name": "Secret Base — Cheats & Codes GTA 6",
+  "short_name": "Secret Base",
   "description": "Чит-коды GTA 5 и прогноз GTA 6 для PlayStation, Xbox, ПК и телефона в игре",
   "lang": "ru",
   "start_url": "./",
@@ -9,10 +9,27 @@
   "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "categories": ["games", "reference"],
+  "categories": [
+    "games",
+    "reference"
+  ],
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
-  ]
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "./"
 }

@@ -212,15 +212,25 @@ function renderSettings() {
     <div class="ver">${esc(APP.name)} · v${esc(APP.version)}</div>`;
 }
 
+function updateFavBadge(pulse = false) {
+  const n = cheats().filter((c) => store.favs.includes(c.id)).length;
+  const b = $('#fav-badge'); if (!b) return;
+  b.textContent = n > 99 ? '99+' : n; b.classList.toggle('show', n > 0);
+  if (pulse && n > 0) { b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); }
+}
+
 // ───────── общая перерисовка ─────────
 function renderAll() {
   $('#plat-btn').innerHTML = platformIcon(store.platform);
-  document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.tab === ui.tab));
+  const tabs = [...document.querySelectorAll('.tab')];
+  tabs.forEach((b) => b.classList.toggle('on', b.dataset.tab === ui.tab));
+  $('#tabbar').style.setProperty('--i', Math.max(0, tabs.findIndex((b) => b.dataset.tab === ui.tab)));
+  updateFavBadge();
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'view-' + ui.tab));
   const titles = { search: t('tab_search'), fav: t('tab_fav'), settings: t('tab_settings') };
   $('#search-title').textContent = titles.search; $('#fav-title').textContent = titles.fav; $('#settings-title').textContent = titles.settings;
   $('#search-input').placeholder = t('search_ph');
-  document.querySelectorAll('.tab span').forEach((s) => { s.textContent = t('tab_' + s.dataset.k); });
+  document.querySelectorAll('.tab-l').forEach((s) => { s.textContent = t('tab_' + s.dataset.k); });
   renderHome(); renderSearch(); renderFavs(); renderSettings();
 }
 
@@ -457,13 +467,25 @@ document.addEventListener('click', async (e) => {
   if (!el) return;
   const a = el.dataset.action, v = el.dataset.v, id = el.dataset.id;
   switch (a) {
-    case 'tab': ui.tab = el.dataset.tab; haptic(); renderAll(); if (ui.tab === 'search') setTimeout(() => $('#search-input').focus(), 50); break;
+    case 'tab': {
+      const tab = el.dataset.tab; haptic();
+      el.classList.remove('bounce'); void el.offsetWidth; el.classList.add('bounce');
+      if (tab === ui.tab) { // повторное нажатие — наверх, как в iOS
+        const box = tab === 'home' ? document.querySelector(`.page[data-cat="${ui.cat}"]`) : document.querySelector(`#view-${tab} .scroll`);
+        box?.scrollTo({ top: 0, behavior: 'smooth' });
+        if (tab === 'search') $('#search-input').focus();
+        break;
+      }
+      ui.tab = tab; renderAll();
+      if (tab === 'search') $('#search-input').focus();
+      break;
+    }
     case 'cat': ui.cat = el.dataset.cat; haptic(); scrollToCat(ui.cat); break;
     case 'open': openCheat(id); haptic(); break;
     case 'fav': {
       e.stopPropagation(); haptic();
       const i = store.favs.indexOf(id); if (i >= 0) store.favs.splice(i, 1); else store.favs.push(id);
-      save(); refreshCards();
+      save(); refreshCards(); updateFavBadge(true);
       if (el.classList.contains('icon-btn')) el.innerHTML = store.favs.includes(id) ? I.heartFill : I.heart;
       el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 300);
       break;
@@ -517,7 +539,12 @@ addEventListener('resize', () => scrollToCat(ui.cat, false));
 (async function init() {
   setLang(store.lang || (navigator.language || 'ru').slice(0, 2));
   applyTheme();
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => { });
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    // новая версия на сервере → перезагрузка в свежую (только если уже была старая)
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) location.reload(); });
+    navigator.serviceWorker.register('sw.js').then((r) => r.update()).catch(() => { });
+  }
   if (window.speechSynthesis) speechSynthesis.getVoices();
   await loadGame(store.game).catch(() => { });
   renderAll();
