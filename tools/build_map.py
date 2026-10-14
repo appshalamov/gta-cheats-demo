@@ -81,6 +81,52 @@ def region_gate(game, places, eggs):
                          f"или внесите в «вне_региона», если это законная отсылка:\n  " + "\n  ".join(bad))
 
 
+def attach_ingame(game, cfg, places, eggs, pts):
+    """«Где в игре» (просьба Игоря 14.10.2026: «как это в GTA найти»): координаты места на карте игры.
+    gm = [x, y, точность]: 0 — своя точка gtadb, 1 — соседняя пара gtadb, 2 — оценка по 6 ближайшим опорным точкам
+    (реальные ↔ игровые координаты из gtadb, медианная ошибка ≈ 200 м в GTA 5 и ≈ 115 м в GTA 6). ga — адрес в игре.
+    Точкам слоя gtadb — 12-й элемент [x, y]."""
+    v = 5 if game == "gta5" else 6
+    lm = json.loads((SRC / "источники" / "gtadb.org (CC BY 4.0)" / f"landmarks_gta{v}.json").read_text("utf-8"))
+    ctrl = [(k, it[1], it[4]) for k, it in lm.items() if it[1] and it[4]
+            and not any(t.lower() == "events" or re.fullmatch(r"l\d+", t.lower()) for t in it[6])]
+    def est(lat, lon):
+        near = sorted(((meters((lat, lon), (rl[0], rl[1])), ig) for _, ig, rl in ctrl), key=lambda t: t[0])[:6]
+        ws = [1 / max(d, 50) ** 2 for d, _ in near]
+        return [round(sum(w * ig[0] for w, (_, ig) in zip(ws, near)) / sum(ws), 1), round(sum(w * ig[1] for w, (_, ig) in zip(ws, near)) / sum(ws), 1)]
+    def gid_of(x):
+        for pr in x.get("pairs") or []:
+            m = re.search(r"/(L\d+),ig\.jpg", pr["g"]["url"])
+            if m and m.group(1) in lm and lm[m.group(1)][1]:
+                return m.group(1)
+        return None
+    n = {0: 0, 1: 0, 2: 0}
+    for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
+        own = x.get("_gtadb")
+        if x.get("_gxy"):   # место в игре задано вручную (правки_вручную.json: game_xy / game_addr / game_gid)
+            x["gm"] = [round(x["_gxy"][0], 1), round(x["_gxy"][1], 1), 0] + ([x["_ggid"]] if x.get("_ggid") else [])
+            x["ga"] = x.get("_gaddr") or ""
+            n[0] += 1
+            continue
+        if own in lm and lm[own][1]:
+            k, acc = own, 0
+        else:
+            k, acc = gid_of(x), 1
+        if k:
+            x["gm"] = [round(lm[k][1][0], 1), round(lm[k][1][1], 1), acc, k]
+            x["ga"] = lm[k][0]
+        else:
+            x["gm"] = est(x["lat"], x["lon"]) + [2]
+        n[x["gm"][2]] += 1
+    for q in pts:
+        it = lm.get(q[0])
+        if it and it[1]:
+            while len(q) < 11:
+                q.append([] if len(q) == 9 else None)
+            q[11:] = [[round(it[1][0], 1), round(it[1][1], 1)]]
+    print(f"  где в игре: точно {n[0]}, по соседней паре {n[1]}, оценка {n[2]}")
+
+
 def attach_approx(game, places, eggs):
     """Примерные фото (данные/фото_примерные.json, выбраны агентами по просьбе Игоря 14.10.2026): только там, где своих нет.
     Помечаются ap=1 — в карточке подпись «≈ рядом» (снято поблизости, не точно это место)."""
@@ -309,6 +355,7 @@ def build(game, cfg):
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"),
             "gl": gal(it, game, "gallery"), "gg": gal(it, game, "game_gallery", 4),
             "_gtadb": it.get("gtadb_id") or "",
+            "_gxy": it.get("game_xy"), "_gaddr": it.get("game_addr"), "_ggid": it.get("game_gid"),
         }
         places.append({k: v for k, v in place.items() if v not in (None, "", [], {"ru": "", "en": ""})})
     for i, it in enumerate(json.loads(ef.read_text("utf-8")) if ef else []):
@@ -370,8 +417,10 @@ def build(game, cfg):
         print(f"  ! вид 360° {pid}: такого места нет в {game}")
     if views:
         print(f"  виды 360°: {len(used)} из {len(views)}")
+    attach_ingame(game, cfg, places, eggs, pts)
     for pl in places:
-        pl.pop("_gtadb", None)
+        for k in ("_gtadb", "_gxy", "_gaddr", "_ggid"):
+            pl.pop(k, None)
     data = {"game": game, "center": cfg["center"], "zoom": cfg["zoom"],
             "source": pf.name if pf else None, "places": places, "eggs": eggs}
     (OUT / f"{game}.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), "utf-8")
