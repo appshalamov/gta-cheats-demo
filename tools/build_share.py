@@ -114,18 +114,23 @@ def _src(u):
         return Image.open(io.BytesIO(r.read())).convert("RGB")
 
 
+WEAK_FRAME = 1500   # og_render.quality: меньше — кадр в превью не ставим (GTA 6: 68 точек gtadb; Вашингтон-Бич — 411)
+
+
 def og_card(game, pid, gurl, rurl, rcred="", title="", sub=""):
     """Превью 1200×630 «игра | жизнь» → путь от s/ или ''. Как рисуется (по лицензии фото) — tools/og_render.py."""
     if Image is None or not (gurl or rurl):
         return ""
     gf = CFG.get("og_game_frame", True)
-    sig = hashlib.sha1(f"v3|{gf}|{gurl}|{rurl}|{rcred}|{title}".encode()).hexdigest()[:8]
+    sig = hashlib.sha1(f"v3|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}".encode()).hexdigest()[:8]
     rel = f"og/{game}/{pid}.{sig}.jpg"
     fp = OUT / rel
     OG_MADE.add(fp)
     if fp.exists():
         return rel
     g = _src(gurl) if (gurl and gf) else None
+    if g is not None and og_render.quality(g) < WEAK_FRAME:   # мутная вырезка из трейлера — не позорим превью (Игорь 15.10)
+        g = None
     r = _src(rurl) if rurl else None
     im, _ = og_render.render(g, r, rcred, title, sub, game_frame=gf)
     fp.parent.mkdir(parents=True, exist_ok=True)
@@ -158,8 +163,7 @@ def page(game, kind, x):
     pr0 = (x.get("pairs") or [None])[0]
     cg, cr = (absu(pr0["g"]["url"]), absu(pr0["r"]["url"])) if pr0 else (gimg, rimg)
     ccred = (pr0["g"].get("credit", "") + " · " + pr0["r"].get("credit", "")) if pr0 else ""
-    # точки gtadb: своего фото из жизни нет (только gtadb) — превью ссылки = кадр игры с нашего хостинга, без новых файлов
-    og = og_card(game, fid, og_game_img(x), rimg, rcred, name_g or name_r, f"{name_r}" if name_g else "") if kind != "db" else ""
+    og = og_card(game, fid, gimg if kind == "db" else og_game_img(x), rimg, rcred, name_g or name_r, f"{name_r}" if name_g else "")
     og_abs = f"{SITE}s/{og}" if og else gimg
     title = f"{name_g} = {name_r}" if name_g and name_r else (name_g or name_r)
     og_title = f"{title} · {gt} in real life · Secret Base"

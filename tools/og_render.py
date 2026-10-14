@@ -61,7 +61,7 @@ def _fit(im, w, h):
 
 
 def _photo_credit(cred, cropped):
-    who = (cred or "").replace(" · Wikimedia Commons", "").replace(" · ", ", ").strip(" ,")
+    who = " ".join((cred or "").replace(" · Wikimedia Commons", "").replace(" · ", ", ").split()).strip(" ,")   # бывают переносы строк
     return f"Photo: {who}{', cropped' if cropped else ''}, Wikimedia Commons" if who else ""
 
 
