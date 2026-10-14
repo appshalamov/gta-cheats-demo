@@ -928,3 +928,11 @@ body[data-sheet="half"] .map-fabs, body[data-sheet="full"] .map-fabs { opacity: 
 .gl-pic-t { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #fff; font-size: 15px; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
 .gl-pic-t svg { width: 26px; height: 26px; }
 @media (prefers-reduced-motion: reduce) { .gl-pic img { transition: none; } }
+
+/* Переход «жизнь ⇄ игра» с карточки (бета, 15.10.2026): как смена героя в GTA V — при взлёте картинка выцветает и чуть
+   размывается, при спуске к точке плавно возвращается. Поверх карты, под кнопками и шторкой. */
+#map-fx { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; transition: opacity .9s ease;
+  -webkit-backdrop-filter: blur(2.5px) saturate(.2) brightness(1.12) contrast(1.05); backdrop-filter: blur(2.5px) saturate(.2) brightness(1.12) contrast(1.05);
+  background: radial-gradient(ellipse at center, rgba(255,255,255,.10), rgba(8,12,18,.38)); }
+#map-fx.up { opacity: 1; transition: opacity .35s ease; }
+#map-fx.down { opacity: 0; transition: opacity 1.3s ease .15s; }

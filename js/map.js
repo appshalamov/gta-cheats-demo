@@ -1032,7 +1032,7 @@ function geo(kind) {
   if (kind === 'places') return fc((d?.places || []).map((p, i) => at(ll(p), { i, cf: p.cf, egg: (p.eggs || []).length ? 1 : 0, est: est(p), gc: p.gc || '' })).filter(Boolean));
   if (kind === 'eggs') return fc((d?.eggs || []).map((e, i) => at(ll(e), { i, cf: e.cf, est: est(e) })).filter(Boolean));
   if (kind === 'gtadb') return fc(show.gtadb && gtadb[game] ? gtadb[game].points.map((p, i) => at(llPt(p), { i, gc: p[12] || '' })).filter(Boolean) : []);
-  if (kind === 'gl') return fc(glShown() && glData ? glData.map((p, i) => (glOn.has(p.k) ? pt(...G2M(p.x, p.y), { i, k: p.k, got: glGot.has(glId(p)) ? 1 : 0 }) : null)).filter(Boolean) : []);
+  if (kind === 'gl') { const lk = glData ? glLinks() : []; return fc(glShown() && glData ? glData.map((p, i) => (glOn.has(p.k) && !lk[i] ? pt(...G2M(p.x, p.y), { i, k: p.k, got: glGot.has(glId(p)) ? 1 : 0 }) : null)).filter(Boolean) : []); }
   if (kind === 'sel') {
     const p = selected != null && d?.places[selected];
     if (p) return fc([at(ll(p), {})].filter(Boolean));
@@ -1136,6 +1136,33 @@ function addGLLayer(z) {
     layout: { 'icon-image': ['concat', 'gl-', ['get', 'k']], 'icon-size': z(0.55, 0.95), 'icon-allow-overlap': true, 'icon-ignore-placement': true },
     paint: { 'icon-opacity': ['case', ['==', ['get', 'got'], 1], 0.35, 1] } });
   if (!glData) loadGL();
+}
+// Секрет слоя, у которого рядом (≤ 70 единиц игры ≈ 70 м) уже есть наша пасхалка, — одна точка и одна карточка, наша
+// (Игорь 15.10.2026: «люк из LOST открывается отдельно от пасхалки, а на пасхалке лучшие фото — объединить»).
+// Только секреты и пасхалки (не предметы коллекции); пасхалки — и отдельные, и внутри карточек мест.
+let glLinkMemo = null;
+function glLinks() {
+  const d = data[game];
+  if (!glData || !d) return [];
+  if (glLinkMemo && glLinkMemo.d === d && glLinkMemo.n === glData.length) return glLinkMemo.v;
+  const cand = [];
+  d.eggs.forEach((e, i) => { if (e.gm && e.gm[2] < 2) cand.push({ x: e.gm[0], y: e.gm[1], t: 'e', i }); });
+  d.places.forEach((p, i) => (p.eggs || []).forEach((e) => { if (e.gm && e.gm[2] < 2) cand.push({ x: e.gm[0], y: e.gm[1], t: 'p', i, id: e.id }); }));
+  const v = glData.map((p) => {
+    if (GL[p.k]?.g !== 'eggs') return null;
+    let best = null, bd = 70 * 70;
+    for (const c of cand) { const dd = (c.x - p.x) ** 2 + (c.y - p.y) ** 2; if (dd < bd) { bd = dd; best = c; } }
+    return best;
+  });
+  glLinkMemo = { d, n: glData.length, v };
+  return v;
+}
+function openGL(i) {
+  const L = glLinks()[i];
+  if (!L) { mapSheet(glSheet(i)); return; }
+  if (L.t === 'e') { mapSheet(eggSheet(data[game].eggs[L.i], L.i)); return; }
+  openPlace(L.i, false);
+  setTimeout(() => document.querySelector(`#sheet-body [data-mp="fav"][data-id="${CSS.escape(L.id)}"]`)?.closest('.mp-eggblk')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 450);
 }
 // картинка карточки слоя: своя у названного секрета (key), иначе — общая у вида (k). Секреты и пасхалки — размыты,
 // пока не нажмёшь (видно, что там что-то есть, но без спойлера); раскрытые помним.
@@ -1377,7 +1404,7 @@ function pickAt(e) {
   ctx.haptic();
   if (l === 'eggs') mapSheet(eggSheet(data[game].eggs[i], i));
   else if (l === 'places') openPlace(i, false);
-  else if (l === 'gl') mapSheet(glSheet(i));
+  else if (l === 'gl') openGL(i);
   else openPoint(i, false);
 }
 function chooserSheet(hits) {
@@ -1459,7 +1486,7 @@ document.addEventListener('click', (e) => {
   else if (a === 'all') { ctx?.haptic(); openAll(el.dataset.key, 'r'); }
   else if (a === 'viewer-close') closeViewer();
   else if (a === 'peekup') { ctx?.haptic(); ctx.setSnap?.('half'); }
-  else if (a === 'pick') { const i = +el.dataset.i, l = el.dataset.l; backToChooser = true; if (l === 'places') openPlace(i, false); else if (l === 'eggs') mapSheet(eggSheet(data[game].eggs[i], i)); else if (l === 'gl') mapSheet(glSheet(i)); else openPoint(i, false); }
+  else if (a === 'pick') { const i = +el.dataset.i, l = el.dataset.l; backToChooser = true; if (l === 'places') openPlace(i, false); else if (l === 'eggs') mapSheet(eggSheet(data[game].eggs[i], i)); else if (l === 'gl') openGL(i); else openPoint(i, false); }
   else if (a === 'gl-panel') { ctx?.haptic(); loadGL().then(() => ctx.openSheet(glPanel(), 'sheet-map', null, snapOpt('half'))); }
   else if (a === 'gl-toggle' || a === 'gl-all') {
     ctx?.haptic();
@@ -1571,7 +1598,52 @@ function startView(d) {
 // «Показать на карте GTA» / «на реальной карте» из карточки: переключить вид и открыть это же место там
 // Игорь 14.10.2026: «нажимаю “где в жизни / где в GTA” — карточка сворачивается вниз, а на весь экран открывается другая карта;
 // карточку можно поднять обратно или переключить карту»
+// «Показать на реальной карте / на карте GTA» с карточки (Игорь 15.10.2026): как навигатор в Google Maps — карта плавно
+// прилетает к точке; сверху — эффект смены героя из GTA V: камера взмывает в небо (картинка выцветает, чуть размывается),
+// мир меняется высоко над целью, затем спуск к точке. Бета; «меньше движения» в системе — без анимации.
+const SWITCH_FX = BETA;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function fxEl() {
+  let el = document.getElementById('map-fx');
+  if (!el) { el = document.createElement('div'); el.id = 'map-fx'; el.setAttribute('aria-hidden', 'true'); document.getElementById('map').after(el); }
+  return el;
+}
+function switchTarget(m, k, i) {
+  const d = data[game], it = k === 'p' ? d.places[i] : k === 'e' ? d.eggs[i] : gtadb[game]?.points[i];
+  if (!it) return null;
+  const real = k === 'd' ? [it[5], it[4]] : [it.lon, it.lat];
+  if (m === 'real' || approx()) return real;
+  const g = k === 'd' ? it[11] : it.gm;
+  return g ? G2M(g[0], g[1]) : null;
+}
+async function gtaSwitch(m, k, i, want) {
+  const tgt = switchTarget(m, k, i);
+  if (!tgt) return false;
+  const fx = fxEl();
+  fx.className = 'up';
+  map.easeTo({ zoom: Math.max(1.5, map.getZoom() - 2.8), duration: 560, easing: (t) => t * t, essential: true });   // взлёт
+  await sleep(560);
+  const zEnd = m === 'game' && !approx() ? 6.4 : 15.3;
+  clearTimeout(ghostTimer);
+  await setMode(m, { center: tgt, zoom: Math.max(1.5, zEnd - 4.2) });   // другой мир — высоко над целью
+  const d = data[game];
+  if (k === 'p') openPlace(i, false, want);
+  else if (k === 'd') openPoint(i, false, want);
+  else if (k === 'e' && d.eggs[i]) mapSheet(eggSheet(d.eggs[i], i), want);
+  await sleep(60);
+  fx.className = 'down';
+  map.flyTo({ center: tgt, zoom: zEnd, duration: 1500, curve: 1.6, offset: camOffset(want), essential: true });   // спуск к точке
+  await new Promise((r) => { map.once('moveend', r); setTimeout(r, 2200); });
+  fx.className = '';
+  lastSwitch = null;
+  ghostPrep(600);
+  return true;
+}
 async function showOnMap(m, k, i) {
+  if (SWITCH_FX && map && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const want0 = SNAP_ON ? postSnap() || 'half' : undefined;
+    if (await gtaSwitch(m, k, i, want0)) return;
+  }
   // Игорь 15.10.2026 (запись экрана): «карточка уходит почти полностью вниз, и непонятно, что с точкой». Теперь карточка
   // встаёт на половину (с «весь экран» тоже), точка — в видимой части над ней, на том же пикселе, что и до перехода.
   const want = SNAP_ON ? postSnap() || 'half' : undefined;
