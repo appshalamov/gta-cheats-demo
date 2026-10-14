@@ -265,6 +265,8 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
   const cov = [gl[0], rl[0]];
   const tile = (ph, kind) => {
     const icon = kind === 'g' ? IC.game : IC.camera, label = w(kind === 'g' ? 'game' : 'real');
+    if (!ph && kind === 'r' && o.pano)   // нет фото из жизни — плитка ведёт в Street View на это место
+      return `<a class="mp-shot empty r mp-shot-360" href="${o.pano}" target="_blank" rel="noopener"><span class="mp-shot-ic">${IC.pano}</span><small>${esc(w('look'))}</small></a>`;
     if (!ph) return `<div class="mp-shot empty ${kind}"><span class="mp-shot-ic">${icon}</span></div>`;
     const act = `data-mp="view" data-ref="${kind}:${key}" data-n="0" data-i="${o.i ?? ''}"`;
     return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}" alt="${esc(label)}" loading="lazy" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span></button>`;
@@ -278,7 +280,7 @@ function placeSheet(p, i) {
   const dist = distLabel(p);
   const media = (p.m || []).map(ytLink).filter(Boolean);
   return `
-    ${heroBox('p' + i, p.pairs, gameList(p), realList(p), { g: p.g, r: p.n })}
+    ${heroBox('p' + i, p.pairs, gameList(p), realList(p), { g: p.g, r: p.n }, { pano: panoLink(p.lat, p.lon, p.view) })}
     <div class="mp-names">
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(p.g)}</b>${p.r ? `<small>${esc(p.r)}</small>` : ''}</div></div>
       <div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(p.n)}</b>${p.a ? `<small>${esc(p.a)}</small>` : ''}</div></div>

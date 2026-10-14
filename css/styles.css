@@ -689,3 +689,6 @@ body.in-ob #onboarding { display: flex; }
 .mp-near-c b { font-size: 13.5px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mp-near-c small { font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mp-near-c:active { transform: scale(.97); }
+.mp-shot-360 { align-content: center; gap: 8px; text-decoration: none; color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line-2)); background: var(--accent-soft); }
+.mp-shot-360 .mp-shot-ic { color: var(--accent); }
+.mp-shot-360 small { font-size: 13px; font-weight: 700; text-align: center; padding: 0 10px; }
