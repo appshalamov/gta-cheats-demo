@@ -3,3 +3,7 @@ egg-sandbar-piano            # 14.10.2026: не проверена, источн
 egg-wynwood-mural-rumor      # 14.10.2026: опровергнутый слух (мурал — реклама Formula E), не проверена
 egg-bahia-honda-movies       # 14.10.2026: не проверена (попала через finalize --provisional)
 gta5-egg-california-sign-pier-400  # 14.10.2026: не проверена (попала через finalize --provisional)
+gta5-c20  # 15.10.2026 разбор дальних точек: VLA (Нью-Мексико) → Owens Valley Radio Observatory, CA (GTA Wiki: CARMA dishes)
+gta5-egg-diamond-casino-leeds  # 15.10.2026 разбор дальних точек: связь с Лидсом без источника (Игорь: «в Великобритании локаций скорее всего нет»)
+gta5-egg-seaton-sands-beta-name  # 15.10.2026 разбор дальних точек: Шотландия → Bombay Beach (Sandy Shores = Salton Sea)
+gta5-egg-bayview-lumberjack-statue  # 15.10.2026 разбор дальних точек: Blackgang Chine — одна строка вики без источника

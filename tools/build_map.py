@@ -68,7 +68,7 @@ def parse_view(v):
 REGION = {"gta5": (32.3, -124.6, 42.1, -114.0), "gta6": (24.3, -87.8, 31.1, -79.8)}   # Калифорния / Флорида
 
 
-def region_gate(game, places, eggs):
+def region_gate(game, places, eggs, gtadb_pts=None):
     """Стоп-кран: точка вне региона игры (испорченная широта и т. п.) в приложение не попадает.
     Законные исключения (отсылки к роликам из других штатов) — список «вне_региона» в данные/правки_вручную.json."""
     f = DATA / "правки_вручную.json"
@@ -76,6 +76,11 @@ def region_gate(game, places, eggs):
     b = REGION[game]
     bad = [f"{x['id']} ({x['lat']}, {x['lon']})" for x in places + eggs
            if x["id"] not in allowed and not (b[0] <= x["lat"] <= b[2] and b[1] <= x["lon"] <= b[3])]
+    # точки сообщества gtadb — тоже (15.10.2026: в Шотландии/Германии/Орегоне стояли ошибки геокодера gtadb — Игорь:
+    # «в Великобритании какие-то локации, скорее всего их там нет»). Законные дальние — «gtadb_вне_региона».
+    g_ok = set(((json.loads(f.read_text("utf-8")) if f.exists() else {}).get(game) or {}).get("gtadb_вне_региона") or [])
+    bad += [f"gtadb {q[0]} {q[1] or q[2]} ({q[4]}, {q[5]})" for q in (gtadb_pts or [])
+            if q[0] not in g_ok and q[4] is not None and not (b[0] <= q[4] <= b[2] and b[1] <= q[5] <= b[3])]
     if bad:
         raise SystemExit(f"СТОП {game}: точки вне региона игры — исправьте в данные/правки_вручную.json (fix) "
                          f"или внесите в «вне_региона», если это законная отсылка:\n  " + "\n  ".join(bad))
@@ -269,6 +274,12 @@ def pair_from_frame(game, places, eggs):
         n += 1
     if n:
         print(f"  пары из кадра игры gtadb: {n}")
+
+
+def manual(game, key, default):
+    """Раздел ручных правок (данные/правки_вручную.json): egg_fix / egg_remove / gtadb_remove и т. п."""
+    f = DATA / "правки_вручную.json"
+    return ((json.loads(f.read_text("utf-8")).get(game) or {}).get(key) or default) if f.exists() else default
 
 
 def gtadb_fixes(game):
@@ -528,7 +539,14 @@ def build(game, cfg):
         }
         places.append({k: v for k, v in place.items() if v not in (None, "", [], {"ru": "", "en": ""})})
     skipped = []
+    # ручные правки пасхалок (15.10.2026, разбор дальних точек: «в Великобритании какие-то локации — скорее всего их там нет»):
+    # egg_fix — поля поверх (lat, lon, real_place, …), egg_remove — убрать (причина — в файле правок)
+    efix, erem = manual(game, "egg_fix", {}), set(manual(game, "egg_remove", {}))
     for i, it in enumerate(json.loads(ef.read_text("utf-8")) if ef else []):
+        if it.get("id") in erem:
+            skipped.append(f"{it.get('id')} (убрана вручную)"); continue
+        if it.get("id") in efix:
+            it = {**it, **efix[it["id"]]}
         lat, lon = num(it.get("lat")), num(it.get("lon"))
         if lat is None or lon is None:
             continue
@@ -547,6 +565,8 @@ def build(game, cfg):
         print(f"  пасхалки не в приложение: {len(skipped)} — " + ", ".join(skipped[:6]) + (" …" if len(skipped) > 6 else ""))
     layer = json.loads((DATA / f"gtadb_layer_{game}.json").read_text("utf-8"))
     gfix = gtadb_fixes(game)   # проверенные вручную точки gtadb (у части адрес вида «Wilshire Boulevard, CA» без номера — координаты примерные)
+    grem = set(manual(game, "gtadb_remove", {}))   # ошибки геокодера и точки из утечек (разбор дальних точек 15.10.2026)
+    layer = [x for x in layer if x["id"] not in grem]
     for x in layer:
         if x["id"] in gfix:
             x.update({k: v for k, v in gfix[x["id"]].items() if k in ("lat", "lon", "real")})
@@ -581,7 +601,7 @@ def build(game, cfg):
         pr = pairs_for(e["lat"], e["lon"], (e["t"].get("en"), e.get("p")))
         if pr:
             e["pairs"] = pr
-    region_gate(game, places, eggs)
+    region_gate(game, places, eggs, pts)
     attach_approx(game, places, eggs)
     eggs, pts, rep_ = dedupe(places, eggs, pts)
     attach_commons(game, places, eggs)   # после слияния дублей: галерея не должна менять, какое место остаётся
