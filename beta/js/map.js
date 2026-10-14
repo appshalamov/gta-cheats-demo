@@ -38,8 +38,8 @@ const gameStyle = (g) => ({
   version: 8, glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
   sources: { gtamap: { type: 'raster', tiles: [`https://gtadb-tile.invalid/${g}/{z}/{x}/{y}`], tileSize: 256, minzoom: 2, maxzoom: 8,
     attribution: 'gtadb.org (CC BY 4.0) · © Rockstar Games' } },
-  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#0e0f12' } },
-    { id: 'gtamap', type: 'raster', source: 'gtamap', paint: { 'raster-fade-duration': 150, 'raster-saturation': -1, ...(g === 'gta6' ? { 'raster-contrast': 0.35, 'raster-brightness-max': 0.42, 'raster-brightness-min': 0.04 } : { 'raster-contrast': 0.12, 'raster-brightness-max': 0.72 }) } }],
+  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': g === 'gta5' ? '#1b1f23' : '#0e0f12' } },
+    { id: 'gtamap', type: 'raster', source: 'gtamap', paint: { 'raster-fade-duration': 150, ...(g === 'gta6' ? { 'raster-saturation': -1, 'raster-contrast': 0.35, 'raster-brightness-max': 0.42, 'raster-brightness-min': 0.04 } : { 'raster-saturation': -0.6, 'raster-brightness-max': 0.7, 'raster-contrast': 0.15 }) } }],
 });
 function tileUrl(url) {   // https://gtadb-tile.invalid/gta5/6/40/52 → плитка gtadb z−2 в репозитории на GitHub
   const m = url.match(/^https:\/\/gtadb-tile\.invalid\/(gta[56])\/(\d+)\/(\d+)\/(\d+)$/);
@@ -336,7 +336,8 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
 // ───── карточки (шторка) ─────
 // «Где в игре»: плитки карты игры из репозитория gtadb (GTA 5 — спутник, GTA 6 — фанатская карта Леониды «yanis»).
 // Мир игры −16384…16384 единиц; при z=4 одна точка картинки = 2 единицы, плитка 256 px = 512 единиц (~500 м).
-const GMAP = { gta5: { v: 5, key: 'V', set: 'satellite', z: 4 }, gta6: { v: 6, key: 'VI', set: 'yanis,16', z: 4 } };
+// GTA 5 — набор «radar»: карта из меню паузы игры (тёмная суша, светлые дороги) — просьба Игоря 14.10.2026 «как в GTA».
+const GMAP = { gta5: { v: 5, key: 'V', set: 'radar', z: 4 }, gta6: { v: 6, key: 'VI', set: 'yanis,16', z: 4 } };
 function gameBlock(gm, addr, region, gid, ref = {}) {
   if (!GAME_MAP[game]) return `<div class="mp-ingame mp-ig-soon"><span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))}</small><b>${esc(w('soon6'))}</b></span></div>`;
   if (!gm) return '';
@@ -921,13 +922,44 @@ function geo(kind) {
   return fc([]);
 }
 
+// ───── метки на карте игры — как значки (blips) в GTA: белый силуэт с тёмной обводкой ─────
+const BLIP = {
+  w: 'M2 7h18v4h-8.5l-1.2 2.2H8.6L7.4 19H3.2l1.6-8H2z',                                             // пистолет — оружие
+  c: 'M5.2 10.5 7 6.2C7.3 5.5 8 5 8.8 5h6.4c.8 0 1.5.5 1.8 1.2l1.8 4.3H20c.6 0 1 .4 1 1V16h-1.6a2.4 2.4 0 0 1-4.8 0H8.4a2.4 2.4 0 0 1-4.8 0H3v-4.5c0-.6.4-1 1-1z', // машина
+  s: 'M8.5 3 3 6l2.2 4.2L7 9.3V21h10V9.3l1.8.9L21 6l-5.5-3c-.5 1.6-1.9 2.6-3.5 2.6S9 4.6 8.5 3z',   // футболка — магазины
+};
+function blipImage(kind) {
+  const S = 64, c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d');
+  g.lineJoin = 'round'; g.strokeStyle = 'rgba(0,0,0,.92)'; g.fillStyle = '#ffffff';
+  if (kind === 'pt' || kind === 'dot') {           // обычное место — белый кружок; точка сообщества — меньше и серее
+    const r = kind === 'pt' ? 15 : 10;
+    g.beginPath(); g.arc(S / 2, S / 2, r, 0, Math.PI * 2); g.lineWidth = 6; g.stroke();
+    g.fillStyle = kind === 'pt' ? '#ffffff' : '#c9ced6'; g.fill();
+  } else if (kind === 'h' || kind === 'egg') {      // ограбление — «$», пасхалка — «?» (как случайные события в GTA)
+    g.font = `900 ${kind === 'h' ? 50 : 46}px system-ui, -apple-system, Arial, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    if (kind === 'egg') g.fillStyle = COLORS.egg;
+    g.lineWidth = 8; g.strokeText(kind === 'h' ? '$' : '?', S / 2, S / 2 + 3); g.fillText(kind === 'h' ? '$' : '?', S / 2, S / 2 + 3);
+  } else {
+    const p = new Path2D(BLIP[kind]);
+    g.translate(S / 2 - 24, S / 2 - 24); g.scale(2, 2);
+    g.lineWidth = 3; g.stroke(p); g.fill(p);
+  }
+  return g.getImageData(0, 0, S, S);
+}
+function ensureBlips() {
+  for (const k of ['w', 'c', 'h', 's', 'pt', 'dot', 'egg']) if (!map.hasImage('blip-' + k)) map.addImage('blip-' + k, blipImage(k), { pixelRatio: 2 });
+}
+const blipFor = (fallback) => ['match', ['get', 'gc'], 'w', 'blip-w', 'c', 'blip-c', 'h', 'blip-h', 's', 'blip-s', fallback];
+
 function addLayers() {
   const dark = themeKey() === 'dark';
   const stroke = dark ? '#0b0b0d' : '#ffffff';
   for (const k of ['gtadb', 'places', 'eggs', 'sel']) if (!map.getSource(k)) map.addSource(k, { type: 'geojson', data: geo(k) });
   const z = mode === 'game' ? (a, b) => ['interpolate', ['linear'], ['zoom'], 2, a, 8, b] : (a, b) => ['interpolate', ['linear'], ['zoom'], 8, a, 15, b];
+  if (mode === 'game') { addGameLayers(z); applyShow(); applyCat(); return; }
   if (!map.getLayer('gtadb')) map.addLayer({ id: 'gtadb', type: 'circle', source: 'gtadb', minzoom: mode === 'game' ? 5 : 11.5,
-    paint: { 'circle-radius': BETA ? ['case', ['!=', ['get', 'gc'], ''], z(4.5, 9), z(2.5, 6)] : z(2.5, 6),
+    paint: { 'circle-radius': BETA ? z(['case', ['!=', ['get', 'gc'], ''], 4.5, 2.5], ['case', ['!=', ['get', 'gc'], ''], 9, 6]) : z(2.5, 6),
       'circle-color': BETA ? ['match', ['get', 'gc'], 'w', CATS.w.c, 'c', CATS.c.c, 'h', CATS.h.c, 's', CATS.s.c, COLORS.gtadb] : COLORS.gtadb,
       'circle-opacity': .85, 'circle-stroke-width': 1, 'circle-stroke-color': stroke } });
   if (!map.getLayer('places-glow')) map.addLayer({ id: 'places-glow', type: 'circle', source: 'places', filter: ['==', ['get', 'cf'], 'confirmed'],
@@ -948,6 +980,26 @@ function addLayers() {
   }
   applyShow(); applyCat();
 }
+// карта игры: метки — значки как в GTA; тень под значком, розовая точка «тут пасхалка», кольцо выбора
+function addGameLayers(z) {
+  ensureBlips();
+  const sym = (id, source, icon, size, extra = {}) => map.addLayer({ id, type: 'symbol', source, ...extra,
+    layout: { 'icon-image': icon, 'icon-size': size, 'icon-allow-overlap': true, 'icon-ignore-placement': true },
+    paint: { 'icon-opacity': ['case', ['==', ['get', 'est'], 1], 0.6, 1] } });
+  if (!map.getLayer('gtadb')) sym('gtadb', 'gtadb', blipFor('blip-dot'), z(['case', ['!=', ['get', 'gc'], ''], 0.55, 0.5], ['case', ['!=', ['get', 'gc'], ''], 0.95, 0.8]), { minzoom: 5 });
+  if (!map.getLayer('places-glow')) map.addLayer({ id: 'places-glow', type: 'circle', source: 'places',
+    paint: { 'circle-radius': z(9, 15), 'circle-color': '#000', 'circle-opacity': .28, 'circle-blur': .7 } });
+  if (!map.getLayer('places')) sym('places', 'places', blipFor('blip-pt'), z(0.62, 1.05));
+  if (!map.getLayer('places-egg')) map.addLayer({ id: 'places-egg', type: 'circle', source: 'places', filter: ['==', ['get', 'egg'], 1],
+    paint: { 'circle-radius': z(3, 4.5), 'circle-color': COLORS.egg, 'circle-stroke-width': 1.5, 'circle-stroke-color': '#000', 'circle-translate': [9, -9] } });
+  if (!map.getLayer('eggs')) sym('eggs', 'eggs', 'blip-egg', z(0.62, 1.05));
+  if (!map.getLayer('sel')) map.addLayer({ id: 'sel', type: 'circle', source: 'sel',
+    paint: { 'circle-radius': z(13, 19), 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' } });
+  if (!map.getSource('me')) {
+    map.addSource('me', { type: 'geojson', data: fc([]) });
+    map.addLayer({ id: 'me', type: 'circle', source: 'me', paint: { 'circle-radius': 8, 'circle-color': '#3b82f6', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' } });
+  }
+}
 // выбрана категория — показать все её точки на экране
 function fitCat() {
   if (!activeCat || !map) return;
@@ -960,7 +1012,8 @@ function fitCat() {
 function applyCat() {
   if (!map?.getLayer('places')) return;
   const f = activeCat ? ['==', ['get', 'gc'], activeCat] : null;
-  for (const l of ['places', 'places-glow', 'places-egg', 'gtadb']) if (map.getLayer(l)) map.setFilter(l, l === 'places-glow' ? (f ? ['all', ['==', ['get', 'cf'], 'confirmed'], f] : ['==', ['get', 'cf'], 'confirmed']) : l === 'places-egg' ? (f ? ['all', ['==', ['get', 'egg'], 1], f] : ['==', ['get', 'egg'], 1]) : f);
+  const glow = mode === 'game' ? null : ['==', ['get', 'cf'], 'confirmed'];
+  for (const l of ['places', 'places-glow', 'places-egg', 'gtadb']) if (map.getLayer(l)) map.setFilter(l, l === 'places-glow' ? (f && glow ? ['all', glow, f] : f || glow) : l === 'places-egg' ? (f ? ['all', ['==', ['get', 'egg'], 1], f] : ['==', ['get', 'egg'], 1]) : f);
   if (map.getLayer('gtadb')) map.setLayerZoomRange('gtadb', activeCat ? 0 : (mode === 'game' ? 5 : 11.5), 24);
   if (map.getLayer('eggs')) map.setLayoutProperty('eggs', 'visibility', activeCat ? 'none' : (show.eggs ? 'visible' : 'none'));
 }

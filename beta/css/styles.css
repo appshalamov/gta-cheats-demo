@@ -809,8 +809,8 @@ button.mp-ingame { width: 100%; padding: 0; text-align: left; font: inherit; cur
 .mp-ingame .mp-ig-map, .mp-ingame .mp-ig-txt, .mp-ingame .mp-ig-open { display: block; }
 .mp-ingame .mp-ig-txt { display: grid; }
 .mp-ingame .mp-ig-open { display: flex; }
-.mp-ig-tiles img { filter: grayscale(1) brightness(.72) contrast(1.12); }
-.mp-ig-map { background: #0e0f12; }
+.mp-ig-tiles img { filter: saturate(.4) brightness(.7) contrast(1.15); }   /* набор radar — как карта в меню паузы GTA 5 */
+.mp-ig-map { background: #1b1f23; }
 .mp-inreal .mp-ig-txt { padding-top: 12px; }
 /* прод: в режиме карты игры вверху — «← Реальная карта» */
 .map-games .mg-back { flex: none; flex-direction: row; align-items: center; gap: 4px; padding: 6px 10px; }
