@@ -251,6 +251,26 @@ def attach_commons(game, places, eggs):
         print(f"  фото Commons: главным {n[0]}, в галерею {n[1]}")
 
 
+def source_frames(game):
+    """Чистые широкие кадры GTA 6 вместо мелких вырезок gtadb (данные/кадры_источник_gta6.json, 16.10.2026):
+    официальные скриншоты и кадры трейлеров на своём хостинге official/6/{Lid}.jpg.
+    Lid → [x, y, w, h] — где в кадре старая вырезка (доли ширины и высоты). Кадры с титром (_title_overlay) не берём."""
+    f = DATA / f"кадры_источник_{game}.json"
+    if not f.exists():
+        return {}
+    out = {}
+    for lid, v in json.loads(f.read_text("utf-8")).items():
+        if lid.startswith("_") or not v.get("box") or not v.get("crop_in_file"):
+            continue
+        cx, cy, cw, ch = v["crop_in_file"]
+        bx, by, bw, bh = v["box"]
+        x0, y0 = max(0, (bx - cx) / cw), max(0, (by - cy) / ch)
+        x1, y1 = min(1, (bx + bw - cx) / cw), min(1, (by + bh - cy) / ch)
+        out[lid] = [round(x0, 3), round(y0, 3), round(x1 - x0, 3), round(y1 - y0, 3)]
+    print(f"  чистые кадры вместо вырезок: {len(out)}")
+    return out
+
+
 def attach_igframes(game, places, eggs):
     """Кадры игры gtadb для мест без кадра (данные/кадры_игры_gtadb.json): exact — точный, area — «≈ рядом»."""
     f = DATA / "кадры_игры_gtadb.json"
@@ -663,8 +683,11 @@ def build(game, cfg):
     photo_rights_gate(game, places, eggs)
     data = {"game": game, "center": cfg["center"], "zoom": cfg["zoom"],
             "source": pf.name if pf else None, "places": places, "eggs": eggs}
+    sf = source_frames(game)
+    if sf:
+        data["sf"] = sf
     (OUT / f"{game}.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), "utf-8")
-    (OUT / f"gtadb_{game}.json").write_text(json.dumps({"game": cfg["gtadb"], "points": pts}, ensure_ascii=False, separators=(",", ":")), "utf-8")
+    (OUT / f"gtadb_{game}.json").write_text(json.dumps({"game": cfg["gtadb"], "points": pts, **({"sf": sf} if sf else {})}, ensure_ascii=False, separators=(",", ":")), "utf-8")
     print(f"{game}: мест {len(places)} ({pf.name if pf else '—'}), с парой для сравнения {sum(1 for x in places if x.get('pairs'))}, пасхалок отдельно {len(eggs)}, точек gtadb {len(pts)} · без дублей: {rep_}")
 
 

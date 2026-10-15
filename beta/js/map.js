@@ -10,8 +10,8 @@ import { t, L as tr, getLang } from './i18n.js';
 
 const COLORS = { confirmed: '#22c3d9', likely: '#f5b942', speculative: '#9a8cab', egg: '#f472b6', gtadb: '#8b93a1' };
 const GAMES = {
-  gta6: { title: 'GTA 6', place: { ru: 'Vice City → Майами', en: 'Vice City → Miami' }, real: { ru: 'Майами', en: 'Miami' }, gameCity: { ru: 'Вайс-Сити', en: 'Vice City' } },
-  gta5: { title: 'GTA 5', place: { ru: 'Los Santos → Лос-Анджелес', en: 'Los Santos → Los Angeles' }, real: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, gameCity: { ru: 'Лос-Сантос', en: 'Los Santos' } },
+  gta6: { title: 'GTA 6', place: { ru: 'Майами, 2026', en: 'Miami, 2026' }, real: { ru: 'Майами', en: 'Miami' }, gameCity: { ru: 'Вайс-Сити', en: 'Vice City' } },
+  gta5: { title: 'GTA 5', place: { ru: 'Лос-Анджелес, 2013', en: 'Los Angeles, 2013' }, real: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, gameCity: { ru: 'Лос-Сантос', en: 'Los Santos' } },
 };
 // ── режим «Карта игры»: точки по координатам игры (gm из build_map), подложка — плитки gtadb.
 // Мир игры −16384…16384 единиц ↔ веб-Меркатор; плитка gtadb z ↔ плитка MapLibre z+2 (переписывает transformRequest).
@@ -129,7 +129,15 @@ function tileUrl(url) {   // https://gtadb-tile.invalid/gta5/6/40/52 → пли�
 // Фото из жизни (,rl.jpg) там нет — их у себя не храним (часто это кадры Street View), они идут ссылкой на gtadb.
 const ASSETS = 'https://appshalamov.github.io/gta-map-assets/';
 const GTADB_RAW = 'https://raw.githubusercontent.com/rolux/gtadb.org/main/';
-const tileBase = (v) => (v === 5 ? ASSETS : GTADB_RAW);   // GTA 6 (yanis) не переносили: карта выключена
+const tileBase = (v) => (v === 5 ? ASSETS : GTADB_RAW);
+// Чистые широкие кадры GTA 6 вместо мелких мутных вырезок gtadb (бета, 16.10.2026; жалоба Игоря на «ужасные фото,
+// как Вашингтон-Бич»): официальные скриншоты и кадры трейлеров на своём хостинге official/6/{Lid}.jpg.
+// SF[Lid] = [x, y, w, h] — где в кадре старая вырезка (доли), собирает build_map.py source_frames. Кадра нет — fitTiny.
+const SF = {};
+const sfItem = (url) => {
+  const m = BETA && /\/photos\/6\/(L\d+),ig\.jpg$/.exec(url || ''), box = m && SF[m[1]];
+  return box ? { url: `${ASSETS}official/6/${m[1]}.jpg`, box, fb: url } : null;
+};   // GTA 6 (yanis) не переносили: карта выключена
 const STYLE = { dark: 'https://tiles.openfreemap.org/styles/dark', light: 'https://tiles.openfreemap.org/styles/positron' };
 
 // ───── короткие подписи к значкам на многих языках (остальное понимается по картинке) ─────
@@ -149,8 +157,8 @@ const W = {
   noPhoto: { en: 'No photo yet', ru: 'Фото пока нет', es: 'Aún sin foto', pt: 'Ainda sem foto', fr: 'Pas encore de photo', de: 'Noch kein Foto', it: 'Ancora nessuna foto', tr: 'Henüz fotoğraf yok', uk: 'Фото поки немає', pl: 'Brak zdjęcia', zh: '暂无照片', ja: '写真はまだありません', ko: '아직 사진 없음' },
   life:   { en: 'Real life', ru: 'Жизнь', es: 'Vida real', pt: 'Vida real', fr: 'Réel', de: 'Echt', it: 'Reale', tr: 'Gerçek', uk: 'Життя', pl: 'Realnie', zh: '现实', ja: '現実', ko: '현실' },
   inGame: { en: 'Game', ru: 'Игра', es: 'Juego', pt: 'Jogo', fr: 'Jeu', de: 'Spiel', it: 'Gioco', tr: 'Oyun', uk: 'Гра', pl: 'Gra', zh: '游戏', ja: 'ゲーム', ko: '게임' },
-  promo6: { en: 'GTA 6: Vice City spots in real Miami', ru: 'GTA 6: места Вайс-Сити в реальном Майами', es: 'GTA 6: lugares de Vice City en Miami', pt: 'GTA 6: locais de Vice City em Miami', fr: 'GTA 6 : lieux de Vice City à Miami', de: 'GTA 6: Vice-City-Orte in Miami', it: 'GTA 6: luoghi di Vice City a Miami', tr: 'GTA 6: Miami’de Vice City yerleri', uk: 'GTA 6: місця Вайс-Сіті в реальному Маямі', pl: 'GTA 6: miejsca Vice City w Miami', zh: 'GTA 6：迈阿密的罪恶都市地点', ja: 'GTA 6：マイアミのバイスシティの場所', ko: 'GTA 6: 마이애미 속 바이스 시티' },
-  promo5: { en: 'GTA 5: Los Santos spots in real LA', ru: 'GTA 5: места Лос-Сантоса в реальном Лос-Анджелесе', es: 'GTA 5: lugares de Los Santos en LA', pt: 'GTA 5: locais de Los Santos em LA', fr: 'GTA 5 : lieux de Los Santos à LA', de: 'GTA 5: Los-Santos-Orte in LA', it: 'GTA 5: luoghi di Los Santos a LA', tr: 'GTA 5: LA’de Los Santos yerleri', uk: 'GTA 5: місця Лос-Сантоса в реальному Лос-Анджелесі', pl: 'GTA 5: miejsca Los Santos w LA', zh: 'GTA 5：洛杉矶的洛圣都地点', ja: 'GTA 5：ロサンゼルスのロスサントスの場所', ko: 'GTA 5: LA 속 로스 산토스' },
+  promo6: { en: 'GTA 6: game spots in real Miami', ru: 'GTA 6: места из игры в реальном Майами', es: 'GTA 6: lugares del juego en Miami real', pt: 'GTA 6: locais do jogo na Miami real', fr: 'GTA 6 : lieux du jeu dans le vrai Miami', de: 'GTA 6: Spielorte im echten Miami', it: 'GTA 6: luoghi del gioco nella vera Miami', tr: 'GTA 6: gerçek Miami’de oyun mekânları', uk: 'GTA 6: місця з гри в реальному Маямі', pl: 'GTA 6: miejsca z gry w prawdziwym Miami', zh: 'GTA 6：真实迈阿密中的游戏地点', ja: 'GTA 6：本物のマイアミにあるゲームの場所', ko: 'GTA 6: 실제 마이애미 속 게임 장소' },
+  promo5: { en: 'GTA 5: game spots in real LA', ru: 'GTA 5: места из игры в реальном Лос-Анджелесе', es: 'GTA 5: lugares del juego en LA real', pt: 'GTA 5: locais do jogo na LA real', fr: 'GTA 5 : lieux du jeu dans le vrai LA', de: 'GTA 5: Spielorte im echten LA', it: 'GTA 5: luoghi del gioco nella vera LA', tr: 'GTA 5: gerçek LA’de oyun mekânları', uk: 'GTA 5: місця з гри в реальному Лос-Анджелесі', pl: 'GTA 5: miejsca z gry w prawdziwym LA', zh: 'GTA 5：真实洛杉矶中的游戏地点', ja: 'GTA 5：本物のロサンゼルスにあるゲームの場所', ko: 'GTA 5: 실제 LA 속 게임 장소' },
   places_n: { en: 'places', ru: 'мест', es: 'lugares', pt: 'locais', fr: 'lieux', de: 'Orte', it: 'luoghi', tr: 'yer', uk: 'місць', pl: 'miejsc', zh: '个地点', ja: 'か所', ko: '곳' },
   modeReal: { en: 'Real map', ru: 'Реальная карта', es: 'Mapa real', pt: 'Mapa real', fr: 'Carte réelle', de: 'Echte Karte', it: 'Mappa reale', tr: 'Gerçek harita', uk: 'Реальна мапа', pl: 'Prawdziwa mapa', zh: '真实地图', ja: '実際の地図', ko: '실제 지도' },
   modeGame: { en: 'Game map', ru: 'Карта игры', es: 'Mapa del juego', pt: 'Mapa do jogo', fr: 'Carte du jeu', de: 'Spielkarte', it: 'Mappa del gioco', tr: 'Oyun haritası', uk: 'Мапа гри', pl: 'Mapa gry', zh: '游戏地图', ja: 'ゲームの地図', ko: '게임 지도' },
@@ -307,10 +315,12 @@ const rebase = (o) => (typeof o === 'string' ? (IMG_BASE && o.startsWith('img/ma
   : o && typeof o === 'object' ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, rebase(v)])) : o);
 async function loadGame(g) {
   if (!data[g]) data[g] = await once('d:' + g, () => fetch(`data/map/${g}.json`).then((r) => r.json()).then(rebase));
+  Object.assign(SF, data[g].sf);
   return data[g];
 }
 async function loadGtadb(g) {
   if (!gtadb[g]) gtadb[g] = await once('g:' + g, () => fetch(`data/map/gtadb_${g}.json`).then((r) => r.json()));
+  Object.assign(SF, gtadb[g].sf);
   return gtadb[g];
 }
 
@@ -404,8 +414,8 @@ const galleries = {};   // 'g:p12' | 'r:p12' | 'g:e3' | 'r:d5' → [{id, src, ur
 const galNames = {};    // 'p12' → {g: имя в игре, r: имя в жизни}
 const placeKey = (p) => `${game}:${p.id}`;
 function asItem(ph) {
-  const url = ph.url || ph.file;
-  return { url, thumb: ph.thumb || url, credit: ph.credit || '', ap: !!ph.ap };
+  const url = ph.url || ph.file, f = sfItem(url);
+  return { url: f ? f.url : url, thumb: ph.thumb || url, credit: ph.credit || '', ap: !!ph.ap, ...(f ? { box: f.box, fb: f.fb } : {}) };
 }
 const gameList = (o) => [o.pg, ...(o.gg || [])].filter(Boolean).map((ph) => asItem(ph));
 const realList = (o) => [o.pr, ...(o.gl || [])].filter(Boolean).map((ph) => asItem(ph));
@@ -424,7 +434,7 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
     hintInline();
     return `<div class="mp-media-box" data-key="${key}">
       <div class="cmp-stage cmp-inline" data-key="${key}" data-i="${o.i ?? ''}" style="--x:50%" role="slider" tabindex="0" aria-label="${esc(w('compare'))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
-        <img class="cmp-g" src="${esc(P[0].g.url)}" alt="${esc(w('game'))}" draggable="false" decoding="async">
+        <img class="cmp-g" src="${esc(P[0].g.url)}"${frameAttr(P[0].g)} alt="${esc(w('game'))}" draggable="false" decoding="async">
         <img class="cmp-r" src="${esc(P[0].r.url)}" alt="${esc(w('real'))}" draggable="false" decoding="async">
         <span class="cmp-lab g">${IC.game}<b>${esc(w('game'))}</b></span>
         <span class="cmp-lab r">${IC.camera}<b>${esc(w('real'))}</b></span>
@@ -432,7 +442,7 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
         <button class="cmp-full" data-mp="compare" data-key="${key}" data-i="${o.i ?? ''}" aria-label="${esc(w('full'))}" title="${esc(w('full'))}">${IC.expand}</button>
         ${P[0].ap ? `<span class="mp-approx cmp-approx" title="${esc(w('approxT'))}">${esc(w('approx'))}</span>` : ''}
       </div>
-      ${P.length > 1 ? `<div class="cmp-ipairs">${P.map((x, k) => `<button class="${k ? '' : 'on'}" data-mp="ipair" data-key="${key}" data-n="${k}" aria-label="${k + 1}/${P.length}"><img src="${esc(x.g.url)}" alt="" loading="lazy"><img src="${esc(x.r.url)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
+      ${P.length > 1 ? `<div class="cmp-ipairs">${P.map((x, k) => `<button class="${k ? '' : 'on'}" data-mp="ipair" data-key="${key}" data-n="${k}" aria-label="${k + 1}/${P.length}"><img src="${esc(x.g.thumb)}" alt="" loading="lazy"><img src="${esc(x.r.url)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
       ${all}</div>`;
   }
   const cov = [gl[0], rl[0]];
@@ -442,7 +452,7 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
       return `<a class="mp-shot empty r mp-shot-360" href="${o.pano}" target="_blank" rel="noopener"><span class="mp-shot-ic">${IC.pano}</span><small>${esc(w('look'))}</small></a>`;
     if (!ph) return `<div class="mp-shot empty ${kind}"><span class="mp-shot-ic">${icon}</span><small>${esc(w('noPhoto'))}</small></div>`;
     const act = `data-mp="view" data-ref="${kind}:${key}" data-n="0" data-i="${o.i ?? ''}"`;
-    return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}" alt="${esc(label)}" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span>${ph.ap ? `<span class="mp-approx" title="${esc(w('approxT'))}">${esc(w('approx'))}</span>` : ''}<span class="mp-shot-exp" aria-hidden="true">${IC.expand}</span></button>`;
+    return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}"${frameAttr(ph)} alt="${esc(label)}" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span>${ph.ap ? `<span class="mp-approx" title="${esc(w('approxT'))}">${esc(w('approx'))}</span>` : ''}<span class="mp-shot-exp" aria-hidden="true">${IC.expand}</span></button>`;
   };
   const mid = `<span class="mp-vs">${o.egg ? IC.egg : IC.swap}</span>`;
   return `<div class="mp-media-box" data-key="${key}"><div class="mp-hero">${tile(cov[0], 'g')}${tile(cov[1], 'r')}${mid}</div>${all}</div>`;
@@ -614,7 +624,7 @@ function setInlinePair(btn) {
   const key = btn.dataset.key, n = +btn.dataset.n, pr = (pairsOf[key] || [])[n];
   const box = btn.closest('.mp-media-box'), st = box?.querySelector('.cmp-inline');
   if (!pr || !st) return;
-  st.querySelector('.cmp-g').src = pr.g.url; st.querySelector('.cmp-r').src = pr.r.url;
+  setGameImg(st.querySelector('.cmp-g'), pr.g); st.querySelector('.cmp-r').src = pr.r.url;
   syncMedia(box);
   box.querySelectorAll('.cmp-ipairs button').forEach((b) => b.classList.toggle('on', b === btn));
   (inl[key] ||= {}).pi = n; setInlineX(st, 50);   // новый ракурс — снова пополам
@@ -817,7 +827,7 @@ function renderViewer(anim = '') {
     const list = v.one.list === 'r' ? R : G, n = v.one.n, ph = list[n] || {};
     head = `<button class="mpv-back" data-mp="viewer-back" aria-label="${esc(w('back'))}" title="${esc(w('back'))}">${IC.chevL}</button>
       <div class="mpv-ttl"><b>${v.one.list === 'g' ? IC.game : IC.camera}<span>${esc(v.one.list === 'g' ? names.g || '' : names.r || '')}</span></b><small>${n + 1} / ${list.length}</small></div>`;
-    body = `<div class="mpv-stage" id="mpv-stage"><img src="${esc(ph.url)}" alt="" draggable="false">
+    body = `<div class="mpv-stage" id="mpv-stage"><img src="${esc(ph.url)}"${ph.fb ? ` data-fb="${esc(ph.fb)}"` : ''} alt="" draggable="false">
         ${n > 0 ? `<button class="mpv-arr l" data-mp="viewer-step" data-d="-1" aria-label="‹">${IC.chevL}</button>` : ''}
         ${n < list.length - 1 ? `<button class="mpv-arr r" data-mp="viewer-step" data-d="1" aria-label="›">${IC.chevR}</button>` : ''}</div>
       <p class="mpv-credit">${ph.ap ? `<b class="mpv-approx">${esc(w('approxT'))}</b> · ` : ''}${esc(ph.credit || '')}</p>`;
@@ -828,13 +838,13 @@ function renderViewer(anim = '') {
     if (v.sec === 'cmp') {
       const pr = P[v.pi];
       body = `<div class="cmp-stage mpv-cmp" id="cmp-stage" style="--x:${v.x}%">
-          <img class="cmp-g" src="${esc(pr.g.url)}" alt="" draggable="false">
+          <img class="cmp-g" src="${esc(pr.g.url)}"${frameAttr(pr.g)} alt="" draggable="false">
           <img class="cmp-r" src="${esc(pr.r.url)}" alt="" draggable="false">
           <span class="cmp-lab g">${IC.game}<b>${esc(w('game'))}</b></span>
           <span class="cmp-lab r">${IC.camera}<b>${esc(w('real'))}</b></span>
           <div class="cmp-line"><span class="cmp-knob">${IC.chevL}${IC.chevR}</span></div>
         </div>
-        ${P.length > 1 ? `<div class="cmp-pairs">${P.map((x, k) => `<button class="${k === v.pi ? 'on' : ''}" data-mp="pair" data-n="${k}" aria-label="${k + 1}/${P.length}"><img src="${esc(x.g.url)}" alt="" loading="lazy"><img src="${esc(x.r.url)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
+        ${P.length > 1 ? `<div class="cmp-pairs">${P.map((x, k) => `<button class="${k === v.pi ? 'on' : ''}" data-mp="pair" data-n="${k}" aria-label="${k + 1}/${P.length}"><img src="${esc(x.g.thumb)}" alt="" loading="lazy"><img src="${esc(x.r.url)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
         <p class="mpv-credit">${esc(pr.g.credit)} · ${esc(pr.r.credit)}</p>`;
     } else {
       const list = v.sec === 'r' ? R : G;
@@ -848,6 +858,7 @@ function renderViewer(anim = '') {
         <div class="mpv-head">${head}<button class="mpv-x" data-mp="viewer-close" aria-label="${esc(w('close'))}" title="${esc(w('close'))}">${IC.close}</button></div>${tabs}</div>
       <div class="mpv-body ${anim}">${body}</div>${hint}</div>`;
   el.classList.add('open');
+  syncMedia(el);
   if (anim === 'in') el.querySelector('.mpv-panel')?.focus({ preventScroll: true });
   const stage = el.querySelector('#cmp-stage');
   if (stage) {   // мышь: тянуть ползунок (касания — в жестах панели)
@@ -1431,8 +1442,46 @@ function fitTiny(im) {
   const bg = document.createElement('div'); bg.className = 'tiny-bg'; bg.style.backgroundImage = `url("${im.currentSrc || im.src}")`;
   im.before(bg);
 }
+// Чистый кадр: увеличиваем к месту (вырезка — около половины окна, но не больше чем вдвое против «заполнить окно»,
+// чтобы не мылить и было видно вокруг) и обводим рамкой, где была старая вырезка. Не загрузился (ещё не выложен) — старая вырезка + fitTiny.
+const frameAttr = (ph) => (ph.box ? ` data-box="${ph.box.join(',')}" data-fb="${esc(ph.fb)}"` : '');
+function fitFrame(im) {
+  const box = im.parentElement, W = box?.clientWidth, H = box?.clientHeight, iw = im.naturalWidth, ih = im.naturalHeight;
+  if (!W || !H || !iw) return;
+  const [bx, by, bw, bh] = im.dataset.box.split(',').map(Number);
+  const cover = Math.max(W / iw, H / ih), s = Math.max(cover, Math.min(0.5 * Math.min(W / (bw * iw), H / (bh * ih)), 2 * cover, 1.2));
+  const dw = iw * s, dh = ih * s;
+  const x = Math.min(0, Math.max(W - dw, W / 2 - (bx + bw / 2) * dw)), y = Math.min(0, Math.max(H - dh, H / 2 - (by + bh / 2) * dh));
+  const pc = (v, d) => `${(v / d) * 100}%`;
+  Object.assign(im.style, { left: pc(x, W), top: pc(y, H), width: pc(dw, W), height: pc(dh, H), right: 'auto', bottom: 'auto', maxWidth: 'none', maxHeight: 'none' });
+  im.classList.add('sf');
+  const mw = Math.max(bw * dw, 26), mh = Math.max(bh * dh, 26);   // крошечную вырезку обводим хотя бы 26 px
+  const mk = im.nextElementSibling?.classList.contains('sf-mark') ? im.nextElementSibling : document.createElement('i');
+  mk.className = 'sf-mark'; mk.setAttribute('aria-hidden', 'true');
+  Object.assign(mk.style, { left: pc(x + (bx + bw / 2) * dw - mw / 2, W), top: pc(y + (by + bh / 2) * dh - mh / 2, H), width: pc(mw, W), height: pc(mh, H) });
+  im.after(mk);
+}
+function frameBack(im) {   // чистый кадр не загрузился — старая вырезка
+  const fb = im.dataset.fb; if (!fb) return;
+  delete im.dataset.fb; delete im.dataset.box;
+  im.removeAttribute('style'); im.classList.remove('sf');
+  if (im.nextElementSibling?.classList.contains('sf-mark')) im.nextElementSibling.remove();
+  im.src = fb;
+}
+function setGameImg(im, ph) {   // смена пары в карточке: сбросить подгонку прошлого кадра
+  if (!im) return;
+  if (im.nextElementSibling?.classList.contains('sf-mark')) im.nextElementSibling.remove();
+  if (im.previousElementSibling?.classList.contains('tiny-bg')) im.previousElementSibling.remove();
+  im.removeAttribute('style'); im.classList.remove('sf', 'tiny'); delete im.dataset.tiny; delete im.dataset.box; delete im.dataset.fb;
+  if (ph.box) { im.dataset.box = ph.box.join(','); im.dataset.fb = ph.fb; }
+  im.src = ph.url;
+}
+const fitMedia = (im) => (im.dataset.box ? fitFrame(im) : fitTiny(im));
 function syncMedia(root) {
-  root?.querySelectorAll('.cmp-inline .cmp-g, .mp-shot.g img').forEach((im) => (im.complete ? fitTiny(im) : im.addEventListener('load', () => fitTiny(im), { once: true })));
+  root?.querySelectorAll('img[data-fb]').forEach((im) => {
+    if (im.complete && !im.naturalWidth) frameBack(im); else im.addEventListener('error', () => frameBack(im), { once: true });
+  });
+  root?.querySelectorAll('.cmp-inline .cmp-g, .mp-shot.g img, #cmp-stage .cmp-g').forEach((im) => (im.complete && im.naturalWidth ? fitMedia(im) : im.addEventListener('load', () => fitMedia(im))));
   root?.querySelectorAll('.cmp-inline, .mp-hero').forEach((box) => {
     const imgs = [...box.querySelectorAll('img')]; if (!imgs.length) return;
     if (imgs.every((im) => im.complete && im.naturalWidth)) { box.classList.remove('ld'); return; }
