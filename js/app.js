@@ -128,8 +128,9 @@ function applyTheme() {
 }
 // скин по выбранной игре: акцент и картинки из tokens.css [data-skin]
 const SKINS = { gta6: 'gta6', gta5: 'gta5', gta4: 'gta4', gtasa: 'sa' };
-function applySkin() {
-  const sk = SKINS[store.game];
+// gid — на время онбординга: до выбора игры скин GTA 6 (главная в рекламе), после — выбранной игры
+function applySkin(gid = store.game) {
+  const sk = SKINS[gid];
   if (sk) document.documentElement.dataset.skin = sk; else delete document.documentElement.dataset.skin;
 }
 matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', applyTheme);
@@ -142,6 +143,17 @@ async function loadGame(id) {
   const r = await fetch(`data/${id}.json`);
   data[id] = await r.json();
   return data[id];
+}
+
+// фото эпохи: <picture> AVIF → WebP (img/ui/<скин>/<имя>)
+function pic(b, cls = '', w = 860, h = 676, lazy = false) {
+  return b ? `<picture class="${cls}"><source type="image/avif" srcset="${b}.avif"><img src="${b}.webp" alt="" width="${w}" height="${h}" decoding="async"${lazy ? ' loading="lazy"' : ''}></picture>` : '';
+}
+// совпадение с запросом — цветом эпохи (Поиск)
+function hl(text, q) {
+  const s = String(text ?? ''), w = norm(q.trim()).split(/\s+/).filter((x) => x.length > 1).sort((a, b) => b.length - a.length)[0];
+  const i = w ? norm(s).indexOf(w) : -1;
+  return i < 0 ? esc(s) : `${esc(s.slice(0, i))}<mark class="hl">${esc(s.slice(i, i + w.length))}</mark>${esc(s.slice(i + w.length))}`;
 }
 
 // ───────── блоки кода ─────────
@@ -166,18 +178,13 @@ function codeBlock(c, platform, big = false) {
   return none;
 }
 
-function badge(c) {
-  if (c.status !== 'forecast') return '';
-  return `<span class="badge badge-fc">${t('forecast')}</span>`;
-}
-
 function cardHTML(c, opt = {}) {
   const fav = store.favs.includes(c.id);
   const locked = isLocked(c);
   // строка кода (решение 8): своя иконка категории, название, эффект одной строкой; без кадров игры
   return `<article class="card${locked ? ' is-locked' : ''}" data-action="open" data-id="${c.id}">
     <span class="card-ic">${cheatIc(c)}</span>
-    <span class="card-m"><span class="card-top"><h3 class="card-title">${esc(L(c.name))}</h3>${opt.badge ? badge(c) : ''}</span><span class="card-desc">${esc(L(c.desc))}</span></span>
+    <span class="card-m"><span class="card-top"><h3 class="card-title">${opt.q ? hl(L(c.name), opt.q) : esc(L(c.name))}</h3></span><span class="card-desc">${opt.badge && c.status === 'forecast' ? `<em class="card-fc">${t('forecast')}</em> ` : ''}${esc(L(c.desc))}</span></span>
     ${locked ? `<span class="card-lock" title="${esc(t('locked'))}">${I.lock}</span>` : ''}
     <button class="fav${fav ? ' on' : ''}" data-action="fav" data-id="${c.id}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
   </article>`;
@@ -226,13 +233,16 @@ function placeCard(o, opt = {}) {
     <span class="pc-txt"><b>${esc(titleOf(o))}</b><small>${o.kind === 'egg' ? esc(realOf(o)) : `${I.pin}${esc(realOf(o))}`}</small></span>
   </div>`;
 }
-function placeRow(o) {
+// строка места (Поиск, Избранное): фото, название в игре, реальное место, точность — строкой, без рамки-карточки
+function placeRow(o, opt = {}) {
   const key = placeKey(o), fav = store.favPlaces.includes(key), img = thumbOf(o, o.kind === 'egg' ? 'game' : 'real');
-  const city = cityOf(o);
+  const city = cityOf(o), q = opt.q || '';
+  const meta = [t('conf_' + o.cf), o.kind === 'place' && o.c ? catLabel(o.c) : '', city].filter(Boolean).map(esc).join(', ');
+  const gt = opt.game ? GAMES.find((g) => g.id === o.game)?.title : '';
   return `<div class="prow" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
-    ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${o.kind === 'egg' ? I.egg : I[catIcon(o.c)]}</span>`}
-    <span class="pr-t"><b>${esc(titleOf(o))}</b><small>→ ${esc(realOf(o))}</small>
-      <span class="pr-meta"><i class="dot conf-${o.cf}"></i>${t('conf_' + o.cf)}${o.kind === 'place' && o.c ? ` · ${esc(catLabel(o.c))}` : ''}${city ? ` · ${esc(city)}` : ''}</span></span>
+    <span class="pr-th">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${o.kind === 'egg' ? I.egg : I[catIcon(o.c)]}</span>`}</span>
+    <span class="pr-t"><b>${q ? hl(titleOf(o), q) : esc(titleOf(o))}</b><small>${q ? hl(realOf(o), q) : esc(realOf(o))}</small>
+      <span class="pr-meta"><i class="dot conf-${o.cf}"></i>${gt ? `${esc(gt)}, ` : ''}${meta}</span></span>
     <button class="fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
   </div>`;
 }
@@ -389,7 +399,7 @@ function searchCheats(list, q, cat) {
   });
 }
 function chip(action, v, label, on, extra = '') {
-  return `<button class="fchip${on ? ' on' : ''}" data-action="${action}" data-v="${esc(v)}" ${extra}>${label}</button>`;
+  return `<button class="fchip${on ? ' on' : ''}" data-action="${action}" data-v="${esc(v)}" aria-pressed="${!!on}" ${extra}>${label}</button>`;
 }
 function renderSearchFilters(counts = {}) {
   const sg = sf.game || store.game;
@@ -426,30 +436,35 @@ async function renderSearch() {
     places: searchPlaces(pd, q, { kind: 'place', cat: sf.type === 'places' ? sf.cat : '', conf: sf.conf }),
     eggs: searchPlaces(pd, q, { kind: 'egg', conf: sf.conf }),
   };
-  renderSearchFilters(browsing ? {} : { all: R.cheats.length + R.places.length + R.eggs.length, cheats: R.cheats.length, places: R.places.length, eggs: R.eggs.length });
+  // счётчики видны и в обзоре (экран 8 этапа 2): в обзоре — сколько всего, при запросе — сколько нашлось
+  renderSearchFilters(browsing ? { cheats: cheatList.length, places: pd.places.length, eggs: pd.eggs.length } : { all: R.cheats.length + R.places.length + R.eggs.length, cheats: R.cheats.length, places: R.places.length, eggs: R.eggs.length });
   if (browsing) {
     const hints = getLang() === 'ru' ? ['вертолёт', 'бессмертие', 'Ocean Drive', 'мост', 'отель', 'розыск'] : ['helicopter', 'invincibility', 'Ocean Drive', 'bridge', 'hotel', 'wanted'];
+    const qchip = (h, ic = '') => `<button class="qchip" data-action="hint" data-q="${esc(h)}">${ic}<span>${esc(h)}</span></button>`;
+    // плитки «Обзор» — настоящие фото мест; без сети — подложка эпохи со значком
+    const ph = (list, prefer) => { const o = list.find((x) => thumbOf(x, prefer)); return o ? `<img src="${esc(thumbOf(o, prefer))}" alt="" loading="lazy" decoding="async">` : ''; };
+    const tile = (type, ic, label, img) => `<button class="btile" data-action="search-browse" data-type="${type}"><span class="bt-ic">${ic}</span>${img}<b>${label}</b></button>`;
     box.innerHTML = `
-      ${store.recent.length ? `<div class="s-sec"><div class="s-h">${t('recent')}<button data-action="recent-clear">${t('clear')}</button></div>${store.recent.map((h) => `<button class="chip" data-action="hint" data-q="${esc(h)}">${esc(h)}</button>`).join('')}</div>` : ''}
-      <div class="s-sec"><div class="s-h">${t('search_hint')}</div>${hints.map((h) => `<button class="chip" data-action="hint" data-q="${esc(h)}">${esc(h)}</button>`).join('')}</div>
+      ${store.recent.length ? `<div class="s-sec"><div class="s-h">${t('recent')}<button data-action="recent-clear">${t('clear')}</button></div><div class="qchips">${store.recent.map((h) => qchip(h, I.search)).join('')}</div></div>` : ''}
+      <div class="s-sec"><div class="s-h">${t('search_hint')}</div><div class="qchips">${hints.map((h) => qchip(h)).join('')}</div></div>
       <div class="s-sec"><div class="s-h">${t('browse')}</div>
         <div class="browse">
-          <button data-action="search-browse" data-type="places"><span>${I.map}</span><b>${t('browse_places')}</b><small>${pd.places.length}</small></button>
-          <button data-action="search-browse" data-type="eggs"><span>${I.egg}</span><b>${t('browse_eggs')}</b><small>${pd.eggs.length}</small></button>
-          <button data-action="search-browse" data-type="cheats"><span>${I.gamepad}</span><b>${t('browse_cheats')}</b><small>${cheatList.length}</small></button>
+          ${tile('places', I.map, t('browse_places'), ph(featured(pd, 'place', 4), 'real'))}
+          ${tile('eggs', I.egg, t('browse_eggs'), ph(featured(pd, 'egg', 4), 'game'))}
+          ${tile('cheats', I.gamepad, t('browse_cheats'), ph(featured(pd, 'place', 4).slice(1), 'game'))}
         </div></div>`;
     return;
   }
   const sec = (k, title, items, render, limit) => {
     if (!items.length) return '';
     const shown = limit ? items.slice(0, limit) : items.slice(0, 120);
-    return `<div class="s-sec"><div class="s-h">${title} <em>${items.length}</em>${limit && items.length > limit ? `<button data-action="sf-type" data-v="${k}">${t('show_all')}</button>` : ''}</div>${shown.map(render).join('')}</div>`;
+    return `<div class="s-sec"><div class="s-h">${title} <em>${items.length}</em>${limit && items.length > limit ? `<button data-action="sf-type" data-v="${k}">${t('show_all')}</button>` : ''}</div>${shown.map((x) => render(x)).join('')}</div>`;
   };
   const lim = sf.type === 'all' ? 4 : 0;
-  const html = (sf.type === 'all' || sf.type === 'cheats' ? sec('cheats', t('f_cheats'), R.cheats, (c) => cardHTML(c, { badge: true }), lim) : '')
-    + (sf.type === 'all' || sf.type === 'places' ? sec('places', t('f_places'), R.places, placeRow, lim) : '')
-    + (sf.type === 'all' || sf.type === 'eggs' ? sec('eggs', t('f_eggs'), R.eggs, placeRow, lim) : '');
-  box.innerHTML = html || `<div class="empty-big">${I.search}<h3>${t('search_empty')}</h3><p>${t('search_empty_hint')}</p>${(sf.cat || sf.conf) ? `<button class="btn-ghost" data-action="sf-reset">${t('clear_filters')}</button>` : ''}</div>`;
+  const html = (sf.type === 'all' || sf.type === 'cheats' ? sec('cheats', t('f_cheats'), R.cheats, (c) => cardHTML(c, { badge: true, q }), lim) : '')
+    + (sf.type === 'all' || sf.type === 'places' ? sec('places', t('f_places'), R.places, (o) => placeRow(o, { q }), lim) : '')
+    + (sf.type === 'all' || sf.type === 'eggs' ? sec('eggs', t('f_eggs'), R.eggs, (o) => placeRow(o, { q }), lim) : '');
+  box.innerHTML = html || `<div class="empty-big"><span class="eb-ic">${I.search}</span><h3>${t('search_empty')}</h3><p>${t('search_empty_hint')}</p>${(sf.cat || sf.conf) ? `<button class="btn-ghost" data-action="sf-reset">${t('clear_filters')}</button>` : ''}</div>`;
 }
 function rememberQuery() {
   const q = ui.query.trim();
@@ -475,12 +490,12 @@ async function renderFavs() {
   $('#fav-filters').innerHTML = all.length ? `<div class="frow">${[['all', t('f_all'), all.length], ['cheats', t('f_cheats'), cheatsF.length], ['places', t('f_places'), places.length]]
     .map(([k, l, n]) => chip('fav-filter', k, `${l} <em>${n}</em>`, f === k)).join('')}</div>` : '';
   if (!all.length) {
-    $('#fav-list').innerHTML = `<div class="empty-big">${I.heart}<h3>${t('fav_empty_t')}</h3><p>${t('fav_empty')}</p>
-      <div class="empty-acts"><button class="btn-ghost" data-action="open-cheats" data-cat="">${I.gamepad}${t('browse_cheats')}</button><button class="btn-ghost" data-action="tab" data-tab="map">${I.map}${t('open_map')}</button></div></div>`;
+    $('#fav-list').innerHTML = `<div class="empty-big"><span class="eb-ic">${I.heart}</span><h3>${t('fav_empty_t')}</h3><p>${t('fav_empty')}</p>
+      <div class="empty-acts"><button class="btn-primary" data-action="tab" data-tab="map">${I.map}${t('open_map')}</button><button class="btn-ghost" data-action="open-cheats" data-cat="">${I.gamepad}${t('browse_cheats')}</button></div></div>`;
     return;
   }
   const showP = f !== 'cheats' && places.length, showC = f !== 'places' && cheatsF.length;
-  $('#fav-list').innerHTML = (showP ? `<div class="s-sec"><div class="s-h">${t('f_places')} <em>${places.length}</em></div><div class="pgrid">${places.map((o) => placeCard(o, { grid: true, game: true })).join('')}</div></div>` : '')
+  $('#fav-list').innerHTML = (showP ? `<div class="s-sec"><div class="s-h">${t('f_places')} <em>${places.length}</em></div>${places.map((o) => placeRow(o, { game: true })).join('')}</div>` : '')
     + (showC ? `<div class="s-sec"><div class="s-h">${t('f_cheats')} <em>${cheatsF.length}</em></div>${cheatsF.map((c) => cardHTML(c, { badge: true })).join('')}</div>` : '')
     || `<div class="empty">${t('search_empty')}</div>`;
 }
@@ -504,9 +519,9 @@ function renderSettings() {
   const th = { dark: t('th_dark'), light: t('th_light'), auto: t('th_auto') };
   $('#settings-body').innerHTML = `
     <button class="pro-card${store.pro ? ' on' : ''}" data-action="${store.pro ? 'noop' : 'paywall'}">
-      <span class="pro-ic">${I.crown}</span>
-      <span><b>${t('st_pro')}</b><small>${store.pro ? t('st_pro_on') : t('st_get_pro')}</small></span>
-      ${store.pro ? `<span class="pro-ok">${I.check}</span>` : `<span class="row-chev">${I.chevron}</span>`}
+      ${pic(HERO[store.game]?.banners[0], 'pro-photo', 860, 676, true)}
+      <span class="pro-txt"><b>${t('st_pro')}</b><small>${store.pro ? t('st_pro_on') : t('st_get_pro')}</small></span>
+      <span class="pro-end">${store.pro ? I.check : I.chevron}</span>
     </button>
     <div class="group">
       ${row('pick-game', I.gamepad, t('st_game'), esc(g.title))}
@@ -529,7 +544,7 @@ function renderSettings() {
       ${row('about', I.info, t('st_about'))}
     </div>
     <div class="group">${row('reset', I.reset, t('st_reset'), '', false)}</div>
-    <div class="ver">${esc(APP.name)} · v${esc(APP.version)}</div>`;
+    <p class="ver">${t('hub_foot')}<br>${esc(APP.name)}, v${esc(APP.version)}</p>`;
 }
 
 function updateFavBadge(pulse = false) {
@@ -801,19 +816,19 @@ function play(id) {
 }
 
 // Выбор игры / платформы
+// вариант выбора (онбординг и шторки «Игра», «Платформа»): значок в квадрате, название, подпись
+function optHTML(cls, action, v, ico, title, sub = '', mark = '') {
+  return `<button class="opt${cls}" data-action="${action}" data-v="${v}"><span class="opt-ico">${ico}</span><span class="opt-m"><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</span>${mark ? `<span class="opt-mk">${mark}</span>` : ''}</button>`;
+}
 function gameListHTML(selected, action) {
-  return GAMES.map((g) => {
-    const soon = g.status === 'soon';
-    const tag = soon ? `<span class="tag">${t('soon')}</span>` : g.status === 'forecast' ? `<span class="tag tag-fc">${t('forecast')}</span>` : '';
-    return `<button class="opt${g.id === selected ? ' on' : ''}${soon ? ' dis' : ''}" data-action="${soon ? 'noop' : action}" data-v="${g.id}">${esc(g.title)}${tag}</button>`;
-  }).join('');
+  const live = GAMES.filter((g) => g.status !== 'soon'), soon = GAMES.filter((g) => g.status === 'soon');
+  // будущие части — одной неактивной строкой (выбрать их и раньше было нельзя)
+  return live.map((g) => optHTML(g.id === selected ? ' on' : '', action, g.id, esc(g.title.replace(/^GTA\s*/, '')), esc(g.title), esc(mapPlaceName(g.id)), g.status === 'forecast' ? esc(t('forecast')) : '')).join('')
+    + (soon.length ? optHTML(' dis', 'noop', soon[0].id, 'SA', esc(soon.map((g) => g.title.replace(/^GTA (?=[A-Z][a-z])/, '')).join(', ')), esc(t('soon'))) : '');
 }
 function platListHTML(gameId, selected, action) {
   const g = GAMES.find((x) => x.id === gameId);
-  return g.platforms.map((p) => {
-    const note = g.platformNote?.[p] ? `<small>${L(g.platformNote[p])}</small>` : '';
-    return `<button class="opt opt-ic${p === selected ? ' on' : ''}" data-action="${action}" data-v="${p}">${platformIcon(p)}<span>${L(PLATFORMS[p])}</span>${note}</button>`;
-  }).join('');
+  return g.platforms.map((p) => optHTML(`${p === selected ? ' on' : ''}`, action, p, platformIcon(p), esc(L(PLATFORMS[p])), g.platformNote?.[p] ? esc(L(g.platformNote[p])) : '')).join('');
 }
 function openPickGame() { openSheet(`<h2 class="pick-t">${t('select_game')}</h2><div class="opts">${gameListHTML(store.game, 'set-game')}</div>`, 'sheet-pick'); }
 function openPickPlatform() { openSheet(`<h2 class="pick-t">${t('select_platform')}</h2><div class="opts">${platListHTML(store.game, store.platform, 'set-platform')}</div>`, 'sheet-pick'); }
@@ -828,22 +843,30 @@ function openAbout() {
 
 // ───────── пейвол ─────────
 let plan = 'week';
-function openPaywall() {
-  const pw = $('#paywall');
-  const plans = PAYWALL.plans.map((p) => `<button class="plan${p.id === plan ? ' on' : ''}" data-action="plan" data-v="${p.id}">
-      <span class="plan-radio"></span><span class="plan-n">${L(p)}${p.badge ? `<em>${L(p.badge)}</em>` : ''}${p.trial ? `<small>${t('pw_trial')} ${p.price}${L(p.per)}</small>` : ''}</span>
+// экран 10 этапа 2: «вид» эпохи во весь экран, стеклянная панель снизу; планы, цены и покупка — как в проде
+function paywallPanel() {
+  const plans = PAYWALL.plans.map((p) => `<button class="plan${p.id === plan ? ' on' : ''}" data-action="plan" data-v="${p.id}" aria-pressed="${p.id === plan}">
+      <span class="plan-n"><b>${L(p)}${p.badge ? `<em>${L(p.badge)}</em>` : ''}</b>${p.trial ? `<small>${t('pw_trial')} ${p.price}${L(p.per)}</small>` : ''}</span>
       <span class="plan-p">${p.price}<small>${L(p.per)}</small></span></button>`).join('');
   const sel = PAYWALL.plans.find((p) => p.id === plan);
-  pw.innerHTML = `
-    <button class="pw-close" data-action="pw-close" aria-label="close">${I.close}</button>
-    <div class="pw-hero"><div class="pw-orb">${I.crown}</div>
-      <div class="pw-chips">${comboHTML(['O', 'X', 'L1', 'T', '→', 'R2', 'S', '↑'], 'playstation')}</div></div>
-    <h1 class="pw-title">${t('pw_title')}</h1>
+  return `<h1 class="pw-title">${t('pw_title')}</h1>
     <ul class="pw-feat">${['pw_f1', 'pw_f2', 'pw_f3', 'pw_f4'].map((k) => `<li>${I.check}<span>${t(k)}</span></li>`).join('')}</ul>
     <div class="plans">${plans}</div>
     <button class="btn-primary pw-cta" data-action="buy">${sel.trial ? t('pw_cta') : t('pw_cta2')}</button>
-    <div class="pw-links"><button data-action="buy">${t('pw_restore')}</button><span>·</span><button data-action="noop">${t('pw_terms')}</button><span>·</span><button data-action="noop">${t('pw_privacy')}</button></div>
-    <div class="pw-demo">${t('pw_demo')}</div>`;
+    <div class="pw-links"><button data-action="buy">${t('pw_restore')}</button><button data-action="noop">${t('pw_terms')}</button><button data-action="noop">${t('pw_privacy')}</button></div>
+    <p class="pw-demo">${t('pw_demo')}</p>`;
+}
+function openPaywall() {
+  const pw = $('#paywall');
+  const key = store.game + '|' + getLang();
+  // выбор плана перерисовывает только панель: фото не мигает
+  if (pw.classList.contains('open') && pw.dataset.k === key) { pw.querySelector('.pw-panel').innerHTML = paywallPanel(); return; }
+  pw.dataset.k = key;
+  pw.innerHTML = `
+    <div class="pw-photo">${pic(HERO[store.game]?.load, '', 860, 1864)}</div>
+    <button class="pw-close" data-action="pw-close" aria-label="close">${I.close}</button>
+    <div class="pw-panel">${paywallPanel()}</div>`;
+  pw.scrollTop = 0;
   pw.classList.add('open');
   pw.querySelector('.pw-close').classList.remove('show');
   setTimeout(() => pw.querySelector('.pw-close')?.classList.add('show'), 900);
@@ -858,36 +881,37 @@ function obDefaultPlatform(gameId) {
   const g = GAMES.find((x) => x.id === gameId);
   return g.platforms.includes(store.platform) ? store.platform : g.platforms[0];
 }
+// экран 11 этапа 2: фото эпохи и стеклянная панель снизу, в зоне большого пальца
 function welcomeHTML() {
-  const feats = [[I.gamepad, 'w_f1'], [I.map, 'w_f2'], [I.star, 'w_f3']];
-  return `
-    <div class="wl-hero">
-      <img class="wl-icon" src="icons/icon-512.png" alt="">
-      <h1>${esc(APP.shortName)}</h1>
-      <p>${t('w_sub')}</p>
-    </div>
-    <ul class="wl-feats">${feats.map(([ic, k]) => `<li><span>${ic}</span><div><b>${t(k)}</b><small>${t(k + 's')}</small></div></li>`).join('')}</ul>
+  const feats = ['w_f1', 'w_f2', 'w_f3'];
+  return `<span class="ob-mark"><img src="icons/favicon.svg" alt="" width="40" height="40"></span>
+    <h1>${esc(APP.shortName)}</h1>
+    <p class="ob-lead">${t('w_sub')}</p>
+    <ul class="ob-ticks">${feats.map((k) => `<li>${I.check}<span><b>${t(k)}</b><small>${t(k + 's')}</small></span></li>`).join('')}</ul>
     <button class="btn-primary ob-cta" data-action="ob-start">${t('start')}</button>
-    <p class="wl-note">${t('w_note')}</p>`;
+    <p class="ob-fine">${t('w_note')}</p>`;
 }
 function renderOnboarding(dir = 0) {
   const ob = $('#onboarding');
   const step = ui.obStep;
   const g = ui.obGame || store.game;
-  if (step === 'welcome') { ob.innerHTML = `<div class="ob-body wl${dir < 0 ? ' ob-in-left' : ''}">${welcomeHTML()}</div>`; return; }
-  ob.innerHTML = `
-    <div class="ob-bar">
-      <button class="ob-back" data-action="ob-back">${I.back}<span>${t('back')}</span></button>
-      <span class="ob-step">${step === 'game' ? 1 : 2} / 2</span>
-    </div>
-    <div class="ob-progress"><i style="width:${step === 'game' ? 50 : 100}%"></i></div>
-    <div class="ob-brand"><img src="icons/icon-192.png" alt=""><span>${esc(APP.shortName)}</span></div>
-    <div class="ob-body${dir > 0 ? ' ob-in-right' : dir < 0 ? ' ob-in-left' : ''}">
-      <div class="ob-top"><div class="ob-ic">${step === 'game' ? I.gamepad : platformIcon(ui.obPlatform || 'playstation')}</div>
-        <h1>${step === 'game' ? t('ob_game_title') : t('ob_platform_title')}</h1><p>${t('ob_sub')}</p></div>
+  // скин: до выбора игры — GTA 6, на шаге платформы — выбранной игры; фото — «Привет» баннер, дальше «вид»
+  const sk = step === 'platform' ? g : 'gta6';
+  applySkin(sk);
+  const img = step === 'welcome' ? HERO.gta6.banners[0] : HERO[sk]?.load;
+  if (!ob.querySelector('.ob-photo')) ob.innerHTML = '<div class="ob-photo"></div><div class="ob-ui"></div>';
+  const ph = ob.querySelector('.ob-photo');
+  if (ph.dataset.src !== img) { ph.dataset.src = img; ph.classList.toggle('is-banner', step === 'welcome'); ph.innerHTML = step === 'welcome' ? pic(img) : pic(img, '', 860, 1864); }
+  const anim = dir > 0 ? ' ob-in-right' : dir < 0 ? ' ob-in-left' : '';
+  if (step === 'welcome') { ob.querySelector('.ob-ui').innerHTML = `<div class="ob-panel wl${anim}">${welcomeHTML()}</div>`; return; }
+  ob.querySelector('.ob-ui').innerHTML = `
+    <button class="ob-back" data-action="ob-back" aria-label="${esc(t('back'))}">${I.back}</button>
+    <div class="ob-panel${anim}">
+      <div class="ob-prog" aria-label="${step === 'game' ? 1 : 2} / 2"><i class="on"></i><i${step === 'game' ? '' : ' class="on"'}></i></div>
+      <h1>${step === 'game' ? t('ob_game_title') : t('ob_platform_title')}</h1><p class="ob-lead">${t('ob_sub')}</p>
       <div class="opts">${step === 'game' ? gameListHTML(g, 'ob-game') : platListHTML(g, ui.obPlatform, 'ob-platform')}</div>
-    </div>
-    <button class="btn-primary ob-cta" data-action="ob-next">${t('continue')}</button>`;
+      <button class="btn-primary ob-cta" data-action="ob-next">${t('continue')}</button>
+    </div>`;
 }
 function showOnboarding() {
   ui.obStep = 'welcome'; ui.obGame = store.game; ui.obPlatform = obDefaultPlatform(store.game); obBusy = false;

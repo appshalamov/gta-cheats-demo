@@ -1,4 +1,4 @@
-/* Главная-хаб, экран «Все читы», поиск с фильтрами, избранное с местами, приветствие. */
+/* Главная-хаб, экран «Все читы», поиск с фильтрами, избранное с местами (строки, фильтры, «Обзор»). */
 /* цвета уровней достоверности (--c-*) — в css/tokens.css */
 
 /* ── шапки ── */
@@ -141,58 +141,64 @@
 .pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .pcard-grid { width: auto; height: 220px; }
 
-/* строка места в поиске */
-.prow { display: flex; align-items: center; gap: 12px; padding: 10px; margin-bottom: 8px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); cursor: pointer; transition: transform .12s; }
-.prow:active { transform: scale(.985); }
-.prow img, .prow .pr-ph { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; flex: none; background: var(--card-2); }
-.prow .pr-ph { display: grid; place-items: center; color: var(--accent); }
-.prow .pr-ph svg { width: 28px; height: 28px; }
+/* строка места (Поиск, Избранное; экраны 7–8 этапа 2): фото 52, название, реальное место, точность — строкой, без рамки */
+/* на фото тёмное затемнение не нужно; метки точности — значения темы */
+.prow { display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 8px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+.prow:active { background: color-mix(in srgb, var(--text) 5%, transparent); }
+.pr-th { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; overflow: hidden; color: var(--accent); background: color-mix(in srgb, var(--text) 7%, transparent); }
+.pr-th img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pr-ph { width: 24px; height: 24px; }
 .pr-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.pr-t b { font-size: 15.5px; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pr-t small { font-size: 13.5px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pr-meta { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.prow .fav { margin: 0; flex: none; }
+.pr-t b { font-size: 16px; font-weight: 650; line-height: 1.25; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pr-t small { font-size: 13px; line-height: 1.3; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pr-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow .fav { flex: none; margin: 0; width: 44px; height: 44px; padding: 11px; color: var(--text-3); }
+.prow .fav.on { color: var(--accent); }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; font-style: normal; }
 .dot.conf-confirmed { background: var(--c-confirmed); } .dot.conf-likely { background: var(--c-likely); } .dot.conf-speculative { background: var(--c-speculative); }
+mark.hl { background: none; color: var(--accent); font-weight: 750; } /* совпадение с запросом — цветом эпохи, без рамок */
 
-/* ── фильтры поиска и избранного ── */
-.sfilters { flex: none; padding: 0 0 6px; }
-.frow { display: flex; gap: 8px; overflow-x: auto; padding: 0 16px 8px; scrollbar-width: none; }
+/* ── фильтры поиска и избранного: зона нажатия 44, видимая капсула 36; выбранный — инверсия ── */
+.sfilters { flex: none; padding: 0 0 4px; }
+.frow { display: flex; gap: 6px; overflow-x: auto; padding: 0 16px; scrollbar-width: none; overscroll-behavior-x: contain; }
 .frow::-webkit-scrollbar { display: none; }
-.fchip { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 999px; font-size: 14px; font-weight: 600; background: var(--card); border: 1px solid var(--line-2); color: var(--text-2); transition: .15s; white-space: nowrap; }
+.fchip { position: relative; isolation: isolate; flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; height: 44px; padding: 0 14px;
+  font-size: 14px; font-weight: 600; color: var(--text-2); white-space: nowrap; transition: color var(--d-fast); }
+.fchip::before { content: ""; position: absolute; inset: 4px 0; z-index: -1; border-radius: 18px; background: color-mix(in srgb, var(--text) 6%, transparent); border: 1px solid var(--line);
+  transition: background-color var(--d-fast), border-color var(--d-fast), transform var(--d-press); }
+:root[data-theme="light"] .fchip:not(.on)::before { background: var(--card); }
 .fchip svg { width: 16px; height: 16px; flex: none; }
-.fchip em { font-style: normal; font-weight: 700; font-size: 12px; color: var(--text-3); }
-.fchip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.fchip.on em { color: color-mix(in srgb, var(--accent-ink) 70%, transparent); }
-.fchip:active { transform: scale(.96); }
-.fsep { flex: none; width: 1px; background: var(--line-2); margin: 4px 2px; }
-.s-sec { margin-bottom: 18px; }
-.s-h { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); margin: 4px 0 10px; }
-.s-h em { font-style: normal; color: var(--text-3); }
-.s-h button { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 600; color: var(--accent); }
+.fchip em { font-style: normal; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-3); }
+.fchip.on { color: var(--bg); }
+.fchip.on::before { background: var(--text); border-color: var(--text); }
+.fchip.on em { color: color-mix(in srgb, var(--bg) 62%, transparent); }
+.fchip:active::before { transform: scale(var(--press-scale)); }
+.fsep { flex: none; width: 1px; background: var(--line-2); margin: 12px 4px; }
+/* заголовки разделов — обычным регистром, как на экранах этапа 2 */
+.s-sec { margin-bottom: 20px; }
+.s-h { display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 0 2px; font: var(--t-title-2); letter-spacing: var(--t-title-2-track); color: var(--text); }
+.s-h em { font-style: normal; font-size: 14px; font-weight: 500; letter-spacing: 0; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.s-h button { margin-left: auto; min-height: 44px; padding-left: 12px; font-size: 15px; font-weight: 600; letter-spacing: 0; color: var(--accent); }
+/* недавние и примеры запросов: зона 44, видимая капсула 34 */
+.qchips { display: flex; flex-wrap: wrap; gap: 0 6px; margin-top: -2px; }
+.qchip { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 6px; min-width: 44px; height: 44px; padding: 0 13px; font-size: 14px; font-weight: 500; color: var(--text); }
+.qchip::before { content: ""; position: absolute; inset: 5px 0; z-index: -1; border-radius: 17px; background: color-mix(in srgb, var(--text) 6%, transparent); border: 1px solid var(--line); transition: border-color var(--d-fast); }
+:root[data-theme="light"] .qchip::before { background: var(--card); }
+.qchip svg { flex: none; width: 14px; height: 14px; color: var(--text-3); }
+.qchip:active::before { border-color: var(--accent); }
+/* «Обзор» — плитки с настоящими фото мест; без фото — подложка эпохи со значком */
 .browse { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.browse button { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); text-align: left; }
-.browse span { width: 24px; height: 24px; color: var(--accent); }
-.browse b { font-size: 14px; line-height: 1.2; }
-.browse small { font-size: 12px; color: var(--text-2); }
-.empty-big .btn-ghost { margin-top: 14px; }
-.empty-acts { display: grid; gap: 8px; margin-top: 16px; }
-.empty-acts .btn-ghost { margin-top: 0; color: var(--text); }
-.empty-acts .btn-ghost svg { width: 18px; height: 18px; margin: 0; color: var(--accent); }
-
-/* ── приветствие ── */
-.wl { flex: 1; display: flex; flex-direction: column; }
-.wl-hero { text-align: center; padding: 6vh 0 22px; }
-.wl-icon { width: 96px; height: 96px; border-radius: 24px; box-shadow: 0 20px 60px -10px color-mix(in srgb, var(--accent) 50%, transparent); animation: float 3s ease-in-out infinite; }
-.wl-hero h1 { font-size: 32px; font-weight: 800; letter-spacing: -.02em; margin-top: 18px; }
-.wl-hero p { color: var(--text-2); font-size: 16px; margin-top: 6px; line-height: 1.35; }
-.wl-feats { list-style: none; padding: 0; margin: 0 0 22px; display: grid; gap: 10px; }
-.wl-feats li { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 16px; background: color-mix(in srgb, var(--card) 85%, transparent); border: 1px solid var(--line); }
-.wl-feats li > span { width: 28px; height: 28px; flex: none; color: var(--accent); }
-.wl-feats b { display: block; font-size: 16px; }
-.wl-feats small { display: block; font-size: 13.5px; color: var(--text-2); margin-top: 2px; line-height: 1.3; }
-.wl .ob-cta { margin-top: auto; }
-.wl-note { text-align: center; font-size: 12px; color: var(--text-3); margin-top: 10px; }
+.btile { position: relative; height: 110px; border-radius: 20px; overflow: hidden; text-align: left; color: var(--on-photo); transition: transform var(--d-press);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 36%, #1c1b20), #1c1b20); }
+.btile:active { transform: scale(var(--press-scale)); }
+.btile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.btile::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 36%, rgba(0,0,0,.68)); }
+.bt-ic { position: absolute; left: 10px; top: 10px; width: 22px; height: 22px; }
+.btile b { position: absolute; z-index: 1; left: 10px; right: 8px; bottom: 9px; font-size: 14px; font-weight: 650; line-height: 1.2; }
+.empty-big .btn-ghost { margin-top: 18px; }
+.empty-acts { display: grid; gap: 8px; margin-top: 22px; }
+.empty-acts .btn-ghost { margin-top: 0; }
+.empty-acts svg { width: 20px; height: 20px; }
 
 /* ── места на Главной: фото с подписью на плашке (без размытия — это карточка в ленте) ── */
 .hub .pcard { width: 236px; height: 164px; border-radius: 22px; border: 0; }
@@ -217,6 +223,7 @@
 .card .card-title { flex: 0 1 auto; min-width: 0; font-size: 16px; font-weight: 650; line-height: 1.25; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card .badge { flex: none; }
 .card-desc { font-size: 13px; line-height: 1.3; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-fc { font-style: normal; font-weight: 650; color: var(--accent); } /* «прогноз» в Поиске и Избранном — в строке эффекта, название целиком */
 .card-lock { flex: none; width: 18px; height: 18px; color: var(--accent); }
 .card .fav { margin: 0; width: 44px; height: 44px; padding: 11px; color: var(--text-3); }
 .card .fav.on { color: var(--accent); }
