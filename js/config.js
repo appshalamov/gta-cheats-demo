@@ -7,11 +7,12 @@ export const APP = {
   version: '0.3.1 demo',
 };
 
+// icon — id значка из I (js/icons.js), не эмодзи
 export const CATEGORIES = [
-  { id: 'world', icon: '🌍', ru: 'Мир', en: 'World' },
-  { id: 'player', icon: '🧍', ru: 'Игрок', en: 'Player' },
-  { id: 'weapon', icon: '🔫', ru: 'Оружие', en: 'Weapon' },
-  { id: 'vehicle', icon: '🚗', ru: 'Транспорт', en: 'Vehicle' },
+  { id: 'world', icon: 'catWorld', ru: 'Мир', en: 'World' },
+  { id: 'player', icon: 'catPlayer', ru: 'Игрок', en: 'Player' },
+  { id: 'weapon', icon: 'catWeapon', ru: 'Оружие', en: 'Weapon' },
+  { id: 'vehicle', icon: 'catVehicle', ru: 'Транспорт', en: 'Vehicle' },
 ];
 export const DEFAULT_CATEGORY = 'vehicle';
 

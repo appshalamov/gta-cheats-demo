@@ -122,7 +122,15 @@ addEventListener('orientationchange', () => setTimeout(fitViewport, 300));
 function applyTheme() {
   const th = store.theme === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : store.theme;
   document.documentElement.dataset.theme = th;
-  $('meta[name="theme-color"]').setAttribute('content', th === 'light' ? '#f7f7f9' : '#101013'); // = цвет нижней панели
+  // = фон из tokens.css (--bg) = цвет нижней панели; при ручной теме обе метки (тёмная и светлая) получают её цвет
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  if (bg) document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', bg));
+}
+// скин по выбранной игре: акцент и картинки из tokens.css [data-skin]
+const SKINS = { gta6: 'gta6', gta5: 'gta5', gta4: 'gta4', gtasa: 'sa' };
+function applySkin() {
+  const sk = SKINS[store.game];
+  if (sk) document.documentElement.dataset.skin = sk; else delete document.documentElement.dataset.skin;
 }
 matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', applyTheme);
 
@@ -186,7 +194,7 @@ function forecastBanner() {
   const d = daysTo(g.release);
   const date = new Date(g.release).toLocaleDateString(getLang() === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' });
   return `<div class="fc-banner">
-    <div class="fc-count">${d > 0 ? `<b>${d}</b><span>${t('days')}</span>` : `<b>🎉</b>`}</div>
+    <div class="fc-count">${d > 0 ? `<b>${d}</b><span>${t('days')}</span>` : `<b>${I.sparkle}</b>`}</div>
     <div class="fc-text"><div class="fc-title">${d > 0 ? `${t('release_in')} · ${date}` : t('released')}</div><div class="fc-sub">${t('forecast_banner')}</div></div>
   </div>`;
 }
@@ -204,13 +212,13 @@ function miniCheat(c) {
   else if (p === 'pc' && k.pc) code = `<span class="mc-pc">${esc(k.pc)}</span>`;
   else if (k.phone) code = `<span class="mc-pc">${esc(k.phone)}</span>`;
   return `<button class="mini-cheat${locked ? ' is-locked' : ''}" data-action="open" data-id="${c.id}">
-    <span class="mc-top"><span class="mc-ic">${c.icon || '🎮'}</span>${locked ? `<span class="mc-lock">${I.lock}</span>` : ''}</span>
+    <span class="mc-top"><span class="mc-ic">${cheatIc(c)}</span>${locked ? `<span class="mc-lock">${I.lock}</span>` : ''}</span>
     <b>${esc(L(c.name))}</b><span class="mc-code">${code}</span></button>`;
 }
 function placeCard(o, opt = {}) {
   const key = placeKey(o), fav = store.favPlaces.includes(key), img = thumbOf(o, o.kind === 'egg' ? 'game' : 'real');
   return `<div class="pcard${opt.grid ? ' pcard-grid' : ''}" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
-    ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pc-ph">${o.kind === 'egg' ? '🥚' : catIcon(o.c)}</span>`}
+    ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pc-ph">${o.kind === 'egg' ? I.egg : I[catIcon(o.c)]}</span>`}
     <span class="pc-grad"></span>
     <span class="pc-tags">${o.kind === 'egg' ? `<i class="tag-egg">${t('map_egg')}</i>` : `<i class="conf conf-${o.cf}">${t('conf_' + o.cf)}</i>`}${opt.game ? `<i class="tag-game">${GAMES.find((g) => g.id === o.game)?.title || ''}</i>` : ''}</span>
     <button class="pc-fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
@@ -221,7 +229,7 @@ function placeRow(o) {
   const key = placeKey(o), fav = store.favPlaces.includes(key), img = thumbOf(o, o.kind === 'egg' ? 'game' : 'real');
   const city = cityOf(o);
   return `<div class="prow" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
-    ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${o.kind === 'egg' ? '🥚' : catIcon(o.c)}</span>`}
+    ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${o.kind === 'egg' ? I.egg : I[catIcon(o.c)]}</span>`}
     <span class="pr-t"><b>${esc(titleOf(o))}</b><small>→ ${esc(realOf(o))}</small>
       <span class="pr-meta"><i class="dot conf-${o.cf}"></i>${t('conf_' + o.cf)}${o.kind === 'place' && o.c ? ` · ${esc(catLabel(o.c))}` : ''}${city ? ` · ${esc(city)}` : ''}</span></span>
     <button class="fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
@@ -250,7 +258,7 @@ async function renderHub() {
     ${forecastBanner()}
     ${hubSection(t('hub_cheats'), L(PLATFORMS[store.platform]), `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
-        <span class="ct-ic">${c.icon}</span><b>${L(c)}</b><small>${list.filter((x) => x.category === c.id).length} ${t('codes_n')}</small></button>`).join('')}</div>`)}
+        <span class="ct-ic">${I[c.icon]}</span><b>${L(c)}</b><small>${list.filter((x) => x.category === c.id).length} ${t('codes_n')}</small></button>`).join('')}</div>`)}
     ${popular.length ? hubSection(t('hub_popular'), '', '', `<div class="hscroll">${popular.map(miniCheat).join('')}</div>`) : ''}
     ${places.length ? hubSection(t('hub_places'), mapPlaceName(store.game), `<button class="hub-more" data-action="tab" data-tab="map">${t('open_map')}${I.chevron}</button>`,
       `<div class="hscroll">${places.map((o) => placeCard(o)).join('')}</div>`) : ''}
@@ -335,10 +343,10 @@ function renderSearchFilters(counts = {}) {
   const types = [['all', t('f_all')], ['cheats', t('f_cheats')], ['places', t('f_places')], ['eggs', t('f_eggs')]];
   let row2 = liveGames().map((g) => chip('sf-game', g.id, esc(g.title), g.id === sg)).join('');
   let row3 = '';
-  if (sf.type === 'cheats') row3 = chip('sf-cat', '', t('any'), !sf.cat) + CATEGORIES.map((c) => chip('sf-cat', c.id, `${c.icon} ${L(c)}`, sf.cat === c.id)).join('');
+  if (sf.type === 'cheats') row3 = chip('sf-cat', '', t('any'), !sf.cat) + CATEGORIES.map((c) => chip('sf-cat', c.id, `${I[c.icon]}${L(c)}`, sf.cat === c.id)).join('');
   if (sf.type === 'places') {
     const cats = Object.keys(CAT_LABELS).filter((c) => (loadedPlacesSync(sg)?.places || []).some((p) => p.c === c));
-    row3 = chip('sf-cat', '', t('any'), !sf.cat) + cats.map((c) => chip('sf-cat', c, `${catIcon(c)} ${esc(catLabel(c))}`, sf.cat === c)).join('');
+    row3 = chip('sf-cat', '', t('any'), !sf.cat) + cats.map((c) => chip('sf-cat', c, `${I[catIcon(c)]}${esc(catLabel(c))}`, sf.cat === c)).join('');
   }
   if (sf.type === 'places' || sf.type === 'eggs') {
     row2 += '<span class="fsep"></span>' + chip('sf-conf', '', t('any_conf'), !sf.conf) + CONF.map((k) => chip('sf-conf', k, `<i class="dot conf-${k}"></i>${t('conf_' + k)}`, sf.conf === k)).join('');
@@ -373,9 +381,9 @@ async function renderSearch() {
       <div class="s-sec"><div class="s-h">${t('search_hint')}</div>${hints.map((h) => `<button class="chip" data-action="hint" data-q="${esc(h)}">${esc(h)}</button>`).join('')}</div>
       <div class="s-sec"><div class="s-h">${t('browse')}</div>
         <div class="browse">
-          <button data-action="search-browse" data-type="places"><span>🗺️</span><b>${t('browse_places')}</b><small>${pd.places.length}</small></button>
-          <button data-action="search-browse" data-type="eggs"><span>🥚</span><b>${t('browse_eggs')}</b><small>${pd.eggs.length}</small></button>
-          <button data-action="search-browse" data-type="cheats"><span>🎮</span><b>${t('browse_cheats')}</b><small>${cheatList.length}</small></button>
+          <button data-action="search-browse" data-type="places"><span>${I.map}</span><b>${t('browse_places')}</b><small>${pd.places.length}</small></button>
+          <button data-action="search-browse" data-type="eggs"><span>${I.egg}</span><b>${t('browse_eggs')}</b><small>${pd.eggs.length}</small></button>
+          <button data-action="search-browse" data-type="cheats"><span>${I.gamepad}</span><b>${t('browse_cheats')}</b><small>${cheatList.length}</small></button>
         </div></div>`;
     return;
   }
@@ -415,7 +423,7 @@ async function renderFavs() {
     .map(([k, l, n]) => chip('fav-filter', k, `${l} <em>${n}</em>`, f === k)).join('')}</div>` : '';
   if (!all.length) {
     $('#fav-list').innerHTML = `<div class="empty-big">${I.heart}<h3>${t('fav_empty_t')}</h3><p>${t('fav_empty')}</p>
-      <div class="empty-acts"><button class="btn-ghost" data-action="open-cheats" data-cat="">🎮 ${t('browse_cheats')}</button><button class="btn-ghost" data-action="tab" data-tab="map">🗺️ ${t('open_map')}</button></div></div>`;
+      <div class="empty-acts"><button class="btn-ghost" data-action="open-cheats" data-cat="">${I.gamepad}${t('browse_cheats')}</button><button class="btn-ghost" data-action="tab" data-tab="map">${I.map}${t('open_map')}</button></div></div>`;
     return;
   }
   const showP = f !== 'cheats' && places.length, showC = f !== 'places' && cheatsF.length;
@@ -480,6 +488,7 @@ function updateFavBadge(pulse = false) {
 
 // ───────── общая перерисовка ─────────
 function renderAll() {
+  applySkin();
   $('#plat-btn').innerHTML = platformIcon(store.platform);
   $('#plat-btn2').innerHTML = platformIcon(store.platform);
   const tabs = [...document.querySelectorAll('.tab')];
@@ -634,11 +643,11 @@ const SHEET_LOCK_PX = 10, SHEET_V_RATIO = 1.6, SHEET_CLOSE_PX = 110, SHEET_FLICK
 })();
 
 // Экран чита
-const CAT_COLORS = { vehicle: ['#0EA5E9', '#1E3A8A'], weapon: ['#F97316', '#7C2D12'], player: ['#22C55E', '#14532D'], world: ['#A855F7', '#3B0764'] };
+// значок кода — по категории (решение: своя иконка категории, без кадров игры и эмодзи из данных)
+const cheatIc = (c) => I[CATEGORIES.find((x) => x.id === c.category)?.icon] || I.gamepad;
 function mediaHTML(c) {
   if (c.media) return `<video src="${esc(c.media)}" autoplay muted loop playsinline></video>`;
-  const [a, b] = CAT_COLORS[c.category] || CAT_COLORS.vehicle;
-  return `<div class="poster" style="--c1:${a};--c2:${b}"><span class="poster-emoji">${c.icon || '🎮'}</span><span class="poster-tag">${I.play}${t('video_soon')}</span></div>`;
+  return `<div class="poster"><span class="poster-emoji">${cheatIc(c)}</span><span class="poster-tag">${I.play}${t('video_soon')}</span></div>`;
 }
 function openCheat(id) {
   const c = byId(id);
@@ -654,7 +663,7 @@ function openCheat(id) {
   const fav = store.favs.includes(c.id);
   openSheet(`
     <div class="d-head">
-      <h2><span class="d-emoji">${c.icon || '🎮'}</span>${esc(L(c.name))}</h2>
+      <h2><span class="d-emoji">${cheatIc(c)}</span>${esc(L(c.name))}</h2>
       <button class="icon-btn" data-action="fav" data-id="${c.id}">${fav ? I.heartFill : I.heart}</button>
       <button class="icon-btn" data-action="share" data-id="${c.id}">${I.share}</button>
     </div>
@@ -773,7 +782,7 @@ function obDefaultPlatform(gameId) {
   return g.platforms.includes(store.platform) ? store.platform : g.platforms[0];
 }
 function welcomeHTML() {
-  const feats = [['🎮', 'w_f1'], ['🗺️', 'w_f2'], ['⭐', 'w_f3']];
+  const feats = [[I.gamepad, 'w_f1'], [I.map, 'w_f2'], [I.star, 'w_f3']];
   return `
     <div class="wl-hero">
       <img class="wl-icon" src="icons/icon-512.png" alt="">
@@ -982,7 +991,7 @@ addEventListener('resize', () => scrollToCat(ui.cat, false));
 // ───────── старт ─────────
 (async function init() {
   setLang(store.lang || (navigator.language || 'ru').slice(0, 2));
-  applyTheme();
+  applyTheme(); applySkin();
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     // новая версия на сервере → перезагрузка в свежую (только если уже была старая)
     const hadController = !!navigator.serviceWorker.controller;

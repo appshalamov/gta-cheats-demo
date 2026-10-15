@@ -4,8 +4,7 @@
    Лечение (подтверждено в piclaw/docs/PWA.md): корень в обычном потоке, без fixed;
    высота в standalone = 100vh (её iOS не занижает), в браузере = 100dvh. Ставит fitViewport() в app.js.
    Подстраховка: фон страницы = цвет нижней панели — если полоса всё же останется, она сольётся с панелью. */
-:root { --tabbar-bg: #101013; --safe-b: max(env(safe-area-inset-bottom, 0px), var(--safe-b-min, 0px)); }
-:root[data-theme="light"] { --tabbar-bg: #f7f7f9; }
+:root { --tabbar-bg: var(--bg); --safe-b: max(env(safe-area-inset-bottom, 0px), var(--safe-b-min, 0px)); } /* = фон из tokens.css, в обеих темах */
 /* Страница НЕ прокручивается. overflow: hidden нужен на html: иначе свойство body уходит на всё окно
    и body ничего не обрезает — закрытые оверлеи (translateY(100%)) растягивали документ вдвое,
    свайп прокручивал страницу и снизу выезжал пейвол (14.10.2026).
@@ -20,3 +19,12 @@ body { position: relative; height: var(--app-h, 100dvh); min-height: var(--app-h
 #main, #onboarding, #paywall, #sheet-layer { position: absolute; }
 #toast, #install, #mp-viewer { position: absolute; }
 .tabbar { background: color-mix(in srgb, var(--tabbar-bg) 94%, transparent); }
+
+/* Меньше движения (системная настройка): анимации и переходы — мгновенно, без сдвигов;
+   появление слоёв — растворением 200 мс. Логику высоты выше не трогает. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
+  #main, #toast, #install, #sheet-layer, .sheet, #paywall { transition-property: opacity, background-color !important; transition-duration: 200ms !important; transition-timing-function: ease-out !important; }
+  #sheet-layer:not(.open) .sheet, #paywall:not(.open) { opacity: 0; }
+}

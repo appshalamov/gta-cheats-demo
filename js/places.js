@@ -37,21 +37,21 @@ export async function findByKey(key) {
 
 // ── подписи ──
 export const CAT_LABELS = {
-  building: { ru: 'Здания', en: 'Buildings', icon: '🏢' },
-  neighborhood: { ru: 'Районы', en: 'Neighborhoods', icon: '🏘️' },
-  business: { ru: 'Заведения', en: 'Businesses', icon: '🛍️' },
-  landmark: { ru: 'Достопримечательности', en: 'Landmarks', icon: '🗽' },
-  bridge: { ru: 'Мосты', en: 'Bridges', icon: '🌉' },
-  venue: { ru: 'Арены и клубы', en: 'Venues', icon: '🏟️' },
-  infrastructure: { ru: 'Транспорт и инфраструктура', en: 'Infrastructure', icon: '🛣️' },
-  nature: { ru: 'Природа', en: 'Nature', icon: '🌴' },
-  street: { ru: 'Улицы', en: 'Streets', icon: '🛤️' },
-  park: { ru: 'Парки', en: 'Parks', icon: '🌳' },
-  beach: { ru: 'Пляжи', en: 'Beaches', icon: '🏖️' },
-  sign: { ru: 'Вывески', en: 'Signs', icon: '🪧' },
+  building: { ru: 'Здания', en: 'Buildings', icon: 'plBuilding' },
+  neighborhood: { ru: 'Районы', en: 'Neighborhoods', icon: 'plHood' },
+  business: { ru: 'Заведения', en: 'Businesses', icon: 'plStore' },
+  landmark: { ru: 'Достопримечательности', en: 'Landmarks', icon: 'plLandmark' },
+  bridge: { ru: 'Мосты', en: 'Bridges', icon: 'plBridge' },
+  venue: { ru: 'Арены и клубы', en: 'Venues', icon: 'plVenue' },
+  infrastructure: { ru: 'Транспорт и инфраструктура', en: 'Infrastructure', icon: 'plRoad' },
+  nature: { ru: 'Природа', en: 'Nature', icon: 'plNature' },
+  street: { ru: 'Улицы', en: 'Streets', icon: 'plStreet' },
+  park: { ru: 'Парки', en: 'Parks', icon: 'plPark' },
+  beach: { ru: 'Пляжи', en: 'Beaches', icon: 'plBeach' },
+  sign: { ru: 'Вывески', en: 'Signs', icon: 'plSign' },
 };
 export const catLabel = (c) => (CAT_LABELS[c] ? L(CAT_LABELS[c]) : c || '');
-export const catIcon = (c) => CAT_LABELS[c]?.icon || '📍';
+export const catIcon = (c) => CAT_LABELS[c]?.icon || 'pin'; // id значка из I (js/icons.js)
 export const CONF = ['confirmed', 'likely', 'speculative'];
 
 export const titleOf = (o) => (o.kind === 'egg' ? L(o.t) : o.g || '');
