@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Превью без пар gtadb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#1c1e22; --ink:#eceae4; --soft:#a9a7a0; --mark:#e9d36a; }
+* { box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; }
+body { margin:0; background:var(--bg); color:var(--ink); font:400 17px/1.55 "Golos Text", sans-serif; }
+main { max-width:1180px; margin:0 auto; padding:56px 24px 96px; }
+h1 { font-weight:800; font-size:clamp(34px,5.4vw,60px); line-height:1.02; letter-spacing:-.02em; margin:0 0 24px; max-width:15ch; }
+.lead { font-size:19px; color:var(--soft); max-width:64ch; margin:0 0 14px; }
+.lead strong { color:var(--ink); font-weight:500; }
+.switch { position:sticky; top:0; z-index:5; background:var(--bg); padding:18px 0 14px; margin:34px 0 8px; display:flex; gap:30px; flex-wrap:wrap; align-items:baseline; }
+.switch button { all:unset; cursor:pointer; font-size:21px; font-weight:700; color:var(--soft); padding-bottom:4px; border-bottom:3px solid transparent; }
+.switch button[aria-pressed="true"] { color:var(--ink); border-color:var(--mark); }
+.switch button:focus-visible { outline:2px solid var(--mark); outline-offset:4px; }
+.switch .hint { color:var(--soft); font-size:15px; }
+.place { margin:70px 0 0; }
+.place h2 { font-size:30px; font-weight:800; letter-spacing:-.01em; margin:0 0 8px; line-height:1.15; }
+.place h2 .n { display:inline-block; min-width:1.4em; color:var(--mark); }
+.place h2 .where { font-weight:400; color:var(--soft); font-size:19px; letter-spacing:0; white-space:nowrap; }
+.note { max-width:68ch; margin:0 0 22px; color:var(--ink); }
+.full { margin:0 0 26px; }
+.full img { display:block; width:100%; max-width:960px; height:auto; aspect-ratio:1200/630; border-radius:4px; background:#111; }
+.mocks { display:flex; gap:22px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:8px; }
+.mock { flex:0 0 330px; scroll-snap-align:start; }
+.screen { border-radius:22px; padding:22px 14px 18px; min-height:100%; }
+.cap { margin:10px 4px 0; font-size:15px; color:var(--soft); }
+img { transition:opacity .18s ease; }
+img.swap { opacity:.25; }
+/* Telegram, iPhone, тёмная тема */
+.tg .screen { background:#0b0b0d radial-gradient(circle at 30% 20%, #1d2333 0, #0b0b0d 70%); font-family:-apple-system,"SF Pro Text","Helvetica Neue",sans-serif; }
+.tg .bubble { margin-left:auto; max-width:300px; background:#3f5e8f; color:#fff; border-radius:17px 17px 5px 17px; padding:7px 10px 6px; font-size:15px; line-height:1.3; }
+.tg .link { color:#cfe3ff; text-decoration:underline; word-break:break-all; display:block; margin-bottom:6px; }
+.tg .lp { border-left:3px solid #fff; padding:1px 0 1px 8px; display:flex; flex-direction:column; gap:1px; font-size:14px; }
+.tg .site { font-weight:600; }
+.tg .ttl { font-weight:600; }
+.tg .desc { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; opacity:.92; }
+.tg .lp > img { width:100%; height:auto; aspect-ratio:1200/630; object-fit:cover; border-radius:6px; margin-top:6px; }
+.tg .lp.small { flex-direction:row; gap:8px; align-items:flex-start; }
+.tg .lp.small .txt { display:flex; flex-direction:column; gap:1px; flex:1; min-width:0; }
+.tg .thumb { flex:0 0 64px; height:64px; border-radius:6px; overflow:hidden; margin-top:2px; }
+.tg .thumb img { width:100%; height:100%; object-fit:cover; object-position:center; }
+.tg .time { display:block; text-align:right; font-size:11px; opacity:.7; margin-top:3px; }
+/* iMessage, тёмная тема */
+.im .screen { background:#000; font-family:-apple-system,"SF Pro Text","Helvetica Neue",sans-serif; }
+.im .rich { margin-left:auto; width:270px; border-radius:18px; overflow:hidden; background:#262628; }
+.im .rich img { display:block; width:100%; aspect-ratio:1200/630; object-fit:cover; }
+.im .meta { padding:9px 12px 10px; display:flex; flex-direction:column; gap:2px; }
+.im .meta b { color:#fff; font-size:14px; line-height:1.25; font-weight:600; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.im .meta span { color:#8e8e93; font-size:13px; }
+.im .deliv { display:block; text-align:right; color:#8e8e93; font-size:11px; margin:5px 6px 0; }
+.end { margin-top:90px; max-width:64ch; }
+.end h2 { font-size:30px; font-weight:800; margin:0 0 12px; }
+.end p { margin:0 0 12px; }
+@media (max-width:640px) {
+  main { padding:32px 16px 72px; }
+  .lead { font-size:17px; }
+  .place h2 .where { display:block; margin-left:1.4em; white-space:normal; }
+  .mock { flex-basis:300px; }
+}
+@media (prefers-reduced-motion:reduce) { img { transition:none; } }
+</style></head>
+<body><main>
+<h1>Превью ссылок с парами gtadb и без них</h1>
+<p class="lead">Шесть настоящих мест так, как их увидит друг в Telegram и iMessage. Переключатель ниже показывает, что станет с превью, если перед подачей в App Store выключить пары gtadb (флаг <strong>og_gtadb_pairs</strong>): фото из жизни тогда берутся только из свободных источников.</p>
+<p class="lead">Внизу превью теперь одна спокойная строка авторства под снимками, на тёмной полосе: кадр игры, автор фото и лицензия. Логотип Secret Base маленький, справа. Подписи и ползунок стоят в середине, поэтому миниатюра-квадрат их не режет.</p>
+<p class="lead">Если выключить флаг сегодня, из примерно 1&nbsp;540 превью с парой gtadb около 270 останутся ползунком со свободным фото, около 160 станут двумя снимками рядом, а около 1&nbsp;110 превратятся в кадр игры с вопросом «Where is it in real life?». Почти все последние — точки сообщества, у которых другого фото нет.</p>
+<div class="switch" role="group" aria-label="Вариант превью">
+  <button type="button" data-mode="now" aria-pressed="true">Как сейчас</button>
+  <button type="button" data-mode="off" aria-pressed="false">Без пар gtadb</button>
+  <span class="hint">переключает все превью на странице</span>
+</div>
+
+<section class="place">
+  <h2><span class="n">1</span>Maze Bank Tower <span class="where">Лос-Анджелес, U.S. Bank Tower</span></h2>
+  <p class="note">Свободное фото есть (CC0). Без пары ползунок остаётся, меняется только ракурс справа: башня целиком вместо куска фасада.</p>
+  <figure class="full"><img data-now="img/gta5-maze-bank-tower-now.jpg" data-off="img/gta5-maze-bank-tower-off.jpg" src="img/gta5-maze-bank-tower-now.jpg" alt="Превью ссылки: Maze Bank Tower" loading="lazy"></figure>
+  <div class="mocks">
+    <div class="mock tg"><div class="screen">
+      <div class="bubble out"><a class="link">appshalamov.github.io/gta-cheats-demo/s/gta5/gta5-maze-bank-tower.html</a>
+        <div class="lp"><b class="site">Secret Base</b><b class="ttl">Maze Bank Tower = U.S. Bank Tower (former Library Tower) · GTA 5 in real life · Secret Base</b><span class="desc">LA&#x27;s iconic 73-storey cylindrical skyscraper. In GTA V it is the Maze Bank Tower, the tallest building in Los Santos and a GTA Online CEO office.</span><img data-now="img/gta5-maze-bank-tower-now.jpg" data-off="img/gta5-maze-bank-tower-off.jpg" src="img/gta5-maze-bank-tower-now.jpg" alt="Превью ссылки: Maze Bank Tower" loading="lazy"></div>
+        <span class="time">12:41</span></div>
+    </div><p class="cap">Telegram, крупное превью</p></div>
+    <div class="mock tg"><div class="screen">
+      <div class="bubble out"><a class="link">appshalamov.github.io/gta-cheats-demo/s/gta5/gta5-maze-bank-tower.html</a>
+        <div class="lp small"><div class="txt"><b class="site">Secret Base</b><b class="ttl">Maze Bank Tower = U.S. Bank Tower (former Library Tower) · GTA 5 in real life · Secret Base</b><span class="desc">LA&#x27;s iconic 73-storey cylindrical skyscraper. In GTA V it is the Maze Bank Tower, the tallest building in Los Santos and a GTA Online CEO office.</span></div><div class="thumb"><img data-now="img/gta5-maze-bank-tower-now.jpg" data-off="img/gta5-maze-bank-tower-off.jpg" src="img/gta5-maze-bank-tower-now.jpg" alt="Превью ссылки: Maze Bank Tower" loading="lazy"></div></div>
+        <span class="time">12:41</span></div>
+    </div><p class="cap">Telegram, миниатюра (квадрат из середины)</p></div>
+    <div class="mock im"><div class="screen">
+      <div class="rich"><img data-now="img/gta5-maze-bank-tower-now.jpg" data-off="img/gta5-maze-bank-tower-off.jpg" src="img/gta5-maze-bank-tower-now.jpg" alt="Превью ссылки: Maze Bank Tower" loading="lazy"><div class="meta"><b>Maze Bank Tower = U.S. Bank Tower (former Library Tower) · GTA 5 in real life · Secret Base</b><span>appshalamov.github.io</span></div></div>
+      <span class="deliv">Доставлено</span>
+    </div><p class="cap">iMessage</p></div>
+  </div>
+</section>
+<section class="place">
+  <h2><span class="n">2</span>Знак Vinewood <span class="where">Голливуд, Mount Lee</span></h2>
+  <p class="note">У места только фото с лицензией BY-SA, но для превью есть замена из общественного достояния. Получается тот же ползунок, буквы совпадают даже точнее.</p>
+  <figure class="full"><img data-now="img/gta5-vinewood-sign-now.jpg" data-off="img/gta5-vinewood-sign-off.jpg" src="img/gta5-vinewood-sign-now.jpg" alt="Превью ссылки: Знак Vinewood" loading="lazy"></figure>
+  <div class="mocks">
+    <div class="mock tg"><div class="screen">
+      <div class="bubble out"><a class="link">appshalamov.github.io/gta-cheats-demo/s/gta5/gta5-vinewood-sign.html</a>
+        <div class="lp"><b class="site">Secret Base</b><b class="ttl">Vinewood Sign = Hollywood Sign, Mount Lee, Los Angeles · GTA 5 in real life · Secret Base</b><span class="desc">The Hollywood Sign on Mount Lee is the world-famous 1923 landmark above Hollywood. In GTA V it becomes the Vinewood Sign on Mount Haan.</span><img data-now="img/gta5-vinewood-sign-now.jpg" data-off="img/gta5-vinewood-sign-off.jpg" src="img/gta5-vinewood-sign-now.jpg" alt="Превью ссылки: Знак Vinewood" loading="lazy"></div>
+        <span class="time">12:41</span></div>
+    </div><p class="cap">Telegram, крупное превью</p></div>
+    <div class="mock tg"><div class="screen">
+      <div class="bubble out"><a class="link">appshalamov.github.io/gta-cheats-demo/s/gta5/gta5-vinewood-sign.html</a>
+        <div class="lp small"><div class="txt"><b class="site">Secret Base</b><b class="ttl">Vinewood Sign = Hollywood Sign, Mount Lee, Los Angeles · GTA 5 in real life · Secret Base</b><span class="desc">The Hollywood Sign on Mount Lee is the world-famous 1923 landmark above Hollywood. In GTA V it becomes the Vinewood Sign on Mount Haan.</span></div><div class="thumb"><img data-now="img/gta5-vinewood-sign-now.jpg" data-off="img/gta5-vinewood-sign-off.jpg" src="img/gta5-vinewood-sign-now.jpg" alt="Превью ссылки: Знак Vinewood" loading="lazy"></div></div>
+        <span class="time">12:41</span></div>
+    </div><p class="cap">Telegram, миниатюра (квадрат из середины)</p></div>
+    <div class="mock im"><div class="screen">
+      <div class="rich"><img data-now="img/gta5-vinewood-sign-now.jpg" data-off="img/gta5-vinewood-sign-off.jpg" src="img/gta5-vinewood-sign-now.jpg" alt="Превью ссылки: Знак Vinewood" loading="lazy"><div class="meta"><b>Vinewood Sign = Hollywood Sign, Mount Lee, Los Angeles · GTA 5 in real life · Secret Base</b><span>appshalamov.github.io</span></div></div>
+      <span class="deliv">Доставлено</span>
+    </div><p class="cap">iMessage</p></div>
+  </div>
+</section>
+<section class="place">
+  <h2><span class="n">3</span>Ocean View Hotel <span class="where">Майами-Бич, Clevelander</span></h2>
+  <p class="note">Свободного фото нет, только BY-SA: снимок стоит целиком, рядом с кадром игры. Сюрприз в другом: без пары кадр игры берётся из трейлера, и на первом плане героиня, а не отель.</p>
+  <figure class="full"><img data-now="img/gta6-clevelander-now.jpg" data-off="img/gta6-clevelander-off.jpg" src="img/gta6-clevelander-now.jpg" alt="Превью ссылки: Ocean View Hotel" loading="lazy"></figure>
+  <div class="mocks">
+    <div class="mock tg"><div class="screen">
+      <div class="bubble out"><a class="link">appshalamov.github.io/gta-cheats-demo/s/gta6/gta6-clevelander.html</a>
+        <div class="lp"><b class="site">Secret Base</b><b class="ttl">Ocean View Hotel = Clevelander South Beach · GTA 6 in real life · Secret Base</b><span class="desc">The Clevelander is a late-1930s Art Deco hotel at Ocean Drive and 10th St, best known for its open-air pool bar and neon-lit palms. In GTA VI it is the Ocean View Hotel, with the same pink n</span><img data-now="img/gta6-clevelander-now.jpg" data-off="img/gta6-clevelander-off.jpg" src="img/gta6-clevelander-now.jpg" alt="Превью ссылки: Ocean View Hotel" loading="lazy"></div>
+        <span class="time">12:41</span></div>
+    </div><p class="cap">Telegram, крупное превью</p></div>
+    <div class="mock tg"><div class="screen">
+      <div class="bubble out"><a class="link">appshalamov.github.io/gta-cheats-demo/s/gta6/gta6-clevelander.html</a>
+        <div class="lp small"><div class="txt"><b class="site">Secret Base</b><b class="ttl">Ocean View Hotel = Clevelander South Beach · GTA 6 in real life · Secret Base</b><span class="desc">The Clevelander is a late-1930s Art Deco hotel at Ocean Drive and 10th St, best known for its open-air pool bar and neon-lit palms. In GTA VI it is the Ocean View Hotel, with the same pink n</span></div><div class="thumb"><img data-now="img/gta6-clevelander-now.jpg" data-off="img/gta6-clevelander-off.jpg" src="img/gta6-clevelander-now.jpg" alt="Превью ссылки: Ocean View Hotel" loading="lazy"></div></div>
+        <span class="time">12:41</span></div>
+    </div><p class="cap">Telegram, миниатюра (квадрат из середины)</p></div>
+    <div class="mock im"><div class="screen">
+      <div class="rich"><img data-now="img/gta6-clevelander-now.jpg" data-off="img/gta6-clevelander-off.jpg" src="img/gta6-clevelander-now.jpg" alt="Превью ссылки: Ocean View Hotel" loading="lazy"><div class="meta"><b>Ocean View Hotel = Clevelander South Beach · GTA 6 in real life · Secret Base</b><span>appshalamov.github.io</span></div></div>
+      <span class="deliv">Доставлено</span>
+    </div><p class="cap">iMessage</p></div>
+  </div>
+</section>
+<section class="place">
+  <h2><span class="n">4</span>Davis City Hall <span class="where">Комптон, мэрия</span></h2>
+  <p class="note">Самый неприятный случай. В Commons у места только снимок фрески в почтовом зале, здание по нему не узнать. До подачи такие места стоит пройти глазами и подобрать фото.</p>
+  <figure class="full"><img data-now="img/gta5-davis-city-hall-now.jpg" data-off="img/gta5-davis-city-hall-off.jpg" src="img/gta5-davis-city-hall-now.jpg" alt="Превью ссылки: Davis City Hall" loading="lazy"></figure>
+  <div class="mocks">
+    <div class="mock tg"><div class="screen">
+      <div class="bubble out"><a class="link">appshalamov.github.io/gta-cheats-demo/s/gta5/gta5-davis-city-hall.html</a>
+        <div class="lp"><b class="site">Secret Base</b><b class="ttl">Davis City Hall = Compton City Hall (Compton Civic Center) · GTA 5 in real life · Secret Base</b><span class="desc">Compton City Hall, completed in 1976 by Harold L. Williams, is a low Late Modern building with huge vertical concrete fins on the Civic Center plaza. GTA V&#x27;s Davis City Hall copies it, toget</span><img data-now="img/gta5-davis-city-hall-now.jpg" data-off="img/gta5-davis-city-hall-off.jpg" src="img/gta5-davis-city-hall-now.jpg" alt="Превью ссылки: Davis City Hall" loading="lazy"></div>
+        <span class="time">12:41</span></div>
+    </div><p class="cap">Telegram, крупное превью</p></div>
+    <div class="mock tg"><div class="screen">
+      <div class="bubble out"><a class="link">appshalamov.github.io/gta-cheats-demo/s/gta5/gta5-davis-city-hall.html</a>
+        <div class="lp small"><div class="txt"><b class="site">Secret Base</b><b class="ttl">Davis City Hall = Compton City Hall (Compton Civic Center) · GTA 5 in real life · Secret Base</b><span class="desc">Compton City Hall, completed in 1976 by Harold L. Williams, is a low Late Modern building with huge vertical concrete fins on the Civic Center plaza. GTA V&#x27;s Davis City Hall copies it, toget</span></div><div class="thumb"><img data-now="img/gta5-davis-city-hall-now.jpg" data-off="img/gta5-davis-city-hall-off.jpg" src="img/gta5-davis-city-hall-now.jpg" alt="Превью ссылки: Davis City Hall" loading="lazy"></div></div>
+        <span class="time">12:41</span></div>
+    </div><p class="cap">Telegram, миниатюра (квадрат из середины)</p></div>
+    <div class="mock im"><div class="screen">
+      <div class="rich"><img data-now="img/gta5-davis-city-hall-now.jpg" data-off="img/gta5-davis-city-hall-off.jpg" src="img/gta5-davis-city-hall-now.jpg" alt="Превью ссылки: Davis City Hall" loading="lazy"><div class="meta"><b>Davis City Hall = Compton City Hall (Compton Civic Center) · GTA 5 in real life · Secret Base</b><span>appshalamov.github.io</span></div></div>
+      <span class="deliv">Доставлено</span>
+    </div><p class="cap">iMessage</p></div>
+  </div>
+</section>
+<section class="place">
+  <h2><span class="n">5</span>Hung Drawn &amp; Quarters <span class="where">Санта-Моника, Playland Arcade</span></h2>
+  <p class="note">Свободное фото есть, но на нём флаги над пирсом, а не сам аттракцион. Ползунок формально сохраняется, смысл сравнения теряется.</p>
+  <figure class="full"><img data-now="img/gta5-hung-drawn-quarters-now.jpg" data-off="img/gta5-hung-drawn-quarters-off.jpg" src="img/gta5-hung-drawn-quarters-now.jpg" alt="Превью ссылки: Hung Drawn &amp; Quarters" loading="lazy"></figure>
+  <div class="mocks">
+    <div class="mock tg"><div class="screen">
+      <div class="bubble out"><a class="link">appshalamov.github.io/gta-cheats-demo/s/gta5/gta5-hung-drawn-quarters.html</a>
+        <div class="lp"><b class="site">Secret Base</b><b class="ttl">Hung Drawn &amp; Quarters (pier arcade) = Playland Arcade, Santa Monica Pier · GTA 5 in real life · Secret Base</b><span class="desc">Playland Arcade is the video game and prize arcade in the middle of the Santa Monica Pier. In GTA V it becomes the pirate-themed Hung Drawn &amp; Quarters.</span><img data-now="img/gta5-hung-drawn-quarters-now.jpg" data-off="img/gta5-hung-drawn-quarters-off.jpg" src="img/gta5-hung-drawn-quarters-now.jpg" alt="Превью ссылки: Hung Drawn &amp; Quarters" loading="lazy"></div>
+        <span class="time">12:41</span></div>
+    </div><p class="cap">Telegram, крупное превью</p></div>
+    <div class="mock tg"><div class="screen">
+      <div class="bubble out"><a class="link">appshalamov.github.io/gta-cheats-demo/s/gta5/gta5-hung-drawn-quarters.html</a>
+        <div class="lp small"><div class="txt"><b class="site">Secret Base</b><b class="ttl">Hung Drawn &amp; Quarters (pier arcade) = Playland Arcade, Santa Monica Pier · GTA 5 in real life · Secret Base</b><span class="desc">Playland Arcade is the video game and prize arcade in the middle of the Santa Monica Pier. In GTA V it becomes the pirate-themed Hung Drawn &amp; Quarters.</span></div><div class="thumb"><img data-now="img/gta5-hung-drawn-quarters-now.jpg" data-off="img/gta5-hung-drawn-quarters-off.jpg" src="img/gta5-hung-drawn-quarters-now.jpg" alt="Превью ссылки: Hung Drawn &amp; Quarters" loading="lazy"></div></div>
+        <span class="time">12:41</span></div>
+    </div><p class="cap">Telegram, миниатюра (квадрат из середины)</p></div>
+    <div class="mock im"><div class="screen">
+      <div class="rich"><img data-now="img/gta5-hung-drawn-quarters-now.jpg" data-off="img/gta5-hung-drawn-quarters-off.jpg" src="img/gta5-hung-drawn-quarters-now.jpg" alt="Превью ссылки: Hung Drawn &amp; Quarters" loading="lazy"><div class="meta"><b>Hung Drawn &amp; Quarters (pier arcade) = Playland Arcade, Santa Monica Pier · GTA 5 in real life · Secret Base</b><span>appshalamov.github.io</span></div></div>
+      <span class="deliv">Доставлено</span>
+    </div><p class="cap">iMessage</p></div>
+  </div>
+</section>
+<section class="place">
+  <h2><span class="n">6</span>Bolingbroke Penitentiary <span class="where">Ланкастер, тюрьма Antelope Valley</span></h2>
+  <p class="note">Так выглядит большинство: точки сообщества gtadb. Другого фото из жизни у них нет, поэтому остаётся кадр игры и вопрос «Where is it in real life?».</p>
+  <figure class="full"><img data-now="img/L508-now.jpg" data-off="img/L508-off.jpg" src="img/L508-now.jpg" alt="Превью ссылки: Bolingbroke Penitentiary" loading="lazy"></figure>
+  <div class="mocks">
+    <div class="mock tg"><div class="screen">
+      <div class="bubble out"><a class="link">appshalamov.github.io/gta-cheats-demo/s/gta5/db-L508.html</a>
+        <div class="lp"><b class="site">Secret Base</b><b class="ttl">Bolingbroke Penitentiary = Antelope Valley State Prison · GTA 5 in real life · Secret Base</b><span class="desc">Bolingbroke Penitentiary (Grand Senora Desert) in GTA 5 is a real place: Antelope Valley State Prison, Lancaster, CA 93536, USA. Compare the game shot with real life.</span><img data-now="img/L508-now.jpg" data-off="img/L508-off.jpg" src="img/L508-now.jpg" alt="Превью ссылки: Bolingbroke Penitentiary" loading="lazy"></div>
+        <span class="time">12:41</span></div>
+    </div><p class="cap">Telegram, крупное превью</p></div>
+    <div class="mock tg"><div class="screen">
+      <div class="bubble out"><a class="link">appshalamov.github.io/gta-cheats-demo/s/gta5/db-L508.html</a>
+        <div class="lp small"><div class="txt"><b class="site">Secret Base</b><b class="ttl">Bolingbroke Penitentiary = Antelope Valley State Prison · GTA 5 in real life · Secret Base</b><span class="desc">Bolingbroke Penitentiary (Grand Senora Desert) in GTA 5 is a real place: Antelope Valley State Prison, Lancaster, CA 93536, USA. Compare the game shot with real life.</span></div><div class="thumb"><img data-now="img/L508-now.jpg" data-off="img/L508-off.jpg" src="img/L508-now.jpg" alt="Превью ссылки: Bolingbroke Penitentiary" loading="lazy"></div></div>
+        <span class="time">12:41</span></div>
+    </div><p class="cap">Telegram, миниатюра (квадрат из середины)</p></div>
+    <div class="mock im"><div class="screen">
+      <div class="rich"><img data-now="img/L508-now.jpg" data-off="img/L508-off.jpg" src="img/L508-now.jpg" alt="Превью ссылки: Bolingbroke Penitentiary" loading="lazy"><div class="meta"><b>Bolingbroke Penitentiary = Antelope Valley State Prison · GTA 5 in real life · Secret Base</b><span>appshalamov.github.io</span></div></div>
+      <span class="deliv">Доставлено</span>
+    </div><p class="cap">iMessage</p></div>
+  </div>
+</section>
+<section class="end">
+  <h2>Что нужно решить</h2>
+  <p>Подпись: оставляем такой, как на картинках выше, и я выкладываю её во все превью. Это затронет только картинки превью, само приложение не меняется.</p>
+  <p>Флаг сейчас остаётся включённым, пары gtadb работают как раньше. Перед подачей места вроде мэрии Комптона и аркады на пирсе стоит пройти глазами и подобрать фото, чтобы выключение флага не дало пустых сравнений.</p>
+</section>
+</main>
+<script>
+(function () {
+  var btns = document.querySelectorAll('.switch button');
+  function set(mode) {
+    btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === mode)); });
+    document.querySelectorAll('img[data-now]').forEach(function (im) {
+      var next = im.dataset[mode];
+      if (im.getAttribute('src') === next) return;
+      im.classList.add('swap');
+      setTimeout(function () { im.src = next; im.onload = function () { im.classList.remove('swap'); }; }, 120);
+    });
+    try { localStorage.setItem('og-mode', mode); } catch (e) {}
+  }
+  btns.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.mode); }); });
+  try { var m = localStorage.getItem('og-mode'); if (m === 'off') set('off'); } catch (e) {}
+})();
+</script>
+</body></html>

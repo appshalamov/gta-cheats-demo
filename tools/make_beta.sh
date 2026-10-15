@@ -5,7 +5,8 @@
 # Запуск из корня репозитория:  sh tools/make_beta.sh   (потом git add beta && коммит)
 set -e
 cd "$(dirname "$0")/.."
-rm -rf beta
+# страница-сравнение превью (beta/og-compare, 15.10.2026) живёт рядом с бетой и пересборкой не стирается
+find beta -mindepth 1 -maxdepth 1 ! -name og-compare -exec rm -rf {} + 2>/dev/null || true
 mkdir -p beta
 for f in index.html manifest.webmanifest sw.js; do cp "$f" beta/; done
 for d in css js icons vendor data; do rsync -a --exclude '._*' "$d/" "beta/$d/"; done
