@@ -1030,9 +1030,9 @@ function geo(kind) {
   const at = (c, props) => (c ? pt(c[0], c[1], props) : null);
   const est = (x) => (mode === 'game' && x.gm && x.gm[2] === 2 ? 1 : 0);   // место в игре оценено по соседним точкам
   if (kind === 'places') return fc((d?.places || []).map((p, i) => at(ll(p), { i, cf: p.cf, egg: (p.eggs || []).length ? 1 : 0, est: est(p), gc: p.gc || '' })).filter(Boolean));
-  if (kind === 'eggs') return fc((d?.eggs || []).map((e, i) => at(ll(e), { i, cf: e.cf, est: est(e) })).filter(Boolean));
+  if (kind === 'eggs') return fc((d?.eggs || []).map((e, i) => at(ll(e), { i, cf: e.cf, est: est(e), rk: e.rk || 'p' })).filter(Boolean));
   if (kind === 'gtadb') return fc(show.gtadb && gtadb[game] ? gtadb[game].points.map((p, i) => at(llPt(p), { i, gc: p[12] || '' })).filter(Boolean) : []);
-  if (kind === 'gl') { const lk = glData ? glLinks() : []; return fc(glShown() && glData ? glData.map((p, i) => (glOn.has(p.k) && !lk[i] ? pt(...G2M(p.x, p.y), { i, k: p.k, got: glGot.has(glId(p)) ? 1 : 0 }) : null)).filter(Boolean) : []); }
+  if (kind === 'gl') { const lk = glData ? glLinks() : []; return fc(glShown() && glData ? glData.map((p, i) => (glOn.has(p.k) && !lk[i] ? pt(...G2M(p.x, p.y), { i, k: p.k, got: glGot.has(glId(p)) ? 1 : 0, sec: GL[p.k].g === 'eggs' ? 1 : 0 }) : null)).filter(Boolean) : []); }
   if (kind === 'sel') {
     const p = selected != null && d?.places[selected];
     if (p) return fc([at(ll(p), {})].filter(Boolean));
@@ -1132,9 +1132,12 @@ function addGLLayer(z) {
   if (!glShown()) return;
   for (const k of Object.keys(GL)) if (!map.hasImage('gl-' + k)) map.addImage('gl-' + k, glImage(k), { pixelRatio: 2 });
   if (!map.getSource('gl')) map.addSource('gl', { type: 'geojson', data: geo('gl') });
-  if (!map.getLayer('gl')) map.addLayer({ id: 'gl', type: 'symbol', source: 'gl',
+  const glLay = (id, extra) => map.addLayer({ id, type: 'symbol', source: 'gl', ...extra,
     layout: { 'icon-image': ['concat', 'gl-', ['get', 'k']], 'icon-size': z(0.55, 0.95), 'icon-allow-overlap': true, 'icon-ignore-placement': true },
     paint: { 'icon-opacity': ['case', ['==', ['get', 'got'], 1], 0.35, 1] } });
+  // секреты видны всегда, коллекции — с приближения 4.8 (Игорь 15.10.2026: «будто перегруз»)
+  if (!map.getLayer('gl')) glLay('gl', LEGEND2 ? { filter: ['==', ['get', 'sec'], 1] } : {});
+  if (LEGEND2 && !map.getLayer('gl-col')) glLay('gl-col', { filter: ['!=', ['get', 'sec'], 1], minzoom: 4.8 });
   if (!glData) loadGL();
 }
 // Секрет слоя, у которого рядом (≤ 70 единиц игры ≈ 70 м) уже есть наша пасхалка, — одна точка и одна карточка, наша
@@ -1230,12 +1233,72 @@ function ensureBlips() {
 }
 const blipFor = (fallback) => ['match', ['get', 'gc'], 'w', 'blip-w', 'c', 'blip-c', 'h', 'blip-h', 's', 'blip-s', fallback];
 
+// ───── Обозначения v2 (бета; файл 23, решения Игоря 15.10.2026): цвет — вид точки, уверенность — заливкой (сплошной /
+// полупрозрачный / контур); знак пасхалки в углу у места, где она есть; отсылка к месту съёмок — тёплый квадрат с иконкой;
+// пасхалка без места — «?» только на карте игры; кластеры числом на мелком масштабе; коллекции в игре — только вблизи.
+const LEGEND2 = BETA;
+const TWIN = '#3ec7db', REFC = '#e6c39a';
+const fillBy = (est) => ['*', ['match', ['get', 'cf'], 'confirmed', 1, 'speculative', 0, 0.45], est ? ['case', ['==', ['get', 'est'], 1], 0.6, 1] : 1];
+function refImage() {   // отсылка: скруглённый квадрат 22 px с хлопушкой
+  const S = 56, c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d');
+  const r = (x, y, w, h, rad) => { g.beginPath(); g.moveTo(x + rad, y); g.arcTo(x + w, y, x + w, y + h, rad); g.arcTo(x + w, y + h, x, y + h, rad); g.arcTo(x, y + h, x, y, rad); g.arcTo(x, y, x + w, y, rad); g.closePath(); };
+  r(6, 6, 44, 44, 12); g.fillStyle = REFC; g.fill(); g.lineWidth = 3; g.strokeStyle = '#0b0e13'; g.stroke();
+  g.strokeStyle = '#2a2118'; g.lineWidth = 3; g.lineJoin = 'round'; g.strokeRect(16, 27, 24, 13);
+  g.fillStyle = '#2a2118'; g.beginPath(); g.moveTo(16, 27); g.lineTo(20, 19); g.lineTo(40, 19); g.lineTo(36, 27); g.closePath(); g.fill();
+  return g.getImageData(0, 0, S, S);
+}
+function qImage() {   // пасхалка без места в жизни — «?» (только карта игры)
+  const S = 56, c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d');
+  g.beginPath(); g.arc(S / 2, S / 2, 21, 0, Math.PI * 2); g.fillStyle = '#1b1f27'; g.fill(); g.lineWidth = 4; g.strokeStyle = COLORS.egg; g.stroke();
+  g.fillStyle = COLORS.egg; g.font = '800 28px -apple-system, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', S / 2, S / 2 + 2);
+  return g.getImageData(0, 0, S, S);
+}
+function addLegend2Layers(z, game_) {
+  if (!map.hasImage('ref-film')) map.addImage('ref-film', refImage(), { pixelRatio: 2 });
+  if (!map.hasImage('egg-q')) map.addImage('egg-q', qImage(), { pixelRatio: 2 });
+  const stroke = '#0b0e13';
+  const circ = (id, source, extra = {}) => map.addLayer({ id, type: 'circle', source, ...extra,
+    paint: { 'circle-radius': z(5, 10), 'circle-color': TWIN, 'circle-opacity': fillBy(game_),
+      'circle-stroke-width': ['match', ['get', 'cf'], 'confirmed', 1.6, 2.4], 'circle-stroke-color': ['match', ['get', 'cf'], 'confirmed', stroke, TWIN] } });
+  const badge = (id, source, filter, extra = {}) => map.addLayer({ id, type: 'circle', source, filter, ...extra,
+    paint: { 'circle-radius': z(2.6, 4.6), 'circle-color': COLORS.egg, 'circle-stroke-width': 1.3, 'circle-stroke-color': stroke,
+      'circle-translate': z(['literal', [4, -4]], ['literal', [8, -8]]) } });
+  if (!game_ && !map.getSource('places-cl')) {   // кластеры на мелком масштабе (только реальная карта)
+    map.addSource('places-cl', { type: 'geojson', data: geo('places'), cluster: true, clusterRadius: 26, clusterMaxZoom: 10 });
+    map.addLayer({ id: 'cl', type: 'circle', source: 'places-cl', maxzoom: 11, filter: ['has', 'point_count'],
+      paint: { 'circle-radius': ['step', ['get', 'point_count'], 13, 10, 16, 40, 20], 'circle-color': TWIN, 'circle-opacity': .92, 'circle-stroke-width': 2, 'circle-stroke-color': stroke } });
+    map.addLayer({ id: 'cl-n', type: 'symbol', source: 'places-cl', maxzoom: 11, filter: ['has', 'point_count'],
+      layout: { 'text-field': ['get', 'point_count_abbreviated'], 'text-font': ['Noto Sans Bold'], 'text-size': 12, 'text-allow-overlap': true }, paint: { 'text-color': '#0b0e13' } });
+    circ('cl-pt', 'places-cl', { maxzoom: 11, filter: ['!', ['has', 'point_count']] });
+    badge('cl-egg', 'places-cl', ['all', ['!', ['has', 'point_count']], ['==', ['get', 'egg'], 1]], { maxzoom: 11 });
+  }
+  if (!map.getLayer('places')) circ('places', 'places', game_ ? {} : { minzoom: 11 });
+  if (!map.getLayer('places-egg')) badge('places-egg', 'places', ['==', ['get', 'egg'], 1], game_ ? {} : { minzoom: 11 });
+  // пасхалки: с прообразом — круг места со знаком; отсылка — в жизни квадрат (z ≥ 11), в игре «?»
+  if (!map.getLayer('eggs')) circ('eggs', 'eggs', { filter: ['==', ['get', 'rk'], 'p'] });
+  if (!map.getLayer('eggs-b')) badge('eggs-b', 'eggs', ['==', ['get', 'rk'], 'p']);
+  if (!map.getLayer('eggs-ref')) map.addLayer({ id: 'eggs-ref', type: 'symbol', source: 'eggs', filter: ['!=', ['get', 'rk'], 'p'], minzoom: game_ ? 0 : 11,
+    layout: { 'icon-image': game_ ? 'egg-q' : 'ref-film', 'icon-size': z(0.6, 1), 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+}
+const PICK_ALIAS = { 'cl-pt': 'places', 'eggs-ref': 'eggs', 'gl-col': 'gl' };
 function addLayers() {
   const dark = themeKey() === 'dark';
   const stroke = dark ? '#0b0b0d' : '#ffffff';
   for (const k of ['gtadb', 'places', 'eggs', 'sel']) if (!map.getSource(k)) map.addSource(k, { type: 'geojson', data: geo(k) });
   const z = tilesGame() ? (a, b) => ['interpolate', ['linear'], ['zoom'], 2, a, 8, b] : (a, b) => ['interpolate', ['linear'], ['zoom'], 8, a, 15, b];
   if (mode === 'game') { addGameLayers(z); applyShow(); applyCat(); return; }
+  if (LEGEND2) {
+    if (!map.getLayer('gtadb')) map.addLayer({ id: 'gtadb', type: 'circle', source: 'gtadb', minzoom: 14,
+      paint: { 'circle-radius': z(2.5, 4.5), 'circle-color': COLORS.gtadb, 'circle-opacity': .9, 'circle-stroke-width': 1, 'circle-stroke-color': '#0b0e13' } });
+    addLegend2Layers(z, false);
+    if (!map.getLayer('sel')) map.addLayer({ id: 'sel', type: 'circle', source: 'sel',
+      paint: { 'circle-radius': z(11, 18), 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' } });
+    if (!map.getSource('me')) {
+      map.addSource('me', { type: 'geojson', data: meGeo() });
+      map.addLayer({ id: 'me', type: 'circle', source: 'me', paint: { 'circle-radius': 8, 'circle-color': '#3b82f6', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' } });
+    }
+    applyShow(); applyCat(); return;
+  }
   if (!map.getLayer('gtadb')) map.addLayer({ id: 'gtadb', type: 'circle', source: 'gtadb', minzoom: mode === 'game' ? 5 : 11.5,
     paint: { 'circle-radius': BETA ? z(['case', ['!=', ['get', 'gc'], ''], 4.5, 2.5], ['case', ['!=', ['get', 'gc'], ''], 9, 6]) : z(2.5, 6),
       'circle-color': BETA ? ['match', ['get', 'gc'], 'w', CATS.w.c, 'c', CATS.c.c, 'h', CATS.h.c, 's', CATS.s.c, COLORS.gtadb] : COLORS.gtadb,
@@ -1265,6 +1328,10 @@ function addGameLayers(z) {
     layout: { 'icon-image': icon, 'icon-size': size, 'icon-allow-overlap': true, 'icon-ignore-placement': true },
     paint: { 'icon-opacity': ['case', ['==', ['get', 'est'], 1], 0.6, 1] } });
   if (!map.getLayer('gtadb')) sym('gtadb', 'gtadb', blipFor('blip-dot'), z(['case', ['!=', ['get', 'gc'], ''], 0.55, 0.5], ['case', ['!=', ['get', 'gc'], ''], 0.95, 0.8]), { minzoom: tilesGame() ? 5 : 11.5 });
+  if (LEGEND2) { addLegend2Layers(z, true); addGLLayer(z);
+    if (!map.getLayer('sel')) map.addLayer({ id: 'sel', type: 'circle', source: 'sel',
+      paint: { 'circle-radius': z(11, 18), 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' } });
+    return; }
   if (!map.getLayer('places-glow')) map.addLayer({ id: 'places-glow', type: 'circle', source: 'places',
     paint: { 'circle-radius': z(9, 15), 'circle-color': '#000', 'circle-opacity': .28, 'circle-blur': .7 } });
   if (!map.getLayer('places')) sym('places', 'places', blipFor('blip-pt'), z(0.62, 1.05));
@@ -1293,20 +1360,21 @@ function applyCat() {
   const f = activeCat ? ['==', ['get', 'gc'], activeCat] : null;
   const glow = mode === 'game' ? null : ['==', ['get', 'cf'], 'confirmed'];
   for (const l of ['places', 'places-glow', 'places-egg', 'gtadb']) if (map.getLayer(l)) map.setFilter(l, l === 'places-glow' ? (f && glow ? ['all', glow, f] : f || glow) : l === 'places-egg' ? (f ? ['all', ['==', ['get', 'egg'], 1], f] : ['==', ['get', 'egg'], 1]) : f);
-  if (map.getLayer('gtadb')) map.setLayerZoomRange('gtadb', activeCat ? 0 : (tilesGame() ? 5 : 11.5), 24);
-  if (map.getLayer('eggs')) map.setLayoutProperty('eggs', 'visibility', activeCat ? 'none' : (show.eggs ? 'visible' : 'none'));
+  if (map.getLayer('gtadb')) map.setLayerZoomRange('gtadb', activeCat ? 0 : (tilesGame() ? 5 : LEGEND2 ? 14 : 11.5), 24);
+  for (const l of ['eggs', 'eggs-b', 'eggs-ref']) if (map.getLayer(l)) map.setLayoutProperty(l, 'visibility', activeCat ? 'none' : (show.eggs ? 'visible' : 'none'));
 }
 function refreshData() {
   for (const k of ['gtadb', 'places', 'eggs', 'sel']) map.getSource(k)?.setData(geo(k));
+  map.getSource('places-cl')?.setData(geo('places'));
 }
 function applyShow() {
   const vis = (on) => (on ? 'visible' : 'none');
   if (!map.getLayer('places')) return;
   map.setLayoutProperty('gtadb', 'visibility', vis(show.gtadb));
   map.setLayoutProperty('places', 'visibility', vis(show.places));
-  map.setLayoutProperty('places-glow', 'visibility', vis(show.places));
-  if (map.getLayer('places-egg')) map.setLayoutProperty('places-egg', 'visibility', vis(show.places));
-  map.setLayoutProperty('eggs', 'visibility', vis(show.eggs));
+  if (map.getLayer('places-glow')) map.setLayoutProperty('places-glow', 'visibility', vis(show.places));
+  for (const l of ['places-egg', 'cl', 'cl-n', 'cl-pt', 'cl-egg']) if (map.getLayer(l)) map.setLayoutProperty(l, 'visibility', vis(show.places));
+  for (const l of ['eggs', 'eggs-b', 'eggs-ref']) if (map.getLayer(l)) map.setLayoutProperty(l, 'visibility', vis(show.eggs));
 }
 
 function openPlace(i, fly, want) {
@@ -1398,8 +1466,14 @@ function cancelTap() { if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; 
 function pickAt(e) {
   if (!map) return;
   const r = 14, { x, y } = e.point;
-  const layers = ['eggs', 'places', 'gl', 'gtadb'].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, 'visibility') !== 'none');
-  const hits = map.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]], { layers });
+  const layers = ['eggs', 'eggs-ref', 'places', 'cl-pt', 'cl', 'gl', 'gl-col', 'gtadb'].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, 'visibility') !== 'none');
+  const raw = map.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]], { layers });
+  const clh = raw.find((h) => h.layer.id === 'cl');
+  if (clh) {   // кластер: приблизить, как в Google Maps
+    map.getSource('places-cl').getClusterExpansionZoom(clh.properties.cluster_id).then((zz) => map.easeTo({ center: clh.geometry.coordinates, zoom: Math.min(zz + 0.3, 12), duration: 500 })).catch(() => map.easeTo({ center: clh.geometry.coordinates, zoom: map.getZoom() + 2 }));
+    return;
+  }
+  const hits = raw.map((h) => ({ layer: { id: PICK_ALIAS[h.layer.id] || h.layer.id }, properties: h.properties, geometry: h.geometry }));
   if (!hits.length) {   // пустое место: шторка на ступень ниже — половина/весь экран → полоска → закрыть
     const s = SNAP_ON && ctx.sheetSnap?.();
     if (s === 'half' || s === 'full') ctx.setSnap('peek'); else if (s === 'peek') ctx.closeSheet();

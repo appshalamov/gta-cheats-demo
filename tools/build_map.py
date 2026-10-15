@@ -292,6 +292,18 @@ def pair_from_frame(game, places, eggs):
         print(f"  пары из кадра игры gtadb: {n}")
 
 
+REF_WORDS = re.compile(r"снима|съём|фильм|сериал|клип|песн|музык|певиц|певец|рэпер|актёр|актрис|знаменит|мем|"
+                       r"\bfilm|movie|\btv\b|series|episode|music|song|singer|rapper|actor|celebrit|meme|filming", re.I)
+
+
+def auto_rk(it):
+    """Вид точки «в жизни» для старых пасхалок без ручной отметки (файл 23, правило 1–3; спорные — потом в очередь):
+    в тексте про фильм/сериал/песню/знаменитость — отсылка (r), иначе прообраз места (p). Помечено как авто (rka)."""
+    txt = " ".join(str(it.get(k) or "") for k in ("title", "title_ru", "description", "description_ru", "real_place"))
+    it["_rk_auto"] = True
+    return "r" if REF_WORDS.search(txt) else "p"
+
+
 def manual(game, key, default):
     """Раздел ручных правок (данные/правки_вручную.json): egg_fix / egg_remove / gtadb_remove и т. п."""
     f = DATA / "правки_вручную.json"
@@ -578,7 +590,7 @@ def build(game, cfg):
             "lat": lat, "lon": lon, "cf": it.get("confidence", "likely"), "m": media(it), "src": src0(it),
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"), "gg": gal(it, game, "game_gallery", 4),
             "_gxy": it.get("game_xy"), "_ggid": it.get("game_gid"), "_pair": bool(it.get("pair_photos")),
-            "rk": {"prototype": "p", "reference": "r"}.get(it.get("real_kind"), ""),   # точка в жизни: прообраз места / только отсылка
+            "rk": {"prototype": "p", "reference": "r"}.get(it.get("real_kind"), "") or auto_rk(it),   # точка в жизни: прообраз / отсылка
         })
     if skipped:
         print(f"  пасхалки не в приложение: {len(skipped)} — " + ", ".join(skipped[:6]) + (" …" if len(skipped) > 6 else ""))
