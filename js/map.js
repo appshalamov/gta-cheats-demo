@@ -162,6 +162,8 @@ const W = {
   openGtaMap: { en: 'Open GTA map', ru: 'Открыть карту GTA', es: 'Abrir mapa de GTA', pt: 'Abrir mapa do GTA', fr: 'Ouvrir la carte GTA', de: 'GTA-Karte öffnen', it: 'Apri mappa GTA', tr: 'GTA haritasını aç', uk: 'Відкрити мапу GTA', pl: 'Otwórz mapę GTA', zh: '打开 GTA 地图', ja: 'GTAマップを開く', ko: 'GTA 지도 열기' },
   approxMap: { en: '≈ GTA 6 map inspired by Florida · exact map on release, Nov 19', ru: '≈ Карта GTA 6 по мотивам Флориды · точная — в день выхода, 19 ноября', es: '≈ Mapa de GTA 6 inspirado en Florida · el exacto, el 19 de noviembre', pt: '≈ Mapa do GTA 6 inspirado na Flórida · o exato em 19 de novembro', fr: '≈ Carte de GTA 6 inspirée de la Floride · la vraie le 19 novembre', de: '≈ GTA-6-Karte nach Florida · die genaue zum Release am 19. Nov.', it: '≈ Mappa di GTA 6 ispirata alla Florida · quella esatta il 19 novembre', tr: '≈ Florida esinli GTA 6 haritası · kesini 19 Kasım’da', uk: '≈ Мапа GTA 6 за мотивами Флориди · точна — 19 листопада', pl: '≈ Mapa GTA 6 na wzór Florydy · dokładna 19 listopada', zh: '≈ 以佛罗里达为原型的 GTA 6 地图 · 精确版 11月19日', ja: '≈ フロリダをもとにしたGTA 6マップ · 正確版は11月19日', ko: '≈ 플로리다 기반 GTA 6 지도 · 정확한 지도는 11월 19일' },
   glTitle: { en: 'Map layers', ru: 'Слои карты', es: 'Capas del mapa', pt: 'Camadas do mapa', fr: 'Calques', de: 'Kartenebenen', it: 'Livelli mappa', tr: 'Harita katmanları', uk: 'Шари мапи', pl: 'Warstwy mapy', zh: '地图图层', ja: 'マップレイヤー', ko: '지도 레이어' },
+  glColl: { en: 'Collections', ru: 'Коллекции', es: 'Colecciones', pt: 'Coleções', fr: 'Collections', de: 'Sammlungen', it: 'Collezioni', tr: 'Koleksiyonlar', uk: 'Колекції', pl: 'Kolekcje', zh: '收集品', ja: 'コレクション', ko: '수집품' },
+  glHideGot: { en: 'Hide collected', ru: 'Скрыть собранные', es: 'Ocultar recogidos', pt: 'Ocultar coletados', fr: 'Masquer les récupérés', de: 'Gesammelte ausblenden', it: 'Nascondi raccolti', tr: 'Toplananları gizle', uk: 'Сховати зібрані', pl: 'Ukryj zebrane', zh: '隐藏已收集', ja: '収集済みを隠す', ko: '수집한 것 숨기기' },
   legend: { en: 'Legend', ru: 'Обозначения', es: 'Leyenda', pt: 'Legenda', fr: 'Légende', de: 'Legende', it: 'Legenda', tr: 'Açıklama', uk: 'Позначення', pl: 'Legenda', zh: '图例', ja: '凡例', ko: '범례' },
   glReveal: { en: 'Tap to reveal the secret', ru: 'Нажми, чтобы раскрыть секрет', es: 'Toca para revelar el secreto', pt: 'Toque para revelar o segredo', fr: 'Touchez pour révéler le secret', de: 'Tippen, um das Geheimnis aufzudecken', it: 'Tocca per svelare il segreto', tr: 'Sırrı görmek için dokun', uk: 'Натисни, щоб розкрити секрет', pl: 'Dotknij, aby odkryć sekret', zh: '点击揭开秘密', ja: 'タップして秘密を見る', ko: '탭해서 비밀 보기' },
   glMark: { en: 'Mark as collected', ru: 'Отметить: собрано', es: 'Marcar como recogido', pt: 'Marcar como coletado', fr: 'Marquer comme récupéré', de: 'Als gesammelt markieren', it: 'Segna come raccolto', tr: 'Toplandı olarak işaretle', uk: 'Позначити: зібрано', pl: 'Oznacz jako zebrane', zh: '标记为已收集', ja: '収集済みにする', ko: '수집 완료로 표시' },
@@ -1033,7 +1035,7 @@ function geo(kind) {
   if (kind === 'places') return fc((d?.places || []).map((p, i) => at(ll(p), { i, cf: p.cf, egg: (p.eggs || []).length ? 1 : 0, est: est(p), gc: p.gc || '' })).filter(Boolean));
   if (kind === 'eggs') return fc((d?.eggs || []).map((e, i) => at(ll(e), { i, cf: e.cf, est: est(e), rk: e.rk || 'p' })).filter(Boolean));
   if (kind === 'gtadb') return fc(show.gtadb && gtadb[game] ? gtadb[game].points.map((p, i) => at(llPt(p), { i, gc: p[12] || '' })).filter(Boolean) : []);
-  if (kind === 'gl') { const lk = glData ? glLinks() : []; return fc(glShown() && glData ? glData.map((p, i) => (glOn.has(p.k) && !lk[i] ? pt(...G2M(p.x, p.y), { i, k: p.k, got: glGot.has(glId(p)) ? 1 : 0, sec: GL[p.k].g === 'eggs' ? 1 : 0 }) : null)).filter(Boolean) : []); }
+  if (kind === 'gl') { const lk = glData ? glLinks() : []; return fc(glShown() && glData ? glData.map((p, i) => (glOn.has(p.k) && !lk[i] && !(glHideGot && GL[p.k].g !== 'eggs' && glGot.has(glId(p))) ? pt(...G2M(p.x, p.y), { i, k: p.k, got: glGot.has(glId(p)) ? 1 : 0, sec: GL[p.k].g === 'eggs' ? 1 : 0 }) : null)).filter(Boolean) : []); }
   if (kind === 'sel') {
     const p = selected != null && d?.places[selected];
     if (p) return fc([at(ll(p), {})].filter(Boolean));
@@ -1104,6 +1106,9 @@ function loadSet(k, def) { try { const v = JSON.parse(localStorage.getItem(k)); 
 function saveSet(k, set) { try { localStorage.setItem(k, JSON.stringify([...set])); } catch { } }
 const glOn = loadSet('secret.gl.on', ['ufo', 'ghost', 'killer', 'monster', 'wreck', 'secret']);
 const glGot = loadSet('secret.gl.got', []);
+// «Скрыть собранные» — по умолчанию включено (файл 23, поправка аналитики 15.10.2026: иначе перегруз возвращается у тех, кто собирает)
+let glHideGot = (() => { try { return localStorage.getItem('secret.gl.hidegot') !== '0'; } catch { return true; } })();
+const glCollKeys = () => Object.keys(GL).filter((k) => GL[k].g !== 'eggs');
 const glId = (p) => `${p.k}-${p.n || p.key}-${Math.round(p.x)}_${Math.round(p.y)}`;
 const glShown = () => GL_ON && game === 'gta5' && tilesGame();
 function loadGL() {
@@ -1197,7 +1202,7 @@ function glSheet(i) {
 function glPanel() {
   const cnt = (k) => (glData || []).filter((q) => q.k === k).length;
   const gotN = (k) => (glData || []).filter((q) => q.k === k && glGot.has(glId(q))).length;
-  return `<h2 class="pick-t">${esc(w('glTitle'))}</h2>` + GL_GROUPS.map(([g, title]) => `<div class="gl-grp"><div class="gl-grp-h"><b>${esc(tr(title))}</b>
+  return `<h2 class="pick-t">${esc(w('glTitle'))}</h2>` + `<button class="gl-row${glHideGot ? ' on' : ''}" data-mp="gl-hidegot" aria-pressed="${glHideGot}"><span class="gl-ic">✓</span><span class="gl-row-t">${esc(w('glHideGot'))}</span><em>${glGot.size}</em><i class="gl-sw"></i></button>` + GL_GROUPS.map(([g, title]) => `<div class="gl-grp"><div class="gl-grp-h"><b>${esc(tr(title))}</b>
       <button data-mp="gl-all" data-v="${g}">${esc(w(Object.keys(GL).filter((k) => GL[k].g === g).every((k) => glOn.has(k)) ? 'glNone' : 'glAll'))}</button></div>
     ${Object.keys(GL).filter((k) => GL[k].g === g).map((k) => `<button class="gl-row${glOn.has(k) ? ' on' : ''}" data-mp="gl-toggle" data-v="${k}" aria-pressed="${glOn.has(k)}">
       <span class="gl-ic">${GL[k].ic}</span><span class="gl-row-t">${esc(tr(GL[k].t))}</span>
@@ -1540,7 +1545,10 @@ function dist(f, e) {
 function renderChips() {
   const d = data[game]; if (!d) return;
   const n = { places: d.places.length, eggs: d.eggs.length, gtadb: gtadb[game]?.points.length ?? '' };
-  document.getElementById('map-chips').innerHTML = (LEGEND2 ? `<button class="mchip mchip-lg" data-mp="legend">${esc(w('legend'))}</button>` : '') + (glShown() ? `<button class="mchip mchip-gl" data-mp="gl-panel">⚙️ ${esc(w('glTitle'))} <em>${glOn.size}</em></button>` : '') + [
+  const collN = glData ? glData.filter((p) => GL[p.k]?.g !== 'eggs').length : '';
+  const collOn = glCollKeys().some((k) => glOn.has(k));
+  document.getElementById('map-chips').innerHTML = (LEGEND2 ? `<button class="mchip mchip-lg" data-mp="legend">${esc(w('legend'))}</button>` : '')
+    + (LEGEND2 && glShown() ? `<button class="mchip${collOn ? ' on' : ''}" data-mp="gl-coll" style="--c:#ffd84d"><i></i>${esc(w('glColl'))}${collN !== '' ? ` <em>${collN}</em>` : ''}</button>` : '') + (glShown() ? `<button class="mchip mchip-gl" data-mp="gl-panel">⚙️ ${esc(w('glTitle'))} <em>${glOn.size}</em></button>` : '') + [
     ['places', t('map_places'), COLORS.confirmed], ['eggs', t('map_eggs'), COLORS.egg], ['gtadb', t('map_all'), COLORS.gtadb],
   ].map(([k, label, c]) => `<button class="mchip${show[k] ? ' on' : ''}" data-action="map-layer" data-v="${k}" style="--c:${c}"><i></i>${label}${n[k] !== '' ? ` <em>${n[k]}</em>` : ''}</button>`).join('')
     + (BETA ? Object.entries(CATS).map(([k, c]) => {
@@ -1598,6 +1606,16 @@ document.addEventListener('click', (e) => {
     map?.getSource('gl')?.setData(geo('gl'));
     const body = document.getElementById('sheet-body'); if (body) { const st = body.scrollTop; body.innerHTML = glPanel(); body.scrollTop = st; }
     renderChips();
+  }
+  else if (a === 'gl-hidegot') {
+    ctx?.haptic(); glHideGot = !glHideGot; try { localStorage.setItem('secret.gl.hidegot', glHideGot ? '1' : '0'); } catch { }
+    map?.getSource('gl')?.setData(geo('gl'));
+    const body = document.getElementById('sheet-body'); if (body) { const st = body.scrollTop; body.innerHTML = glPanel(); body.scrollTop = st; }
+  }
+  else if (a === 'gl-coll') {   // чип «Коллекции N» на карте игры: все виды предметов разом; выбор запоминается
+    ctx?.haptic(); const ks = glCollKeys(), on = !ks.some((k) => glOn.has(k));
+    ks.forEach((k) => (on ? glOn.add(k) : glOn.delete(k))); saveSet('secret.gl.on', glOn);
+    (glData ? Promise.resolve() : loadGL()).then(() => { map?.getSource('gl')?.setData(geo('gl')); renderChips(); });
   }
   else if (a === 'gl-got') {
     ctx?.haptic();
