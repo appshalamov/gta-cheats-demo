@@ -14,6 +14,7 @@
 Пары gtadb (снимки Street View) сюда не попадают никогда — фото из жизни только Commons.
 """
 import pathlib
+import re
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
@@ -72,33 +73,89 @@ def _fit(im, w, h):
     return im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.LANCZOS)
 
 
+def _who(cred):
+    """Автор и лицензия из подписи Commons «Автор · Лицензия · Wikimedia Commons» → ('Автор', 'CC BY 2.0')."""
+    parts = [" ".join(x.split()) for x in (cred or "").split(" · ")]
+    parts = [x for x in parts if x and x != "Wikimedia Commons"]
+    lic = next((x for x in parts if re.match(r"(CC|Public domain|GFDL)", x, re.I)), "")
+    who = next((x for x in parts if x != lic), "")
+    m = re.match(r"No machine-readable author provided\.\s*(.+?) assumed", who)
+    if m:
+        who = m.group(1)
+    if not who or "unknown author" in who.lower() or who.lower().startswith("автор не указан"):
+        who = "unknown author"
+    who = re.sub(r"^(фото|photo):\s*", "", who, flags=re.I)
+    return who, lic
+
+
 def _photo_credit(cred, cropped):
-    who = " ".join((cred or "").replace(" · Wikimedia Commons", "").replace(" · ", ", ").split()).strip(" ,")   # бывают переносы строк
-    return f"Photo: {who}{', cropped' if cropped else ''}, Wikimedia Commons" if who else ""
+    """«Photo: Автор (лицензия)»; кадрированное фото CC BY — с пометкой «cropped» (лицензия требует отметить изменения)."""
+    if not cred or "gtadb" in cred.lower():
+        return "Photo: gtadb.org contributors"
+    who, lic = _who(cred)
+    tail = ", ".join(x for x in (lic, "cropped" if cropped else "") if x)
+    return f"Photo: {who}" + (f" ({tail})" if tail else "")
+
+
+CREDIT = (196, 201, 211)   # светло-серая строка авторства
+LOGO_W = 190               # место под логотип справа; строка авторства его не задевает
+
+
+def _logo(c, d):
+    """Маленький логотип Secret Base справа на полосе: значок со скруглением и название."""
+    f = font(18)
+    x1 = W - 24
+    try:
+        ic = Image.open(ICON).convert("RGB").resize((26, 26), Image.LANCZOS)
+        m = Image.new("L", (26, 26), 0)
+        ImageDraw.Draw(m).rounded_rectangle((0, 0, 25, 25), radius=6, fill=255)
+        c.paste(ic, (x1 - 26, TOP + BAND // 2 - 13), m)
+        x1 -= 26 + 9
+    except Exception:
+        pass
+    d.text((x1, TOP + BAND // 2), "Secret Base", font=f, fill=MUTED, anchor="rm")
+
+
+def _credit_line(d, credits):
+    """Одна строка авторства 18–20 px по центру; не влезла — укорачиваем автора («Tony Hisgett from Birmingham» → «Tony
+    Hisgett», дальше многоточие), шрифт меньше 18 не делаем (Игорь 15.10: подпись нейтральная, но читаемая)."""
+    items = [x for x in credits if x]
+    if not items:
+        return
+    room = W - 2 * LOGO_W - 20
+    f = font(19, False)
+
+    def line(xs):
+        return " · ".join(xs)
+
+    txt = line(items)
+    if d.textlength(txt, font=f) > room:
+        f = font(18, False)
+    if d.textlength(line(items), font=f) > room:
+        items = [re.sub(r"Photo: (.+?) from [^(]+ \(", r"Photo: \1 (", x) for x in items]
+    while d.textlength(line(items), font=f) > room:
+        i = next((k for k, x in enumerate(items) if x.startswith("Photo: ")), None)
+        m = re.match(r"Photo: (.+?)( \(.*\))?$", items[i]) if i is not None else None
+        if not m or len(m.group(1)) <= 8:
+            break
+        items[i] = f"Photo: {m.group(1).rstrip('…')[:-2].rstrip()}…{m.group(2) or ''}"
+    d.text((W // 2, TOP + 71), line(items), font=f, fill=CREDIT, anchor="mm")
 
 
 def _band(c, left_label=None, right_label=None, center_label=None, credits=()):
-    """Нижняя полоса: логотип слева, подписи у центра, строка авторства ниже."""
+    """Нижняя тёмная полоса под снимками (не поверх фото): подписи «In game» / «Real life» у центра, под ними одна строка
+    авторства, логотип справа. Подписи и строка — в центральном квадрате 630×630 (миниатюры режут в квадрат)."""
     d = ImageDraw.Draw(c)
     d.rectangle((0, TOP, W, H), fill=BG)
-    try:
-        ic = Image.open(ICON).convert("RGBA").resize((30, 30), Image.LANCZOS)
-        c.paste(ic, (22, TOP + 14), ic)
-    except Exception:
-        pass
-    d.text((60, TOP + 29), "Secret Base", font=font(20), fill=MUTED, anchor="lm")
-    y = TOP + 30
+    _logo(c, d)
+    y = TOP + 31
     if left_label:
         d.text((W // 2 - 22, y), left_label, font=font(32), fill=CYAN, anchor="rm")
     if right_label:
         d.text((W // 2 + 22, y), right_label, font=font(32), fill=WHITE, anchor="lm")
     if center_label:
         d.text((W // 2, y), center_label, font=font(32), fill=WHITE, anchor="mm")
-    line = "     ".join(x for x in credits if x)
-    f = font(17, False)
-    while line and d.textlength(line, font=f) > W - 40 and f.size > 12:
-        f = font(f.size - 1, False)
-    d.text((W // 2, TOP + 70), line, font=f, fill=MUTED, anchor="mm")
+    _credit_line(d, credits)
 
 
 def _knob(c, x, y):
@@ -115,7 +172,7 @@ def _knob(c, x, y):
         d.line([(x + s * 8, y - 12), (x + s * 19, y), (x + s * 8, y + 12)], fill=(17, 17, 17), width=5, joint="curve")
 
 
-GAME_CREDIT = "Game frame © Rockstar Games"
+GAME_CREDIT = "Game © Rockstar Games"
 
 
 def render_pair(g, r, rcred="", centered=False):
@@ -131,8 +188,7 @@ def render_pair(g, r, rcred="", centered=False):
         c.paste(gi.crop((0, 0, W // 2, TOP)), (0, 0))
         c.paste(ri.crop((W // 2, 0, W, TOP)), (W // 2, 0))
     _knob(c, W // 2, TOP // 2)
-    rc = "Real photo: gtadb.org contributors" if (not rcred or "gtadb" in rcred) else "Photo: " + " ".join(rcred.replace(" · ", ", ").split())
-    _band(c, "In game", "Real life", credits=(GAME_CREDIT, rc))
+    _band(c, "In game", "Real life", credits=(GAME_CREDIT, _photo_credit(rcred, True)))
     return c, "pair"
 
 

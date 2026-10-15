@@ -202,7 +202,7 @@ def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=()):
     # в метке — и содержимое своих снимков (размер+время): заменили фото под тем же адресом — новая картинка и новый ?p=
     # (15.10.2026: люк LOST — фото заменили, а превью в Telegram оставалось старым)
     stamp = "|".join(_stamp(u) for u in [gurl, rurl] + [x for p in pairs for x in p[:2]])
-    sig = hashlib.sha1(f"v6|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}|{pk}|{stamp}".encode()).hexdigest()[:8]
+    sig = hashlib.sha1(f"v7|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}|{pk}|{stamp}".encode()).hexdigest()[:8]
     rel = f"og/{game}/{pid}.{sig}.jpg"
     fp = OUT / rel
     OG_MADE.add(fp)
@@ -259,7 +259,9 @@ def page(game, kind, x):
     ccred = (pr0["g"].get("credit", "") + " · " + pr0["r"].get("credit", "")) if pr0 else ""
     prs = tuple((absu(p["g"].get("url") or p["g"].get("file") or ""), absu(p["r"].get("url") or p["r"].get("file") or ""), p["r"].get("credit", ""), bool(p.get("own")))
                 for p in (x.get("pairs") or []) if p.get("g") and p.get("r"))[:3]
-    o_r, o_c = (REPL[x["id"]] if (x["id"] in REPL and "BY-SA" in (rcred or "") and not prs) else (rimg, rcred))
+    # замена BY-SA на свободное фото — если в превью не пойдёт пара; при выключенном og_gtadb_pairs пары gtadb не считаются
+    og_prs = prs if CFG.get("og_gtadb_pairs", True) else tuple(p for p in prs if not p[1].startswith(GTADB_RAW))
+    o_r, o_c = (REPL[x["id"]] if (x["id"] in REPL and "BY-SA" in (rcred or "") and not og_prs) else (rimg, rcred))
     og = og_card(game, fid, gimg if kind == "db" else og_game_img(x), o_r, o_c, name_g or name_r, f"{name_r}" if name_g else "", prs)
     og_abs = f"{SITE}s/{og}" if og else gimg
     title = f"{name_g} = {name_r}" if name_g and name_r else (name_g or name_r)
