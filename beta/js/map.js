@@ -1642,7 +1642,7 @@ document.addEventListener('click', (e) => {
   }
   else if (a === 'ingame' || a === 'inreal') { ctx?.haptic(); showOnMap(a === 'ingame' ? 'game' : 'real', el.dataset.k, +el.dataset.i); }
   else if (a === 'yt') { ctx?.haptic(); openVideo(el.dataset.v, +el.dataset.t || 0, el.dataset.l || ''); }
-  else if (a === 'game') { ctx?.haptic(); userGame = el.dataset.v; setGame(el.dataset.v); }
+  else if (a === 'game') { ctx?.haptic(); userGame = el.dataset.v; if (el.dataset.v !== game) { selected = null; selectedD = null; ctx?.closeSheet?.(); } setGame(el.dataset.v); }   // карточка другой игры не остаётся поверх карты (15.10, к съёмке демок)
 });
 addEventListener('keydown', (e) => {
   if (!viewer) return;
