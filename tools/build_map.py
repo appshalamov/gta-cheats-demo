@@ -68,6 +68,22 @@ def parse_view(v):
 REGION = {"gta5": (32.3, -124.6, 42.1, -114.0), "gta6": (24.3, -87.8, 31.1, -79.8)}   # Калифорния / Флорида
 
 
+def egg_place_gate(game, eggs, pts):
+    """Точка «в жизни» у пасхалки — реальный прообраз места в игре (Игорь 15.10.2026: «Sharkies Bites стоит на пирсе,
+    а точка — где снимали "Челюсти", это ошибка»). Если у пасхалки своя точка gtadb с реальным адресом, а пасхалка стоит
+    дальше 3 км от него — стоп. Место съёмок/отсылки — только в тексте."""
+    real = {q[0]: (q[4], q[5]) for q in pts if q[4] is not None}
+    bad = []
+    for e in eggs:
+        gid = e.get("_ggid") or ((e.get("gm") or [])[3] if len(e.get("gm") or []) > 3 else None)
+        if gid in real:
+            la, lo = real[gid]
+            if meters((e["lat"], e["lon"]), (la, lo)) > 3000:
+                bad.append(f"{e['id']}: {meters((e['lat'], e['lon']), (la, lo)) / 1000:.0f} км от прообраза {gid}")
+    if bad:
+        raise SystemExit(f"СТОП {game}: пасхалка стоит не у прообраза своего места в игре (место съёмок — только в тексте):\n  " + "\n  ".join(bad))
+
+
 def region_gate(game, places, eggs, gtadb_pts=None):
     """Стоп-кран: точка вне региона игры (испорченная широта и т. п.) в приложение не попадает.
     Законные исключения (отсылки к роликам из других штатов) — список «вне_региона» в данные/правки_вручную.json."""
@@ -606,6 +622,7 @@ def build(game, cfg):
         if pr:
             e["pairs"] = pr
     region_gate(game, places, eggs, pts)
+    egg_place_gate(game, eggs + [e for pl in places for e in pl.get("eggs", [])], pts)
     attach_approx(game, places, eggs)
     eggs, pts, rep_ = dedupe(places, eggs, pts)
     attach_commons(game, places, eggs)   # после слияния дублей: галерея не должна менять, какое место остаётся

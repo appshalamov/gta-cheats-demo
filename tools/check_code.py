@@ -45,6 +45,13 @@ if share_bad:
         print("  ✗", b)
     sys.exit(1)
 pages = [p for p in (ROOT / "s").glob("*/*.html") if not p.name.startswith(("._", "db-"))]
+# 6. Ползунок на страницах «поделиться» — на событиях касания с passive:false (15.10.2026: на iPhone не тянулся — pointercancel)
+_pg = next((p for p in (ROOT / "s" / "gta5").glob("*.html") if not p.name.startswith("._") and 'class="cmp' in p.read_text("utf-8")), None)
+if _pg is not None:
+    _t = _pg.read_text("utf-8")
+    if "addEventListener('touchmove'" not in _t or "passive:false" not in _t.replace(" ", "") or "addEventListener('pointercancel'" in _t:
+        print(f"СТОП: ползунок страницы «поделиться» ({_pg.name}) не на событиях касания — на iPhone не будет тянуться")
+        sys.exit(1)
 # 5. Вёрстка страниц «поделиться»: ползунок — на всю ширину, не в сетке .pics (15.10.2026: сломались 1606 страниц)
 lay_bad = [p.name for p in (ROOT / "s").glob("*/*.html") if not p.name.startswith("._") and 'class="pics"><div class="cmp' in p.read_text("utf-8")]
 if lay_bad:

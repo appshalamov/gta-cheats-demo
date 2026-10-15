@@ -130,6 +130,15 @@ def prefetch_gtadb(urls):
     print(f"снимки gtadb для превью: скачано {ok} из {len(todo)}")
 
 
+def _src_safe(u):
+    """Как _src, но недоступный снимок (404, сеть) не роняет сборку — превью соберётся без него (15.10.2026)."""
+    try:
+        return _src(u)
+    except Exception as ex:
+        print(f"  ! снимок недоступен ({str(ex)[:40]}): {u[:90]}")
+        return None
+
+
 def _src(u):
     """Картинка по адресу: свой файл приложения, своя копия хостинга кадров или (на крайний случай) скачать."""
     if u.startswith(SITE):
@@ -167,6 +176,18 @@ if _RF.exists():
 WEAK_FRAME = 1500   # og_render.quality: меньше — кадр в превью не ставим (GTA 6: 68 точек gtadb; Вашингтон-Бич — 411)
 
 
+def _stamp(u):
+    """Отпечаток своего файла (размер и время) — чтобы замена фото под тем же адресом меняла метку превью."""
+    if not u:
+        return ""
+    p = ROOT / u[len(SITE):] if u.startswith(SITE) else (ASSETS_LOCAL / u[len(ASSETS):] if u.startswith(ASSETS) else None)
+    try:
+        st = p.stat() if p else None
+        return f"{st.st_size}-{int(st.st_mtime)}" if st else ""
+    except OSError:
+        return ""
+
+
 def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=()):
     """Превью 1200×630 «игра | жизнь» → путь от s/ или ''. Как рисуется — tools/og_render.py.
     Первым — пара с одного ракурса (как ползунок в приложении), если кадр игры в ней не мутный."""
@@ -178,7 +199,10 @@ def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=()):
     if not CFG.get("og_gtadb_pairs", True):
         pairs = tuple(p for p in pairs if not p[1].startswith(GTADB_RAW))
     pk = "|".join(f"{p[0]}>{p[1]}" for p in pairs) if gf else ""
-    sig = hashlib.sha1(f"v6|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}|{pk}".encode()).hexdigest()[:8]
+    # в метке — и содержимое своих снимков (размер+время): заменили фото под тем же адресом — новая картинка и новый ?p=
+    # (15.10.2026: люк LOST — фото заменили, а превью в Telegram оставалось старым)
+    stamp = "|".join(_stamp(u) for u in [gurl, rurl] + [x for p in pairs for x in p[:2]])
+    sig = hashlib.sha1(f"v6|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}|{pk}|{stamp}".encode()).hexdigest()[:8]
     rel = f"og/{game}/{pid}.{sig}.jpg"
     fp = OUT / rel
     OG_MADE.add(fp)
@@ -187,7 +211,7 @@ def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=()):
     if gf:
         for pg_u, pr_u, pr_c, own in pairs:
             try:
-                pg_im, pr_im = _src(pg_u), _src(pr_u)
+                pg_im, pr_im = _src_safe(pg_u), _src_safe(pr_u)
             except Exception:
                 continue
             if pg_im is None or pr_im is None or og_render.quality(pg_im) < WEAK_FRAME:
@@ -196,10 +220,10 @@ def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=()):
             fp.parent.mkdir(parents=True, exist_ok=True)
             im.save(fp, "JPEG", quality=74, optimize=True, progressive=True, subsampling=2)
             return rel
-    g = _src(gurl) if (gurl and gf) else None
+    g = _src_safe(gurl) if (gurl and gf) else None
     if g is not None and og_render.quality(g) < WEAK_FRAME:   # мутная вырезка из трейлера — не позорим превью (Игорь 15.10)
         g = None
-    r = _src(rurl) if rurl else None
+    r = _src_safe(rurl) if rurl else None
     im, _ = og_render.render(g, r, rcred, title, sub, game_frame=gf)
     fp.parent.mkdir(parents=True, exist_ok=True)
     im.save(fp, "JPEG", quality=74, optimize=True, progressive=True, subsampling=2)
@@ -305,12 +329,17 @@ background:linear-gradient(90deg,#22c3d9,#7ee0ff)}}.sub{{display:block;text-alig
 document.documentElement.lang=ru?'ru':'en';document.querySelectorAll('[data-ru]').forEach(n=>{{const v=n.dataset[ru?'ru':'en'];if(v)n.textContent=v;}});
 const c=document.querySelector('.cmp');if(!c)return;
 // оба снимка проявляются вместе (не «сначала игра, потом жизнь»), но не дольше 2,5 с ожидания
-Promise.race([Promise.all([...c.querySelectorAll('img')].map(i=>i.complete?0:new Promise(o=>{{i.onload=i.onerror=o;}}))),new Promise(o=>setTimeout(o,2500))]).then(()=>c.classList.remove('ld'));let drag=false,x0=0,y0=0,dir=null,a=0;
+Promise.race([Promise.all([...c.querySelectorAll('img')].map(i=>i.complete?0:new Promise(o=>{{i.onload=i.onerror=o;}}))),new Promise(o=>setTimeout(o,2500))]).then(()=>c.classList.remove('ld'));let drag=false,a=0,tx=0,ty=0,h=null,moved=false;
 const set=(cx)=>{{const b=c.getBoundingClientRect();const v=Math.max(0,Math.min(100,(cx-b.left)/b.width*100));c.style.setProperty('--x',v+'%');c.setAttribute('aria-valuenow',Math.round(v));}};
-c.addEventListener('pointerdown',e=>{{clearInterval(a);drag=true;dir=e.pointerType==='touch'?null:'h';x0=e.clientX;y0=e.clientY;if(dir)set(e.clientX);}});
-addEventListener('pointermove',e=>{{if(!drag)return;if(!dir){{const dx=Math.abs(e.clientX-x0),dy=Math.abs(e.clientY-y0);if(dx+dy<6)return;dir=dx>=dy*.7?'h':'v';if(dir==='v'){{drag=false;return;}}}}set(e.clientX);}});
-addEventListener('pointerup',()=>{{drag=false;}});addEventListener('pointercancel',()=>{{drag=false;}});
-c.addEventListener('touchmove',e=>{{if(dir==='h'&&e.cancelable)e.preventDefault();}},{{passive:false}});
+// палец (iPhone, Telegram): события касания, а не указателя — при малейшем движении вверх-вниз iOS начинает прокрутку и шлёт
+// pointercancel, ползунок «не работает» (15.10.2026, Игорь). Направление решаем на первом движении: вбок — гасим прокрутку
+// на весь жест и двигаем ползунок; вверх-вниз — обычная прокрутка страницы. Как в приложении (map.js, CMP_H_BIAS).
+c.addEventListener('touchstart',e=>{{clearInterval(a);const t=e.touches[0];tx=t.clientX;ty=t.clientY;h=null;moved=false;}},{{passive:true}});
+c.addEventListener('touchmove',e=>{{const t=e.touches[0];if(h===null){{const dx=Math.abs(t.clientX-tx),dy=Math.abs(t.clientY-ty);if(dx+dy<4)return;h=dx>=dy*.7;}}if(h){{if(e.cancelable)e.preventDefault();moved=true;set(t.clientX);}}}},{{passive:false}});
+c.addEventListener('touchend',e=>{{if(!moved&&h===null&&e.changedTouches[0])set(e.changedTouches[0].clientX);h=null;}},{{passive:true}});
+// мышь (компьютер)
+c.addEventListener('mousedown',e=>{{clearInterval(a);drag=true;set(e.clientX);e.preventDefault();}});
+addEventListener('mousemove',e=>{{if(drag)set(e.clientX);}});addEventListener('mouseup',()=>{{drag=false;}});
 // подсказка движением: ползунок сам качнётся, чтобы было понятно, что его можно тянуть
 setTimeout(()=>{{if(drag)return;let t=0;a=setInterval(()=>{{t+=1;c.style.setProperty('--x',(50+22*Math.sin(t/6))+'%');if(t>=38){{clearInterval(a);c.style.setProperty('--x','50%');}}}},16);}},700);
 }})();</script>
