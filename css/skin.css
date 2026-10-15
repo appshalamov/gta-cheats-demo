@@ -1,0 +1,70 @@
+/* Смена игры — слой #skin-cover (js/skin.js). Экран 4 этапа 2: размытие → табло города → вид города → вспышка.
+   Слой — absolute внутри body высотой --app-h, как остальные оверлеи (WebKit 301994, новых fixed нет).
+   Двигаются только transform / opacity / filter; will-change — только пока идёт смена (html.skin-switching).
+   Метки времени от тапа: табло 120–900 мс, полёт 300–1800, смена скина под слоем 860, вспышка 1720, слой гаснет 1880–2200. */
+#skin-cover { position: absolute; left: 0; right: 0; top: 0; height: var(--app-h, 100dvh); z-index: var(--z-skin-switch);
+  overflow: hidden; contain: strict; pointer-events: auto; color: var(--on-photo); font-family: var(--font-ui);
+  -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; cursor: pointer; }
+#skin-cover[hidden] { display: none; }
+/* сам слой не прозрачный, пока идёт смена: прозрачность предка выключила бы размытие у .sc-frost (backdrop root) —
+   поэтому в слой входят дети, каждый своим растворением; гаснет слой целиком, когда под ним уже фото */
+#skin-cover.run.out { opacity: 0; transition: opacity var(--sc-out, 320ms) ease-in; }
+.sc-frost, .sc-shade, .sc-skip { opacity: 0; }
+.run .sc-frost, .run .sc-shade, .run .sc-skip { animation: sc-fade 200ms var(--e-out) forwards; }
+@keyframes sc-fade { to { opacity: 1; } }
+
+/* 1. размытие: старый экран под толстым стеклом */
+.sc-frost { position: absolute; inset: 0; background: var(--scrim); backdrop-filter: var(--glass-thick-filter); -webkit-backdrop-filter: var(--glass-thick-filter); }
+
+/* 2. вид города: без фото — подложка цвета эпохи, с фото — «вид» этапа 5 */
+.sc-air { position: absolute; inset: -6%; opacity: 0; transform: scale(1.55) rotate(-4deg); filter: blur(12px);
+  background: radial-gradient(120% 80% at 50% 38%, color-mix(in srgb, var(--sc-acc) 34%, var(--glass-thick-bg)), var(--glass-thick-bg) 72%); }
+.sc-air picture, .sc-air img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sc-air img { object-fit: cover; object-position: 50% 50%; opacity: 0; transition: opacity 200ms; }
+.has-photo .sc-air img { opacity: 1; }
+.run .sc-air { animation: sc-fly 1500ms cubic-bezier(.25,.8,.25,1) 300ms forwards; }
+.skin-switching .sc-air { will-change: transform, opacity, filter; }
+@keyframes sc-fly { 0% { opacity: 0; transform: scale(1.55) rotate(-4deg); filter: blur(12px) saturate(1.3); }
+  35% { opacity: 1; }
+  100% { opacity: 1; transform: scale(1.05) rotate(0); filter: blur(0) saturate(1.1); } }
+.sc-shade { position: absolute; inset: 0; background: radial-gradient(120% 70% at 50% 46%, rgba(0,0,0,.12), rgba(0,0,0,.55)); }
+
+/* 3. табло: город и год, рядом игра */
+.sc-board { position: absolute; left: 0; right: 0; top: 40%; display: grid; justify-items: center; gap: 10px; padding: 0 16px; }
+.sc-flap { display: flex; gap: 3px; perspective: 200px; }
+.sc-flap i { position: relative; display: grid; place-items: center; overflow: hidden; font-style: normal;
+  width: min(26px, calc((100vw - 32px) / var(--n, 8) - 3px)); height: 38px; border-radius: 6px;
+  font: 700 20px/1 var(--font-num); font-variant-numeric: tabular-nums;
+  background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge); box-shadow: var(--glass-thin-hi); }
+.sc-flap i::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0,0,0,.55); }
+.sc-year i { width: 23px; height: 31px; font-size: 16px; }
+.sc-flap i.f1 { animation: sc-flip1 80ms linear; }
+.sc-flap i.f2 { animation: sc-flip2 80ms linear; }
+@keyframes sc-flip1 { 50% { transform: rotateX(80deg); } }
+@keyframes sc-flip2 { 50% { transform: rotateX(80deg); } }
+.sc-game { font: var(--t-label); letter-spacing: var(--t-label-track); opacity: .9; margin-top: 2px; }
+.sc-load { width: 170px; height: 3px; border-radius: 2px; overflow: hidden; background: rgba(255,255,255,.2); margin-top: 4px; }
+.sc-load i { display: block; height: 100%; background: var(--sc-acc); transform: scaleX(0); transform-origin: 0 50%; }
+.run .sc-load i { animation: sc-load 1500ms cubic-bezier(.4,0,.2,1) 300ms forwards; }
+@keyframes sc-load { to { transform: scaleX(1); } }
+.sc-board { opacity: 0; transform: translateY(8px); }
+.run .sc-board { animation: sc-in 260ms var(--e-out) 100ms forwards; }
+@keyframes sc-in { to { opacity: 1; transform: none; } }
+
+/* 4. вспышка */
+.sc-flash { position: absolute; inset: 0; background: var(--on-photo); opacity: 0; }
+.run .sc-flash { animation: sc-flash 320ms ease-out 1720ms; }
+@keyframes sc-flash { 25% { opacity: .8; } }
+
+.sc-skip { position: absolute; right: 20px; bottom: calc(var(--safe-b, 0px) + 96px); font: var(--t-caption); letter-spacing: var(--t-caption-track); color: var(--text-glass-2); }
+:root[data-theme="light"] .sc-skip { color: var(--on-photo); }
+
+/* меньше движения: растворение через фон 100 + 100 мс, без фото, табло и вспышки */
+#skin-cover.sc-reduce { background: var(--bg); opacity: 0; }
+#skin-cover.sc-reduce.run { opacity: 1; transition: opacity 100ms ease-out; }
+#skin-cover.sc-reduce.run.out { opacity: 0; transition: opacity var(--sc-out, 100ms) ease-in; }
+.sc-reduce > * { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  #skin-cover.sc-reduce.run { transition: opacity 100ms ease-out !important; }
+  #skin-cover.run.out, #skin-cover.sc-reduce.run.out { transition: opacity var(--sc-out, 100ms) ease-in !important; }
+}

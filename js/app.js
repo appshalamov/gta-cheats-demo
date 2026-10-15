@@ -5,6 +5,7 @@
 import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO } from './config.js';
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
 import { I, platformIcon, comboHTML, btn } from './icons.js';
+import { SKINS, switchTo } from './skin.js';
 import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, searchPlaces, titleOf, realOf, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
 // ───────── хранилище ─────────
@@ -18,7 +19,7 @@ const store = (() => {
 function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch { } }
 
 // ───────── состояние экрана ─────────
-const ui = { prevTab: 'home', tab: 'home', cat: DEFAULT_CATEGORY, query: '', obStep: 'game', obGame: null, obPlatform: null, stopPlay: null };
+const ui = { mapGame: null, mapPrefer: null, prevTab: 'home', tab: 'home', cat: DEFAULT_CATEGORY, query: '', obStep: 'game', obGame: null, obPlatform: null, stopPlay: null };
 const data = {}; // gameId -> {cheats, ...}
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -126,10 +127,12 @@ function applyTheme() {
   const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
   if (bg) document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', bg));
 }
-// скин по выбранной игре: акцент и картинки из tokens.css [data-skin]
-const SKINS = { gta6: 'gta6', gta5: 'gta5', gta4: 'gta4', gtasa: 'sa' };
-// gid — на время онбординга: до выбора игры скин GTA 6 (главная в рекламе), после — выбранной игры
-function applySkin(gid = store.game) {
+// скин по игре на экране: акцент и картинки из tokens.css [data-skin]. На карте — игра карты (её можно сменить
+// вкладкой на самой карте, не меняя игру приложения), на остальных экранах — выбранная игра.
+// gid — на время онбординга: до выбора игры скин GTA 6 (главная в рекламе), после — выбранной игры.
+// Смена игры пользователем идёт с анимацией через changeGame() → skin.switchTo(); здесь — без анимации.
+const skinGame = () => (ui.tab === 'map' && ui.mapGame) || store.game;
+function applySkin(gid = skinGame()) {
   const sk = SKINS[gid];
   if (sk) document.documentElement.dataset.skin = sk; else delete document.documentElement.dataset.skin;
 }
@@ -368,6 +371,8 @@ function moveInk() {
 // Карта открывается одним общим обещанием: два одновременных open() создавали карту дважды.
 let mapOpening = null;
 function openMap(preferGame = store.game) {
+  // та же логика, что в map.js open(): игра из настроек приложения переключает карту, если её там поменяли
+  if (preferGame !== ui.mapPrefer) { ui.mapPrefer = preferGame; ui.mapGame = preferGame; applySkin(); }
   if (!mapOpening) mapOpening = mapMod().then((m) => m.open(mapCtx(), preferGame).then(() => m)).catch((e) => { mapOpening = null; toast('Map error'); throw e; });
   else mapOpening.then((m) => m.open(mapCtx(), preferGame)).catch(() => { });
   return mapOpening;
@@ -378,6 +383,7 @@ async function openOnMap(key) {
   closeSheet();
   if (!mapOpening) openMap(g);
   ui.tab = 'map'; renderAll();
+  ui.mapGame = g; applySkin();   // карта откроет место в его игре (focus) — скин за ней
   try {
     const m = await mapOpening;
     if (m.focus) await m.focus(g, kind, id);
@@ -985,6 +991,22 @@ function refreshFavUI() {
 }
 function refreshPlaceHearts() { document.querySelectorAll('[data-action=fav-place]').forEach((b) => { const on = isFavPlace(b.dataset.key); b.classList.toggle('on', on); b.innerHTML = on ? I.heartFill : I.heart; }); }
 
+// смена игры приложения (Главная, Настройки): данные грузятся сразу, экран перерисовывается под слоем анимации
+function changeGame(v, fromSheet = false) {
+  store.game = v;
+  const g = game(); if (!g.platforms.includes(store.platform)) store.platform = g.platforms[0];
+  save();
+  switchTo(v, { prepare: () => loadGame(v), apply: () => { if (fromSheet) closeSheet(); renderAll(); }, haptic });
+}
+// бета: игру на карте меняет сама карта (data-mp="game", map.js) — слой смены идёт поверх, скин за картой
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-mp="game"]');
+  const v = el?.dataset.v;
+  if (!v || v === ui.mapGame || ui.tab !== 'map') return;
+  ui.mapGame = v;
+  switchTo(v, { haptic });
+}, true);
+
 document.addEventListener('click', async (e) => {
   const el = e.target.closest('[data-action]');
   if (!el) return;
@@ -1019,9 +1041,8 @@ document.addEventListener('click', async (e) => {
     case 'plat': case 'pick-platform': haptic(); openPickPlatform(); break;
     case 'pick-game': haptic(); openPickGame(); break;
     case 'set-game': {
-      haptic(); store.game = v;
-      const g = game(); if (!g.platforms.includes(store.platform)) store.platform = g.platforms[0];
-      save(); await loadGame(v); closeSheet(); renderAll(); break;
+      if (v === store.game) { closeSheet(); break; }   // та же игра — без анимации
+      haptic(); changeGame(v, true); break;
     }
     case 'set-platform': haptic(); store.platform = v; save(); closeSheet(); renderAll(); break;
     case 'sheet-close': closeSheet(); break;
@@ -1029,9 +1050,7 @@ document.addEventListener('click', async (e) => {
     case 'back-home': haptic(); ui.tab = 'home'; renderAll(); break;
     case 'hub-game': {
       if (v === store.game) break;
-      haptic(); store.game = v;
-      const g2 = game(); if (!g2.platforms.includes(store.platform)) store.platform = g2.platforms[0];
-      save(); await loadGame(v); renderAll(); break;
+      haptic(); changeGame(v); break;
     }
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
     case 'fav-place': {
@@ -1047,7 +1066,13 @@ document.addEventListener('click', async (e) => {
     case 'recent-clear': store.recent = []; save(); renderSearch(); break;
     case 'fav-filter': haptic(); ui.favFilter = v; renderFavs(); break;
     case 'map-layer': haptic(); (await mapMod()).toggle(v); break;
-    case 'map-game': haptic(); (await mapMod()).setGame(v); break;
+    case 'map-game': {
+      // игра карты (не приложения): анимация смены, под слоем — один setGame, карту заново не создаём
+      if (el.classList.contains('on') || v === ui.mapGame) break;
+      haptic(); ui.mapGame = v;
+      switchTo(v, { prepare: mapMod, apply: () => mapMod().then((m) => m.setGame(v)).catch(() => toast('Map error')), haptic });   // слой — в том же кадре, что и тап
+      break;
+    }
     case 'map-locate': haptic(); (await mapMod()).locate(); break;
     case 'map-fit': haptic(); (await mapMod()).refit(); break;
     case 'hint': ui.query = el.dataset.q; $('#search-input').value = ui.query; renderSearch(); break;
