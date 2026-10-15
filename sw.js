@@ -1,7 +1,7 @@
 // Офлайн-кэш. Оболочка — из кэша (быстро), данные data/*.json — сначала из сети,
 // чтобы новые коды (например, GTA 6 после релиза) появлялись без обновления приложения.
 // При изменении файлов оболочки поднимите VERSION.
-const VERSION = 'v70';
+const VERSION = 'v71';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css',
   'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/places.js',
@@ -23,7 +23,7 @@ self.addEventListener('activate', (e) => {
 const PHOTOS = 'photos-v2', PHOTOS_MAX = 600;
 const isPhoto = (u) => /\.(jpe?g|png|webp)$/i.test(u.pathname) && (
   (u.origin === location.origin && u.pathname.includes('/img/map/'))
-  || u.host === 'appshalamov.github.io' && u.pathname.startsWith('/gta-map-assets/map/photos/')
+  || u.host === 'appshalamov.github.io' && /^\/gta-map-assets\/(map\/photos|official)\//.test(u.pathname)   // official/ — чистые кадры GTA 6
   || u.host === 'raw.githubusercontent.com' && u.pathname.startsWith('/rolux/gtadb.org/')
   || u.host === 'upload.wikimedia.org');
 async function photo(req, ev) {
