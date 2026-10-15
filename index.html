@@ -45,18 +45,17 @@
 
     <!-- Главная: центр приложения -->
     <section class="view on" id="view-home">
-      <header class="hdr hub-hdr">
+      <header class="hdr hub-hdr" id="hub-hdr">
         <div class="hub-brand"><img class="lk-dark" src="icons/lockup-dark.svg" alt="Secret Base" width="830" height="182"><img class="lk-light" src="icons/lockup-light.svg" alt="" width="830" height="182"></div>
         <button class="plat-btn" id="plat-btn" data-action="plat" aria-label="platform"></button>
       </header>
-      <div class="scroll hub" id="home-body"></div>
+      <div class="scroll hub" id="home-body"><div class="hub-top" id="home-hero"></div><div class="hub-main" id="home-main"></div></div>
     </section>
 
     <!-- Все читы (открывается с Главной) -->
     <section class="view" id="view-cheats">
       <header class="hdr hdr-stack">
-        <button class="back-btn" data-action="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg><span data-t="tab_home">Главная</span></button>
-        <div class="hdr-row"><h1 id="home-title">GTA 5</h1><button class="plat-btn" id="plat-btn2" data-action="plat" aria-label="platform"></button></div>
+        <div class="hdr-row"><button class="back-btn" data-action="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg><span data-t="tab_home">Главная</span></button><h1 id="home-title">GTA 5</h1><button class="plat-btn" id="plat-btn2" data-action="plat" aria-label="platform"></button></div>
       </header>
       <div id="home-banner"></div>
       <nav class="segs" id="segs"></nav>

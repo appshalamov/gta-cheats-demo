@@ -29,6 +29,7 @@ export const I = {
   fit: s('<path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/>'),
   back: s('<path d="m15 6-6 6 6 6"/>'),
   sparkle: s('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>'),
+  voice: s('<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>'),
   map: s('<path d="M9 4 3.6 6.2a1 1 0 0 0-.6.9V19.5a.5.5 0 0 0 .7.5L9 18l6 2 5.4-2.2a1 1 0 0 0 .6-.9V4.5a.5.5 0 0 0-.7-.5L15 6z"/><path d="M9 4v14M15 6v14"/>'),
   egg: s('<path d="M12 3c3.6 0 6.5 5.4 6.5 10.2A6.5 6.5 0 0 1 12 21a6.5 6.5 0 0 1-6.5-7.8C5.5 8.4 8.4 3 12 3z"/><path d="M8.5 12.5l2 1.5 1.5-1.5 1.5 1.5 2-1.5"/>'),
   // Категории кодов (Мир, Игрок, Оружие, Транспорт) — сетка 24, линия 2, currentColor
@@ -59,13 +60,15 @@ export const I = {
 export const platformIcon = (id) => I[{ playstation: 'ps', xbox: 'xbox', pc: 'pc', phone: 'phone' }[id]] || I.gamepad;
 
 // ─── Кнопки геймпада ───
+// Решение 14.10: PS5 — светлые знаки как на DualSense (один цвет --pad-ps), Xbox — буквы A B X Y в своих цветах (--pad-xb-*).
+// Знаки — currentColor: при озвучке текущая кнопка перекрашивается в цвет на акценте.
 const PS_FACE = {
-  O: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="#FF5A5F" stroke-width="2.4"/></svg>',
-  X: '<svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="#7C9CFF" stroke-width="2.4" stroke-linecap="round"/></svg>',
-  T: '<svg viewBox="0 0 24 24"><path d="M12 5.2 19.2 18H4.8z" fill="none" stroke="#3DDC97" stroke-width="2.3" stroke-linejoin="round"/></svg>',
-  S: '<svg viewBox="0 0 24 24"><rect x="5.5" y="5.5" width="13" height="13" rx="1.5" fill="none" stroke="#F472B6" stroke-width="2.3"/></svg>',
+  O: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>',
+  X: '<svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  T: '<svg viewBox="0 0 24 24"><path d="M12 5.5l6.5 11.5h-13z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>',
+  S: '<svg viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>',
 };
-const XB_FACE = { A: '#3DDC97', B: '#FF5A5F', X: '#5AA9FF', Y: '#FACC15' };
+const XB_FACE = { A: 'k-xa', B: 'k-xb-b', X: 'k-xx', Y: 'k-xy' };
 const ARROW = {
   '←': 'M19 12H5m6-6-6 6 6 6', '→': 'M5 12h14m-6-6 6 6-6 6',
   '↑': 'M12 19V5m-6 6 6-6 6 6', '↓': 'M12 5v14m-6-6 6 6 6-6',
@@ -76,8 +79,8 @@ export function btn(token, platform) {
   if (ARROW[token]) {
     return { cls: 'k k-arrow', html: `<svg viewBox="0 0 24 24"><path d="${ARROW[token]}" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`, speak: token };
   }
-  if (platform === 'playstation' && PS_FACE[token]) return { cls: 'k k-face', html: PS_FACE[token], speak: token };
-  if (platform === 'xbox' && XB_FACE[token]) return { cls: 'k k-face k-xb', html: `<span style="color:${XB_FACE[token]}">${token}</span>`, speak: 'x' + token };
+  if (platform === 'playstation' && PS_FACE[token]) return { cls: 'k k-face k-ps', html: PS_FACE[token], speak: token };
+  if (platform === 'xbox' && XB_FACE[token]) return { cls: `k k-face k-xb ${XB_FACE[token]}`, html: `<span>${token}</span>`, speak: 'x' + token };
   return { cls: 'k k-text', html: token, speak: token };
 }
 

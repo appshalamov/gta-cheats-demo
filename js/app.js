@@ -2,10 +2,10 @@
 // Архитектура как у Cheats Pro: онбординг (игра → платформа) → пейвол →
 // 4 вкладки (Главная / Поиск / Избранное / Настройки) → шторка чита.
 
-import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL } from './config.js';
-import { t, L, setLang, getLang, SPEAK } from './i18n.js';
-import { I, platformIcon, comboHTML } from './icons.js';
-import { loadPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, searchPlaces, titleOf, realOf, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
+import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO } from './config.js';
+import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
+import { I, platformIcon, comboHTML, btn } from './icons.js';
+import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, searchPlaces, titleOf, realOf, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
 // ───────── хранилище ─────────
 const KEY = 'cheats.v1';
@@ -171,15 +171,15 @@ function badge(c) {
   return `<span class="badge badge-fc">${t('forecast')}</span>`;
 }
 
-function cardHTML(c) {
+function cardHTML(c, opt = {}) {
   const fav = store.favs.includes(c.id);
   const locked = isLocked(c);
+  // строка кода (решение 8): своя иконка категории, название, эффект одной строкой; без кадров игры
   return `<article class="card${locked ? ' is-locked' : ''}" data-action="open" data-id="${c.id}">
-    <div class="card-top">
-      <h3 class="card-title">${esc(L(c.name))}</h3>${badge(c)}
-      <button class="fav${fav ? ' on' : ''}" data-action="fav" data-id="${c.id}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
-    </div>
-    <div class="card-code">${codeBlock(c, store.platform)}${locked ? `<div class="lock-veil"><span>${I.lock}${t('locked')}</span></div>` : ''}</div>
+    <span class="card-ic">${cheatIc(c)}</span>
+    <span class="card-m"><span class="card-top"><h3 class="card-title">${esc(L(c.name))}</h3>${opt.badge ? badge(c) : ''}</span><span class="card-desc">${esc(L(c.desc))}</span></span>
+    ${locked ? `<span class="card-lock" title="${esc(t('locked'))}">${I.lock}</span>` : ''}
+    <button class="fav${fav ? ' on' : ''}" data-action="fav" data-id="${c.id}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
   </article>`;
 }
 
@@ -193,8 +193,9 @@ function forecastBanner() {
   if (g.status !== 'forecast') return '';
   const d = daysTo(g.release);
   const date = new Date(g.release).toLocaleDateString(getLang() === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+  // дни до выхода — во вкладке мира на Главной; здесь короткая пометка, как на экранах этапа 2
   return `<div class="fc-banner">
-    <div class="fc-count">${d > 0 ? `<b>${d}</b><span>${t('days')}</span>` : `<b>${I.sparkle}</b>`}</div>
+    <span class="fc-ic">${I.info}</span>
     <div class="fc-text"><div class="fc-title">${d > 0 ? `${t('release_in')} · ${date}` : t('released')}</div><div class="fc-sub">${t('forecast_banner')}</div></div>
   </div>`;
 }
@@ -239,11 +240,64 @@ function hubSection(title, sub, action, body, extra = '') {
   return `<section class="hub-sec"><div class="hub-h"><div><h2>${title}</h2>${sub ? `<small>${sub}</small>` : ''}</div>${action || ''}</div>${body}${extra}</section>`;
 }
 
+// ── верх Главной: фото эпохи (листание пальцем, без автопрокрутки), вкладки мира, город, поиск ──
+const placeCounts = {}; // число мест по играм — когда данные карты уже загружены
+let heroKey = '';
+function worldTab(x) {
+  const on = x.id === store.game;
+  let sub;
+  if (x.status === 'forecast') { const d = daysTo(x.release); sub = d > 0 ? t('w_in_days').replace('{n}', tn(d, 'n_days')) : t('released'); }
+  else sub = placeCounts[x.id] != null ? tn(placeCounts[x.id], 'n_places') : t('hub_live');
+  return `<button class="world${on ? ' on' : ''}" data-action="hub-game" data-v="${x.id}" aria-pressed="${on}"><b>${esc(x.title)}${x.status === 'forecast' ? '<i class="new"></i>' : ''}</b><span>${esc(sub)}</span></button>`;
+}
+function heroMeta() {
+  const n = placeCounts[store.game];
+  return [n != null ? tn(n, 'n_places') : '', cheats().length ? tn(cheats().length, 'n_codes') : ''].filter(Boolean).join(', ');
+}
+function heroHTML() {
+  const h = HERO[store.game], g = game();
+  const slides = h ? h.banners.map((b, i) => `<picture class="hero-slide"><source type="image/avif" srcset="${b}.avif"><img src="${b}.webp" alt="" width="860" height="676" decoding="async" ${i ? 'loading="lazy"' : 'fetchpriority="high"'}></picture>`).join('') : '';
+  return `<div class="hero${h ? '' : ' no-photo'}">
+    <div class="hero-track">${slides}</div><span class="hero-scrim"></span>
+    <div class="worlds" id="hero-worlds">${liveGames().map(worldTab).join('')}</div>
+    <div class="hero-city"><h2${(h ? L(h.city) : g.title).length > 8 ? ' class="long"' : ''}>${esc(h ? L(h.city) : g.title)}</h2><p id="hero-meta">${esc(heroMeta())}</p></div>
+    ${h && h.banners.length > 1 ? `<div class="hero-dots">${h.banners.map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>` : ''}
+  </div>
+  <button class="hub-search" data-action="tab" data-tab="search">${I.search}<span>${esc(t('search_ph'))}</span></button>`;
+}
+function renderHero() {
+  const key = store.game + '|' + getLang();
+  if (key !== heroKey) { heroKey = key; $('#home-hero').innerHTML = heroHTML(); bindHero(); return; }
+  // данные догрузились — меняем только подписи, фото и положение листания не трогаем
+  const w = $('#hero-worlds'), m = $('#hero-meta');
+  if (w) w.innerHTML = liveGames().map(worldTab).join('');
+  if (m) m.textContent = heroMeta();
+}
+function bindHero() {
+  const tr = $('#home-hero .hero-track'), dots = [...document.querySelectorAll('#home-hero .hero-dots i')];
+  if (!tr || dots.length < 2) return;
+  let raf = 0;
+  tr.addEventListener('scroll', () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = 0; const i = Math.round(tr.scrollLeft / Math.max(1, tr.clientWidth)); dots.forEach((d, k) => d.classList.toggle('on', k === i)); });
+  }, { passive: true });
+}
+// число мест другой игры — только если её данные уже есть (лишние 1–2 МБ ради подписи не качаем)
+function watchPlaceCounts() {
+  MAP_GAMES.forEach((gid) => {
+    const p = placeCounts[gid] == null && loadedPlaces(gid);
+    if (p) p.then((d) => { if (d?.places?.length && placeCounts[gid] == null) { placeCounts[gid] = d.places.length; renderHero(); } }).catch(() => { });
+  });
+}
+
 let hubSeq = 0;
 async function renderHub() {
   const my = ++hubSeq;
-  const g = game(), box = $('#home-body');
+  renderHero();
+  const g = game(), box = $('#home-main');
   const pd = MAP_GAMES.includes(store.game) ? await loadPlaces(store.game) : null;
+  if (pd?.places?.length) placeCounts[store.game] = pd.places.length;
+  watchPlaceCounts();
   const favCount = store.favs.length + store.favPlaces.length;
   if (my !== hubSeq) return;
   const list = cheats();
@@ -252,13 +306,12 @@ async function renderHub() {
   const eggs = pd ? featured(pd, 'egg', 12) : [];
   const favPreview = await favItems();
   if (my !== hubSeq) return;
+  renderHero();
   box.innerHTML = `
-    <div class="hub-games">${liveGames().map((x) => `<button class="${x.id === store.game ? 'on' : ''}" data-action="hub-game" data-v="${x.id}">
-      <b>${esc(x.title)}</b><small>${x.status === 'forecast' ? t('hub_forecast') : t('hub_live')}</small></button>`).join('')}</div>
     ${forecastBanner()}
     ${hubSection(t('hub_cheats'), L(PLATFORMS[store.platform]), `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
-        <span class="ct-ic">${I[c.icon]}</span><b>${L(c)}</b><small>${list.filter((x) => x.category === c.id).length} ${t('codes_n')}</small></button>`).join('')}</div>`)}
+        <span class="ct-ic">${I[c.icon]}</span><span class="ct-t"><b>${L(c)}</b><small>${list.filter((x) => x.category === c.id).length} ${t('codes_n')}</small></span></button>`).join('')}</div>`)}
     ${popular.length ? hubSection(t('hub_popular'), '', '', `<div class="hscroll">${popular.map(miniCheat).join('')}</div>`) : ''}
     ${places.length ? hubSection(t('hub_places'), mapPlaceName(store.game), `<button class="hub-more" data-action="tab" data-tab="map">${t('open_map')}${I.chevron}</button>`,
       `<div class="hscroll">${places.map((o) => placeCard(o)).join('')}</div>`) : ''}
@@ -393,7 +446,7 @@ async function renderSearch() {
     return `<div class="s-sec"><div class="s-h">${title} <em>${items.length}</em>${limit && items.length > limit ? `<button data-action="sf-type" data-v="${k}">${t('show_all')}</button>` : ''}</div>${shown.map(render).join('')}</div>`;
   };
   const lim = sf.type === 'all' ? 4 : 0;
-  const html = (sf.type === 'all' || sf.type === 'cheats' ? sec('cheats', t('f_cheats'), R.cheats, cardHTML, lim) : '')
+  const html = (sf.type === 'all' || sf.type === 'cheats' ? sec('cheats', t('f_cheats'), R.cheats, (c) => cardHTML(c, { badge: true }), lim) : '')
     + (sf.type === 'all' || sf.type === 'places' ? sec('places', t('f_places'), R.places, placeRow, lim) : '')
     + (sf.type === 'all' || sf.type === 'eggs' ? sec('eggs', t('f_eggs'), R.eggs, placeRow, lim) : '');
   box.innerHTML = html || `<div class="empty-big">${I.search}<h3>${t('search_empty')}</h3><p>${t('search_empty_hint')}</p>${(sf.cat || sf.conf) ? `<button class="btn-ghost" data-action="sf-reset">${t('clear_filters')}</button>` : ''}</div>`;
@@ -428,7 +481,7 @@ async function renderFavs() {
   }
   const showP = f !== 'cheats' && places.length, showC = f !== 'places' && cheatsF.length;
   $('#fav-list').innerHTML = (showP ? `<div class="s-sec"><div class="s-h">${t('f_places')} <em>${places.length}</em></div><div class="pgrid">${places.map((o) => placeCard(o, { grid: true, game: true })).join('')}</div></div>` : '')
-    + (showC ? `<div class="s-sec"><div class="s-h">${t('f_cheats')} <em>${cheatsF.length}</em></div>${cheatsF.map(cardHTML).join('')}</div>` : '')
+    + (showC ? `<div class="s-sec"><div class="s-h">${t('f_cheats')} <em>${cheatsF.length}</em></div>${cheatsF.map((c) => cardHTML(c, { badge: true })).join('')}</div>` : '')
     || `<div class="empty">${t('search_empty')}</div>`;
 }
 function isFavPlace(key) { return store.favPlaces.includes(key); }
@@ -646,36 +699,60 @@ const SHEET_LOCK_PX = 10, SHEET_V_RATIO = 1.6, SHEET_CLOSE_PX = 110, SHEET_FLICK
 // значок кода — по категории (решение: своя иконка категории, без кадров игры и эмодзи из данных)
 const cheatIc = (c) => I[CATEGORIES.find((x) => x.id === c.category)?.icon] || I.gamepad;
 function mediaHTML(c) {
-  if (c.media) return `<video src="${esc(c.media)}" autoplay muted loop playsinline></video>`;
-  return `<div class="poster"><span class="poster-emoji">${cheatIc(c)}</span><span class="poster-tag">${I.play}${t('video_soon')}</span></div>`;
+  // видео кода — только настоящее; заглушки-постера нет (решение 8: без кадров игры)
+  return c.media ? `<div class="media"><video src="${esc(c.media)}" autoplay muted loop playsinline></video></div>` : '';
+}
+// Код как посадочный талон (экран 3 этапа 2): поля, линия отрыва, кнопки по порядку с номерами.
+// Элементы с data-i внутри #d-code подсвечивает озвучка (play) — порядок индексов как в коде.
+function passCode(c, p) {
+  const k = c.codes || {};
+  const combo = (p === 'playstation' || p === 'xbox') && k[p];
+  if (combo && combo.length) return { shown: 'combo', html: `<div class="pass-keys">${combo.map((tk, i) => { const b = btn(tk, p); return `<span class="pk"><span class="${b.cls}" data-i="${i}">${b.html}</span><i>${i + 1}</i></span>`; }).join('')}</div>` };
+  if (p === 'pc' && k.pc) return { shown: 'pc', html: chars(k.pc, 'pc-code pc-keys') };
+  if (k.phone) return { shown: 'phone', html: (p !== 'phone' ? `<div class="sub-label">${t('phone_only')}</div>` : '') + chars(k.phone, 'phone-big') };
+  return { shown: '', html: `<div class="no-code">${I.sparkle}<span>${t('no_code_yet')}</span></div>` };
 }
 function openCheat(id) {
   const c = byId(id);
   if (!c) return;
   if (isLocked(c)) { openPaywall(); return; }
-  const g = game();
+  const g = game(), p = store.platform, k = c.codes || {};
   const conf = c.confidence && data[store.game]?.confidenceLabels?.[c.confidence];
-  const others = g.platforms.filter((p) => p !== store.platform).map((p) => {
-    const note = g.platformNote?.[p] ? ` <small>${L(g.platformNote[p])}</small>` : '';
-    return `<div class="plat-row"><div class="plat-h">${platformIcon(p)}<span>${L(PLATFORMS[p])}${note}</span></div>${codeBlock(c, p)}</div>`;
+  const cat = CATEGORIES.find((x) => x.id === c.category);
+  const pass = passCode(c, p);
+  const fields = [[t('pass_cat'), cat ? L(cat) : ''], conf ? [t('confidence'), getLang() === 'ru' ? conf[0] : conf[1]] : null, [t('pass_plat'), L(PLATFORMS[p])]].filter((f) => f && f[1]);
+  // код на ПК и номер телефона — отдельными полями под талоном (если их нет в самом талоне)
+  const alt = [k.pc && pass.shown !== 'pc' ? [t('pc_code'), `<b class="alt-pc">${esc(k.pc)}</b>`] : null,
+    k.phone && pass.shown !== 'phone' ? [t('phone_code'), `<b>${esc(k.phone)}</b>`] : null].filter(Boolean);
+  // другие платформы — кнопки PS/Xbox; ПК — только если у него своя пометка («ожидается в 2027»), код ПК и телефон уже выше
+  const others = g.platforms.filter((x) => x !== p && (x === 'playstation' || x === 'xbox' || (x === 'pc' && !k.pc && g.platformNote?.pc))).map((x) => {
+    const note = g.platformNote?.[x] ? ` <small>${L(g.platformNote[x])}</small>` : '';
+    const kx = k[x];
+    return `<div class="plat-row"><div class="plat-h">${platformIcon(x)}<span>${L(PLATFORMS[x])}${note}</span></div>${x === 'pc' ? '' : kx && kx.length ? comboHTML(kx, x) : `<div class="no-code">${I.sparkle}<span>${t('no_code_yet')}</span></div>`}</div>`;
   }).join('');
-  const hasCode = !!(c.codes.phone || c.codes.pc || c.codes[store.platform]);
+  const hasCode = !!(k.phone || k.pc || k[p]);
   const fav = store.favs.includes(c.id);
   openSheet(`
     <div class="d-head">
       <h2><span class="d-emoji">${cheatIc(c)}</span>${esc(L(c.name))}</h2>
-      <button class="icon-btn" data-action="fav" data-id="${c.id}">${fav ? I.heartFill : I.heart}</button>
-      <button class="icon-btn" data-action="share" data-id="${c.id}">${I.share}</button>
+      <button class="icon-btn" data-action="fav" data-id="${c.id}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
+      <button class="icon-btn" data-action="share" data-id="${c.id}" aria-label="share">${I.share}</button>
     </div>
-    <div class="media">${mediaHTML(c)}</div>
-    ${c.status === 'forecast' ? `<div class="fc-note"><span class="badge badge-fc">${t('forecast')}</span>${conf ? `<span>${t('confidence')}: <b>${getLang() === 'ru' ? conf[0] : conf[1]}</b></span>` : ''}</div>` : ''}
+    ${mediaHTML(c)}
     <p class="d-desc">${esc(L(c.desc))}</p>
-    ${c.note ? `<p class="d-note">${esc(L(c.note))}</p>` : ''}
-    <div class="d-code" id="d-code"><div class="plat-h">${platformIcon(store.platform)}<span>${L(PLATFORMS[store.platform])}</span></div>${codeBlock(c, store.platform, true)}</div>
-    ${hasCode ? `<button class="btn-primary" id="play-btn" data-action="play" data-id="${c.id}">${I.play}<span>${t('play')}</span></button>` : ''}
-    ${store.platform === 'pc' && c.codes.pc ? `<button class="btn-ghost" data-action="copy" data-v="${esc(c.codes.pc)}">${I.copy}<span>${t('copy')}</span></button>` : ''}
+    <div class="pass">
+      <div class="pass-row">${fields.map(([a, b]) => `<div class="pass-f"><span>${esc(a)}</span><b>${esc(b)}</b></div>`).join('')}</div>
+      <div class="pass-cut"></div>
+      <div class="d-code" id="d-code">${pass.html}</div>
+    </div>
+    ${alt.length ? `<div class="pass-alt">${alt.map(([a, b]) => `<div class="pass-f"><span>${esc(a)}</span>${b}</div>`).join('')}</div>` : ''}
+    ${c.status === 'forecast' || c.note ? `<p class="d-note">${I.info}<span>${c.status === 'forecast' ? `<span class="badge badge-fc">${t('forecast')}</span> ` : ''}${c.note ? esc(L(c.note)) : ''}</span></p>` : ''}
+    <div class="d-btns">
+      ${hasCode ? `<button class="btn-primary" id="play-btn" data-action="play" data-id="${c.id}">${I.voice}<span>${t('play')}</span></button>` : ''}
+      ${p === 'pc' && k.pc ? `<button class="btn-ghost" data-action="copy" data-v="${esc(k.pc)}">${I.copy}<span>${t('copy')}</span></button>` : ''}
+    </div>
     ${others ? `<h4 class="d-sub">${t('all_platforms')}</h4><div class="plat-list">${others}</div>` : ''}
-    <p class="d-how">${esc(howto(store.platform))}</p>
+    <p class="d-how">${esc(howto(p))}</p>
   `, 'sheet-detail');
 }
 function howto(p) { return t({ playstation: 'howto_ps', xbox: 'howto_xbox', pc: 'howto_pc', phone: 'howto_phone' }[p]); }
@@ -697,8 +774,8 @@ function play(id) {
   if (ui.stopPlay) { ui.stopPlay(); return; }
   const c = byId(id); const items = speechItems(c);
   const els = [...document.querySelectorAll('#d-code [data-i]')];
-  const btn = $('#play-btn');
-  const setBtn = (on) => { btn.innerHTML = on ? `${I.stop}<span>${t('stop')}</span>` : `${I.play}<span>${t('play')}</span>`; btn.classList.toggle('playing', on); };
+  const pbtn = $('#play-btn');
+  const setBtn = (on) => { pbtn.innerHTML = on ? `${I.stop}<span>${t('stop')}</span>` : `${I.voice}<span>${t('play')}</span>`; pbtn.classList.toggle('playing', on); };
   let i = -1, stopped = false, timer;
   const synth = window.speechSynthesis;
   const voice = synth && pickVoice();
@@ -986,6 +1063,12 @@ $('#sheet .grab').addEventListener('click', () => { if (snap) setSnap(snap === '
 $('#search-input').addEventListener('input', (e) => { ui.query = e.target.value; renderSearch(); });
 $('#search-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { rememberQuery(); e.target.blur(); } });
 $('#pager').addEventListener('scroll', () => requestAnimationFrame(moveInk), { passive: true });
+// шапка Главной: над фото — прозрачная, когда фото уехало — сжимается в полосу на стекле
+(() => {
+  const hb = $('#home-body'), hdr = $('#hub-hdr'); let raf = 0;
+  const upd = () => { raf = 0; const hero = $('#home-hero .hero'); const lim = hero ? hero.offsetHeight - hdr.offsetHeight - 24 : 40; hdr.classList.toggle('is-solid', hb.scrollTop > lim); };
+  hb.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(upd); }, { passive: true });
+})();
 addEventListener('resize', () => scrollToCat(ui.cat, false));
 
 // ───────── старт ─────────

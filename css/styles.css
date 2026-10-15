@@ -5,7 +5,8 @@
 :root {
   --warn-soft: color-mix(in srgb, var(--warn) 14%, transparent);
   --safe-t: env(safe-area-inset-top, 0px); --safe-b: env(safe-area-inset-bottom, 0px);
-  --tabbar-h: 54px;
+  /* полоса под нижней панелью (над безопасной зоной): капсула 62 + отступ снизу max(8, safe-b − 8) + 8 сверху */
+  --tabbar-h: max(62px, calc(78px - var(--safe-b)));
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -36,7 +37,7 @@ body.ready #main { opacity: 1; }
 .segs { position: relative; display: flex; padding: 0 8px; border-bottom: 1px solid var(--line); flex: none; }
 .seg { flex: 1; padding: 10px 4px 12px; font-size: 15px; color: var(--text-2); font-weight: 500; transition: color .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .seg.on { color: var(--accent); font-weight: 600; }
-.seg-ink { position: absolute; left: 0; bottom: -1px; height: 2px; width: 0; background: var(--accent); border-radius: 2px; box-shadow: 0 0 12px var(--accent); }
+.seg-ink { position: absolute; left: 0; bottom: -1px; height: 2px; width: 0; background: var(--accent); border-radius: 2px; }
 .pager { flex: 1; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
 .pager::-webkit-scrollbar { display: none; }
 .page { flex: 0 0 100%; overflow-y: auto; scroll-snap-align: start; scroll-snap-stop: always; padding: 14px 16px 24px; overscroll-behavior-y: contain; }
@@ -62,10 +63,12 @@ body.ready #main { opacity: 1; }
 .no-code svg { width: 18px; height: 18px; color: var(--warn); }
 
 .combo { display: flex; flex-wrap: wrap; gap: 6px; }
-.k { font-variant-numeric: tabular-nums; width: 34px; height: 34px; display: inline-grid; place-items: center; border-radius: 8px; background: var(--key); border: 1px solid var(--line-2); font-size: 12px; font-weight: 700; color: var(--text); transition: transform .15s, box-shadow .15s, opacity .2s, border-color .15s; }
+.k { font-variant-numeric: tabular-nums; width: 34px; height: 34px; display: inline-grid; place-items: center; border-radius: var(--r-key); background: var(--key); border: 1px solid var(--key-line); font-size: 12px; font-weight: 700; color: var(--key-text); transition: transform .15s, box-shadow .15s, opacity .2s, border-color .15s; }
 .k svg { width: 22px; height: 22px; }
 .k-arrow svg { width: 18px; height: 18px; }
 .k-face { border-radius: 50%; }
+.k-ps { color: var(--pad-ps); }
+.k-xa { color: var(--pad-xb-a); } .k-xb-b { color: var(--pad-xb-b); } .k-xx { color: var(--pad-xb-x); } .k-xy { color: var(--pad-xb-y); }
 .k-xb span { font-size: 15px; font-weight: 800; }
 .combo-big { gap: 8px; }
 .combo-big .k { width: 44px; height: 44px; border-radius: 10px; font-size: 14px; }
@@ -132,30 +135,29 @@ body.ready #main { opacity: 1; }
 .ver { text-align: center; color: var(--text-3); font-size: 12px; padding: 8px 0 16px; }
 
 /* ───── нижняя панель ───── */
-.tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--tabbar-h) + var(--safe-b)); padding: 0 6px var(--safe-b); display: flex; z-index: 5;
-  background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: blur(24px) saturate(1.8); -webkit-backdrop-filter: blur(24px) saturate(1.8); }
+/* стеклянная капсула 62 поверх контента (экраны этапа 2, .a-tabs.glass); геометрию высоты каркаса не трогает:
+   капсула стоит внутри полосы --tabbar-h + --safe-b, на которую рассчитаны отступы списков, карты и шторок */
+.tabbar { position: absolute; left: 10px; right: 10px; bottom: max(8px, calc(var(--safe-b) - 8px)); height: 62px; padding: 0 5px; display: flex; align-items: center; z-index: 5;
+  border-radius: 31px; background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
 .tabbar.no-pill .tab-pill { opacity: 0; }
-.tab-pill { transition: transform .42s cubic-bezier(.3,1.35,.45,1), opacity .2s; }
-.tabbar::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--line-2) 20%, var(--line-2) 80%, transparent); }
-/* капсула-подсветка под активной вкладкой */
-.tab-pill { position: absolute; top: 6px; left: 6px; width: calc((100% - 12px) / var(--n, 5)); height: 40px; pointer-events: none;
-  transform: translateX(calc(var(--i) * 100%)); transition: transform .42s cubic-bezier(.3,1.35,.45,1); }
-.tab-pill::before { content: ""; position: absolute; left: 50%; top: 0; width: 56px; height: 30px; margin-left: -28px; border-radius: 999px;
-  background: var(--accent-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent); }
-.tab-pill::after { content: ""; position: absolute; left: 50%; top: -6px; width: 22px; height: 2px; margin-left: -11px; border-radius: 0 0 2px 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent), 0 0 2px var(--accent); }
-.tab { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 7px; gap: 3px; color: var(--text-3); transition: color .25s; touch-action: manipulation; }
-.tab-ic { position: relative; width: 26px; height: 26px; transition: transform .2s; }
-.tab-ic svg { position: absolute; inset: 0; width: 26px; height: 26px; transition: opacity .2s, transform .3s cubic-bezier(.3,1.4,.5,1); }
+/* подложка под активной вкладкой */
+.tab-pill { position: absolute; top: 4px; bottom: 4px; left: 5px; width: calc((100% - 10px) / var(--n, 5)); pointer-events: none;
+  transform: translateX(calc(var(--i) * 100%)); transition: transform .42s cubic-bezier(.3,1.35,.45,1), opacity .2s; }
+.tab-pill::before { content: ""; position: absolute; inset: 0 1px; border-radius: 26px; background: color-mix(in srgb, var(--text) 13%, transparent); }
+.tab { position: relative; flex: 1; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--text-glass-2); transition: color .25s; touch-action: manipulation; }
+.tab-ic { position: relative; width: 24px; height: 24px; transition: transform .2s; }
+.tab-ic svg { position: absolute; inset: 0; width: 24px; height: 24px; transition: opacity .2s, transform .3s cubic-bezier(.3,1.4,.5,1); }
 .tab .ic-f { opacity: 0; transform: scale(.6); }
 .tab.on .ic-o { opacity: 0; transform: scale(1.2); }
 .tab.on .ic-f { opacity: 1; transform: scale(1); }
-.tab-l { font-size: 10.5px; font-weight: 600; letter-spacing: .01em; transition: color .25s; }
+.tab-l { font: 600 11px/14px var(--font-ui); letter-spacing: 0; white-space: nowrap; transition: color .25s; } /* 11 px — не меньше; 12 у пяти вкладок «Избранное» и «Настройки» слипаются */
 .tab.on { color: var(--accent); }
 .tab:active .tab-ic { transform: scale(.84); }
 .tab.bounce .tab-ic { animation: tabBounce .45s cubic-bezier(.3,1.5,.5,1); }
 @keyframes tabBounce { 0% { transform: scale(.84); } 45% { transform: scale(1.14) translateY(-2px); } 100% { transform: scale(1); } }
-.tab-badge { position: absolute; top: -4px; left: 17px; min-width: 17px; height: 17px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: var(--accent-ink);
-  font: 700 10.5px/17px var(--font-num); font-variant-numeric: tabular-nums; text-align: center; box-shadow: 0 0 0 2px var(--bg); transform: scale(0); transition: transform .3s cubic-bezier(.3,1.6,.5,1); }
+.tab-badge { position: absolute; top: -4px; left: 15px; min-width: 17px; height: 17px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: var(--accent-ink);
+  font: 700 11px/17px var(--font-num); font-variant-numeric: tabular-nums; text-align: center; box-shadow: 0 0 0 2px var(--bg); transform: scale(0); transition: transform .3s cubic-bezier(.3,1.6,.5,1); }
 .tab-badge.show { transform: scale(1); }
 .tab-badge.pulse { animation: badgePulse .4s; }
 @keyframes badgePulse { 50% { transform: scale(1.35); } }

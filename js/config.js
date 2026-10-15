@@ -47,6 +47,13 @@ export const GAMES = [
   { id: 'gta3', title: 'GTA 3', status: 'soon' },
 ];
 
+// Фото эпохи на Главной (04 дизайн-система/tokens.json → skins.<id>.photos): порядок листания, фокус обрезки 50% 0%.
+// Файлы — img/ui/<скин>/<имя>.avif и .webp. Обложки категорий и карточки игр не используются.
+export const HERO = {
+  gta6: { city: { ru: 'Майами', en: 'Miami' }, banners: ['img/ui/gta6/gta6-banner-01', 'img/ui/gta6/gta6-banner-02', 'img/ui/gta6/gta6-banner-04'] },
+  gta5: { city: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, banners: ['img/ui/gta5/gta5-banner-01', 'img/ui/gta5/gta5-banner-02', 'img/ui/gta5/gta5-banner-03'] },
+};
+
 export const PAYWALL = {
   plans: [
     { id: 'week', ru: 'Неделя', en: 'Weekly', price: '$4.99', per: { ru: '/ нед.', en: '/ week' }, trial: true },

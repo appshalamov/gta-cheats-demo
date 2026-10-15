@@ -18,7 +18,7 @@ body { position: relative; height: var(--app-h, 100dvh); min-height: var(--app-h
 /* было position: fixed — теперь absolute внутри body (body = полная высота) */
 #main, #onboarding, #paywall, #sheet-layer { position: absolute; }
 #toast, #install, #mp-viewer { position: absolute; }
-.tabbar { background: color-mix(in srgb, var(--tabbar-bg) 94%, transparent); }
+/* нижняя панель — стеклянная капсула (styles.css); фон страницы под ней = --tabbar-bg */
 
 /* Меньше движения (системная настройка): анимации и переходы — мгновенно, без сдвигов;
    появление слоёв — растворением 200 мс. Логику высоты выше не трогает. */

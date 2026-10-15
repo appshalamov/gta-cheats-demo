@@ -4,6 +4,8 @@ const T = {
   ru: {
     hub_cheats: 'Чит-коды', hub_popular: 'Популярные', hub_places: 'Реальные места', hub_eggs: 'Пасхалки',
     hub_eggs_sub: 'Отсылки к реальным людям и событиям', hub_favs: 'Ваше избранное', hub_live: 'Коды проверены', hub_forecast: 'Прогноз кодов',
+    n_places: 'место|места|мест', n_codes: 'код|кода|кодов', n_days: 'день|дня|дней', w_in_days: 'через {n}',
+    pass_cat: 'Категория', pass_plat: 'Платформа',
     hub_foot: 'Неофициальный справочник. Не связан с Rockstar Games.', see_all: 'Все', open_map: 'Карта', codes_n: 'кодов',
     place_gta6: 'Майами, 2026', place_gta5: 'Лос-Анджелес, 2013', map_find_hint: 'Точка на карте',
     w_sub: 'Чит-коды и реальные места GTA 5 и GTA 6', start: 'Начать',
@@ -60,6 +62,8 @@ const T = {
   en: {
     hub_cheats: 'Cheat codes', hub_popular: 'Popular', hub_places: 'Real-world places', hub_eggs: 'Easter eggs',
     hub_eggs_sub: 'Nods to real people and events', hub_favs: 'Your favorites', hub_live: 'Verified codes', hub_forecast: 'Code forecast',
+    n_places: 'place|places', n_codes: 'code|codes', n_days: 'day|days', w_in_days: 'in {n}',
+    pass_cat: 'Category', pass_plat: 'Platform',
     hub_foot: 'Unofficial guide. Not affiliated with Rockstar Games.', see_all: 'All', open_map: 'Map', codes_n: 'codes',
     place_gta6: 'Miami, 2026', place_gta5: 'Los Angeles, 2013', map_find_hint: 'Point on the map',
     w_sub: 'Cheat codes and real-world places of GTA 5 and GTA 6', start: 'Get started',
@@ -135,6 +139,12 @@ export const SPEAK = {
 let lang = 'ru';
 export function setLang(l) { lang = T[l] ? l : 'ru'; document.documentElement.lang = lang; }
 export function getLang() { return lang; }
+// Число со словом в нужной форме: tn(5, 'n_places') → «5 мест» / «5 places»
+export function tn(n, key) {
+  const f = String(t(key)).split('|'); let i;
+  if (lang === 'ru') { const a = n % 10, b = n % 100; i = a === 1 && b !== 11 ? 0 : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 1 : 2; } else i = n === 1 ? 0 : 1;
+  return `${n} ${f[Math.min(i, f.length - 1)]}`;
+}
 export function t(key) { return (T[lang] && T[lang][key]) ?? T.ru[key] ?? key; }
 // Текст из данных: {ru, en} или строка
 export function L(v) { if (v == null) return ''; return typeof v === 'string' ? v : (v[lang] ?? v.ru ?? v.en ?? ''); }

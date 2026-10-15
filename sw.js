@@ -50,6 +50,14 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method === 'GET' && e.request.destination === 'image' && isPhoto(url)) { e.respondWith(photo(e.request, e)); return; }
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  // фото эпохи на Главной (img/ui/<скин>/) — в кэш версии при первом показе: дальше открываются без сети.
+  // Берётся только формат, который выбрал браузер (AVIF или WebP), поэтому не в SHELL — там качались бы оба.
+  if (url.pathname.includes('/img/ui/')) {
+    e.respondWith(caches.open(VERSION).then((c) => c.match(e.request).then((hit) => hit || fetch(e.request).then((r) => {
+      if (r.ok) c.put(e.request, r.clone()); return r;
+    }))));
+    return;
+  }
   if (url.pathname.includes('/data/')) {
     e.respondWith(fetch(e.request).then((r) => {
       const copy = r.clone(); caches.open(VERSION).then((c) => c.put(e.request, copy)); return r;
