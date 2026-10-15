@@ -162,6 +162,7 @@ const W = {
   openGtaMap: { en: 'Open GTA map', ru: 'Открыть карту GTA', es: 'Abrir mapa de GTA', pt: 'Abrir mapa do GTA', fr: 'Ouvrir la carte GTA', de: 'GTA-Karte öffnen', it: 'Apri mappa GTA', tr: 'GTA haritasını aç', uk: 'Відкрити мапу GTA', pl: 'Otwórz mapę GTA', zh: '打开 GTA 地图', ja: 'GTAマップを開く', ko: 'GTA 지도 열기' },
   approxMap: { en: '≈ GTA 6 map inspired by Florida · exact map on release, Nov 19', ru: '≈ Карта GTA 6 по мотивам Флориды · точная — в день выхода, 19 ноября', es: '≈ Mapa de GTA 6 inspirado en Florida · el exacto, el 19 de noviembre', pt: '≈ Mapa do GTA 6 inspirado na Flórida · o exato em 19 de novembro', fr: '≈ Carte de GTA 6 inspirée de la Floride · la vraie le 19 novembre', de: '≈ GTA-6-Karte nach Florida · die genaue zum Release am 19. Nov.', it: '≈ Mappa di GTA 6 ispirata alla Florida · quella esatta il 19 novembre', tr: '≈ Florida esinli GTA 6 haritası · kesini 19 Kasım’da', uk: '≈ Мапа GTA 6 за мотивами Флориди · точна — 19 листопада', pl: '≈ Mapa GTA 6 na wzór Florydy · dokładna 19 listopada', zh: '≈ 以佛罗里达为原型的 GTA 6 地图 · 精确版 11月19日', ja: '≈ フロリダをもとにしたGTA 6マップ · 正確版は11月19日', ko: '≈ 플로리다 기반 GTA 6 지도 · 정확한 지도는 11월 19일' },
   glTitle: { en: 'Map layers', ru: 'Слои карты', es: 'Capas del mapa', pt: 'Camadas do mapa', fr: 'Calques', de: 'Kartenebenen', it: 'Livelli mappa', tr: 'Harita katmanları', uk: 'Шари мапи', pl: 'Warstwy mapy', zh: '地图图层', ja: 'マップレイヤー', ko: '지도 레이어' },
+  legend: { en: 'Legend', ru: 'Обозначения', es: 'Leyenda', pt: 'Legenda', fr: 'Légende', de: 'Legende', it: 'Legenda', tr: 'Açıklama', uk: 'Позначення', pl: 'Legenda', zh: '图例', ja: '凡例', ko: '범례' },
   glReveal: { en: 'Tap to reveal the secret', ru: 'Нажми, чтобы раскрыть секрет', es: 'Toca para revelar el secreto', pt: 'Toque para revelar o segredo', fr: 'Touchez pour révéler le secret', de: 'Tippen, um das Geheimnis aufzudecken', it: 'Tocca per svelare il segreto', tr: 'Sırrı görmek için dokun', uk: 'Натисни, щоб розкрити секрет', pl: 'Dotknij, aby odkryć sekret', zh: '点击揭开秘密', ja: 'タップして秘密を見る', ko: '탭해서 비밀 보기' },
   glMark: { en: 'Mark as collected', ru: 'Отметить: собрано', es: 'Marcar como recogido', pt: 'Marcar como coletado', fr: 'Marquer comme récupéré', de: 'Als gesammelt markieren', it: 'Segna come raccolto', tr: 'Toplandı olarak işaretle', uk: 'Позначити: зібрано', pl: 'Oznacz jako zebrane', zh: '标记为已收集', ja: '収集済みにする', ko: '수집 완료로 표시' },
   glGot: { en: 'Collected', ru: 'Собрано', es: 'Recogido', pt: 'Coletado', fr: 'Récupéré', de: 'Gesammelt', it: 'Raccolto', tr: 'Toplandı', uk: 'Зібрано', pl: 'Zebrane', zh: '已收集', ja: '収集済み', ko: '수집 완료' },
@@ -1280,6 +1281,23 @@ function addLegend2Layers(z, game_) {
   if (!map.getLayer('eggs-ref')) map.addLayer({ id: 'eggs-ref', type: 'symbol', source: 'eggs', filter: ['!=', ['get', 'rk'], 'p'], minzoom: game_ ? 0 : 11,
     layout: { 'icon-image': game_ ? 'egg-q' : 'ref-film', 'icon-size': z(0.6, 1), 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
 }
+// шторка «Обозначения» (одобрена Игорем 15.10.2026): пять видов точек живыми значками и что значит заливка
+function legendSheet() {
+  const ru = uiLang() === 'ru' || uiLang() === 'uk';
+  const T = (a, b) => (ru ? a : b);
+  const c = (cf, extra = '') => `<svg viewBox="-13 -13 26 26" width="28" height="28"><circle r="9" fill="${TWIN}" fill-opacity="${cf === 'c' ? 1 : cf === 'l' ? 0.45 : 0}" stroke="${cf === 'c' ? '#0b0e13' : TWIN}" stroke-width="${cf === 'c' ? 1.6 : 2.4}"/>${extra}</svg>`;
+  const b = '<circle cx="7" cy="-7" r="4" fill="#f472b6" stroke="#0b0e13" stroke-width="1.2"/>';
+  const ref = `<svg viewBox="-13 -13 26 26" width="28" height="28"><rect x="-11" y="-11" width="22" height="22" rx="6" fill="${REFC}" stroke="#0b0e13" stroke-width="1.6"/><path d="M-6 -1 h12 v7 h-12z" fill="none" stroke="#2a2118" stroke-width="1.6"/><path d="M-6 -1 l2 -4 h10 l-2 4" fill="#2a2118"/></svg>`;
+  const q = `<svg viewBox="-13 -13 26 26" width="28" height="28"><circle r="10" fill="#1b1f27" stroke="#f472b6" stroke-width="2"/><text y="4.6" text-anchor="middle" font-weight="800" font-size="13" fill="#f472b6">?</text></svg>`;
+  const row = (ic, t, s) => `<div class="lg-row">${ic}<div><b>${esc(t)}</b><small>${esc(s)}</small></div></div>`;
+  return `<h2 class="pick-t">${esc(w('legend'))}</h2><div class="lg-list">
+    ${row(c('c'), T('Место-двойник', 'Real-life twin'), T('место из игры и его настоящий прообраз', 'a game place and its real prototype'))}
+    ${row(c('c', b), T('Пасхалка с местом в жизни', 'Easter egg with a real place'), T('можно прийти и сравнить', 'you can visit and compare'))}
+    ${row(ref, T('Отсылка: место съёмок', 'Reference: filming location'), T('самого места из игры в жизни нет', 'the game place itself does not exist'))}
+    ${row(q, T('Пасхалка без места', 'Easter egg without a place'), T('только на карте игры', 'only on the game map'))}
+    ${row(`<svg viewBox="-13 -13 26 26" width="28" height="28"><circle r="4.5" fill="${COLORS.gtadb}"/></svg>`, T('Точка сообщества', 'Community point'), T('видна только вблизи', 'shown when zoomed in'))}
+    </div><div class="lg-fills">${c('c')}<span>${esc(T('подтверждено', 'confirmed'))}</span>${c('l')}<span>${esc(T('вероятно', 'likely'))}</span>${c('s')}<span>${esc(T('догадка', 'guess'))}</span></div>`;
+}
 const PICK_ALIAS = { 'cl-pt': 'places', 'eggs-ref': 'eggs', 'gl-col': 'gl' };
 function addLayers() {
   const dark = themeKey() === 'dark';
@@ -1522,7 +1540,7 @@ function dist(f, e) {
 function renderChips() {
   const d = data[game]; if (!d) return;
   const n = { places: d.places.length, eggs: d.eggs.length, gtadb: gtadb[game]?.points.length ?? '' };
-  document.getElementById('map-chips').innerHTML = (glShown() ? `<button class="mchip mchip-gl" data-mp="gl-panel">⚙️ ${esc(w('glTitle'))} <em>${glOn.size}</em></button>` : '') + [
+  document.getElementById('map-chips').innerHTML = (LEGEND2 ? `<button class="mchip mchip-lg" data-mp="legend">${esc(w('legend'))}</button>` : '') + (glShown() ? `<button class="mchip mchip-gl" data-mp="gl-panel">⚙️ ${esc(w('glTitle'))} <em>${glOn.size}</em></button>` : '') + [
     ['places', t('map_places'), COLORS.confirmed], ['eggs', t('map_eggs'), COLORS.egg], ['gtadb', t('map_all'), COLORS.gtadb],
   ].map(([k, label, c]) => `<button class="mchip${show[k] ? ' on' : ''}" data-action="map-layer" data-v="${k}" style="--c:${c}"><i></i>${label}${n[k] !== '' ? ` <em>${n[k]}</em>` : ''}</button>`).join('')
     + (BETA ? Object.entries(CATS).map(([k, c]) => {
@@ -1595,6 +1613,7 @@ document.addEventListener('click', (e) => {
     el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 300);
   }
   else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t, el.dataset.k, el); }
+  else if (a === 'legend') { ctx?.haptic(); ctx.openSheet(legendSheet(), 'sheet-map'); }
   else if (a === 'gl-reveal') { if (el.classList.contains('spoil')) { ctx?.haptic(); el.classList.remove('spoil'); el.querySelector('.gl-pic-t')?.remove(); glSeen.add(el.dataset.id); saveSet('secret.gl.seen', glSeen); } }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
   else if (a === 'mode') { ctx?.haptic(); switchMode(el.dataset.v); }

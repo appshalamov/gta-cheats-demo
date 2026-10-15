@@ -941,3 +941,13 @@ body[data-sheet="half"] .map-fabs, body[data-sheet="full"] .map-fabs { opacity: 
 .tiny-bg { position: absolute; inset: -24px; background-size: cover; background-position: center; filter: blur(18px) brightness(.7) saturate(1.2); pointer-events: none; }
 .cmp-stage img.tiny, .mp-shot img.tiny { object-fit: contain; position: absolute; inset: 0; width: 100%; height: 100%; }
 .mp-shot { position: relative; overflow: hidden; }
+
+/* Шторка «Обозначения» и кнопка (бета, 15.10.2026) */
+.mchip-lg { background: #f3f5f8 !important; color: #111 !important; border-color: transparent !important; font-weight: 700; }
+.lg-list { display: grid; gap: 12px; margin: 4px 0 14px; }
+.lg-row { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: center; }
+.lg-row b { display: block; font-size: 15px; }
+.lg-row small { display: block; color: var(--text-2); font-size: 13px; }
+.lg-fills { display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; color: var(--text-2); font-size: 13px; }
+.lg-fills span { margin-right: 10px; }
+.lg-row svg, .lg-fills svg { width: 28px !important; height: 28px !important; flex: none; display: block; }
