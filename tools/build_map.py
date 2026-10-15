@@ -578,6 +578,7 @@ def build(game, cfg):
             "lat": lat, "lon": lon, "cf": it.get("confidence", "likely"), "m": media(it), "src": src0(it),
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"), "gg": gal(it, game, "game_gallery", 4),
             "_gxy": it.get("game_xy"), "_ggid": it.get("game_gid"), "_pair": bool(it.get("pair_photos")),
+            "rk": {"prototype": "p", "reference": "r"}.get(it.get("real_kind"), ""),   # точка в жизни: прообраз места / только отсылка
         })
     if skipped:
         print(f"  пасхалки не в приложение: {len(skipped)} — " + ", ".join(skipped[:6]) + (" …" if len(skipped) > 6 else ""))
