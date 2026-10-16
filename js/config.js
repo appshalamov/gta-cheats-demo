@@ -55,11 +55,10 @@ export const HERO = {
   gta5: { city: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, banners: ['img/ui/gta5/gta5-banner-01', 'img/ui/gta5/gta5-banner-02', 'img/ui/gta5/gta5-banner-03'], load: 'img/ui/gta5/gta5-load-01' },
 };
 
-// Цены и логика — как в проде. badge — цена года в месяц, спокойно, без «−96%» (тон.md: не продаём, не кричим).
 export const PAYWALL = {
   plans: [
-    { id: 'week', ru: 'Неделя', en: 'Weekly', price: '$4.99', per: { ru: 'в неделю', en: 'a week' }, trial: true },
-    { id: 'year', ru: 'Год', en: 'Yearly', price: '$9.99', per: { ru: 'в год', en: 'a year' }, badge: { ru: '$0.83 в месяц', en: '$0.83 a month' } },
+    { id: 'week', ru: 'Неделя', en: 'Weekly', price: '$4.99', per: { ru: '/ нед.', en: '/ week' }, trial: true },
+    { id: 'year', ru: 'Год', en: 'Yearly', price: '$9.99', per: { ru: '/ год', en: '/ year' }, badge: { ru: '−96%', en: '−96%' } },
     { id: 'life', ru: 'Навсегда', en: 'Lifetime', price: '$24.99', per: { ru: 'разово', en: 'one-time' } },
   ],
 };
