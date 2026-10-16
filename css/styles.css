@@ -139,7 +139,7 @@ body.ready #main { opacity: 1; }
 .pro-card:active { transform: scale(.985); }
 .pro-photo, .pro-photo img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .pro-photo { z-index: -1; }
-.pro-photo img { object-fit: cover; object-position: 50% 30%; }
+.pro-photo img { object-fit: cover; object-position: 50% 50%; }
 .pro-card::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(200deg, rgba(0,0,0,.04) 20%, rgba(0,0,0,.62)); }
 .pro-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; text-shadow: 0 1px 14px rgba(0,0,0,.35); }
 .pro-txt b { font-size: 24px; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
@@ -254,7 +254,7 @@ body.in-ob #onboarding { display: flex; }
 .ob-photo picture, .ob-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
 .ob-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.3), rgba(0,0,0,0) 24%, rgba(0,0,0,.1) 55%, rgba(0,0,0,.45)); }
 .ob-photo.is-banner { height: 60%; background: var(--bg); }
-.ob-photo.is-banner img { object-position: 50% 0%; }
+.ob-photo.is-banner img { object-position: 50% 50%; }
 .ob-photo.is-banner::after { background: linear-gradient(180deg, rgba(0,0,0,.3), rgba(0,0,0,0) 28%, rgba(0,0,0,0) 62%, var(--bg)); }
 .ob-ui { position: relative; z-index: 1; flex: 1 0 auto; display: flex; flex-direction: column; justify-content: flex-end; padding: calc(var(--safe-t) + 68px) 10px calc(var(--safe-b) + 10px); }
 .ob-back { position: absolute; left: 16px; top: calc(var(--safe-t) + 12px); width: 44px; height: 44px; padding: 11px; border-radius: 50%; color: var(--on-photo);

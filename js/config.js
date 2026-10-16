@@ -54,7 +54,7 @@ export const GAMES = [
 // Файлы — img/ui/<скин>/<имя>.avif и .webp. Обложки категорий и карточки игр не используются.
 // load — «вид» во весь экран (860×1864, фокус по центру): пейвол и онбординг «Игра» (бриф §7).
 export const HERO = {
-  gta6: { city: { ru: 'Майами', en: 'Miami' }, banners: ['img/ui/gta6/gta6-banner-01', 'img/ui/gta6/gta6-banner-02', 'img/ui/gta6/gta6-banner-04'], load: 'img/ui/gta6/gta6-load-02' },
+  gta6: { city: { ru: 'Майами', en: 'Miami' }, banners: ['img/ui/gta6/gta6-banner-01', 'img/ui/gta6/gta6-banner-02', 'img/ui/gta6/gta6-banner-03'], load: 'img/ui/gta6/gta6-load-02' },
   gta5: { city: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, banners: ['img/ui/gta5/gta5-banner-01', 'img/ui/gta5/gta5-banner-02', 'img/ui/gta5/gta5-banner-03'], load: 'img/ui/gta5/gta5-load-01' },
 };
 
