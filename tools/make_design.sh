@@ -22,6 +22,15 @@ sed -i '' 's/"short_name": "Secret Base"/"short_name": "Secret Base 3"/; s/"name
 sed -i '' "s#const IMG_BASE = /\\\\/beta\\\\//.test(location.pathname) ? '../' : '';#const IMG_BASE = /\\\\/(beta|design)\\\\//.test(location.pathname) ? '../' : '';#" design/js/map.js
 sed -i '' "s#location.pathname.includes('/beta/') ? '../' : ''#/\\\\/(beta|design)\\\\//.test(location.pathname) ? '../' : ''#" design/js/map.js
 grep -q "(beta|design)" design/js/map.js || { echo "СТОП: не удалось направить картинки карты в ../img/map"; exit 1; }
+# миниатюры мест на Главной, в Поиске и Избранном (places.js thumbOf) тоже из корня сайта
+python3 - design/js/places.js <<'PY'
+import sys
+p = sys.argv[1]; s = open(p, encoding="utf-8").read()
+old = "return ph ? (ph.thumb || ph.file) : '';"
+new = "const u = ph ? (ph.thumb || ph.file) : ''; return /\\/(beta|design)\\//.test(location.pathname) && u.startsWith('img/map/') ? '../' + u : u;"
+assert old in s, "СТОП: thumbOf в places.js изменился — поправьте make_design.sh"
+open(p, "w", encoding="utf-8").write(s.replace(old, new, 1))
+PY
 find design -name '._*' -delete
 echo "design собран: $(find design -type f | wc -l | tr -d ' ') файлов, кэш design-$n"
 find .git -name '._*' -type f -delete 2>/dev/null || true
