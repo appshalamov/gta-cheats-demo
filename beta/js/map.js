@@ -10,8 +10,8 @@ import { t, L as tr, getLang } from './i18n.js';
 
 const COLORS = { confirmed: '#22c3d9', likely: '#f5b942', speculative: '#9a8cab', egg: '#f472b6', gtadb: '#8b93a1' };
 const GAMES = {
-  gta6: { title: 'GTA 6', place: { ru: 'Майами, 2026', en: 'Miami, 2026' }, real: { ru: 'Майами', en: 'Miami' }, gameCity: { ru: 'Вайс-Сити', en: 'Vice City' } },
-  gta5: { title: 'GTA 5', place: { ru: 'Лос-Анджелес, 2013', en: 'Los Angeles, 2013' }, real: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, gameCity: { ru: 'Лос-Сантос', en: 'Los Santos' } },
+  gta6: { title: 'GTA 6', place: { ru: 'Майами', en: 'Miami' }, real: { ru: 'Майами', en: 'Miami' }, gameCity: { ru: 'Вайс-Сити', en: 'Vice City' } },
+  gta5: { title: 'GTA 5', place: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, real: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, gameCity: { ru: 'Лос-Сантос', en: 'Los Santos' } },
 };
 // ── режим «Карта игры»: точки по координатам игры (gm из build_map), подложка — плитки gtadb.
 // Мир игры −16384…16384 единиц ↔ веб-Меркатор; плитка gtadb z ↔ плитка MapLibre z+2 (переписывает transformRequest).
