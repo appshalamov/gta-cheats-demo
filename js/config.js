@@ -23,14 +23,11 @@ export const PLATFORMS = {
   phone: { ru: 'Телефон в игре', en: 'In-game phone', icon: 'phone' },
 };
 
+// Порядок — как в списках и переключателях интерфейса: GTA 6 первой (решение Игоря №15, 16.10.2026).
+// Игра по умолчанию — store.game в app.js (GTA 5), от порядка не зависит.
+// Другие части (status 'soon') — только коды, без карты: карта и места есть только у GTA 6 и GTA 5 (places.js MAP_GAMES).
 // status: 'live' — коды проверены; 'forecast' — игра ещё не вышла, коды-прогноз; 'soon' — раздел в разработке
 export const GAMES = [
-  {
-    id: 'gta5', title: 'GTA 5', header: { ru: 'Коды GTA 5', en: 'GTA 5 codes' },
-    status: 'live',
-    platforms: ['playstation', 'xbox', 'pc', 'phone'],
-    platformNote: {},
-  },
   {
     id: 'gta6', title: 'GTA 6', header: { ru: 'Коды GTA 6', en: 'GTA 6 codes' },
     status: 'forecast', release: '2026-11-19',
@@ -40,6 +37,12 @@ export const GAMES = [
       xbox: { ru: 'Series X|S', en: 'Series X|S' },
       pc: { ru: 'ожидается в 2027', en: 'expected in 2027' },
     },
+  },
+  {
+    id: 'gta5', title: 'GTA 5', header: { ru: 'Коды GTA 5', en: 'GTA 5 codes' },
+    status: 'live',
+    platforms: ['playstation', 'xbox', 'pc', 'phone'],
+    platformNote: {},
   },
   { id: 'gtasa', title: 'GTA San Andreas', status: 'soon' },
   { id: 'gtavc', title: 'GTA Vice City', status: 'soon' },

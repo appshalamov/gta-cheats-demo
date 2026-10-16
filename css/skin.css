@@ -29,7 +29,7 @@
   100% { opacity: 1; transform: scale(1.05) rotate(0); filter: blur(0) saturate(1.1); } }
 .sc-shade { position: absolute; inset: 0; background: radial-gradient(120% 70% at 50% 46%, rgba(0,0,0,.12), rgba(0,0,0,.55)); }
 
-/* 3. табло: город и год, рядом игра */
+/* 3. табло: город, под ним игра (без года — решение Игоря №15) */
 .sc-board { position: absolute; left: 0; right: 0; top: 40%; display: grid; justify-items: center; gap: 10px; padding: 0 16px; }
 .sc-flap { display: flex; gap: 3px; perspective: 200px; }
 .sc-flap i { position: relative; display: grid; place-items: center; overflow: hidden; font-style: normal;
@@ -37,7 +37,6 @@
   font: 700 20px/1 var(--font-num); font-variant-numeric: tabular-nums;
   background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge); box-shadow: var(--glass-thin-hi); }
 .sc-flap i::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0,0,0,.55); }
-.sc-year i { width: 23px; height: 31px; font-size: 16px; }
 .sc-flap i.f1 { animation: sc-flip1 80ms linear; }
 .sc-flap i.f2 { animation: sc-flip2 80ms linear; }
 @keyframes sc-flip1 { 50% { transform: rotateX(80deg); } }

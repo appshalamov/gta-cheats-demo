@@ -26,7 +26,7 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const mapMod = () => import('./map.js');
 const mapCtx = () => ({ mapsApp: () => store.mapsApp || 'google', openSheet, closeSheet, setSnap, sheetSnap: () => snap, sheetPx: snapPx, restSheet, haptic, toast, I, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k) });
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const game = () => GAMES.find((g) => g.id === store.game) || GAMES[0];
+const game = () => GAMES.find((g) => g.id === store.game) || GAMES.find((g) => g.id === DEFAULTS.game);   // GTA 6 стоит в GAMES первой — запасная игра не от порядка
 const cheats = () => (data[store.game]?.cheats) || [];
 const byId = (id) => Object.values(data).flatMap((d) => d.cheats).find((c) => c.id === id);
 const isLocked = (c) => c.pro && !store.pro;
@@ -518,7 +518,7 @@ function toggleFavPlace(key) {
 function row(action, icon, label, value = '', chevron = true) {
   return `<button class="row" data-action="${action}"><span class="row-ic">${icon}</span><span class="row-l">${label}</span><span class="row-v">${value}</span>${chevron ? `<span class="row-chev">${I.chevron}</span>` : ''}</button>`;
 }
-// карты для маршрута (Игорь 15.10.2026: «Google по умолчанию, в настройках — Apple, потом любые другие»).
+// в каких картах открывать место (Игорь 15.10.2026: «Google по умолчанию, в настройках — Apple, потом любые другие»).
 // Новая карта — строка здесь и ветка в mapsLink (map.js); наружу — только карты (правило «не уводить из приложения»).
 const MAPS_APPS = [['google', 'Google'], ['apple', 'Apple']];
 function renderSettings() {
@@ -724,7 +724,8 @@ function mediaHTML(c) {
   // видео кода — только настоящее; заглушки-постера нет (решение 8: без кадров игры)
   return c.media ? `<div class="media"><video src="${esc(c.media)}" autoplay muted loop playsinline></video></div>` : '';
 }
-// Код как посадочный талон (экран 3 этапа 2): поля, линия отрыва, кнопки по порядку с номерами.
+// Код как посадочный талон (экран 3 этапа 2), компактный (решение Игоря №15: «проще и короче инфу»):
+// одна строка «категория, платформа», линия отрыва, кнопки по порядку с номерами.
 // Элементы с data-i внутри #d-code подсвечивает озвучка (play) — порядок индексов как в коде.
 function passCode(c, p) {
   const k = c.codes || {};
@@ -739,14 +740,16 @@ function openCheat(id) {
   if (!c) return;
   if (isLocked(c)) { openPaywall(); return; }
   const g = game(), p = store.platform, k = c.codes || {};
-  const conf = c.confidence && data[store.game]?.confidenceLabels?.[c.confidence];
   const cat = CATEGORIES.find((x) => x.id === c.category);
   const pass = passCode(c, p);
-  const fields = [[t('pass_cat'), cat ? L(cat) : ''], conf ? [t('confidence'), getLang() === 'ru' ? conf[0] : conf[1]] : null, [t('pass_plat'), L(PLATFORMS[p])]].filter((f) => f && f[1]);
-  // код на ПК и номер телефона — отдельными полями под талоном (если их нет в самом талоне)
+  // вместо полей «Категория / Вероятность / Платформа» — одна строка; шанс вернуться (GTA 6) — справа
+  const meta = [cat ? L(cat) : '', L(PLATFORMS[p])].filter(Boolean).join(', ');
+  const chance = c.confidence && ['high', 'medium', 'low'].includes(c.confidence) ? t('chance_' + c.confidence) : '';
+  // код на ПК и номер телефона — строками под талоном (если их нет в самом талоне)
   const alt = [k.pc && pass.shown !== 'pc' ? [t('pc_code'), `<b class="alt-pc">${esc(k.pc)}</b>`] : null,
     k.phone && pass.shown !== 'phone' ? [t('phone_code'), `<b>${esc(k.phone)}</b>`] : null].filter(Boolean);
-  // другие платформы — кнопки PS/Xbox; ПК — только если у него своя пометка («ожидается в 2027»), код ПК и телефон уже выше
+  // другие платформы — кнопки PS/Xbox; ПК — только если у него своя пометка («ожидается в 2027»), код ПК и телефон уже выше.
+  // Свёрнуты под одну строку «Другие платформы», раскрываются по тапу
   const others = g.platforms.filter((x) => x !== p && (x === 'playstation' || x === 'xbox' || (x === 'pc' && !k.pc && g.platformNote?.pc))).map((x) => {
     const note = g.platformNote?.[x] ? ` <small>${L(g.platformNote[x])}</small>` : '';
     const kx = k[x];
@@ -754,6 +757,10 @@ function openCheat(id) {
   }).join('');
   const hasCode = !!(k.phone || k.pc || k[p]);
   const fav = store.favs.includes(c.id);
+  // прогноз: пометка из данных одной строкой; если пометки нет — только плашка «Прогноз»
+  const note = c.note ? esc(L(c.note)) : c.status === 'forecast' ? `<span class="badge badge-fc">${t('forecast')}</span>` : '';
+  // как вводить — одна короткая строка под кнопками (полный текст — Настройки, «Как вводить коды»)
+  const how = { combo: 'how_ps', pc: 'how_pc', phone: 'how_phone' }[pass.shown];
   openSheet(`
     <div class="d-head">
       <h2><span class="d-emoji">${cheatIc(c)}</span>${esc(L(c.name))}</h2>
@@ -761,20 +768,20 @@ function openCheat(id) {
       <button class="icon-btn" data-action="share" data-id="${c.id}" aria-label="${esc(t('share'))}">${I.share}</button>
     </div>
     ${mediaHTML(c)}
-    <p class="d-desc">${esc(L(c.desc))}</p>
+    <p class="d-desc" data-action="desc">${esc(L(c.desc))}</p>
     <div class="pass">
-      <div class="pass-row">${fields.map(([a, b]) => `<div class="pass-f"><span>${esc(a)}</span><b>${esc(b)}</b></div>`).join('')}</div>
+      <div class="pass-meta"><span>${esc(meta)}</span>${chance ? `<b>${esc(chance)}</b>` : ''}</div>
       <div class="pass-cut"></div>
       <div class="d-code" id="d-code">${pass.html}</div>
     </div>
     ${alt.length ? `<div class="pass-alt">${alt.map(([a, b]) => `<div class="pass-f"><span>${esc(a)}</span>${b}</div>`).join('')}</div>` : ''}
-    ${c.status === 'forecast' || c.note ? `<p class="d-note">${I.info}<span>${c.status === 'forecast' ? `<span class="badge badge-fc">${t('forecast')}</span> ` : ''}${c.note ? esc(L(c.note)) : ''}</span></p>` : ''}
-    <div class="d-btns">
+    ${note ? `<p class="d-note">${I.info}<span>${note}</span></p>` : ''}
+    <div class="d-btns${p === 'pc' && k.pc ? ' two' : ''}">
       ${hasCode ? `<button class="btn-primary" id="play-btn" data-action="play" data-id="${c.id}">${I.voice}<span>${t('play')}</span></button>` : ''}
       ${p === 'pc' && k.pc ? `<button class="btn-ghost" data-action="copy" data-v="${esc(k.pc)}">${I.copy}<span>${t('copy')}</span></button>` : ''}
     </div>
-    ${others ? `<h4 class="d-sub">${t('all_platforms')}</h4><div class="plat-list">${others}</div>` : ''}
-    <p class="d-how">${esc(howto(p))}</p>
+    ${how ? `<p class="d-how">${esc(t(how))}</p>` : ''}
+    ${others ? `<details class="d-other"><summary><span>${t('other_platforms')}</span>${I.chevron}</summary><div class="plat-list">${others}</div></details>` : ''}
   `, 'sheet-detail');
 }
 function howto(p) { return t({ playstation: 'howto_ps', xbox: 'howto_xbox', pc: 'howto_pc', phone: 'howto_phone' }[p]); }
@@ -1039,6 +1046,7 @@ document.addEventListener('click', async (e) => {
     case 'share-app': shareText(t('share_app_text')); break;
     case 'copy': try { await navigator.clipboard.writeText(v); toast(t('copied')); } catch { } break;
     case 'play': play(id); break;
+    case 'desc': el.classList.toggle('open'); break;   // описание кода в шторке — одной строкой, по тапу целиком
     case 'plat': case 'pick-platform': haptic(); openPickPlatform(); break;
     case 'pick-game': haptic(); openPickGame(); break;
     case 'set-game': {

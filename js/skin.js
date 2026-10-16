@@ -1,4 +1,4 @@
-// Смена игры (экран 4 этапа 2): размытие → табло города с годом → вид города → вспышка → новый интерфейс.
+// Смена игры (экран 4 этапа 2): размытие → табло города (без года, решение Игоря №15) → вид города → вспышка → новый интерфейс.
 // switchTo(id): слой #skin-cover накрывает экран, под ним ставится новый data-skin и экран перерисовывается
 // (apply от вызывающего), потом слой снимается. Жёсткий потолок 2,5 с, пропуск тапом или клавишей,
 // меньше движения — растворение 200 мс. Двигаются только transform / opacity / filter (css/skin.css).
@@ -24,7 +24,7 @@ function cover() {
   if (!c) { c = document.createElement('div'); c.id = 'skin-cover'; c.hidden = true; c.setAttribute('aria-hidden', 'true'); document.body.appendChild(c); }
   if (!c.firstChild) {
     c.innerHTML = '<div class="sc-frost"></div><div class="sc-air"></div><div class="sc-shade"></div>'
-      + '<div class="sc-board"><div class="sc-flap sc-city"></div><div class="sc-flap sc-year"></div><div class="sc-game"></div><div class="sc-load"><i></i></div></div>'
+      + '<div class="sc-board"><div class="sc-flap sc-city"></div><div class="sc-game"></div><div class="sc-load"><i></i></div></div>'
       + '<div class="sc-flash"></div><span class="sc-skip"></span><div class="sc-warm" hidden></div>';
     c.addEventListener('click', skip);
   }
@@ -82,21 +82,19 @@ function flap(el, from, to, delay, st) {
     st.timers.push(setTimeout(tick, delay + i * 40));
   });
 }
-const cityYear = (id) => {
-  const [city, year] = String(t('place_' + id)).split(/,\s*/);
-  return { city: (HERO[id]?.city?.[getLang()] || HERO[id]?.city?.en || city || '').toUpperCase(), year: year || '' };
-};
+// табло — только город (года у городов убраны, решение Игоря №15); подпись игры — строкой ниже (.sc-game)
+const cityOf = (id) => ({ city: (HERO[id]?.city?.[getLang()] || HERO[id]?.city?.en || String(t('place_' + id)).split(/,\s*/)[0] || '').toUpperCase() });
 
 function fill(c, id, fromSk) {
-  const to = cityYear(id);
+  const to = cityOf(id);
   const fromId = Object.keys(SKINS).find((k) => SKINS[k] === fromSk);
-  const from = fromId && HERO[fromId] ? cityYear(fromId) : { city: '', year: '' };
+  const from = fromId && HERO[fromId] ? cityOf(fromId) : { city: '' };
   c.style.setProperty('--sc-acc', accentOf(SKINS[id]) || 'currentColor');
   const air = c.querySelector('.sc-air');
   air.innerHTML = HERO[id] ? pic(HERO[id].load) : '';
   c.querySelector('.sc-game').textContent = GAMES.find((g) => g.id === id)?.title || '';
   c.querySelector('.sc-skip').textContent = t('skin_skip');
-  c.querySelector('.sc-city').textContent = ''; c.querySelector('.sc-year').textContent = '';
+  c.querySelector('.sc-city').textContent = '';
   return { to, from, img: air.querySelector('img') };
 }
 
@@ -201,7 +199,6 @@ export function switchTo(id, { apply, prepare, haptic } = {}) {
   if (img) { if (img.complete && img.naturalWidth) c.classList.add('has-photo'); else img.addEventListener('load', showPhoto, { once: true }); }
   w.then(showPhoto);
   flap(c.querySelector('.sc-city'), from.city, to.city, 120, st);
-  flap(c.querySelector('.sc-year'), from.year, to.year, 360, st);
   st.timers.push(setTimeout(() => swap(st), TL.swap));
   st.timers.push(setTimeout(() => buzz(st), TL.haptic));
   st.timers.push(setTimeout(() => {
