@@ -10,8 +10,8 @@ import { t, L as tr, getLang } from './i18n.js';
 
 const COLORS = { confirmed: '#22c3d9', likely: '#f5b942', speculative: '#9a8cab', egg: '#f472b6', gtadb: '#8b93a1' };
 const GAMES = {
-  gta6: { title: 'GTA 6', place: { ru: 'Майами, 2026', en: 'Miami, 2026' }, real: { ru: 'Майами', en: 'Miami' }, gameCity: { ru: 'Вайс-Сити', en: 'Vice City' } },
-  gta5: { title: 'GTA 5', place: { ru: 'Лос-Анджелес, 2013', en: 'Los Angeles, 2013' }, real: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, gameCity: { ru: 'Лос-Сантос', en: 'Los Santos' } },
+  gta6: { title: 'GTA 6', place: { ru: 'Майами', en: 'Miami' }, real: { ru: 'Майами', en: 'Miami' }, gameCity: { ru: 'Вайс-Сити', en: 'Vice City' } },
+  gta5: { title: 'GTA 5', place: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, real: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, gameCity: { ru: 'Лос-Сантос', en: 'Los Santos' } },
 };
 // ── режим «Карта игры»: точки по координатам игры (gm из build_map), подложка — плитки gtadb.
 // Мир игры −16384…16384 единиц ↔ веб-Меркатор; плитка gtadb z ↔ плитка MapLibre z+2 (переписывает transformRequest).
@@ -987,6 +987,23 @@ function ensureChrome() {
     const b = document.createElement('button'); b.className = 'map-fab'; b.dataset.mp = 'help'; b.setAttribute('aria-label', 'help'); b.innerHTML = IC.help;
     fabs.prepend(b);
   }
+  // «Игра ⇄ Жизнь» под большим пальцем (Игорь 16.10: «очень важная штука»; концепт этапа 2, решение 1 — уголок 64×64 у пальца):
+  // кнопка показывает, КУДА переключит; верхняя капсула остаётся — она показывает, где вы сейчас
+  if (BETA && fabs && !fabs.querySelector('.map-world')) {
+    const b = document.createElement('button'); b.className = 'map-fab map-world'; b.dataset.mp = 'mode-flip';
+    fabs.append(b);
+  }
+}
+function renderWorldFab() {
+  const b = document.querySelector('.map-world');
+  if (!b) return;
+  const to = otherMode();
+  b.hidden = !to;
+  if (!to) return;
+  const label = to === 'game' ? w('inGame') + (approx() ? ' ≈' : '') : w('life');
+  b.dataset.to = to;
+  b.setAttribute('aria-label', (to === 'game' ? w('modeGame') : w('modeReal')) + ': ' + label);
+  b.innerHTML = `${to === 'game' ? IC.game : IC.pin}<small>${esc(label)}</small>`;
 }
 function renderCards() {
   const box = document.getElementById('map-cards');
@@ -1619,6 +1636,7 @@ function renderChips() {
     (GAME_MAP[game]
       ? `<button class="${mode === 'game' ? 'on' : ''}" data-mp="mode" data-v="game" aria-pressed="${mode === 'game'}" title="${esc(w('modeGame'))}: ${esc(tr(G.gameCity))}">${IC.game}<b>${esc(w('inGame'))}${approx() ? ' ≈' : ''}</b></button></div>`
       : `<button class="mg-soon" disabled title="${esc(w('soon6'))}" aria-label="${esc(w('inGame'))}: ${esc(w('soon6'))}">${IC.game}<b>19.11</b></button></div>`);
+  renderWorldFab();
   const lg = document.getElementById('map-legend');
   if (lg) { const on = mode === 'game' && approx(); lg.classList.toggle('map-approx', on); lg.innerHTML = on ? `<span>${esc(w('approxMap'))}</span>` : ''; }
 }
@@ -1684,6 +1702,7 @@ document.addEventListener('click', (e) => {
   else if (a === 'gl-reveal') { if (el.classList.contains('spoil')) { ctx?.haptic(); el.classList.remove('spoil'); el.querySelector('.gl-pic-t')?.remove(); glSeen.add(el.dataset.id); saveSet('secret.gl.seen', glSeen); } }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
   else if (a === 'mode') { ctx?.haptic(); switchMode(el.dataset.v); }
+  else if (a === 'mode-flip') { const to = otherMode(); if (to) { ctx?.haptic(); switchMode(to); } }
   else if (a === 'cat') {
     ctx?.haptic(); activeCat = activeCat === el.dataset.v ? null : el.dataset.v;
     if (activeCat && !show.gtadb) { show.gtadb = true; loadGtadb(game).then(() => { refreshData(); applyShow(); applyCat(); renderCards(); }); }

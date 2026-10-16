@@ -1,0 +1,2029 @@
+{
+ "game": "gtasa",
+ "source": "PlayStation — коды PS2 (те же в Definitive Edition); Xbox — раскладка Definitive Edition (Xbox One / Series); ПК — набор с клавиатуры. Каждый код сверен по 3 источникам: https://gta.fandom.com/wiki/Cheats_in_GTA_San_Andreas ; https://www.grandtheftwiki.com/Cheats_in_GTA_San_Andreas ; https://www.gamesradar.com/gta-san-andreas-cheats/ . Реактивный ранец: 16-кнопочный вариант Definitive Edition (https://www.gamesradar.com/gta-san-andreas-cheats/ ; https://www.sportskeeda.com/gta/how-use-jetpack-cheat-code-gta-san-andreas-definitive-edition).",
+ "updated": "2026-10-16",
+ "cheats": [
+  {
+   "id": "sa_health",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Здоровье, броня и $250 000",
+    "en": "Health, Armor & $250K"
+   },
+   "desc": {
+    "ru": "Полное здоровье, броня, 250 тысяч и ремонт машины.",
+    "en": "Full health, armor, $250K and a car repair."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R1",
+     "R2",
+     "L1",
+     "X",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "→",
+     "↑"
+    ],
+    "xbox": [
+     "RB",
+     "RT",
+     "LB",
+     "A",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "→",
+     "↑"
+    ],
+    "pc": "HESOYAM",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_god",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Бесконечное здоровье",
+    "en": "Infinite Health"
+   },
+   "desc": {
+    "ru": "Почти бессмертие: не берут пули и драки.",
+    "en": "Near god mode: bullets and fists don't hurt."
+   },
+   "note": {
+    "ru": "Нет в Definitive Edition — только в оригинале (PS2, ПК).",
+    "en": "Not in the Definitive Edition — original release only (PS2, PC)."
+   },
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "↓",
+     "X",
+     "→",
+     "←",
+     "→",
+     "R1",
+     "→",
+     "↓",
+     "↑",
+     "T"
+    ],
+    "xbox": null,
+    "pc": "BAGUVIX",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_lock_wanted",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Без розыска навсегда",
+    "en": "Never Wanted"
+   },
+   "desc": {
+    "ru": "Розыск не растёт, что бы вы ни делали.",
+    "en": "Your wanted level never goes up."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "O",
+     "→",
+     "O",
+     "→",
+     "←",
+     "S",
+     "T",
+     "↑"
+    ],
+    "xbox": [
+     "B",
+     "→",
+     "B",
+     "→",
+     "←",
+     "X",
+     "Y",
+     "↑"
+    ],
+    "pc": "AEZAKMI",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_wanted_down",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Сбросить розыск",
+    "en": "Clear Wanted Level"
+   },
+   "desc": {
+    "ru": "Полиция перестаёт искать.",
+    "en": "Removes all wanted stars."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R1",
+     "R1",
+     "O",
+     "R2",
+     "↑",
+     "↓",
+     "↑",
+     "↓",
+     "↑",
+     "↓"
+    ],
+    "xbox": [
+     "RB",
+     "RB",
+     "B",
+     "RT",
+     "↑",
+     "↓",
+     "↑",
+     "↓",
+     "↑",
+     "↓"
+    ],
+    "pc": "ASNAEB",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_wanted_up",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Больше розыска",
+    "en": "Raise Wanted Level"
+   },
+   "desc": {
+    "ru": "Плюс две звезды розыска.",
+    "en": "Adds two wanted stars."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R1",
+     "R1",
+     "O",
+     "R2",
+     "←",
+     "→",
+     "←",
+     "→",
+     "←",
+     "→"
+    ],
+    "xbox": [
+     "RB",
+     "RB",
+     "B",
+     "RT",
+     "←",
+     "→",
+     "←",
+     "→",
+     "←",
+     "→"
+    ],
+    "pc": "OSRBLHH",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_wanted_max",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Шесть звёзд",
+    "en": "Six-Star Wanted Level"
+   },
+   "desc": {
+    "ru": "Максимальный розыск: армия и вертолёты.",
+    "en": "Maximum wanted level: army and choppers."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "O",
+     "→",
+     "O",
+     "→",
+     "←",
+     "S",
+     "X",
+     "↓"
+    ],
+    "xbox": [
+     "B",
+     "→",
+     "B",
+     "→",
+     "←",
+     "X",
+     "A",
+     "↓"
+    ],
+    "pc": "LJSPQK",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_weapons1",
+   "category": "weapon",
+   "icon": null,
+   "name": {
+    "ru": "Оружие: набор 1",
+    "en": "Weapon Set 1"
+   },
+   "desc": {
+    "ru": "Бита, пистолет, АК, гранатомёт и др.",
+    "en": "Bat, pistol, AK, rocket launcher and more."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R1",
+     "R2",
+     "L1",
+     "R2",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "→",
+     "↑"
+    ],
+    "xbox": [
+     "RB",
+     "RT",
+     "LB",
+     "RT",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "→",
+     "↑"
+    ],
+    "pc": "LXGIWYL",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_weapons2",
+   "category": "weapon",
+   "icon": null,
+   "name": {
+    "ru": "Оружие: набор 2",
+    "en": "Weapon Set 2"
+   },
+   "desc": {
+    "ru": "Огнемёт, снайперка, М4, гранаты и др.",
+    "en": "Flamethrower, sniper, M4, grenades and more."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R1",
+     "R2",
+     "L1",
+     "R2",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "↓",
+     "←"
+    ],
+    "xbox": [
+     "RB",
+     "RT",
+     "LB",
+     "RT",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "↓",
+     "←"
+    ],
+    "pc": "KJKSZPJ",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_weapons3",
+   "category": "weapon",
+   "icon": null,
+   "name": {
+    "ru": "Оружие: набор 3",
+    "en": "Weapon Set 3"
+   },
+   "desc": {
+    "ru": "Самонаводящийся гранатомёт, бензопила и др.",
+    "en": "Heat-seeking launcher, chainsaw and more."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R1",
+     "R2",
+     "L1",
+     "R2",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "↓",
+     "↓"
+    ],
+    "xbox": [
+     "RB",
+     "RT",
+     "LB",
+     "RT",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "↓",
+     "↓"
+    ],
+    "pc": "UZUMYMW",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_ammo",
+   "category": "weapon",
+   "icon": null,
+   "name": {
+    "ru": "Бесконечные патроны",
+    "en": "Infinite Ammo"
+   },
+   "desc": {
+    "ru": "Патроны не кончаются, без перезарядки.",
+    "en": "Never run out of ammo, no reloads."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "L1",
+     "R1",
+     "S",
+     "R1",
+     "←",
+     "R2",
+     "R1",
+     "←",
+     "S",
+     "↓",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "LB",
+     "RB",
+     "X",
+     "RB",
+     "←",
+     "RT",
+     "RB",
+     "←",
+     "X",
+     "↓",
+     "LB",
+     "LB"
+    ],
+    "pc": "FULLCLIP",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_hitman",
+   "category": "weapon",
+   "icon": null,
+   "name": {
+    "ru": "Мастер стрельбы",
+    "en": "Max Weapon Skill"
+   },
+   "desc": {
+    "ru": "Высший навык владения всем оружием.",
+    "en": "Top skill level for every weapon."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "↓",
+     "S",
+     "X",
+     "←",
+     "R1",
+     "R2",
+     "←",
+     "↓",
+     "↓",
+     "L1",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "↓",
+     "X",
+     "A",
+     "←",
+     "RB",
+     "RT",
+     "←",
+     "↓",
+     "↓",
+     "LB",
+     "LB",
+     "LB"
+    ],
+    "pc": "NCSGDAG",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_punch",
+   "category": "weapon",
+   "icon": null,
+   "name": {
+    "ru": "Сверхудар",
+    "en": "Super Punch"
+   },
+   "desc": {
+    "ru": "Удар кулаком отбрасывает далеко.",
+    "en": "Punches send people flying."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "↑",
+     "←",
+     "X",
+     "T",
+     "R1",
+     "O",
+     "O",
+     "O",
+     "L2"
+    ],
+    "xbox": [
+     "↑",
+     "←",
+     "A",
+     "Y",
+     "RB",
+     "B",
+     "B",
+     "B",
+     "LT"
+    ],
+    "pc": "IAVENJQ",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_jetpack",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Реактивный ранец",
+    "en": "Jetpack"
+   },
+   "desc": {
+    "ru": "Ранец за спиной — летайте над городом.",
+    "en": "A jetpack to fly over the city."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "↑",
+     "↓",
+     "←",
+     "→",
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "↑",
+     "↓",
+     "←",
+     "→"
+    ],
+    "xbox": [
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "↑",
+     "↓",
+     "←",
+     "→",
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "↑",
+     "↓",
+     "←",
+     "→"
+    ],
+    "pc": "ROCKETMAN",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_parachute",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Парашют",
+    "en": "Parachute"
+   },
+   "desc": {
+    "ru": "Парашют для прыжков с высоты.",
+    "en": "Gives you a parachute."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "←",
+     "→",
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "R2",
+     "↑",
+     "↓",
+     "→",
+     "L1"
+    ],
+    "xbox": [
+     "←",
+     "→",
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "RT",
+     "↑",
+     "↓",
+     "→",
+     "LB"
+    ],
+    "pc": "AIYPWZQP",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_tank",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Танк",
+    "en": "Tank"
+   },
+   "desc": {
+    "ru": "Танк Rhino рядом с героем.",
+    "en": "Spawns a Rhino tank nearby."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "O",
+     "O",
+     "L1",
+     "O",
+     "O",
+     "O",
+     "L1",
+     "L2",
+     "R1",
+     "T",
+     "O",
+     "T"
+    ],
+    "xbox": [
+     "B",
+     "B",
+     "LB",
+     "B",
+     "B",
+     "B",
+     "LB",
+     "LT",
+     "RB",
+     "Y",
+     "B",
+     "Y"
+    ],
+    "pc": "AIWPRTON",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_jet",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Истребитель",
+    "en": "Jet Fighter"
+   },
+   "desc": {
+    "ru": "Hydra — самолёт с вертикальным взлётом и ракетами.",
+    "en": "Spawns a Hydra VTOL jet with missiles."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "T",
+     "T",
+     "S",
+     "O",
+     "X",
+     "L1",
+     "L1",
+     "↓",
+     "↑"
+    ],
+    "xbox": [
+     "Y",
+     "Y",
+     "X",
+     "B",
+     "A",
+     "LB",
+     "LB",
+     "↓",
+     "↑"
+    ],
+    "pc": "JUMPJET",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_attack_heli",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Боевой вертолёт",
+    "en": "Attack Helicopter"
+   },
+   "desc": {
+    "ru": "Hunter с пулемётом и ракетами.",
+    "en": "Spawns a Hunter gunship."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "O",
+     "X",
+     "L1",
+     "O",
+     "O",
+     "L1",
+     "O",
+     "R1",
+     "R2",
+     "L2",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "B",
+     "A",
+     "LB",
+     "B",
+     "B",
+     "LB",
+     "B",
+     "RB",
+     "RT",
+     "LT",
+     "LB",
+     "LB"
+    ],
+    "pc": "OHDUDE",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_stunt_plane",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Пилотажный самолёт",
+    "en": "Stunt Plane"
+   },
+   "desc": {
+    "ru": "Лёгкий самолёт для трюков.",
+    "en": "Spawns a stunt plane."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "O",
+     "↑",
+     "L1",
+     "L2",
+     "↓",
+     "R1",
+     "L1",
+     "L1",
+     "←",
+     "←",
+     "X",
+     "T"
+    ],
+    "xbox": [
+     "B",
+     "↑",
+     "LB",
+     "LT",
+     "↓",
+     "RB",
+     "LB",
+     "LB",
+     "←",
+     "←",
+     "A",
+     "Y"
+    ],
+    "pc": "URKQSRK",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_hovercraft",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Судно на воздушной подушке",
+    "en": "Hovercraft"
+   },
+   "desc": {
+    "ru": "Vortex ездит и по суше, и по воде.",
+    "en": "Spawns a Vortex for land and water."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "T",
+     "S",
+     "O",
+     "X",
+     "L1",
+     "L2",
+     "↓",
+     "↓"
+    ],
+    "xbox": [
+     "Y",
+     "Y",
+     "X",
+     "B",
+     "A",
+     "LB",
+     "LT",
+     "↓",
+     "↓"
+    ],
+    "pc": "KGGGDKP",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_monster",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Монстр-трак",
+    "en": "Monster Truck"
+   },
+   "desc": {
+    "ru": "Грузовик на огромных колёсах.",
+    "en": "Spawns a monster truck."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "→",
+     "↑",
+     "R1",
+     "R1",
+     "R1",
+     "↓",
+     "T",
+     "T",
+     "X",
+     "O",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "→",
+     "↑",
+     "RB",
+     "RB",
+     "RB",
+     "↓",
+     "Y",
+     "Y",
+     "A",
+     "B",
+     "LB",
+     "LB"
+    ],
+    "pc": "MONSTERMASH",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_quad",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Квадроцикл",
+    "en": "Quad Bike"
+   },
+   "desc": {
+    "ru": "Квадроцикл для бездорожья.",
+    "en": "Spawns an off-road quad."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "←",
+     "←",
+     "↓",
+     "↓",
+     "↑",
+     "↑",
+     "S",
+     "O",
+     "T",
+     "R1",
+     "R2"
+    ],
+    "xbox": [
+     "←",
+     "←",
+     "↓",
+     "↓",
+     "↑",
+     "↑",
+     "X",
+     "B",
+     "Y",
+     "RB",
+     "RT"
+    ],
+    "pc": "AKJJYGLC",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_limo",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Лимузин",
+    "en": "Limousine"
+   },
+   "desc": {
+    "ru": "Длинный белый лимузин.",
+    "en": "Spawns a stretch limo."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R2",
+     "↑",
+     "L2",
+     "←",
+     "←",
+     "R1",
+     "L1",
+     "O",
+     "→"
+    ],
+    "xbox": [
+     "RT",
+     "↑",
+     "LT",
+     "←",
+     "←",
+     "RB",
+     "LB",
+     "B",
+     "→"
+    ],
+    "pc": "KRIJEBR",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_flying_cars",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Летающие машины",
+    "en": "Flying Cars"
+   },
+   "desc": {
+    "ru": "Машины взлетают и летят как самолёты.",
+    "en": "Cars take off and fly like planes."
+   },
+   "note": {
+    "ru": "Нет в Definitive Edition — только в оригинале (PS2, ПК).",
+    "en": "Not in the Definitive Edition — original release only (PS2, PC)."
+   },
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "S",
+     "↓",
+     "L2",
+     "↑",
+     "L1",
+     "O",
+     "↑",
+     "X",
+     "←"
+    ],
+    "xbox": null,
+    "pc": "RIPAZHA",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_flying_boats",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Летающие лодки",
+    "en": "Flying Boats"
+   },
+   "desc": {
+    "ru": "Лодки поднимаются в воздух.",
+    "en": "Boats can fly."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R2",
+     "O",
+     "↑",
+     "L1",
+     "→",
+     "R1",
+     "→",
+     "↑",
+     "S",
+     "T"
+    ],
+    "xbox": [
+     "RT",
+     "B",
+     "↑",
+     "LB",
+     "→",
+     "RB",
+     "→",
+     "↑",
+     "X",
+     "Y"
+    ],
+    "pc": "AFSNMSMW",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_nitro",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Нитро во всех машинах",
+    "en": "Nitro for All Cars"
+   },
+   "desc": {
+    "ru": "У каждой машины есть закись азота.",
+    "en": "Every car gets nitrous."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "←",
+     "T",
+     "R1",
+     "L1",
+     "↑",
+     "S",
+     "T",
+     "↓",
+     "O",
+     "L2",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "←",
+     "Y",
+     "RB",
+     "LB",
+     "↑",
+     "X",
+     "Y",
+     "↓",
+     "B",
+     "LT",
+     "LB",
+     "LB"
+    ],
+    "pc": "COXEFGU",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_handling",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Идеальное управление",
+    "en": "Perfect Handling"
+   },
+   "desc": {
+    "ru": "Машины цепко держат дорогу.",
+    "en": "Cars grip the road perfectly."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "R1",
+     "R1",
+     "←",
+     "R1",
+     "L1",
+     "R2",
+     "L1"
+    ],
+    "xbox": [
+     "Y",
+     "RB",
+     "RB",
+     "←",
+     "RB",
+     "LB",
+     "RT",
+     "LB"
+    ],
+    "pc": "PGGOMOY",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_invincible_car",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Неуязвимая машина",
+    "en": "Invincible Car"
+   },
+   "desc": {
+    "ru": "Ваша машина таранит всё и не ломается.",
+    "en": "Your car smashes everything and won't break."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "L1",
+     "L2",
+     "L2",
+     "↑",
+     "↓",
+     "↓",
+     "↑",
+     "R1",
+     "R2",
+     "R2"
+    ],
+    "xbox": [
+     "LB",
+     "LT",
+     "LT",
+     "↑",
+     "↓",
+     "↓",
+     "↑",
+     "RB",
+     "RT",
+     "RT"
+    ],
+    "pc": "JCNRUAD",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_explode",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Взорвать все машины",
+    "en": "Blow Up All Cars"
+   },
+   "desc": {
+    "ru": "Все машины вокруг взрываются.",
+    "en": "Every nearby vehicle explodes."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R2",
+     "L2",
+     "R1",
+     "L1",
+     "L2",
+     "R2",
+     "S",
+     "T",
+     "O",
+     "T",
+     "L2",
+     "L1"
+    ],
+    "xbox": [
+     "RT",
+     "LT",
+     "RB",
+     "LB",
+     "LT",
+     "RT",
+     "X",
+     "Y",
+     "B",
+     "Y",
+     "LT",
+     "LB"
+    ],
+    "pc": "CPKTNWT",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_green_lights",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Зелёный свет",
+    "en": "Green Lights"
+   },
+   "desc": {
+    "ru": "Все светофоры горят зелёным.",
+    "en": "All traffic lights stay green."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "→",
+     "R1",
+     "↑",
+     "L2",
+     "L2",
+     "←",
+     "R1",
+     "L1",
+     "R1",
+     "R1"
+    ],
+    "xbox": [
+     "→",
+     "RB",
+     "↑",
+     "LT",
+     "LT",
+     "←",
+     "RB",
+     "LB",
+     "RB",
+     "RB"
+    ],
+    "pc": "ZEIIVG",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_superjump",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Суперпрыжок",
+    "en": "Super Jump"
+   },
+   "desc": {
+    "ru": "Герой прыгает в десять раз выше.",
+    "en": "Jump ten times higher."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "↑",
+     "↑",
+     "T",
+     "T",
+     "↑",
+     "↑",
+     "←",
+     "→",
+     "S",
+     "R2",
+     "R2"
+    ],
+    "xbox": [
+     "↑",
+     "↑",
+     "Y",
+     "Y",
+     "↑",
+     "↑",
+     "←",
+     "→",
+     "X",
+     "RT",
+     "RT"
+    ],
+    "pc": "KANGAROO",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_lungs",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Бесконечный воздух",
+    "en": "Infinite Oxygen"
+   },
+   "desc": {
+    "ru": "Под водой можно плыть сколько угодно.",
+    "en": "Stay underwater as long as you like."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "↓",
+     "←",
+     "L1",
+     "↓",
+     "↓",
+     "R2",
+     "↓",
+     "L2",
+     "↓"
+    ],
+    "xbox": [
+     "↓",
+     "←",
+     "LB",
+     "↓",
+     "↓",
+     "RT",
+     "↓",
+     "LT",
+     "↓"
+    ],
+    "pc": "CVWKXAM",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_muscle",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Максимум мышц",
+    "en": "Max Muscle"
+   },
+   "desc": {
+    "ru": "Герой сразу становится качком.",
+    "en": "Instantly maxes out muscle."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "↑",
+     "↑",
+     "←",
+     "→",
+     "S",
+     "O",
+     "←"
+    ],
+    "xbox": [
+     "Y",
+     "↑",
+     "↑",
+     "←",
+     "→",
+     "X",
+     "B",
+     "←"
+    ],
+    "pc": "BUFFMEUP",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_fat",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Максимум жира",
+    "en": "Max Fat"
+   },
+   "desc": {
+    "ru": "Герой сразу становится толстым.",
+    "en": "Instantly maxes out fat."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "↑",
+     "↑",
+     "←",
+     "→",
+     "S",
+     "O",
+     "↓"
+    ],
+    "xbox": [
+     "Y",
+     "↑",
+     "↑",
+     "←",
+     "→",
+     "X",
+     "B",
+     "↓"
+    ],
+    "pc": "BTCDBCB",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_stamina",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Максимум выносливости",
+    "en": "Max Stamina"
+   },
+   "desc": {
+    "ru": "Бег и плавание без усталости.",
+    "en": "Run and swim without tiring."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "↑",
+     "X",
+     "T",
+     "X",
+     "T",
+     "X",
+     "S",
+     "R2",
+     "→"
+    ],
+    "xbox": [
+     "↑",
+     "A",
+     "Y",
+     "A",
+     "Y",
+     "A",
+     "X",
+     "RT",
+     "→"
+    ],
+    "pc": "VKYPQCF",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_fast",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Ускорение игры",
+    "en": "Faster Gameplay"
+   },
+   "desc": {
+    "ru": "Всё в игре идёт быстрее.",
+    "en": "Speeds up the whole game."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "↑",
+     "→",
+     "↓",
+     "L2",
+     "L1",
+     "S"
+    ],
+    "xbox": [
+     "Y",
+     "↑",
+     "→",
+     "↓",
+     "LT",
+     "LB",
+     "X"
+    ],
+    "pc": "PPGWJHT",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_slowmo",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Замедление",
+    "en": "Slow Motion"
+   },
+   "desc": {
+    "ru": "Игра идёт медленнее.",
+    "en": "Slows the game down."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "T",
+     "↑",
+     "→",
+     "↓",
+     "S",
+     "R2",
+     "R1"
+    ],
+    "xbox": [
+     "Y",
+     "↑",
+     "→",
+     "↓",
+     "X",
+     "RT",
+     "RB"
+    ],
+    "pc": "LIYOAAY",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_clock",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Быстрые часы",
+    "en": "Faster Clock"
+   },
+   "desc": {
+    "ru": "Время суток бежит быстрее.",
+    "en": "Makes the in-game clock run faster."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "O",
+     "O",
+     "L1",
+     "S",
+     "L1",
+     "S",
+     "S",
+     "S",
+     "L1",
+     "T",
+     "O",
+     "T"
+    ],
+    "xbox": [
+     "B",
+     "B",
+     "LB",
+     "X",
+     "LB",
+     "X",
+     "X",
+     "X",
+     "LB",
+     "Y",
+     "B",
+     "Y"
+    ],
+    "pc": "YSOHNUL",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_sunny",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Жара",
+    "en": "Very Sunny"
+   },
+   "desc": {
+    "ru": "Яркое солнце и жара.",
+    "en": "Bright sun and heat."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R2",
+     "X",
+     "L1",
+     "L1",
+     "L2",
+     "L2",
+     "L2",
+     "↓"
+    ],
+    "xbox": [
+     "RT",
+     "A",
+     "LB",
+     "LB",
+     "LT",
+     "LT",
+     "LT",
+     "↓"
+    ],
+    "pc": "ICIKPYH",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_cloudy",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Пасмурно",
+    "en": "Cloudy"
+   },
+   "desc": {
+    "ru": "Затянутое облаками небо.",
+    "en": "Cloudy sky."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "L2",
+     "↓",
+     "↓",
+     "←",
+     "S",
+     "←",
+     "R2",
+     "S",
+     "X",
+     "R1",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "LT",
+     "↓",
+     "↓",
+     "←",
+     "X",
+     "←",
+     "RT",
+     "X",
+     "A",
+     "RB",
+     "LB",
+     "LB"
+    ],
+    "pc": "ALNSFMZO",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_fog",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Туман",
+    "en": "Fog"
+   },
+   "desc": {
+    "ru": "Густой туман.",
+    "en": "Thick fog."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R2",
+     "X",
+     "L1",
+     "L1",
+     "L2",
+     "L2",
+     "L2",
+     "X"
+    ],
+    "xbox": [
+     "RT",
+     "A",
+     "LB",
+     "LB",
+     "LT",
+     "LT",
+     "LT",
+     "A"
+    ],
+    "pc": "CFVFGMJ",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_sandstorm",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Песчаная буря",
+    "en": "Sandstorm"
+   },
+   "desc": {
+    "ru": "Буря, песок застилает всё.",
+    "en": "A sandstorm sweeps in."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "↑",
+     "↓",
+     "L1",
+     "L1",
+     "L2",
+     "L2",
+     "L1",
+     "L2",
+     "R1",
+     "R2"
+    ],
+    "xbox": [
+     "↑",
+     "↓",
+     "LB",
+     "LB",
+     "LT",
+     "LT",
+     "LB",
+     "LT",
+     "RB",
+     "RT"
+    ],
+    "pc": "CWJXUOC",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_empty_streets",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Пустые улицы",
+    "en": "Empty Streets"
+   },
+   "desc": {
+    "ru": "Нет прохожих, почти нет машин.",
+    "en": "No pedestrians, few cars."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "X",
+     "↓",
+     "↑",
+     "R2",
+     "↓",
+     "T",
+     "L1",
+     "T",
+     "←"
+    ],
+    "xbox": [
+     "A",
+     "↓",
+     "↑",
+     "RT",
+     "↓",
+     "Y",
+     "LB",
+     "Y",
+     "←"
+    ],
+    "pc": "THGLOJ",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_peds_attack",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Прохожие нападают",
+    "en": "Pedestrians Attack"
+   },
+   "desc": {
+    "ru": "Прохожие нападают на героя.",
+    "en": "Pedestrians attack you."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "↓",
+     "↑",
+     "↑",
+     "↑",
+     "X",
+     "R2",
+     "R1",
+     "L2",
+     "L2"
+    ],
+    "xbox": [
+     "↓",
+     "↑",
+     "↑",
+     "↑",
+     "A",
+     "RT",
+     "RB",
+     "LT",
+     "LT"
+    ],
+    "pc": "BAGOWPG",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_peds_armed",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Прохожие с оружием",
+    "en": "Armed Pedestrians"
+   },
+   "desc": {
+    "ru": "Прохожие носят оружие.",
+    "en": "Pedestrians carry weapons."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R2",
+     "R1",
+     "X",
+     "T",
+     "X",
+     "T",
+     "↑",
+     "↓"
+    ],
+    "xbox": [
+     "RT",
+     "RB",
+     "A",
+     "Y",
+     "A",
+     "Y",
+     "↑",
+     "↓"
+    ],
+    "pc": "FOOOXFT",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "sa_elvis",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Двойники Элвиса",
+    "en": "Elvis Everywhere"
+   },
+   "desc": {
+    "ru": "Многие прохожие — двойники Элвиса.",
+    "en": "Many pedestrians are Elvis lookalikes."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "L1",
+     "O",
+     "T",
+     "L1",
+     "L1",
+     "S",
+     "L2",
+     "↑",
+     "↓",
+     "←"
+    ],
+    "xbox": [
+     "LB",
+     "B",
+     "Y",
+     "LB",
+     "LB",
+     "X",
+     "LT",
+     "↑",
+     "↓",
+     "←"
+    ],
+    "pc": "ASBHGRB",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  }
+ ]
+}

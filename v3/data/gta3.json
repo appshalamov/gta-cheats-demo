@@ -1,0 +1,936 @@
+{
+ "game": "gta3",
+ "source": "PlayStation — коды PS2 (те же в Definitive Edition); Xbox — раскладка Definitive Edition (Xbox One / Series); ПК — набор с клавиатуры. Каждый код сверен по 3 источникам: https://gta.fandom.com/wiki/Cheats_in_GTA_III ; https://www.grandtheftwiki.com/Cheats_in_GTA_III ; https://www.gamesradar.com/gta-3-cheats/",
+ "updated": "2026-10-16",
+ "cheats": [
+  {
+   "id": "g3_health",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Здоровье",
+    "en": "Health"
+   },
+   "desc": {
+    "ru": "Полное здоровье; в машине — ещё и ремонт.",
+    "en": "Full health; also repairs your car."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R2",
+     "R2",
+     "L1",
+     "R1",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "→",
+     "↑"
+    ],
+    "xbox": [
+     "RT",
+     "RT",
+     "LB",
+     "RB",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "→",
+     "↑"
+    ],
+    "pc": "GESUNDHEIT",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_armor",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Броня",
+    "en": "Armor"
+   },
+   "desc": {
+    "ru": "Полная броня.",
+    "en": "Full body armor."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R2",
+     "R2",
+     "L1",
+     "L2",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "→",
+     "↑"
+    ],
+    "xbox": [
+     "RT",
+     "RT",
+     "LB",
+     "LT",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "→",
+     "↑"
+    ],
+    "pc": "TORTOISE",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_weapons",
+   "category": "weapon",
+   "icon": null,
+   "name": {
+    "ru": "Всё оружие",
+    "en": "All Weapons"
+   },
+   "desc": {
+    "ru": "Весь арсенал игры с патронами.",
+    "en": "Every weapon in the game with ammo."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R2",
+     "R2",
+     "L1",
+     "R2",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "→",
+     "↑"
+    ],
+    "xbox": [
+     "RT",
+     "RT",
+     "LB",
+     "RT",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "→",
+     "↑"
+    ],
+    "pc": "GUNSGUNSGUNS",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_money",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "$250 000",
+    "en": "$250,000"
+   },
+   "desc": {
+    "ru": "Плюс 250 тысяч долларов.",
+    "en": "Adds $250,000 cash."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R2",
+     "R2",
+     "L1",
+     "L1",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "→",
+     "↑"
+    ],
+    "xbox": [
+     "RT",
+     "RT",
+     "LB",
+     "LB",
+     "←",
+     "↓",
+     "→",
+     "↑",
+     "←",
+     "↓",
+     "→",
+     "↑"
+    ],
+    "pc": "IFIWEREARICHMAN",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_tank",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Танк",
+    "en": "Tank"
+   },
+   "desc": {
+    "ru": "Танк Rhino рядом с героем.",
+    "en": "Spawns a Rhino tank nearby."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "O",
+     "O",
+     "O",
+     "O",
+     "O",
+     "O",
+     "R1",
+     "L2",
+     "L1",
+     "T",
+     "O",
+     "T"
+    ],
+    "xbox": [
+     "B",
+     "B",
+     "B",
+     "B",
+     "B",
+     "B",
+     "RB",
+     "LT",
+     "LB",
+     "Y",
+     "B",
+     "Y"
+    ],
+    "pc": "GIVEUSATANK",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_wanted_down",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Сбросить розыск",
+    "en": "Clear Wanted Level"
+   },
+   "desc": {
+    "ru": "Полиция перестаёт искать.",
+    "en": "Removes all wanted stars."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R2",
+     "R2",
+     "L1",
+     "R2",
+     "↑",
+     "↓",
+     "↑",
+     "↓",
+     "↑",
+     "↓"
+    ],
+    "xbox": [
+     "RT",
+     "RT",
+     "LB",
+     "RT",
+     "↑",
+     "↓",
+     "↑",
+     "↓",
+     "↑",
+     "↓"
+    ],
+    "pc": "NOPOLICEPLEASE",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_wanted_up",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Больше розыска",
+    "en": "Raise Wanted Level"
+   },
+   "desc": {
+    "ru": "Плюс две звезды розыска.",
+    "en": "Adds two wanted stars."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R2",
+     "R2",
+     "L1",
+     "R2",
+     "←",
+     "→",
+     "←",
+     "→",
+     "←",
+     "→"
+    ],
+    "xbox": [
+     "RT",
+     "RT",
+     "LB",
+     "RT",
+     "←",
+     "→",
+     "←",
+     "→",
+     "←",
+     "→"
+    ],
+    "pc": "MOREPOLICEPLEASE",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_flying_cars",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Летающие машины",
+    "en": "Flying Cars"
+   },
+   "desc": {
+    "ru": "Слабая гравитация: машины летят как самолёты.",
+    "en": "Low gravity: cars glide like planes."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "→",
+     "R2",
+     "O",
+     "R1",
+     "L2",
+     "↓",
+     "L1",
+     "R1"
+    ],
+    "xbox": [
+     "→",
+     "RT",
+     "B",
+     "RB",
+     "LT",
+     "↓",
+     "LB",
+     "RB"
+    ],
+    "pc": "CHITTYCHITTYBB",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_explode",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Взорвать все машины",
+    "en": "Blow Up All Cars"
+   },
+   "desc": {
+    "ru": "Все машины вокруг взрываются.",
+    "en": "Every nearby vehicle explodes."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "L2",
+     "R2",
+     "L1",
+     "R1",
+     "L2",
+     "R2",
+     "T",
+     "S",
+     "O",
+     "T",
+     "L2",
+     "L1"
+    ],
+    "xbox": [
+     "LT",
+     "RT",
+     "LB",
+     "RB",
+     "LT",
+     "RT",
+     "Y",
+     "X",
+     "B",
+     "Y",
+     "LT",
+     "LB"
+    ],
+    "pc": "BANGBANGBANG",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_handling",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Цепкие колёса",
+    "en": "Better Handling"
+   },
+   "desc": {
+    "ru": "Машины держат дорогу и прыгают выше.",
+    "en": "Cars grip the road and jump higher."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R1",
+     "L1",
+     "R2",
+     "L1",
+     "←",
+     "R1",
+     "R1",
+     "T"
+    ],
+    "xbox": [
+     "RB",
+     "LB",
+     "RT",
+     "LB",
+     "←",
+     "RB",
+     "RB",
+     "Y"
+    ],
+    "pc": "CORNERSLIKEMAD",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_slowmo",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Замедление",
+    "en": "Slow Motion"
+   },
+   "desc": {
+    "ru": "Игра идёт медленнее; повтор — ещё медленнее.",
+    "en": "Slows the game; repeat for slower."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "T",
+     "↑",
+     "→",
+     "↓",
+     "S",
+     "R1",
+     "R2"
+    ],
+    "xbox": [
+     "Y",
+     "↑",
+     "→",
+     "↓",
+     "X",
+     "RB",
+     "RT"
+    ],
+    "pc": "BOOOOORING",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_fast",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Ускорение игры",
+    "en": "Faster Gameplay"
+   },
+   "desc": {
+    "ru": "Всё в игре идёт быстрее.",
+    "en": "Speeds up the whole game."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "↑",
+     "→",
+     "↓",
+     "S",
+     "L1",
+     "L2"
+    ],
+    "xbox": [
+     "Y",
+     "↑",
+     "→",
+     "↓",
+     "X",
+     "LB",
+     "LT"
+    ],
+    "pc": "TIMEFLIESWHENYOU",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_clock",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Быстрые часы",
+    "en": "Faster Clock"
+   },
+   "desc": {
+    "ru": "Время суток бежит быстрее.",
+    "en": "Makes the in-game clock run faster."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "O",
+     "O",
+     "O",
+     "S",
+     "S",
+     "S",
+     "S",
+     "S",
+     "L1",
+     "T",
+     "O",
+     "T"
+    ],
+    "xbox": [
+     "B",
+     "B",
+     "B",
+     "X",
+     "X",
+     "X",
+     "X",
+     "X",
+     "LB",
+     "Y",
+     "B",
+     "Y"
+    ],
+    "pc": "MADWEATHER",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_sunny",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Ясная погода",
+    "en": "Clear Weather"
+   },
+   "desc": {
+    "ru": "Солнце и лёгкие облака.",
+    "en": "Sun with light clouds."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "R2",
+     "R1",
+     "L2",
+     "T"
+    ],
+    "xbox": [
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "RT",
+     "RB",
+     "LT",
+     "Y"
+    ],
+    "pc": "SKINCANCERFORME",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_cloudy",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Пасмурно",
+    "en": "Overcast"
+   },
+   "desc": {
+    "ru": "Затянутое облаками небо.",
+    "en": "Overcast sky."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "R2",
+     "R1",
+     "L2",
+     "S"
+    ],
+    "xbox": [
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "RT",
+     "RB",
+     "LT",
+     "X"
+    ],
+    "pc": "ILIKESCOTLAND",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_rain",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Гроза",
+    "en": "Stormy Weather"
+   },
+   "desc": {
+    "ru": "Ливень и гроза.",
+    "en": "Rain and thunderstorm."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "R2",
+     "R1",
+     "L2",
+     "O"
+    ],
+    "xbox": [
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "RT",
+     "RB",
+     "LT",
+     "B"
+    ],
+    "pc": "ILOVESCOTLAND",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_fog",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Туман",
+    "en": "Fog"
+   },
+   "desc": {
+    "ru": "Густой туман над городом.",
+    "en": "Thick fog over the city."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "R2",
+     "R1",
+     "L2",
+     "X"
+    ],
+    "xbox": [
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "RT",
+     "RB",
+     "LT",
+     "A"
+    ],
+    "pc": "PEASOUP",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_peds_armed",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Прохожие с оружием",
+    "en": "Armed Pedestrians"
+   },
+   "desc": {
+    "ru": "Прохожие носят оружие.",
+    "en": "Pedestrians carry weapons."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R2",
+     "R1",
+     "T",
+     "X",
+     "L2",
+     "L1",
+     "↑",
+     "↓"
+    ],
+    "xbox": [
+     "RT",
+     "RB",
+     "Y",
+     "A",
+     "LT",
+     "LB",
+     "↑",
+     "↓"
+    ],
+    "pc": "WEAPONSFORALL",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_peds_attack",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Прохожие нападают",
+    "en": "Pedestrians Attack"
+   },
+   "desc": {
+    "ru": "Прохожие нападают на героя. Не отменить в сохранении.",
+    "en": "Pedestrians attack you. Sticks in your save."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "↓",
+     "↑",
+     "←",
+     "↑",
+     "X",
+     "R1",
+     "R2",
+     "L1",
+     "L2"
+    ],
+    "xbox": [
+     "↓",
+     "↑",
+     "←",
+     "↑",
+     "A",
+     "RB",
+     "RT",
+     "LB",
+     "LT"
+    ],
+    "pc": "NOBODYLIKESME",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_riot",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Бунт на улицах",
+    "en": "Pedestrian Riot"
+   },
+   "desc": {
+    "ru": "Прохожие дерутся друг с другом. Не отменить в сохранении.",
+    "en": "Pedestrians fight each other. Sticks in your save."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "↓",
+     "↑",
+     "←",
+     "↑",
+     "X",
+     "R1",
+     "R2",
+     "L2",
+     "L1"
+    ],
+    "xbox": [
+     "↓",
+     "↑",
+     "←",
+     "↑",
+     "A",
+     "RB",
+     "RT",
+     "LT",
+     "LB"
+    ],
+    "pc": "ITSALLGOINGMAAAD",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g3_skin",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Сменить облик",
+    "en": "Change Outfit"
+   },
+   "desc": {
+    "ru": "Герой выглядит как случайный прохожий.",
+    "en": "You look like a random pedestrian."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "→",
+     "↓",
+     "←",
+     "↑",
+     "L1",
+     "L2",
+     "↑",
+     "←",
+     "↓",
+     "→"
+    ],
+    "xbox": [
+     "→",
+     "↓",
+     "←",
+     "↑",
+     "LB",
+     "LT",
+     "↑",
+     "←",
+     "↓",
+     "→"
+    ],
+    "pc": "ILIKEDRESSINGUP",
+    "phone": null
+   },
+   "media": null,
+   "status": "live"
+  }
+ ]
+}

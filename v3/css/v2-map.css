@@ -1,0 +1,403 @@
+/* Secret Base v2 «Стекло над городом» — раздел «Карта» (агент «карта», 16.10.2026).
+   Только переопределения поверх styles.css: разметку и поведение держит js/map.js (сессия карты), здесь — вид.
+   Подключается последним: styles → … → tokens → v2 → v2-map. Значения — из tokens.css; своих цветов почти нет.
+   Веса стекла (DESIGN.md → Glass): тонкое — чипы, круглые кнопки, метки на фото; обычное — вкладки мира, лента мест,
+   плашки; толстое — шторка места, «Слои», «Обозначения». Ползунок «игра ⇄ жизнь» не скрывать (ne-ubirat-glavnye-funkcii). */
+
+/* ───── локальные роли раздела ───── */
+#view-map, #sheet-layer, #mp-viewer {
+  /* тонкое стекло тёмное в обеих темах — подписи на нём всегда светлые */
+  --mv-on-thin: var(--on-photo);
+  --mv-on-thin-2: rgba(255,255,255,.74);
+  /* выбранный чип — инверсия: светлая подложка, тёмный текст (не акцент) */
+  --mv-ink: #1c1b20;
+  /* заливка контрола на стекле и в шторке (вместо сплошной карточки в карточке) */
+  --mv-fill: color-mix(in srgb, var(--text) 7%, transparent);
+  --mv-fill-2: color-mix(in srgb, var(--text) 12%, transparent);
+  --mv-seg-on: rgba(255,255,255,.16);
+  font-family: var(--font-ui);
+}
+:root[data-theme="light"] #view-map, :root[data-theme="light"] #sheet-layer {
+  --mv-fill: color-mix(in srgb, var(--text) 5%, transparent);
+  --mv-fill-2: color-mix(in srgb, var(--text) 9%, transparent);
+  --mv-seg-on: var(--card);
+}
+
+/* ───── верх: вкладки мира (GTA 6 | GTA 5, жизнь | игра) ───── */
+.map-top { background: none; padding: calc(var(--safe-t) + 8px) var(--s-gutter) 10px; gap: var(--s-sm); }
+.map-games {
+  min-height: 48px; padding: 4px; gap: 4px; border-radius: var(--r-pill);
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge);
+  box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  -webkit-backdrop-filter: var(--glass-regular-filter); backdrop-filter: var(--glass-regular-filter);
+}
+.map-games button {
+  border-radius: var(--r-pill); padding: 5px 14px; min-height: 40px; justify-content: center; color: var(--text);
+  transition: background var(--d-fast) var(--e-out), flex-grow var(--d-base) var(--e-out);
+}
+.map-games b { font: var(--t-label); letter-spacing: var(--t-label-track); }
+.map-games small { font: var(--t-caption); letter-spacing: var(--t-caption-track); color: var(--text-glass-2); font-variant-numeric: tabular-nums; }
+.map-games button.on { flex-grow: 1.35; background: var(--mv-seg-on); box-shadow: var(--sh-raised); }
+.map-games button.on b { color: var(--text); }
+.map-games button:active { transform: scale(var(--press-scale)); }
+
+/* бета: две группы — у каждой своя стеклянная капсула */
+#map-games:has(.mg-seg) { background: none; border: 0; box-shadow: none; padding: 0; gap: var(--s-sm);
+  -webkit-backdrop-filter: none; backdrop-filter: none; }
+#map-games .mg-seg {
+  gap: 2px; padding: 4px; border-radius: var(--r-pill);
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge);
+  box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  -webkit-backdrop-filter: var(--glass-regular-filter); backdrop-filter: var(--glass-regular-filter);
+}
+#map-games .mg-seg button { min-height: 40px; padding: 6px 12px; gap: 6px; }
+#map-games .mg-seg button b { font: var(--t-label); letter-spacing: var(--t-label-track); }
+#map-games .mg-seg button svg { width: 18px; height: 18px; }
+#map-games .mg-seg button.on svg { color: var(--accent); }   /* акцент на стекле — только значок */
+/* GTA 6 — без градиентного текста и цветной рамки: одна эпоха — один акцент */
+#map-games .mg-games button.g6 b { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: inherit; }
+#map-games .mg-games button.g6.on { background: var(--mv-seg-on); box-shadow: var(--sh-raised); }
+.mg-new { right: 6px; top: 6px; width: 7px; height: 7px; background: var(--accent); box-shadow: none; animation: none; }
+#map-games .mg-seg button.mg-soon { opacity: .5; }
+#map-games .mg-seg button.mg-soon b { font-variant-numeric: tabular-nums; }
+.map-games .mg-back svg { width: 20px; height: 20px; }
+
+/* ───── чипы фильтров — тонкое стекло, выбранный инверсией ───── */
+.map-chips { top: calc(var(--safe-t) + 72px); gap: var(--s-sm); padding: 2px var(--s-gutter) 8px; }
+.mchip, .mchip-lg {
+  height: 34px; padding: 0 14px; gap: 7px; border-radius: var(--r-pill);
+  font: var(--t-label); letter-spacing: var(--t-label-track);
+  background: var(--glass-thin-bg) !important; color: var(--mv-on-thin) !important;
+  border: 1px solid var(--glass-thin-edge) !important; box-shadow: var(--glass-thin-hi);
+  -webkit-backdrop-filter: var(--glass-thin-filter); backdrop-filter: var(--glass-thin-filter);
+  transition: background var(--d-fast) var(--e-out), color var(--d-fast) var(--e-out), transform var(--d-press) var(--e-out);
+}
+.mchip:active { transform: scale(var(--press-scale)); }
+.mchip i { width: 8px; height: 8px; opacity: .55; box-shadow: none; }
+.mchip em { font: var(--t-caption); color: var(--mv-on-thin-2); font-variant-numeric: tabular-nums; }
+.mchip.on { background: var(--on-photo) !important; color: var(--mv-ink) !important; border-color: transparent !important; box-shadow: var(--sh-raised); }
+.mchip.on i { opacity: 1; box-shadow: 0 0 0 1px rgba(0,0,0,.18); }
+.mchip.on em { color: var(--mv-ink); opacity: .62; }
+.mchip-gl { font-weight: 600; }
+.mchip-pts svg { color: var(--warn); }
+.mchip-pts em { color: inherit !important; font-weight: 700 !important; font-size: 13px !important; }
+
+/* ───── круглые кнопки справа — тонкое стекло 44 ───── */
+.map-fabs { right: var(--s-gutter); gap: var(--s-sm); }
+.map-fab, .map-fabs .map-fab {
+  width: 44px; height: 44px; padding: 11px; border-radius: var(--r-round); color: var(--mv-on-thin);
+  background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge);
+  box-shadow: var(--glass-thin-hi), var(--glass-thin-shadow);
+  -webkit-backdrop-filter: var(--glass-thin-filter); backdrop-filter: var(--glass-thin-filter);
+  transition: transform var(--d-press) var(--e-out), opacity var(--d-fast);
+}
+.map-fab:active { transform: scale(var(--press-scale)); }
+
+/* ───── плашки на карте: «приблизительная карта», легенда, подпись данных ───── */
+.map-legend:not(.map-approx) { left: var(--s-gutter); border-radius: var(--r-md); font: var(--t-caption); color: var(--text);
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  -webkit-backdrop-filter: var(--glass-regular-filter); backdrop-filter: var(--glass-regular-filter); }
+.map-legend.map-approx { top: calc(var(--safe-t) + 120px); left: var(--s-gutter); right: var(--s-gutter); }
+.map-legend.map-approx span {
+  max-width: 300px; padding: 9px 12px; border-radius: var(--r-md);
+  font: var(--t-caption); letter-spacing: var(--t-caption-track); color: var(--text);
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge);
+  box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  -webkit-backdrop-filter: var(--glass-regular-filter); backdrop-filter: var(--glass-regular-filter);
+}
+.maplibregl-ctrl-attrib { background: var(--glass-thin-bg) !important; color: var(--mv-on-thin-2); border-radius: var(--r-pill);
+  -webkit-backdrop-filter: var(--glass-thin-filter); backdrop-filter: var(--glass-thin-filter); }
+.maplibregl-ctrl-attrib a { color: var(--mv-on-thin-2) !important; }
+#map.loading::after { border-color: var(--line); border-top-color: var(--text); }
+
+/* ───── лента мест внизу — обычное стекло, фото слева «игра | жизнь» со швом ───── */
+.map-cards { gap: 10px; padding: 0 var(--s-gutter) 4px; scroll-padding-inline: var(--s-gutter); }
+.mc {
+  flex: 0 0 calc(100% - 72px); max-width: 340px; height: 104px;
+  display: grid; grid-template-columns: 104px minmax(0, 1fr); grid-template-rows: 1fr auto auto 1fr; column-gap: 12px;
+  border-radius: var(--r-card); overflow: hidden; color: var(--text);
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge);
+  box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  -webkit-backdrop-filter: var(--glass-regular-filter); backdrop-filter: var(--glass-regular-filter);
+  transition: transform var(--d-press) var(--e-out), box-shadow var(--d-fast) var(--e-out);
+}
+.mc:active { transform: scale(.98); }
+.mc.on { border-color: var(--glass-regular-edge); box-shadow: var(--sh-selected); }
+.mc-ph { grid-column: 1; grid-row: 1 / -1; height: 100%; gap: 2px; background: var(--on-photo); }
+.mc-ph img, .mc-ph > i { height: 100%; min-height: 0; }
+.mc-ph > i { background: var(--card-2); color: var(--text-3); }
+.mc-ph em { display: none; }   /* значки «игра / жизнь» на половинках — лишние на 52 px, шов говорит сам */
+.mc-t { grid-column: 2; grid-row: 2; padding: 0 12px 0 0; gap: 2px; }
+.mc-t b { font: var(--t-headline); letter-spacing: var(--t-headline-track); }
+.mc-t small { font: var(--t-callout); color: var(--text-glass-2); gap: 5px; }
+.mc-t small svg { width: 15px; height: 15px; }
+.mc-ic { grid-column: 2; grid-row: 3; padding: 6px 12px 0 0; gap: 8px; color: var(--text-glass-2); }
+.mc-ic em { font: var(--t-label); color: var(--text); font-variant-numeric: tabular-nums; }
+.mc-d { border-style: dashed; }
+.mc-empty {
+  height: 44px; padding: 0 16px; border-radius: var(--r-pill); font: var(--t-callout); color: var(--text);
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  -webkit-backdrop-filter: var(--glass-regular-filter); backdrop-filter: var(--glass-regular-filter);
+}
+/* приглашение в другую игру — то же стекло, без градиентов */
+.mc.mc-promo, .mc.mc-promo.g6 {
+  display: flex; padding: 14px 16px; gap: 6px;
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge);
+}
+.mc-promo-t b, .mc.mc-promo.g6 .mc-promo-t b { font: var(--t-title-2); letter-spacing: var(--t-title-2-track);
+  background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--text); }
+.mc-promo-t small { font: var(--t-caption); color: var(--text-glass-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mc-promo-n { font: var(--t-callout); color: var(--text-glass-2); font-variant-numeric: tabular-nums; }
+.mc-promo-n svg { color: var(--text); }
+
+/* ───── шторка места (полоска / половина / весь экран) — толстое стекло ───── */
+#sheet-layer .sheet.sheet-map {
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0; color: var(--text);
+  background: var(--glass-thick-bg); border: 1px solid var(--glass-thick-edge); border-bottom: 0;
+  box-shadow: var(--glass-thick-hi), var(--glass-thick-shadow);
+  -webkit-backdrop-filter: var(--glass-thick-filter); backdrop-filter: var(--glass-thick-filter);
+}
+:root[data-theme="light"] #sheet-layer .sheet.sheet-map { background: var(--glass-thick-bg); }
+#sheet-layer.snap .sheet.sheet-map { transition: transform var(--d-sheet) var(--e-sheet); }
+.sheet-map .grab i { width: 36px; height: 5px; background: var(--line-2); opacity: .7; }
+.sheet-map .sheet-body { padding-left: var(--s-gutter); padding-right: var(--s-gutter); }
+#sheet-layer.snap.open[data-snap="full"] { background: var(--scrim-modal); }
+
+/* заголовки шторок карты */
+.sheet-map .pick-t { text-align: left; font: var(--t-title-1); letter-spacing: var(--t-title-1-track); margin: 4px 0 16px; }
+
+/* строка-название в полоске */
+.mp-peek > svg { color: var(--accent); }
+.mp-peek b { font: var(--t-headline); letter-spacing: var(--t-headline-track); font-weight: 700; }
+.mp-peek small { font: var(--t-callout); color: var(--text-2); font-variant-numeric: tabular-nums; }
+
+/* названия: место в игре — заголовок, место в жизни — строка с маршрутом */
+.mp-names { gap: 10px; margin-bottom: 14px; }
+.mp-nm { gap: 10px; }
+.mp-nm b { font: var(--t-headline); letter-spacing: var(--t-headline-track); }
+.mp-nm.g b { color: var(--text); font: 800 26px/30px var(--font-ui); letter-spacing: -.025em; }
+#sheet-layer[data-snap="full"] .mp-nm.g b { font: var(--t-title-1); letter-spacing: var(--t-title-1-track); }
+.mp-nm small { font: var(--t-callout); color: var(--text-2); margin-top: 3px; }
+.mp-nic { width: 28px; height: 28px; color: var(--accent); }
+.mp-nm.r .mp-nic { color: var(--text-2); }
+.mp-nm.g .mp-nic { margin-top: 1px; }
+.mp-nm-link:active { background: var(--mv-fill); }
+.mp-nm-go { width: 44px; height: 44px; padding: 12px; color: var(--text); background: var(--mv-fill-2); }
+.mp-nm-go svg { width: 20px; height: 20px; }
+.mp-h { font: var(--t-title-2); letter-spacing: var(--t-title-2-track); }
+
+/* факты строкой: тип, доступ, похожесть, расстояние */
+.mp-picto { gap: 8px 16px; }
+.mp-picto .mp-pic small { font: var(--t-callout); color: var(--text-2); font-variant-numeric: tabular-nums; }
+.mp-picto .mp-pic > svg { width: 18px; height: 18px; }
+.mp-picto .mp-pic.ac-public > svg, .mp-pic.ac-public > svg { color: var(--ok); }
+.mp-picto .mp-pic.ac-restricted > svg, .mp-picto .mp-pic.ac-gone > svg, .mp-pic.ac-restricted > svg, .mp-pic.ac-gone > svg { color: var(--danger); }
+.mp-meter i { background: var(--line-2); }
+.mp-meter i.on { box-shadow: none; }
+
+/* действия: главная — сплошной акцент, остальные — круглые на стекле */
+.mp-acts { gap: 6px; margin: 4px 0 16px; align-items: center; }
+.mp-cta {
+  height: 48px; border-radius: var(--r-pill); padding: 0 14px; gap: 6px; border: 0;
+  background: var(--accent); color: var(--accent-ink); box-shadow: var(--sh-accent);
+  font: 650 15px/20px var(--font-ui); letter-spacing: var(--t-button-track); white-space: nowrap;
+  transition: transform var(--d-press) var(--e-out), background var(--d-fast);
+}
+.mp-cta:active { background: var(--accent-2); transform: scale(var(--press-scale)); }
+.mp-cta-yt { background: var(--mv-fill-2); color: var(--text); border: 0; box-shadow: none; }
+.mp-cta-yt svg { color: currentColor; }
+.mp-ib {
+  width: 44px; height: 44px; padding: 12px; border-radius: var(--r-round);
+  background: var(--mv-fill-2); border: 0; box-shadow: none; color: var(--text);
+  transition: transform var(--d-press) var(--e-out);
+}
+.mp-ib:active { transform: scale(var(--press-scale)); }
+.mp-fav.on { color: var(--fav); border-color: transparent; }
+.mp-fav.on svg path { fill: var(--fav); }
+.mp-fav.sm { width: 36px; height: 36px; padding: 9px; }
+.sheet-map .btn-primary { border-radius: var(--r-pill); box-shadow: var(--sh-accent); font: var(--t-button); }
+.sheet-map .btn-primary:active { filter: none; background: var(--accent-2); }
+.sheet-map .btn-ghost { border-radius: var(--r-pill); background: var(--mv-fill-2); border: 0; font: var(--t-button); }
+
+/* текст и блоки — заливкой на стекле, без карточек в карточках */
+.mp-text { font: var(--t-body); letter-spacing: var(--t-body-track); margin-bottom: 14px; }
+.mp-blk { gap: 12px; padding: 14px; border-radius: var(--r-md); background: var(--mv-fill); }
+.mp-blk > svg { color: var(--text-2); }
+.mp-blk b { font: var(--t-label); color: var(--text-2); margin-bottom: 4px; }
+.mp-blk p { font: var(--t-callout); line-height: 21px; }
+.mp-tip, .mp-media { background: var(--mv-fill); border-radius: var(--r-md); font: var(--t-callout); }
+.mp-alias, .mp-also { font: var(--t-caption); color: var(--text-2); }
+.mp-src { font: var(--t-caption); }
+.mp-cred { font: var(--t-caption); color: var(--text-3); }
+.mp-yt a, .mp-yt button, .mp-ytbtn {
+  min-height: 36px; padding: 0 14px 0 12px; border-radius: var(--r-pill); border: 0;
+  background: var(--mv-fill-2); color: var(--text); font: var(--t-label);
+}
+.mp-yt a svg, .mp-yt button svg, .mp-ytbtn svg { color: currentColor; }
+
+/* «Где в игре» — мини-карта, подписи обычным регистром */
+.mp-ingame { border-radius: var(--r-card); background: var(--mv-fill); border: 1px solid var(--line); box-shadow: none; }
+.mp-ig-txt { padding: 12px 14px 4px; }
+.mp-ig-txt small { font: var(--t-caption); text-transform: none; letter-spacing: var(--t-caption-track); color: var(--text-2); }
+.mp-ig-txt b { font: var(--t-callout); font-weight: 600; }
+.mp-ig-open { padding: 6px 14px 13px; font: var(--t-label); color: var(--text); }
+.mp-ig-pin { border-color: var(--on-photo); }
+.mp-ingame.mp-ig-approx .mp-ig-txt small { color: var(--text-2); }
+.mp-ingame.mp-ig-soon { background: transparent; border: 1px dashed var(--line-2); }
+
+/* блок «Для игрока», пасхалки, слои — без заглавных «киккеров» */
+.mp-player { border-radius: var(--r-md); background: var(--mv-fill); border: 1px solid var(--line); }
+.mp-player-t { font: var(--t-label); text-transform: none; letter-spacing: 0; color: var(--text); }
+.mp-player p { font: var(--t-callout); }
+.mp-player-go { border-radius: var(--r-pill); background: var(--mv-fill-2); border: 0; min-height: 44px; }
+.mp-egghead { gap: 14px; }
+.mp-eggic { border-radius: var(--r-md); background: var(--mv-fill-2); color: var(--c-egg); }
+.mp-egghead small, .mp-eggblk small { font: var(--t-caption); text-transform: none; letter-spacing: var(--t-caption-track); color: var(--text-2); }
+.mp-egghead h2 { font: var(--t-title-2); letter-spacing: var(--t-title-2-track); }
+#sheet-layer[data-snap="full"] .mp-egghead h2 { font: var(--t-title-1); letter-spacing: var(--t-title-1-track); }
+.mp-eggblk { border-radius: var(--r-md); background: var(--mv-fill); border: 1px solid var(--line); }
+.mp-eggblk b { font: var(--t-headline); }
+.mp-eggblk p { font: var(--t-callout); color: var(--text-2); }
+.mp-eggblk a { background: var(--mv-fill-2); border: 0; }
+.mp-eggblk a svg { color: currentColor; }
+.mp-vs-egg { color: var(--c-egg); }
+.mp-side small, .mp-conf { text-transform: none; letter-spacing: 0; }
+
+/* «Все фото» и «Рядом» */
+.mp-allbtn { min-height: 48px; border-radius: var(--r-md); background: var(--mv-fill); border: 0; box-shadow: none; font: var(--t-label); }
+.mp-allbtn > svg { color: var(--text-2); }
+.mp-allbtn em { font: var(--t-caption); font-variant-numeric: tabular-nums; }
+.mp-near-t { font: var(--t-headline); color: var(--text); gap: 8px; }
+.mp-near-c { border-radius: var(--r-md); background: var(--mv-fill); border: 0; }
+.mp-near-c b { font: var(--t-label); }
+.mp-near-c small { font: var(--t-caption); color: var(--text-2); font-variant-numeric: tabular-nums; }
+.mp-ch { border-radius: var(--r-md); background: var(--mv-fill); border: 0; min-height: 64px; }
+.mp-ch b { font: var(--t-headline); }
+.mp-ch small { font: var(--t-callout); color: var(--text-2); font-variant-numeric: tabular-nums; }
+.mp-ch-ic { color: var(--c-egg); }
+
+/* ───── «игра ⇄ жизнь»: фото и ползунок сравнения (механизм не трогаем) ───── */
+.mp-hero { gap: 4px; }
+.mp-shot { border-radius: var(--r-card); border: 0; background: var(--card-2); }
+.mp-shot.g { box-shadow: none; }
+.mp-badge, .mp-shot.g .mp-badge, .mp-gal > .mp-badge, .mp-gal.g > .mp-badge, .cmp-lab, .cmp-lab.g, .cmp-lab.r, .mp-approx {
+  height: 28px; padding: 0 10px 0 8px; gap: 5px; border-radius: var(--r-pill);
+  font: var(--t-caption); letter-spacing: var(--t-caption-track); color: var(--mv-on-thin);
+  background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge); box-shadow: var(--glass-thin-hi);
+  -webkit-backdrop-filter: var(--glass-thin-filter); backdrop-filter: var(--glass-thin-filter);
+}
+.mp-badge svg, .cmp-lab svg { width: 15px; height: 15px; }
+.cmp-lab b { font-weight: 600; }
+.cmp-lab { top: 10px; }
+.cmp-lab.g { left: 10px; } .cmp-lab.r { right: 10px; }
+.mp-approx { height: 26px; display: inline-flex; align-items: center; padding: 0 10px; }
+.mpv-approx { color: var(--warn); }
+.mp-gal.g .mp-cnt { border-left-color: rgba(255,255,255,.35); }
+.mp-vs {
+  width: 44px; height: 44px; margin: -22px; padding: 12px; color: var(--mv-on-thin);
+  background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge); box-shadow: var(--glass-thin-hi), var(--glass-thin-shadow);
+  -webkit-backdrop-filter: var(--glass-thin-filter); backdrop-filter: var(--glass-thin-filter);
+}
+.mp-arr, .mp-shot-exp, .cmp-full, .mp-like {
+  color: var(--mv-on-thin); background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge);
+  box-shadow: var(--glass-thin-hi), var(--glass-thin-shadow);
+  -webkit-backdrop-filter: var(--glass-thin-filter); backdrop-filter: var(--glass-thin-filter);
+}
+.mp-arr { width: 36px; height: 36px; margin-top: -18px; padding: 8px; }
+.mp-like.on { color: var(--fav); } .mp-like.on svg path { fill: var(--fav); }
+.mp-like em { font-variant-numeric: tabular-nums; }
+
+.cmp-stage { background: var(--card-2); }
+.cmp-inline { border-radius: var(--r-card); margin: 2px 0 10px; }
+/* шов — чёткая светлая линия 2 px, ручка — круглое стекло 44 */
+.cmp-line { width: 2px; margin-left: -1px; background: var(--on-photo); box-shadow: 0 0 0 .5px rgba(0,0,0,.22); }
+.cmp-knob, .cmp-inline .cmp-knob {
+  width: 44px; height: 44px; margin: -22px 0 0 -22px; color: var(--mv-on-thin);
+  background: var(--glass-thin-bg); border: 1.5px solid rgba(255,255,255,.7);
+  box-shadow: var(--glass-thin-hi), var(--glass-thin-shadow);
+  -webkit-backdrop-filter: var(--glass-thin-filter); backdrop-filter: var(--glass-thin-filter);
+  transition: transform var(--d-fast) var(--e-out);
+}
+.cmp-knob svg { width: 16px; height: 16px; margin: 0 -2px; }
+.cmp-inline.drag .cmp-knob { transform: scale(1.08); }
+.cmp-full { width: 40px; height: 40px; padding: 10px; right: 10px; bottom: 10px; }
+.cmp-stage .cmp-approx { bottom: 12px; }
+.cmp-ipairs { gap: 6px; }
+.cmp-ipairs button { border-radius: var(--r-xs); background: var(--card-2); opacity: .6; }
+.cmp-ipairs button.on { opacity: 1; border-color: var(--text); }
+.mp-cmp { background: var(--accent); color: var(--accent-ink); border: 0; box-shadow: var(--sh-accent); font: var(--t-caption); font-weight: 650; }
+.cmp-inline.ld, .mp-hero.ld .mp-shot { background: linear-gradient(100deg, var(--card) 30%, var(--card-2) 50%, var(--card) 70%) 0 0 / 300% 100%; }
+.tiny-bg { filter: blur(18px) brightness(.7); }
+
+/* ───── «Слои карты» и «Обозначения» ───── */
+.gl-head small { font: var(--t-caption); text-transform: none; letter-spacing: var(--t-caption-track); color: var(--text-2); }
+.gl-head h2 { font: var(--t-title-2); letter-spacing: var(--t-title-2-track); }
+.gl-head h2 em { font: var(--t-callout); color: var(--text-2); }
+.gl-ic { background: var(--mv-fill-2); border: 0; }
+.gl-grp-h b { font: var(--t-headline); text-transform: none; letter-spacing: var(--t-headline-track); color: var(--text); }
+.gl-grp-h button { font: var(--t-label); color: var(--text); min-height: 44px; }
+.gl-row { min-height: 56px; border-bottom-color: var(--line); gap: 12px; }
+.gl-row-t { font: var(--t-body); }
+.gl-row em { font: var(--t-callout); color: var(--text-2); font-variant-numeric: tabular-nums; }
+.gl-sw { width: 51px; height: 31px; border-radius: var(--r-pill); background: var(--mv-fill-2); transition: background var(--d-fast) var(--e-out); }
+.gl-sw::after { left: 2px; top: 2px; width: 27px; height: 27px; background: var(--on-photo); box-shadow: var(--sh-raised); transition: transform var(--d-fast) var(--e-out); }
+.gl-row.on .gl-sw { background: var(--accent); }
+.gl-row.on .gl-sw::after { transform: translateX(20px); }
+.gl-got { border-radius: var(--r-pill); background: var(--mv-fill-2); border: 0; font: var(--t-button); min-height: 48px; }
+.gl-got.on { background: color-mix(in srgb, var(--ok) 20%, transparent); border: 0; color: var(--text); }
+.gl-prog { background: var(--mv-fill-2); border-radius: var(--r-pill); }
+.gl-prog i { background: var(--ok); }
+.gl-prog span { font: var(--t-caption); font-weight: 700; line-height: 22px; font-variant-numeric: tabular-nums; }
+.gl-src { font: var(--t-caption); }
+.gl-pic { border-radius: var(--r-card); background: var(--card-2); }
+.gl-pic-t { text-shadow: none; font: var(--t-label); }
+.lg-list { gap: 14px; }
+.lg-row { grid-template-columns: 36px 1fr; gap: 12px; }
+.lg-row b { font: var(--t-headline); letter-spacing: var(--t-headline-track); }
+.lg-row small { font: var(--t-callout); color: var(--text-2); }
+.lg-fills { font: var(--t-callout); padding-top: 12px; border-top: 1px solid var(--line); }
+
+/* ───── своё фото, баллы (бета) ───── */
+.mp-addtile, .mp-drop { border-radius: var(--r-card); background: var(--mv-fill); border-color: var(--line-2); color: var(--text-2); }
+.mp-addtile em, .mp-rew svg, .mp-pts-ic, .mp-plus { color: var(--warn); }
+.mp-addic i { background: var(--text); color: var(--bg); }
+.mp-kind { border-radius: var(--r-md); background: var(--mv-fill); border: 1px solid transparent; }
+.mp-kind.on { border-color: var(--text); color: var(--text); box-shadow: none; }
+.mp-kind em { color: var(--warn); }
+.mp-pts b { font: var(--t-display); letter-spacing: var(--t-display-track); font-variant-numeric: tabular-nums; }
+.mp-hist { border-radius: var(--r-md); background: var(--mv-fill); }
+.mp-hist div { font-variant-numeric: tabular-nums; }
+.mp-hist b { color: var(--ok); } .mp-hist b.neg { color: var(--danger); }
+.mp-th.on, .mpv-thumbs button.on, .cmp-pairs button.on { border-color: var(--on-photo); }
+
+/* ───── просмотр фото и сравнение во весь экран — тёмная панель для фото ───── */
+.mpv-panel { border-radius: var(--r-sheet) var(--r-sheet) 0 0; background: rgba(20,19,24,.94); box-shadow: var(--glass-thick-shadow);
+  -webkit-backdrop-filter: var(--glass-thick-filter); backdrop-filter: var(--glass-thick-filter); }
+.mpv-grab { width: 36px; background: rgba(255,255,255,.3); }
+.mpv-ttl b { font: var(--t-headline); letter-spacing: var(--t-headline-track); }
+.mpv-ttl b svg { color: var(--mv-on-thin-2); }
+.mpv-ttl small { font: var(--t-caption); font-variant-numeric: tabular-nums; }
+#mp-viewer .mpv-x, #mp-viewer .mpv-back { width: 44px; height: 44px; padding: 11px; background: rgba(255,255,255,.12); }
+.mpv-seg { border-radius: var(--r-pill); padding: 3px; background: rgba(255,255,255,.08); }
+.mpv-seg button { height: 38px; border-radius: var(--r-pill); font: var(--t-label); color: var(--mv-on-thin-2); }
+.mpv-seg button.on, .mpv-tabs button.on, .mpa-tabs button.on { background: var(--on-photo); color: var(--mv-ink); }
+.mpv-tabs button, .mpa-tabs button { border-radius: var(--r-pill); font: var(--t-label); }
+.mpv-arr { width: 44px; height: 44px; margin-top: -22px; background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge);
+  -webkit-backdrop-filter: var(--glass-thin-filter); backdrop-filter: var(--glass-thin-filter); }
+.mpv-cap b { font: var(--t-headline); }
+.mpv-credit, .mpv-hint { font: var(--t-caption); }
+.mpa-add { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.3); color: var(--mv-on-thin); }
+.mpa-add em { color: var(--warn); }
+
+/* ───── доступность ───── */
+@media (prefers-reduced-motion: reduce) {
+  .map-games button, .mchip, .map-fab, .mc, .mp-cta, .mp-ib, .cmp-knob, .gl-sw, .gl-sw::after { transition: none; }
+  .mc:active, .mchip:active, .map-fab:active, .mp-cta:active, .mp-ib:active, .cmp-inline.drag .cmp-knob { transform: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .mpv-panel { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(20,19,24); }
+  .mchip.on { background: var(--on-photo) !important; }
+}
+.mchip:focus-visible, .map-fab:focus-visible, .mc:focus-visible, .map-games button:focus-visible, .mp-cta:focus-visible, .mp-ib:focus-visible, .cmp-inline:focus-visible {
+  outline: 2px solid var(--focus); outline-offset: 2px;
+}
