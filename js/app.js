@@ -48,7 +48,7 @@ let toastTimer;
 function toast(msg) {
   const el = $('#toast');
   el.textContent = msg; el.classList.add('show');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), msg.length > 40 ? 4200 : 1800);
 }
 
 // ───────── высота окна ─────────
@@ -189,7 +189,7 @@ function cardHTML(c, opt = {}) {
     <span class="card-ic">${cheatIc(c)}</span>
     <span class="card-m"><span class="card-top"><h3 class="card-title">${opt.q ? hl(L(c.name), opt.q) : esc(L(c.name))}</h3></span><span class="card-desc">${opt.badge && c.status === 'forecast' ? `<em class="card-fc">${t('forecast')}</em> ` : ''}${esc(L(c.desc))}</span></span>
     ${locked ? `<span class="card-lock" title="${esc(t('locked'))}">${I.lock}</span>` : ''}
-    <button class="fav${fav ? ' on' : ''}" data-action="fav" data-id="${c.id}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
+    <button class="fav${fav ? ' on' : ''}" data-action="fav" data-id="${c.id}" aria-label="${esc(t('save'))}">${fav ? I.heartFill : I.heart}</button>
   </article>`;
 }
 
@@ -206,7 +206,7 @@ function forecastBanner() {
   // дни до выхода — во вкладке мира на Главной; здесь короткая пометка, как на экранах этапа 2
   return `<div class="fc-banner">
     <span class="fc-ic">${I.info}</span>
-    <div class="fc-text"><div class="fc-title">${d > 0 ? `${t('release_in')} · ${date}` : t('released')}</div><div class="fc-sub">${t('forecast_banner')}</div></div>
+    <div class="fc-text"><div class="fc-title">${d > 0 ? t('release_in').replace('{d}', date) : t('released')}</div><div class="fc-sub">${t('forecast_banner')}</div></div>
   </div>`;
 }
 const POPULAR = {
@@ -232,7 +232,7 @@ function placeCard(o, opt = {}) {
     ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pc-ph">${o.kind === 'egg' ? I.egg : I[catIcon(o.c)]}</span>`}
     <span class="pc-grad"></span>
     <span class="pc-tags">${o.kind === 'egg' ? `<i class="tag-egg">${t('map_egg')}</i>` : `<i class="conf conf-${o.cf}">${t('conf_' + o.cf)}</i>`}${opt.game ? `<i class="tag-game">${GAMES.find((g) => g.id === o.game)?.title || ''}</i>` : ''}</span>
-    <button class="pc-fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
+    <button class="pc-fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="${esc(t('save'))}">${fav ? I.heartFill : I.heart}</button>
     <span class="pc-txt"><b>${esc(titleOf(o))}</b><small>${o.kind === 'egg' ? esc(realOf(o)) : `${I.pin}${esc(realOf(o))}`}</small></span>
   </div>`;
 }
@@ -246,7 +246,7 @@ function placeRow(o, opt = {}) {
     <span class="pr-th">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${o.kind === 'egg' ? I.egg : I[catIcon(o.c)]}</span>`}</span>
     <span class="pr-t"><b>${q ? hl(titleOf(o), q) : esc(titleOf(o))}</b><small>${q ? hl(realOf(o), q) : esc(realOf(o))}</small>
       <span class="pr-meta"><i class="dot conf-${o.cf}"></i>${gt ? `${esc(gt)}, ` : ''}${meta}</span></span>
-    <button class="fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
+    <button class="fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="${esc(t('save'))}">${fav ? I.heartFill : I.heart}</button>
   </div>`;
 }
 function hubSection(title, sub, action, body, extra = '') {
@@ -324,9 +324,9 @@ async function renderHub() {
     ${forecastBanner()}
     ${hubSection(t('hub_cheats'), L(PLATFORMS[store.platform]), `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
-        <span class="ct-ic">${I[c.icon]}</span><span class="ct-t"><b>${L(c)}</b><small>${list.filter((x) => x.category === c.id).length} ${t('codes_n')}</small></span></button>`).join('')}</div>`)}
+        <span class="ct-ic">${I[c.icon]}</span><span class="ct-t"><b>${L(c)}</b><small>${tn(list.filter((x) => x.category === c.id).length, 'n_codes')}</small></span></button>`).join('')}</div>`)}
     ${popular.length ? hubSection(t('hub_popular'), '', '', `<div class="hscroll">${popular.map(miniCheat).join('')}</div>`) : ''}
-    ${places.length ? hubSection(t('hub_places'), mapPlaceName(store.game), `<button class="hub-more" data-action="tab" data-tab="map">${t('open_map')}${I.chevron}</button>`,
+    ${places.length ? hubSection(t('hub_places'), t('hub_places_sub'), `<button class="hub-more" data-action="tab" data-tab="map">${t('open_map')}${I.chevron}</button>`,
       `<div class="hscroll">${places.map((o) => placeCard(o)).join('')}</div>`) : ''}
     ${eggs.length ? hubSection(t('hub_eggs'), t('hub_eggs_sub'), `<button class="hub-more" data-action="search-browse" data-type="eggs">${t('see_all')}${I.chevron}</button>`,
       `<div class="hscroll">${eggs.map((o) => placeCard(o)).join('')}</div>`) : ''}
@@ -343,7 +343,7 @@ function renderCheats() {
   $('#segs').innerHTML = CATEGORIES.map((c) => `<button class="seg${c.id === ui.cat ? ' on' : ''}" data-action="cat" data-cat="${c.id}">${L(c)}</button>`).join('') + '<span class="seg-ink"></span>';
   $('#pager').innerHTML = CATEGORIES.map((cat) => {
     const list = cheats().filter((c) => c.category === cat.id);
-    return `<section class="page" data-cat="${cat.id}">${list.map(cardHTML).join('') || `<div class="empty">${t('search_empty')}</div>`}</section>`;
+    return `<section class="page" data-cat="${cat.id}">${list.map(cardHTML).join('') || `<div class="empty">${t('cat_empty')}</div>`}</section>`;
   }).join('');
   requestAnimationFrame(() => { scrollToCat(ui.cat, false); moveInk(); });
 }
@@ -373,7 +373,7 @@ let mapOpening = null;
 function openMap(preferGame = store.game) {
   // та же логика, что в map.js open(): игра из настроек приложения переключает карту, если её там поменяли
   if (preferGame !== ui.mapPrefer) { ui.mapPrefer = preferGame; ui.mapGame = preferGame; applySkin(); }
-  if (!mapOpening) mapOpening = mapMod().then((m) => m.open(mapCtx(), preferGame).then(() => m)).catch((e) => { mapOpening = null; toast('Map error'); throw e; });
+  if (!mapOpening) mapOpening = mapMod().then((m) => m.open(mapCtx(), preferGame).then(() => m)).catch((e) => { mapOpening = null; toast(t('map_error')); throw e; });
   else mapOpening.then((m) => m.open(mapCtx(), preferGame)).catch(() => { });
   return mapOpening;
 }
@@ -392,6 +392,7 @@ async function openOnMap(key) {
 }
 
 // ───────── Поиск: читы, места, пасхалки ─────────
+const CODE_WORDS = 'код коды чит читы чит-код чит-коды code codes cheat cheats';
 const SYN = { vehicle: 'транспорт машина авто тачка vehicle car', weapon: 'оружие пушка патроны weapon gun', player: 'игрок герой player', world: 'мир погода world' };
 const norm = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е');
 const sf = ui.sf = { type: 'all', game: null, cat: '', conf: '' };
@@ -400,7 +401,7 @@ function searchCheats(list, q, cat) {
   return list.filter((c) => {
     if (cat && c.category !== cat) return false;
     if (!qq) return true;
-    const hay = norm([c.name.ru, c.name.en, c.desc?.ru, c.desc?.en, c.codes.pc, SYN[c.category]].join(' '));
+    const hay = norm([c.name.ru, c.name.en, c.desc?.ru, c.desc?.en, c.codes.pc, SYN[c.category], CODE_WORDS].join(' '));
     return qq.split(/\s+/).every((w) => hay.includes(w)) || (qd.length >= 3 && (c.codes.phone || '').replace(/\D/g, '').includes(qd));
   });
 }
@@ -497,13 +498,13 @@ async function renderFavs() {
     .map(([k, l, n]) => chip('fav-filter', k, `${l} <em>${n}</em>`, f === k)).join('')}</div>` : '';
   if (!all.length) {
     $('#fav-list').innerHTML = `<div class="empty-big"><span class="eb-ic">${I.heart}</span><h3>${t('fav_empty_t')}</h3><p>${t('fav_empty')}</p>
-      <div class="empty-acts"><button class="btn-primary" data-action="tab" data-tab="map">${I.map}${t('open_map')}</button><button class="btn-ghost" data-action="open-cheats" data-cat="">${I.gamepad}${t('browse_cheats')}</button></div></div>`;
+      <div class="empty-acts"><button class="btn-primary" data-action="tab" data-tab="map">${I.map}${t('go_map')}</button><button class="btn-ghost" data-action="open-cheats" data-cat="">${I.gamepad}${t('browse_cheats')}</button></div></div>`;
     return;
   }
   const showP = f !== 'cheats' && places.length, showC = f !== 'places' && cheatsF.length;
   $('#fav-list').innerHTML = (showP ? `<div class="s-sec"><div class="s-h">${t('f_places')} <em>${places.length}</em></div>${places.map((o) => placeRow(o, { game: true })).join('')}</div>` : '')
     + (showC ? `<div class="s-sec"><div class="s-h">${t('f_cheats')} <em>${cheatsF.length}</em></div>${cheatsF.map((c) => cardHTML(c, { badge: true })).join('')}</div>` : '')
-    || `<div class="empty">${t('search_empty')}</div>`;
+    || `<div class="empty">${t('fav_filter_empty')}</div>`;
 }
 function isFavPlace(key) { return store.favPlaces.includes(key); }
 function toggleFavPlace(key) {
@@ -550,7 +551,7 @@ function renderSettings() {
       ${row('about', I.info, t('st_about'))}
     </div>
     <div class="group">${row('reset', I.reset, t('st_reset'), '', false)}</div>
-    <p class="ver">${t('hub_foot')}<br>${esc(APP.name)}, v${esc(APP.version)}</p>`;
+    <p class="ver">${t('hub_foot')}<br>${esc(APP.shortName)}, v${esc(APP.version)}</p>`;
 }
 
 function updateFavBadge(pulse = false) {
@@ -756,8 +757,8 @@ function openCheat(id) {
   openSheet(`
     <div class="d-head">
       <h2><span class="d-emoji">${cheatIc(c)}</span>${esc(L(c.name))}</h2>
-      <button class="icon-btn" data-action="fav" data-id="${c.id}" aria-label="favorite">${fav ? I.heartFill : I.heart}</button>
-      <button class="icon-btn" data-action="share" data-id="${c.id}" aria-label="share">${I.share}</button>
+      <button class="icon-btn" data-action="fav" data-id="${c.id}" aria-label="${esc(t('save'))}">${fav ? I.heartFill : I.heart}</button>
+      <button class="icon-btn" data-action="share" data-id="${c.id}" aria-label="${esc(t('share'))}">${I.share}</button>
     </div>
     ${mediaHTML(c)}
     <p class="d-desc">${esc(L(c.desc))}</p>
@@ -827,10 +828,10 @@ function optHTML(cls, action, v, ico, title, sub = '', mark = '') {
   return `<button class="opt${cls}" data-action="${action}" data-v="${v}"><span class="opt-ico">${ico}</span><span class="opt-m"><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</span>${mark ? `<span class="opt-mk">${mark}</span>` : ''}</button>`;
 }
 function gameListHTML(selected, action) {
-  const live = GAMES.filter((g) => g.status !== 'soon'), soon = GAMES.filter((g) => g.status === 'soon');
+  const live = GAMES.filter((g) => g.status !== 'soon'), soon = GAMES.filter((g) => g.status === 'soon' && SKINS[g.id]);   // будущие эпохи из тон.md §6 (GTA San Andreas, GTA 4), полными названиями
   // будущие части — одной неактивной строкой (выбрать их и раньше было нельзя)
   return live.map((g) => optHTML(g.id === selected ? ' on' : '', action, g.id, esc(g.title.replace(/^GTA\s*/, '')), esc(g.title), esc(mapPlaceName(g.id)), g.status === 'forecast' ? esc(t('forecast')) : '')).join('')
-    + (soon.length ? optHTML(' dis', 'noop', soon[0].id, 'SA', esc(soon.map((g) => g.title.replace(/^GTA (?=[A-Z][a-z])/, '')).join(', ')), esc(t('soon'))) : '');
+    + (soon.length ? optHTML(' dis', 'noop', soon[0].id, 'SA', esc(soon.map((g) => g.title).join(', ')), esc(t('soon'))) : '');
 }
 function platListHTML(gameId, selected, action) {
   const g = GAMES.find((x) => x.id === gameId);
@@ -852,7 +853,7 @@ let plan = 'week';
 // экран 10 этапа 2: «вид» эпохи во весь экран, стеклянная панель снизу; планы, цены и покупка — как в проде
 function paywallPanel() {
   const plans = PAYWALL.plans.map((p) => `<button class="plan${p.id === plan ? ' on' : ''}" data-action="plan" data-v="${p.id}" aria-pressed="${p.id === plan}">
-      <span class="plan-n"><b>${L(p)}${p.badge ? `<em>${L(p.badge)}</em>` : ''}</b>${p.trial ? `<small>${t('pw_trial')} ${p.price}${L(p.per)}</small>` : ''}</span>
+      <span class="plan-n"><b>${L(p)}${p.badge ? `<em>${L(p.badge)}</em>` : ''}</b>${p.trial ? `<small>${t('pw_trial')} ${p.price} ${L(p.per)}</small>` : ''}</span>
       <span class="plan-p">${p.price}<small>${L(p.per)}</small></span></button>`).join('');
   const sel = PAYWALL.plans.find((p) => p.id === plan);
   return `<h1 class="pw-title">${t('pw_title')}</h1>
@@ -870,7 +871,7 @@ function openPaywall() {
   pw.dataset.k = key;
   pw.innerHTML = `
     <div class="pw-photo">${pic(HERO[store.game]?.load, '', 860, 1864)}</div>
-    <button class="pw-close" data-action="pw-close" aria-label="close">${I.close}</button>
+    <button class="pw-close" data-action="pw-close" aria-label="${esc(t('close'))}">${I.close}</button>
     <div class="pw-panel">${paywallPanel()}</div>`;
   pw.scrollTop = 0;
   pw.classList.add('open');
@@ -963,9 +964,9 @@ function maybeInstallHint() {
 // ───────── поделиться ─────────
 async function shareText(text) {
   try {
-    if (navigator.share) { await navigator.share({ title: APP.name, text, url: location.href.split('#')[0] }); return; }
+    if (navigator.share) { await navigator.share({ title: APP.shortName, text, url: location.href.split('#')[0] }); return; }
   } catch { return; }
-  try { await navigator.clipboard.writeText(text + '\n' + location.href.split('#')[0]); toast(t('copied')); } catch { }
+  try { await navigator.clipboard.writeText(text + '\n' + location.href.split('#')[0]); toast(t('link_copied')); } catch { }
 }
 function cheatShareText(c) {
   const k = c.codes, lines = [`${t('share_text')} ${game().title}: ${L(c.name)}`];
@@ -1035,7 +1036,7 @@ document.addEventListener('click', async (e) => {
       break;
     }
     case 'share': shareText(cheatShareText(byId(id))); break;
-    case 'share-app': shareText(APP.name); break;
+    case 'share-app': shareText(t('share_app_text')); break;
     case 'copy': try { await navigator.clipboard.writeText(v); toast(t('copied')); } catch { } break;
     case 'play': play(id); break;
     case 'plat': case 'pick-platform': haptic(); openPickPlatform(); break;
@@ -1070,7 +1071,7 @@ document.addEventListener('click', async (e) => {
       // игра карты (не приложения): анимация смены, под слоем — один setGame, карту заново не создаём
       if (el.classList.contains('on') || v === ui.mapGame) break;
       haptic(); ui.mapGame = v;
-      switchTo(v, { prepare: mapMod, apply: () => mapMod().then((m) => m.setGame(v)).catch(() => toast('Map error')), haptic });   // слой — в том же кадре, что и тап
+      switchTo(v, { prepare: mapMod, apply: () => mapMod().then((m) => m.setGame(v)).catch(() => toast(t('map_error'))), haptic });   // слой — в том же кадре, что и тап
       break;
     }
     case 'map-locate': haptic(); (await mapMod()).locate(); break;

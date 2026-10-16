@@ -318,13 +318,15 @@ body.in-ob #onboarding { display: flex; }
 .plan-p { flex: none; display: flex; flex-direction: column; align-items: flex-end; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .plan-p small { font-size: 12px; font-weight: 500; color: var(--text-2); }
 .pw-cta { margin-top: 14px; }
-.pw-links { display: flex; justify-content: center; gap: 2px; margin-top: 2px; }
-.pw-links button { min-height: 44px; padding: 0 8px; font-size: 12.5px; color: var(--text-2); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: color-mix(in srgb, var(--text-2) 50%, transparent); }
+.pw-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 2px; margin-top: 2px; }
+.pw-links button { white-space: nowrap; min-height: 44px; padding: 0 8px; font-size: 12.5px; color: var(--text-2); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: color-mix(in srgb, var(--text-2) 50%, transparent); }
 .pw-demo { text-align: center; font-size: 12px; color: var(--text-3); }
 
 /* ───── прочее ───── */
 #toast { position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + var(--safe-b) + 18px); transform: translate(-50%, 20px); opacity: 0; z-index: 60; background: var(--card-2); color: var(--text); padding: 10px 18px; border-radius: 999px; font-size: 15px; font-weight: 600; pointer-events: none; transition: .25s; box-shadow: var(--sh-float); white-space: nowrap; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+/* шаг 6: ошибка со следующим шагом (тон.md) бывает в две строки — переносим, а не режем краем экрана */
+#toast { white-space: normal; width: max-content; max-width: calc(100% - 32px); text-align: center; line-height: 1.3; border-radius: 22px; }
 #install { position: fixed; left: 12px; right: 12px; bottom: calc(var(--tabbar-h) + var(--safe-b) + 10px); z-index: 15; display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: var(--card); border: 1px solid var(--line-2); box-shadow: var(--sh-float); transform: translateY(30px); opacity: 0; visibility: hidden; pointer-events: none; transition: transform .4s cubic-bezier(.2,.9,.25,1), opacity .3s, visibility .3s; }
 #install.show { transform: translateY(0); opacity: 1; visibility: visible; pointer-events: auto; }
 .ins-ic { width: 40px; height: 40px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); padding: 9px; flex: none; }
