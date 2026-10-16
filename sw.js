@@ -11,14 +11,16 @@ const SHELL = [
   'icons/lockup-dark.svg', 'icons/lockup-light.svg', 'fonts/onest.woff2',
 ];
 
-// Картинки эпох (img/ui/<скин>/) — свой кэш, переживает обновления версии: «сразу из кэша, в фоне обновить».
+// Картинки эпох (img/ui/<скин>/) — свой кэш «сразу из кэша, в фоне обновить», привязан к VERSION: с новой версией старый
+// кэш удаляется в activate, и картинки, заменённые под теми же именами (пакет 2 этапа 5), приходят сразу, а не со второго показа.
+// Цена — ~210 КБ критичного набора заново при каждом поднятии VERSION.
 // Критичный набор кладём при установке: первый баннер Главной и «вид» (смена игры, пейвол, онбординг) GTA 6 и GTA 5 —
 // смена игры и Главная без сети открываются с фото. Формат — AVIF (его берёт <picture> на iOS и в Chrome);
 // WebP — запас для браузеров без AVIF, кэшируется при обращении. Обложки категорий, карточки игр, предметы сюда не кладём.
-const UI = 'ui-v1', UI_MAX = 120;
+const UI = 'ui-' + VERSION, UI_MAX = 120;
 const UI_CRIT = ['img/ui/gta6/gta6-banner-01.avif', 'img/ui/gta6/gta6-load-02.avif', 'img/ui/gta5/gta5-banner-01.avif', 'img/ui/gta5/gta5-load-01.avif'];
 // докачать недостающие; уже лежащие не качаем заново (обновятся в фоне при показе). Сбой сети установку не валит.
-const uiPrecache = () => caches.open(UI).then((c) => Promise.all(UI_CRIT.map((u) => c.match(u).then((hit) => hit || c.add(u)))))
+const uiPrecache = () => caches.open(UI).then((c) => Promise.all(UI_CRIT.map((u) => c.match(u).then((hit) => hit || c.add(new Request(u, { cache: 'reload' }))))))
   .catch(() => { });
 
 self.addEventListener('install', (e) => {

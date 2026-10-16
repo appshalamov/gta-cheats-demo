@@ -228,7 +228,7 @@ function miniCheat(c) {
 }
 function placeCard(o, opt = {}) {
   const key = placeKey(o), fav = store.favPlaces.includes(key), img = thumbOf(o, o.kind === 'egg' ? 'game' : 'real');
-  return `<div class="pcard${opt.grid ? ' pcard-grid' : ''}" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
+  return `<div class="pcard" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
     ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pc-ph">${o.kind === 'egg' ? I.egg : I[catIcon(o.c)]}</span>`}
     <span class="pc-grad"></span>
     <span class="pc-tags">${o.kind === 'egg' ? `<i class="tag-egg">${t('map_egg')}</i>` : `<i class="conf conf-${o.cf}">${t('conf_' + o.cf)}</i>`}${opt.game ? `<i class="tag-game">${GAMES.find((g) => g.id === o.game)?.title || ''}</i>` : ''}</span>

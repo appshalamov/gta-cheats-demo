@@ -54,7 +54,6 @@ body.ready #main { opacity: 1; }
 .fav.on svg path { fill: var(--accent); stroke: var(--accent); }
 .pop { animation: pop .3s; }
 @keyframes pop { 40% { transform: scale(1.35); } }
-.card-code { position: relative; margin-top: 6px; }
 .phone-line { font-size: 15px; margin-bottom: 10px; }
 .phone-line b { font-weight: 600; }
 .sub-label { font-size: 13px; color: var(--text-2); margin-bottom: 4px; }
@@ -80,11 +79,8 @@ body.ready #main { opacity: 1; }
 .k.done, .ch.done { opacity: .4; }
 
 .is-locked .combo, .is-locked .phone-line, .is-locked .phone-big, .is-locked .pc-code, .is-locked .sub-label { filter: blur(6px); opacity: .7; }
-.lock-veil { position: absolute; inset: -4px; display: grid; place-items: center; }
-.lock-veil span { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px 7px 11px; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--accent-ink); font-weight: 800; font-size: 13px; letter-spacing: .06em; box-shadow: var(--glow); }
-.lock-veil svg { width: 16px; height: 16px; }
 
-.badge { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 7px; border-radius: 6px; }
+.badge { font-size: 12px; font-weight: 650; padding: 3px 7px; border-radius: 6px; } /* обычный регистр, без разрядки (анти-слоп) */
 .badge-fc { color: var(--warn); background: var(--warn-soft); }
 
 /* прогноз GTA 6 */
@@ -196,15 +192,7 @@ body.ready #main { opacity: 1; }
 .icon-btn { flex: none; width: 40px; height: 40px; padding: 9px; border-radius: 50%; background: var(--card); color: var(--text); }
 .media { border-radius: 16px; overflow: hidden; aspect-ratio: 16/10; background: var(--card-2); margin-bottom: 14px; border: 1px solid var(--line); }
 .media video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.poster { position: relative; width: 100%; height: 100%; display: grid; place-items: center; background: radial-gradient(120% 90% at 30% 20%, color-mix(in srgb, var(--accent) 45%, var(--card)), var(--card) 70%, var(--bg)); overflow: hidden; }
-.poster::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 2px, transparent 2px 4px); }
-.poster::after { content: ""; position: absolute; inset: -40%; background: conic-gradient(from 0deg, transparent, rgba(255,255,255,.12), transparent 30%); animation: spin 6s linear infinite; }
 @keyframes spin { to { transform: rotate(1turn); } }
-.poster-emoji { width: 72px; height: 72px; color: var(--accent); filter: drop-shadow(0 10px 30px rgba(0,0,0,.5)); animation: float 3s ease-in-out infinite; z-index: 1; }
-@keyframes float { 50% { transform: translateY(-8px) rotate(-3deg); } }
-.poster-tag { position: absolute; left: 12px; bottom: 12px; z-index: 1; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--on-photo); background: var(--glass-thin-bg); padding: 6px 10px 6px 8px; border-radius: 999px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-.poster-tag svg { width: 14px; height: 14px; }
-.fc-note { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-2); margin-bottom: 8px; }
 .d-desc { font-size: 17px; margin-bottom: 6px; }
 .d-note { font-size: 13.5px; color: var(--text-2); margin: 6px 0 4px; }
 .d-code { margin: 16px 0 18px; padding: 14px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--line); }

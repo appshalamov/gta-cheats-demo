@@ -128,7 +128,7 @@
 .pcard .pc-ph svg { width: 48px; height: 48px; }
 .pc-grad { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, transparent 30%, transparent 45%, rgba(0,0,0,.85) 100%); } /* затемнение фото — всегда тёмное, тема не влияет */
 .pc-tags { position: absolute; left: 10px; top: 10px; right: 48px; display: flex; flex-wrap: wrap; gap: 5px; }
-.pc-tags i { font-style: normal; font-size: 10.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; padding: 3px 7px; border-radius: 6px; color: var(--on-photo); background: var(--glass-thin-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.pc-tags i { font-style: normal; font-size: 12px; font-weight: 650; line-height: 1.25; padding: 3px 8px; border-radius: 6px; color: var(--on-photo); background: var(--glass-thin-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .pc-tags .conf-confirmed { color: var(--c-confirmed); } .pc-tags .conf-likely { color: var(--c-likely); } .pc-tags .conf-speculative { color: var(--c-speculative); }
 .pc-tags .tag-egg { color: var(--c-egg); }
 .pc-fav { position: absolute; right: 8px; top: 8px; width: 36px; height: 36px; padding: 8px; border-radius: 50%; color: var(--on-photo); background: var(--glass-thin-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
@@ -138,8 +138,6 @@
 .pc-txt small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12.5px; color: color-mix(in srgb, var(--on-photo) 80%, transparent); line-height: 1.3; }
 .pc-txt small svg { display: inline-block; vertical-align: -2px; margin-right: 3px; }
 .pc-txt small svg { width: 13px; height: 13px; }
-.pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.pcard-grid { width: auto; height: 220px; }
 
 /* строка места (Поиск, Избранное; экраны 7–8 этапа 2): фото 52, название, реальное место, точность — строкой, без рамки */
 /* на фото тёмное затемнение не нужно; метки точности — значения темы */
@@ -221,7 +219,6 @@ mark.hl { background: none; color: var(--accent); font-weight: 750; } /* сов�
 .card-m { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .card .card-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .card .card-title { flex: 0 1 auto; min-width: 0; font-size: 16px; font-weight: 650; line-height: 1.25; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card .badge { flex: none; }
 .card-desc { font-size: 13px; line-height: 1.3; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-fc { font-style: normal; font-weight: 650; color: var(--accent); } /* «прогноз» в Поиске и Избранном — в строке эффекта, название целиком */
 .card-lock { flex: none; width: 18px; height: 18px; color: var(--accent); }
