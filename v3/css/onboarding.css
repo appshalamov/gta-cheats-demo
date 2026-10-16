@@ -1,0 +1,15 @@
+/* Онбординг: шапка шага, «Назад», плавный переход между шагами, отклик на тап. */
+.ob-bar { display: flex; align-items: center; justify-content: space-between; min-height: 32px; margin-bottom: 6px; }
+.ob-back { display: inline-flex; align-items: center; gap: 2px; color: var(--accent); font-size: 17px; padding: 4px 8px 4px 0; margin-left: -6px; }
+.ob-back svg { width: 22px; height: 22px; }
+.ob-step { font-size: 13px; font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.ob-body { display: flex; flex-direction: column; }
+.ob-in-right { animation: obInRight .32s cubic-bezier(.2,.9,.25,1) both; }
+.ob-in-left { animation: obInLeft .32s cubic-bezier(.2,.9,.25,1) both; }
+@keyframes obInRight { from { opacity: 0; transform: translateX(40px); } }
+@keyframes obInLeft { from { opacity: 0; transform: translateX(-40px); } }
+.ob-body .ob-top, #onboarding .ob-body .opts { animation: none; }
+#onboarding .opt { touch-action: manipulation; }
+#onboarding .opt:active { transform: scale(.97); }
+#onboarding .opt.picked { animation: obPick .26s ease-out; }
+@keyframes obPick { 40% { transform: scale(.96); } 100% { transform: scale(1); } }

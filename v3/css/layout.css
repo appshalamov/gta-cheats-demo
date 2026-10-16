@@ -1,0 +1,22 @@
+/* Каркас под iPhone «на экране Домой» (iOS 26).
+   Баг WebKit 301994: в standalone окно (innerHeight, 100dvh) занижено на высоту чёлки (~59px),
+   а любой position: fixed корень обрезается по этой заниженной высоте — внизу системная полоса.
+   Лечение (подтверждено в piclaw/docs/PWA.md): корень в обычном потоке, без fixed;
+   высота в standalone = 100vh (её iOS не занижает), в браузере = 100dvh. Ставит fitViewport() в app.js.
+   Подстраховка: фон страницы = цвет нижней панели — если полоса всё же останется, она сольётся с панелью. */
+:root { --tabbar-bg: #101013; --safe-b: max(env(safe-area-inset-bottom, 0px), var(--safe-b-min, 0px)); }
+:root[data-theme="light"] { --tabbar-bg: #f7f7f9; }
+/* Страница НЕ прокручивается. overflow: hidden нужен на html: иначе свойство body уходит на всё окно
+   и body ничего не обрезает — закрытые оверлеи (translateY(100%)) растягивали документ вдвое,
+   свайп прокручивал страницу и снизу выезжал пейвол (14.10.2026).
+   height у html не 100% (у piclaw это в списке неудачных: ломает viewport-fit=cover) — по высоте body. */
+html { height: auto; overflow: hidden; overscroll-behavior: none; background: var(--tabbar-bg); }
+body { position: relative; height: var(--app-h, 100dvh); min-height: var(--app-h, 100dvh); background: var(--bg); overflow: hidden; overscroll-behavior: none; }
+#sheet-layer { overflow: hidden; }
+/* закрытый пейвол не участвует ни в отрисовке, ни в фокусе */
+#paywall { visibility: hidden; transition: transform .45s cubic-bezier(.2,.9,.25,1), visibility 0s linear .45s; }
+#paywall.open { visibility: visible; transition: transform .45s cubic-bezier(.2,.9,.25,1), visibility 0s; }
+/* было position: fixed — теперь absolute внутри body (body = полная высота) */
+#main, #onboarding, #paywall, #sheet-layer { position: absolute; }
+#toast, #install, #mp-viewer { position: absolute; }
+.tabbar { background: color-mix(in srgb, var(--tabbar-bg) 94%, transparent); }

@@ -1,0 +1,788 @@
+{
+ "game": "gta4",
+ "source": "Коды набираются на телефоне в игре (все платформы). Сверено: https://gta.fandom.com/wiki/Cheats_in_GTA_IV ; https://www.grandtheftwiki.com/Cheats_in_GTA_IV ; https://www.gamesradar.com/games/action/gta-4-cheats-codes/",
+ "updated": "2026-10-16",
+ "cheats": [
+  {
+   "id": "g4_health_weapons",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Здоровье, броня и оружие",
+    "en": "Health, Armor & Weapons"
+   },
+   "desc": {
+    "ru": "Полное здоровье и броня, ремонт машины, оружие и патроны.",
+    "en": "Full health and armor, car repair, weapons and ammo."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "482-555-0100"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_health",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Здоровье и броня",
+    "en": "Health & Armor"
+   },
+   "desc": {
+    "ru": "Полное здоровье и броня, ремонт машины.",
+    "en": "Full health and armor; repairs your car."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "362-555-0100"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_weapons1",
+   "category": "weapon",
+   "icon": null,
+   "name": {
+    "ru": "Оружие: набор 1",
+    "en": "Weapon Set 1"
+   },
+   "desc": {
+    "ru": "Нож, пистолет, дробовик, автомат, снайперка, гранатомёт и др.",
+    "en": "Knife, pistol, shotgun, rifle, sniper, RPG and more."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "486-555-0150"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_weapons2",
+   "category": "weapon",
+   "icon": null,
+   "name": {
+    "ru": "Оружие: набор 2",
+    "en": "Weapon Set 2"
+   },
+   "desc": {
+    "ru": "Бита, боевой пистолет и дробовик, карабин, гранаты, гранатомёт и др.",
+    "en": "Bat, combat pistol and shotgun, carbine, grenades, RPG and more."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "486-555-0100"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_wanted_down",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Сбросить розыск",
+    "en": "Clear Wanted Level"
+   },
+   "desc": {
+    "ru": "Полиция перестаёт искать.",
+    "en": "Removes all wanted stars."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "267-555-0100"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_wanted_up",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Больше розыска",
+    "en": "Raise Wanted Level"
+   },
+   "desc": {
+    "ru": "Плюс одна звезда розыска.",
+    "en": "Adds one wanted star."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "267-555-0150"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_weather",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Сменить погоду",
+    "en": "Change Weather"
+   },
+   "desc": {
+    "ru": "Каждый звонок — следующая погода.",
+    "en": "Each call switches to the next weather."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "468-555-0100"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_heli",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Боевой вертолёт",
+    "en": "Attack Helicopter"
+   },
+   "desc": {
+    "ru": "Annihilator с пулемётами.",
+    "en": "Spawns an Annihilator gunship."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "359-555-0100"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_sports_car",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Спорткар",
+    "en": "Sports Car"
+   },
+   "desc": {
+    "ru": "Comet — быстрый спорткар.",
+    "en": "Spawns a Comet sports car."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "227-555-0175"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_supercar",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Суперкар",
+    "en": "Supercar"
+   },
+   "desc": {
+    "ru": "Turismo — один из самых быстрых.",
+    "en": "Spawns a Turismo, one of the fastest."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "227-555-0147"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_supergt",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Суперкар GT",
+    "en": "Super GT"
+   },
+   "desc": {
+    "ru": "Купе Super GT.",
+    "en": "Spawns a Super GT coupe."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "227-555-0168"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_sedan",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Седан бизнес-класса",
+    "en": "Luxury Sedan"
+   },
+   "desc": {
+    "ru": "Седан Cognoscenti.",
+    "en": "Spawns a Cognoscenti sedan."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "227-555-0142"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_fib",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Машина агентов",
+    "en": "Agent Car"
+   },
+   "desc": {
+    "ru": "FIB Buffalo — седан федералов.",
+    "en": "Spawns an FIB Buffalo."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "227-555-0100"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_sport_bike",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Спортбайк",
+    "en": "Sport Bike"
+   },
+   "desc": {
+    "ru": "Мотоцикл NRG 900.",
+    "en": "Spawns an NRG 900 bike."
+   },
+   "note": null,
+   "pro": false,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "625-555-0100"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_dirt_bike",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Кроссовый мотоцикл",
+    "en": "Dirt Bike"
+   },
+   "desc": {
+    "ru": "Мотоцикл Sanchez для бездорожья.",
+    "en": "Spawns a Sanchez dirt bike."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "625-555-0150"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_speedboat",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Катер",
+    "en": "Speedboat"
+   },
+   "desc": {
+    "ru": "Скоростной катер Jetmax.",
+    "en": "Spawns a Jetmax speedboat."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "938-555-0100"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_song",
+   "category": "world",
+   "icon": null,
+   "name": {
+    "ru": "Узнать песню",
+    "en": "Song ID"
+   },
+   "desc": {
+    "ru": "Узнать, какая песня играет по радио.",
+    "en": "Identifies the song on the radio."
+   },
+   "note": null,
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "948-555-0100"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tlad_innovation",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Чоппер Innovation",
+    "en": "Innovation Chopper"
+   },
+   "desc": {
+    "ru": "Чоппер Innovation.",
+    "en": "Spawns an Innovation chopper."
+   },
+   "note": {
+    "ru": "Только в дополнении The Lost and Damned.",
+    "en": "The Lost and Damned only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "245-555-0100"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tlad_hexer",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Чоппер Hexer",
+    "en": "Hexer Chopper"
+   },
+   "desc": {
+    "ru": "Чоппер Hexer.",
+    "en": "Spawns a Hexer chopper."
+   },
+   "note": {
+    "ru": "Только в дополнении The Lost and Damned.",
+    "en": "The Lost and Damned only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "245-555-0150"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tlad_doublet",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Спортбайк Double T",
+    "en": "Double T Bike"
+   },
+   "desc": {
+    "ru": "Спортбайк Double T Custom.",
+    "en": "Spawns a Double T Custom."
+   },
+   "note": {
+    "ru": "Только в дополнении The Lost and Damned.",
+    "en": "The Lost and Damned only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "245-555-0125"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tlad_hakuchou",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Спортбайк Hakuchou",
+    "en": "Hakuchou Bike"
+   },
+   "desc": {
+    "ru": "Спортбайк Hakuchou Custom.",
+    "en": "Spawns a Hakuchou Custom."
+   },
+   "note": {
+    "ru": "Только в дополнении The Lost and Damned.",
+    "en": "The Lost and Damned only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "245-555-0199"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tlad_slamvan",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Фургон Slamvan",
+    "en": "Slamvan"
+   },
+   "desc": {
+    "ru": "Фургон Slamvan.",
+    "en": "Spawns a Slamvan."
+   },
+   "note": {
+    "ru": "Только в дополнении The Lost and Damned.",
+    "en": "The Lost and Damned only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "826-555-0100"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tlad_burrito",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Фургон банды",
+    "en": "Gang Van"
+   },
+   "desc": {
+    "ru": "Фургон Gang Burrito.",
+    "en": "Spawns a Gang Burrito van."
+   },
+   "note": {
+    "ru": "Только в дополнении The Lost and Damned.",
+    "en": "The Lost and Damned only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "826-555-0150"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tbogt_punch",
+   "category": "weapon",
+   "icon": null,
+   "name": {
+    "ru": "Взрывные удары",
+    "en": "Explosive Punches"
+   },
+   "desc": {
+    "ru": "Удар кулаком взрывается.",
+    "en": "Your punches explode."
+   },
+   "note": {
+    "ru": "Только в дополнении The Ballad of Gay Tony.",
+    "en": "The Ballad of Gay Tony only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "276-555-2666"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tbogt_sniper",
+   "category": "weapon",
+   "icon": null,
+   "name": {
+    "ru": "Взрывные патроны снайперки",
+    "en": "Explosive Sniper Rounds"
+   },
+   "desc": {
+    "ru": "Пули снайперской винтовки взрываются.",
+    "en": "Sniper rounds explode on impact."
+   },
+   "note": {
+    "ru": "Только в дополнении The Ballad of Gay Tony.",
+    "en": "The Ballad of Gay Tony only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "486-555-2526"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tbogt_parachute",
+   "category": "player",
+   "icon": null,
+   "name": {
+    "ru": "Парашют",
+    "en": "Parachute"
+   },
+   "desc": {
+    "ru": "Парашют для прыжков с высоты.",
+    "en": "Gives you a parachute."
+   },
+   "note": {
+    "ru": "Только в дополнении The Ballad of Gay Tony.",
+    "en": "The Ballad of Gay Tony only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "359-555-7272"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tbogt_tank",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Бронетранспортёр",
+    "en": "Armored Tank"
+   },
+   "desc": {
+    "ru": "APC с пушкой.",
+    "en": "Spawns an APC with a cannon."
+   },
+   "note": {
+    "ru": "Только в дополнении The Ballad of Gay Tony.",
+    "en": "The Ballad of Gay Tony only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "272-555-8265"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tbogt_buzzard",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Ударный вертолёт",
+    "en": "Attack Chopper"
+   },
+   "desc": {
+    "ru": "Buzzard с ракетами.",
+    "en": "Spawns a Buzzard with rockets."
+   },
+   "note": {
+    "ru": "Только в дополнении The Ballad of Gay Tony.",
+    "en": "The Ballad of Gay Tony only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "359-555-2899"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tbogt_bullet",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Суперкар Bullet",
+    "en": "Bullet Supercar"
+   },
+   "desc": {
+    "ru": "Суперкар Bullet GT.",
+    "en": "Spawns a Bullet GT."
+   },
+   "note": {
+    "ru": "Только в дополнении The Ballad of Gay Tony.",
+    "en": "The Ballad of Gay Tony only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "227-555-9666"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tbogt_akuma",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Спортбайк Akuma",
+    "en": "Akuma Bike"
+   },
+   "desc": {
+    "ru": "Спортбайк Akuma.",
+    "en": "Spawns an Akuma bike."
+   },
+   "note": {
+    "ru": "Только в дополнении The Ballad of Gay Tony.",
+    "en": "The Ballad of Gay Tony only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "625-555-0200"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tbogt_vader",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Спортбайк Vader",
+    "en": "Vader Bike"
+   },
+   "desc": {
+    "ru": "Спортбайк Vader.",
+    "en": "Spawns a Vader bike."
+   },
+   "note": {
+    "ru": "Только в дополнении The Ballad of Gay Tony.",
+    "en": "The Ballad of Gay Tony only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "625-555-3273"
+   },
+   "media": null,
+   "status": "live"
+  },
+  {
+   "id": "g4_tbogt_floater",
+   "category": "vehicle",
+   "icon": null,
+   "name": {
+    "ru": "Лодка Floater",
+    "en": "Floater Boat"
+   },
+   "desc": {
+    "ru": "Лодка Floater.",
+    "en": "Spawns a Floater boat."
+   },
+   "note": {
+    "ru": "Только в дополнении The Ballad of Gay Tony.",
+    "en": "The Ballad of Gay Tony only."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": "938-555-0150"
+   },
+   "media": null,
+   "status": "live"
+  }
+ ]
+}
