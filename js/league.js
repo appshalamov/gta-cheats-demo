@@ -27,9 +27,9 @@ const S = {
     hub_open: 'Лига открыта: задания недели', hub_lock: 'Лига откроется на 10 000 просмотров ролика о месте',
     hub_guest: 'Войти почтой', hub_player: 'Стать партнёром', hub_partner_note: 'Бесплатно, без подписки. 18+ и вход почтой',
     partner: 'Партнёрство бесплатное, с 18 лет, покупка не нужна. Условия одинаковые для всех партнёров. Для съёмки — рабочий Pro: 14 дней после подтверждения аккаунта и +30 дней за каждый принятый ролик',
-    trial_t: 'Пробный доступ', trial_p: 'Все коды и поиск открыты без входа и без карты оплаты. Карта и места из жизни — в Pro', trial_partner: 'Вы партнёр. Лига и ролики откроются после подтверждения аккаунта площадки: тогда начнётся рабочий Pro',
+    trial_t: 'Пробный доступ', trial_p: 'Все коды и поиск открыты без входа и без карты оплаты. Карта и места из жизни — в Pro',
     buys_h: 'Покупки по вашей ссылке', buy_pass: 'Пропуск по вашей ссылке — {p}', buy_year: 'Год — {p}', buy_month: 'Месяц — {p} за каждую оплату', n_buys: '{n} покупка|{n} покупки|{n} покупок', n_pays: '{n} оплата|{n} оплаты|{n} оплат',
-    buys_note: 'Доступно через 30 дней после покупки. При возврате доля откатывается из будущих начислений', work_pro: 'Рабочий Pro до {d}. +30 дней за каждый принятый ролик от 1 000 просмотров',
+    buys_note: 'Доступно через 30 дней после покупки. При возврате доля откатывается из будущих начислений', work_pro: 'Рабочий Pro до {d}. +30 дней за каждый принятый ролик от 1 000 просмотров', work_pro_end: 'Рабочий Pro закончился {d}. +30 дней за каждый принятый ролик от 1 000 просмотров',
     how1: 'Снимите место из игры в жизни', how2: 'Подайте ролик со своей ссылкой', how3: 'Получайте 40% с покупок по коду',
     how3_np: 'Получайте дни Pro за принятые ролики',
     my_earn: 'Мой заработок', my_earn_sub: 'Начисления по дням, ролики, вывод', pro_days: 'Дни Pro', pro_days_sub: 'За вклады, ролики и подарки друзьям',
@@ -142,9 +142,9 @@ const S = {
     hub_open: 'League is open: tasks of the week', hub_lock: 'The League opens at 10,000 views on a place video',
     hub_guest: 'Sign in with email', hub_player: 'Become a partner', hub_partner_note: 'Free, no subscription. 18+ and email sign-in',
     partner: 'Partnership is free, 18+, no purchase needed. The terms are the same for all partners. For filming, a working Pro: 14 days after confirming your account and +30 days for each accepted video',
-    trial_t: 'Trial access', trial_p: 'All codes and search are open without sign-in or a card. The map and real-life places are in Pro', trial_partner: 'You are a partner. The League and videos open after you confirm a platform account, which starts your working Pro',
+    trial_t: 'Trial access', trial_p: 'All codes and search are open without sign-in or a card. The map and real-life places are in Pro',
     buys_h: 'Purchases with your link', buy_pass: 'Release pass with your link — {p}', buy_year: 'Year — {p}', buy_month: 'Month — {p} for each payment', n_buys: '{n} purchase|{n} purchases', n_pays: '{n} payment|{n} payments',
-    buys_note: 'Available 30 days after purchase. On a refund the share is taken back from future earnings', work_pro: 'Working Pro until {d}. +30 days for each accepted video with 1,000+ views',
+    buys_note: 'Available 30 days after purchase. On a refund the share is taken back from future earnings', work_pro: 'Working Pro until {d}. +30 days for each accepted video with 1,000+ views', work_pro_end: 'Working Pro ended on {d}. +30 days for each accepted video with 1,000+ views',
     how1: 'Film a game place in real life', how2: 'Submit the video with your link', how3: 'Get 40% of purchases with your code',
     how3_np: 'Get Pro days for accepted videos',
     my_earn: 'My earnings', my_earn_sub: 'Daily earnings, videos, payout', pro_days: 'Pro days', pro_days_sub: 'For contributions, videos and friend gifts',
@@ -292,13 +292,23 @@ const pName = (ref) => shortName(realOf(pSync(ref) || {})) || '';
 const pImg = (ref, big = false) => { const p = pSync(ref); if (!p) return ''; const ph = p.pr || p.pg; return ph ? (big ? ph.file || ph.thumb : ph.thumb || ph.file) || '' : ''; };
 const pCity = (ref) => (ref?.world === 'gta6' ? (lang() === 'en' ? 'Miami' : 'Майами') : (lang() === 'en' ? 'Los Angeles' : 'Лос-Анджелес'));
 
-const isTrial = () => !!(P && P.trial_until && !P.pro_until && new Date(P.trial_until + 'T23:59:59') > new Date());
+// даты профиля: 'YYYY-MM-DD' — до конца дня, ISO со временем — как есть
+const until = (v) => (v ? new Date(/T/.test(v) ? v : v + 'T23:59:59') : null);
+const active = (v) => !!v && until(v) > new Date();
+const workPro = () => (P && (P.work_pro_until || (P.pro_kind === 'work' ? P.pro_until : null))) || null;
+const hasPro = () => !!(P && (active(P.pro_until) || active(workPro())));
+const isTrial = () => !!(P && P.trial_until && !hasPro() && active(P.trial_until));
 const isGuest = () => !P || !P.email;
 const isMinor = () => !!(P && P.minor);
 const noPay = () => !!(P && P.payouts === false);
 const isPartner = () => !!(P && P.roles.includes('creator') && P.adult_at);
 const isMod = () => !!(P && P.roles.includes('mod'));
-const moneyOK = () => isPartner() && !noPay() && !isTrial();
+// Партнёрство — договор, а не тариф (31 §4.3, FTC 16 CFR 437; решение ведения 16.10): Лига, подача роликов, «Мой заработок»,
+// ссылка и код открыты партнёру (вход почтой + 18+) без покупки, в пробном тоже. Скрыто только у пробного, кто партнёром не стал.
+const moneyOK = () => isPartner() && !noPay();
+const trialOnly = () => isTrial() && !isPartner();
+// строка рабочего Pro партнёра: «до <дата>» или «закончился <дата>» — с правилом +30 дней за принятый ролик
+const workLine = () => { const w = workPro(); return w && isPartner() && !noPay() ? `<div class="cr-note">${I.star}<span>${esc(tx(active(w) ? 'work_pro' : 'work_pro_end', { d: dfmt(String(w).slice(0, 10)) }))}</span></div>` : ''; };
 const medLine = () => (R && R.median_cents != null ? tx('median', { m: money(R.median_cents) }) : tx('first_pay', { d: dfmt(R?.first_round || '2026-11-20') }));
 const med = (cls = '') => `<p class="cr-med${cls ? ' ' + cls : ''}">${esc(medLine())}</p>`;
 const link = (code, world, id, v) => `${APP.domain}/${code}${world ? `/${world}/${slugOf(id, world)}` : ''}${v ? `?v=${v}` : ''}`;
@@ -332,7 +342,7 @@ function steps(n, code) {
 export function hubHTMLSync() { return hubCache; }
 async function hubHTML() {
   await load();
-  if (isTrial()) return trialHub();
+  if (trialOnly()) return trialHub();
   const game = ctx?.game?.() || 'gta6', banner = HERO[game]?.banners[0];
   const np = noPay(), minor = isMinor(), guest = isGuest(), partner = isPartner();
   const title = minor ? tx('title_minor') : np ? tx('title_np') : tx('title');
@@ -362,12 +372,13 @@ async function hubHTML() {
       + row('open:rules', 'doc', tx('rules'), np ? tx('rules_sub_np') : tx('rules_sub'));
   }
   const me = guest ? '' : `<div class="cr-me"><span class="cr-av">${esc((P.nick || '?').charAt(0).toUpperCase())}</span><span class="m"><b>@${esc(P.nick)}</b><small>${esc(tx('code_sub', { c: P.ref_code }))}</small></span>${partner ? `<button class="cr-ib" data-cr="share-link" aria-label="${esc(tx('share'))}">${I.share}</button>` : ''}</div>`;
-  return `<div class="cr-hub-h">${esc(tx('for_authors'))}</div>${me}${card}${how}<div class="group">${rows}</div>`;
+  return `<div class="cr-hub-h">${esc(tx('for_authors'))}</div>${me}${card}${how}${partner ? workLine() : ''}<div class="group">${rows}</div>`;
 }
-// Пробный доступ 72 часа (файл 31, решение №14): Лиги, «Моего заработка» и «Моей ссылки» нет; «Стать партнёром» есть —
-// партнёрство бесплатное по закону (FTC, 16 CFR 437); правила — без слов о деньгах.
+// Пробный доступ 72 часа (файл 31, решение №14), пока человек не стал партнёром: Лиги, «Моего заработка» и «Моей ссылки» нет;
+// «Стать партнёром» есть — партнёрство бесплатное по закону (FTC, 16 CFR 437); правила — без слов о деньгах.
+// Стал партнёром — обычный хаб партнёра (Лига, ролики, заработок) и рабочий Pro 14 дней.
 function trialHub() {
-  const rows = (isPartner() ? `<div class="cr-note">${I.info}<span>${esc(tx('trial_partner'))}</span></div><div class="group">` : `<div class="group">${row('login', 'link', tx('hub_player'), tx('partner'))}`)
+  const rows = `<div class="group">${row('login', 'link', tx('hub_player'), tx('partner'))}`
     + row('add', 'plus', tx('add_minor')) + row('open:rules', 'doc', tx('rules'), tx('rules_sub_np')) + '</div>';
   return `<div class="cr-hub-h">${esc(tx('for_authors'))}</div><div class="cr-trial"><span class="row-ic">${I.clock}</span><span><b>${esc(tx('trial_t'))}</b><small>${esc(tx('trial_p'))}</small></span></div>${rows}`;
 }
@@ -542,7 +553,7 @@ async function earnBody(inLeague = false) {
     <div class="cr-srcs">${SRC.map((x) => `<div class="cr-src"><div class="h"><b>${esc(x.t)}</b><span>${money(x.c)}</span></div><span class="cr-sb"><i class="s-${x.k}" style="width:${Math.max(1.5, x.c / totalAll * 100).toFixed(1)}%"></i></span><small>${esc(x.d)}. <em>${esc(x.st)}</em></small></div>`).join('')}</div>
     <p class="cr-p">${esc(tx('r_main_earn'))}</p>
     ${buys.length ? `<h2 class="cr-h">${esc(tx('buys_h'))}</h2><div class="cr-ledger">${buys.map((x) => `<div><b>${esc(tx('buy_' + x.k, { p: money(x.c) }))}<small>${esc(plural(x.n, x.k === 'month' ? 'n_pays' : 'n_buys'))}</small></b><span class="v">${money(x.n * x.c)}</span></div>`).join('')}</div>
-    <p class="cr-p">${esc(tx('buys_note'))}</p>${P.pro_until ? `<div class="cr-note">${I.star}<span>${esc(tx('work_pro', { d: dfmt(P.pro_until) }))}</span></div>` : ''}` : ''}
+    <p class="cr-p">${esc(tx('buys_note'))}</p>${workLine()}` : ''}
     <h2 class="cr-h">${esc(tx('funnel'))}</h2>
     <div class="cr-fun">${fun.map(([a, b, c], i) => `<div><span class="cr-k">${i + 1}</span><span class="t">${esc(a)}${c ? `<small>${esc(c)}</small>` : ''}</span><b>${b}</b></div>`).join('')}</div>
     ${own.length ? `<h2 class="cr-h">${esc(tx('per_video'))}</h2><div class="cr-vrows">${own.map((v) => `<button class="cr-vrow" data-cr="feed-mine" data-id="${esc(v.id)}">
@@ -764,7 +775,7 @@ function bindDeck(scr) {
 function rulesHTML() {
   const sec = (t, rows) => `<h2 class="cr-h">${esc(tx(t))}</h2><div class="cr-ledger kv">${rows.map(([a, b]) => `<div><b>${esc(tx(a))}</b><span class="v">${esc(b.startsWith('=') ? b.slice(1) : tx(b))}</span></div>`).join('')}</div>`;
   const rl = (k) => '=' + tx('r_line', { r: money(R.rpm[k]), cap: money(R.rpm_cap_cents), min: money(R.rpm_min_cents) });
-  if (noPay() || isMinor() || isTrial()) return `${head(tx('rules'))}${body(`${sec('ru_h_np', [['ru_np1', 'ru_np1v'], ['ru_np2', 'ru_np2v'], ['ru_np3', 'ru_np3v']])}
+  if (noPay() || isMinor() || trialOnly()) return `${head(tx('rules'))}${body(`${sec('ru_h_np', [['ru_np1', 'ru_np1v'], ['ru_np2', 'ru_np2v'], ['ru_np3', 'ru_np3v']])}
     ${sec('ru_h_no', [['ru_no1', 'ru_no1v'], ['ru_no2', 'ru_no2v'], ['ru_no3', 'ru_no3v'], ['ru_no4', 'ru_no4v'], ['ru_no5', 'ru_no5v']])}<p class="cr-p">${esc(tx('ru_change'))}</p>`)}`;
   return `${head(tx('rules'))}${body(`${med()}${sec('ru_h_rates', [['ru_code', 'ru_code_v'], ['ru_views', rl('tiktok')], ['ru_shorts', rl('shorts')], ['ru_author', 'ru_author_v'], ['ru_scout', 'ru_scout_v'], ['ru_cpa', 'ru_cpa_v'], ['ru_mod', 'ru_mod_v']])}
     ${sec('ru_h_terms', [['ru_views_t', 'ru_views_tv'], ['ru_tasks_t', 'ru_tasks_tv'], ['ru_hold', 'ru_hold_v'], ['ru_pay', 'ru_pay_v'], ['ru_first', 'ru_first_v'], ['ru_big', 'ru_big_v']])}
@@ -875,7 +886,7 @@ function ageSheet() {
     <div class="cr-two"><button class="btn-primary" data-cr="lg-age" data-v="1">${esc(tx('lg_yes'))}</button><button class="btn-ghost" data-cr="lg-age" data-v="0">${esc(tx('lg_no'))}</button></div></div>`, 'cr-sheet');
 }
 async function afterLogin() {
-  P = await api().getProfile(); await renderHub(); if (stack.length) await rerender();
+  P = await api().getProfile(); ctx?.onProfile?.(P); await renderHub(); if (stack.length) await rerender();
   const n = loginNext; loginNext = null;
   if (n) n(); else ctx.closeSheet();
 }
@@ -974,7 +985,7 @@ async function onClick(e) {
       break;
     }
     case 'lg-age': {
-      P = await api().confirmAge(v === '1');
+      P = await api().confirmAge(v === '1'); ctx?.onProfile?.(P);
       if (v === '1') afterLogin();
       else { loginNext = null; await renderHub(); ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('lg_minor_h'))}</h2><p class="sub">${esc(tx('lg_minor_sub'))}</p><button class="btn-primary" data-cr="sheet-close">${esc(tx('ok'))}</button></div>`, 'cr-sheet'); }
       break;
@@ -1008,6 +1019,8 @@ export function init(c) {
 export async function openPlaceVideos(world, placeId) { await load(); ctx?.closeSheet?.(); return push('feed', { source: 'place', world, id: placeId }); }
 /** Любой экран креатора: league | earn | myvideos | mylink | review | rules */
 export async function openCreator(id = 'league', args = {}) { await load(); return push(id, args); }
+/** «Стать партнёром» снаружи (пейвол nopay): вход почтой и 18+; уже партнёр — Лига */
+export async function becomePartner() { await load(); if (isPartner()) return push('league', {}); loginSheet(); }
 /** Сброс кэша профиля (смена языка, вход) — хаб перерисуется */
 export async function refresh() { await load(true); return renderHub(); }
 export function relang() { renderHub(); if (stack.length) rerender(); }

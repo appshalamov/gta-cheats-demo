@@ -10,6 +10,7 @@
 3. У страниц «поделиться» превью og:image — своя картинка «игра | жизнь» из s/og (иначе в мессенджере просто кадр).
 Запуск: python3 tools/check_code.py   (код выхода 1 — нарушение)
 """
+import json
 import pathlib
 import re
 import sys
@@ -61,6 +62,38 @@ no_og = [p.name for p in pages if not re.search(r'property="og:image" content="[
 if pages and len(no_og) > len(pages) * 0.05:
     print(f"СТОП: {len(no_og)} из {len(pages)} страниц «поделиться» без превью «игра | жизнь» (s/og; пример: {no_og[:3]})"
           " — соберите ~/.video-venv/bin/python tools/build_share.py")
+    sys.exit(1)
+# 7. Пейвол и онбординг без слов о деньгах авторов, онбординг без «$»; в имени и <title> нет марок (Ресерч 31 §4.3 п. 4,
+#    32 §5.2, 28 §6.0 money_guard). Заработок не продаётся (FTC 16 CFR 437): на пейволе его нет ни в коде, ни в строках pw_*.
+MONEY = re.compile(r"зараб|выплат|доход|\bearn|payout|income", re.I)
+MARKS = re.compile(r"GTA|Grand Theft|Rockstar|Vice City|Leonida|Los Santos|гта", re.I)
+_app = (ROOT / "js" / "app.js").read_text("utf-8")
+_i18n = (ROOT / "js" / "i18n.js").read_text("utf-8")
+def _block(text, start, end):
+    i = text.find(start); j = text.find(end, i + 1)
+    return text[i:j] if i >= 0 and j > i else None
+guard = []
+_pw = _block(_app, "// ───────── пейвол", "// ───────── онбординг")
+_ob = _block(_app, "// ───────── онбординг", "// ───────── установка на экран")
+if _pw is None or _ob is None:
+    guard.append("app.js: не нашёл блоки «пейвол» / «онбординг» — проверка денег не может пройти")
+def _vals(pref):
+    return [(m.group(1), m.group(3)) for m in re.finditer(r"\b(" + pref + r"\w*)\s*:\s*(['\"])((?:\\.|(?!\2).)*)\2", _i18n)]
+for name, txt in [("пейвол (app.js)", _pw or "")] + [(f"i18n {k}", v) for k, v in _vals("pw_")]:
+    m = MONEY.search(txt)
+    if m: guard.append(f"{name}: «{m.group(0)}» — на пейволе ни слова о заработке")
+for name, txt in [("онбординг (app.js)", _ob or "")] + [(f"i18n {k}", v) for k, v in _vals("w_") + _vals("ob_")]:
+    m = MONEY.search(txt) or (name.startswith("i18n") and re.search(r"\$", txt))   # «$» — только в строках (в коде это $() и ${})
+    if m: guard.append(f"{name}: «{m.group(0)}» — в онбординге нет денег и сумм")
+_man = json.loads((ROOT / "manifest.webmanifest").read_text("utf-8"))
+_title = re.search(r"<title>(.*?)</title>", (ROOT / "index.html").read_text("utf-8"), re.S)
+for name, txt in [("manifest name", _man.get("name", "")), ("manifest short_name", _man.get("short_name", "")), ("<title>", _title.group(1) if _title else "")]:
+    m = MARKS.search(txt)
+    if m: guard.append(f"{name}: «{m.group(0)}» — марки в имени нельзя (ASRG 4.1(c), 32 §3.1)")
+if guard:
+    print("СТОП: деньги на пейволе/онбординге или марка в имени:")
+    for b in guard:
+        print("  ✗", b)
     sys.exit(1)
 if bad:
     print("СТОП: положение шторки меняют вне app.js (используйте ctx.restSheet / ctx.setSnap):")

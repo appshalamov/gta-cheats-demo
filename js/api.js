@@ -6,11 +6,17 @@
 // Статусы начисления: maturing → available → paid / reversed
 // Причины начисления: share (40% с покупки по коду), cpa ($15 за приведённого креатора), task (задание, пара Скаута),
 //                     queue_batch (проверки модератора), rpm (оплата просмотров), author_fee (10% автору места), friend_pro (дни Pro)
-// Профиль: roles, level, adult_at, ref_code, pro_until, trial_until, league_unlocked (+ email, nick, country, payouts)
+// Профиль: roles, level, adult_at, ref_code, pro_until, pro_kind, work_pro_until, trial_until, league_unlocked, gift
+// (+ email, nick, country, payouts). Доступ (шаг 9, файл 31 §4.2–4.3): Pro — pro_until (куплен: year | pass | month)
+// или work_pro_until (рабочий Pro партнёра: 14 дней после «Стать партнёром», +30 дней за принятый ролик от 1 000 просмотров);
+// пробный — trial_until (ISO с временем, 72 часа с первого открытия); gift — пришёл по ссылке домен/КОД/…:
+// { from: ник, days: 30, place: {world,id} } → «+30 дней к первой покупке» и вещь из ссылки без Pro.
 // Деньги — в центах (целые), даты — ISO 'YYYY-MM-DD'.
 //
 // Состояние мока для показа: ?sbmock=<имя> (запоминается в sessionStorage) — league (по умолчанию), newbie, empty,
-// player, guest, minor, nopay, trial. Всё ниже — ПРИМЕР, настоящие цифры придут с сервера.
+// player, guest, minor, nopay, trial, trialend, partner, partnerend, link, renew, pro. Всё ниже — ПРИМЕР,
+// настоящие цифры придут с сервера. Приложение (app.js) берёт доступ из профиля мока, только если состояние выбрано явно
+// (?sbmock=…); без него пробный доступ считается от первого запуска на устройстве.
 
 const FIRST_ROUND = '2026-11-20';
 const RULES = {
@@ -30,16 +36,19 @@ const PLACES = {   // id мест из data/map — подписи и фото �
 };
 const pl = (k) => ({ world: PLACES[k][0], id: PLACES[k][1] });
 
-const STATES = ['league', 'newbie', 'empty', 'player', 'guest', 'minor', 'nopay', 'trial'];
-function mockState() {
+const STATES = ['league', 'newbie', 'empty', 'player', 'guest', 'minor', 'nopay', 'trial', 'trialend', 'partner', 'partnerend', 'link', 'renew', 'pro'];
+function mockPick() {
   let s = null;
   try { s = new URLSearchParams(location.search).get('sbmock'); if (s) sessionStorage.setItem('sb.mock', s); } catch { }
   try { s = s || sessionStorage.getItem('sb.mock') || localStorage.getItem('sb.mock'); } catch { }
-  return STATES.includes(s) ? s : 'league';
+  return STATES.includes(s) ? s : null;
 }
+const mockState = () => mockPick() || 'league';
 
 // ── ролики автора ──
 const day = (d) => `2026-10-${String(d).padStart(2, '0')}`;
+const inH = (h) => new Date(Date.now() + h * 36e5).toISOString();          // момент через h часов (ISO со временем)
+const inD = (d) => new Date(Date.now() + d * 864e5).toISOString().slice(0, 10);   // дата через d дней
 function spread(total, from, to, decay) {   // просмотры по дням: целые, сумма точно = total
   const w = []; let sw = 0;
   for (let d = from; d <= to; d++) { w[d] = Math.exp(-(d - from) / decay) * (1 + 0.22 * Math.sin(d * 1.7)); sw += w[d]; }
@@ -101,7 +110,7 @@ function build(state) {
   const P = { ...base }; let videos = [], ledger = [], pro_days = [];
   const accts = [{ platform: 'tiktok', status: 'verified' }, { platform: 'reels', status: 'pending' }, { platform: 'youtube', status: 'soon' }];
   if (state === 'league') {
-    Object.assign(P, { roles: ['player', 'creator', 'mod', 'author'], level: 'creator', league_unlocked: true, pro_until: '2026-12-12', pro_kind: 'work',
+    Object.assign(P, { roles: ['player', 'creator', 'mod', 'author'], level: 'creator', league_unlocked: true, work_pro_until: '2026-12-12',
       league_progress: { views: 120000, goal: RULES.league_goal_views }, accounts: accts,
       mod: { today: { checked: 40, accuracy: 92, cents: 40 }, stage: 'mod' } });
     videos = videosFull();
@@ -129,8 +138,25 @@ function build(state) {
     Object.assign(P, { roles: ['player', 'creator', 'author'], country: 'RU', payouts: false, league_progress: { views: 2340, goal: RULES.league_goal_views }, accounts: accts });
     videos = videosNewbie().slice(0, 2);
     pro_days = [{ date: day(26), reason: 'friend_pro', days: 30, note: 'video' }, { date: day(19), reason: 'friend_pro', days: 7, note: 'contrib' }];
-  } else if (state === 'trial') {
-    Object.assign(P, { roles: ['player'], adult_at: null, trial_until: new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10) });   // пробный 72 часа
+  } else if (state === 'trial') {   // пробный 72 часа: осталось 2 дня 14 ч (концепт v11)
+    Object.assign(P, { roles: ['player'], adult_at: null, trial_until: inH(62) });
+  } else if (state === 'trialend') {   // пробный кончился, Pro нет → codelock, карта с замком, пейвол trial_end
+    Object.assign(P, { roles: ['player'], adult_at: null, trial_until: inH(-2) });
+  } else if (state === 'link') {   // пришёл по ссылке креатора домен/KEYS/gta6/… — подарок и вещь из ссылки
+    Object.assign(P, { roles: ['player'], adult_at: null, trial_until: inH(70), gift: { from: 'keys_hunter', days: RULES.gift_days, place: pl('a') } });
+  } else if (state === 'partner') {   // стал партнёром в пробном: Лига и заработок открыты, рабочий Pro 14 дней
+    Object.assign(P, { roles: ['player', 'creator'], level: 'new', adult_at: day(16), trial_until: inH(40), work_pro_until: inD(14),
+      accounts: [{ platform: 'tiktok', status: 'none' }, { platform: 'reels', status: 'none' }, { platform: 'youtube', status: 'soon' }] });
+  } else if (state === 'partnerend') {   // рабочий Pro кончился, принятых роликов нет: закрыт только контент Pro
+    Object.assign(P, { roles: ['player', 'creator'], level: 'new', adult_at: day(1), trial_until: inH(-24 * 13), work_pro_until: inD(-2),
+      league_progress: { views: 0, goal: RULES.league_goal_views },
+      accounts: [{ platform: 'tiktok', status: 'verified' }, { platform: 'reels', status: 'none' }, { platform: 'youtube', status: 'soon' }] });
+    videos = videosNewbie().filter((v) => v.status !== 'awaiting_threshold');
+    ledger = ledgerOf(videos, []);
+  } else if (state === 'renew') {   // пропуск релиза кончается через 5 дней
+    Object.assign(P, { roles: ['player'], adult_at: null, pro_until: inD(5), pro_kind: 'pass' });
+  } else if (state === 'pro') {   // купил год
+    Object.assign(P, { roles: ['player'], adult_at: null, pro_until: inD(365), pro_kind: 'year' });
   }
   return { P, videos, ledger, pro_days, payout: null, decisions: [] };
 }
@@ -146,8 +172,10 @@ const api = {
   isMock: true,
   mockState,
   mockStates: STATES,
+  /** состояние мока выбрано явно (?sbmock=…): только тогда приложение берёт доступ (Pro, пробный, подарок) из профиля мока */
+  mockChosen: !!mockPick(),
 
-  /** Профиль: { nick, ref_code, email, country, payouts, roles[], level, adult_at, pro_until, trial_until, league_unlocked, league_progress{views,goal}, mod{today{checked,accuracy,cents},stage}, accounts[{platform,status}] } */
+  /** Профиль: { nick, ref_code, email, country, payouts, roles[], level, adult_at, pro_until, pro_kind:'year'|'pass'|'month'|'work', work_pro_until, trial_until (ISO), gift{from,days,place}|null, league_unlocked, league_progress{views,goal}, mod{today{checked,accuracy,cents},stage}, accounts[{platform,status}] } */
   getProfile: () => wait(db().P, 60),
   /** Правила и цифры (rules.json на сервере): ставки, холды, порог вывода, дата первого раунда, медиана (null до раунда) */
   getRules: () => wait(RULES, 40),
@@ -163,7 +191,11 @@ const api = {
   /** 18+ — в момент первой денежной роли. adult=true → роль creator и код; false → дни Pro вместо денег */
   confirmAge: (adult) => {
     const P = db().P;
-    if (adult) { P.adult_at = new Date().toISOString().slice(0, 10); P.minor = false; if (!P.roles.includes('creator')) P.roles.push('creator'); }
+    if (adult) {
+      P.adult_at = new Date().toISOString().slice(0, 10); P.minor = false; if (!P.roles.includes('creator')) P.roles.push('creator');
+      // рабочий Pro партнёра — сразу 14 дней (решение ведения 16.10, 31 §4.3); дальше +30 дней за принятый ролик от 1 000 просмотров
+      if (!P.work_pro_until || P.work_pro_until < inD(0)) P.work_pro_until = inD(RULES.partner_pro_days);
+    }
     else { P.adult_at = null; P.minor = true; P.roles = P.roles.filter((r) => r !== 'creator' && r !== 'mod'); }
     return wait(P, 200);
   },

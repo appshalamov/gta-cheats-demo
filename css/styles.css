@@ -309,6 +309,75 @@ body.in-ob #onboarding { display: flex; }
 .pw-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 2px; margin-top: 2px; }
 .pw-links button { white-space: nowrap; min-height: 44px; padding: 0 8px; font-size: 12.5px; color: var(--text-2); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: color-mix(in srgb, var(--text-2) 50%, transparent); }
 .pw-demo { text-align: center; font-size: 12px; color: var(--text-3); }
+/* шаг 9 — пейвол по Ресерч 31 §4.5 (концепт v11): заголовок и подпись, ценность, две карточки (год, 3 месяца), строка «Помесячно» */
+.pw-title.pw-long { font-size: 25px; letter-spacing: -.03em; }
+.pw-lead { margin-top: 8px; font-size: 15px; line-height: 1.4; color: var(--text-2); }
+.pw-feat li { align-items: flex-start; font-size: 14.5px; }
+.pw-feat svg { margin-top: 1px; }
+.pw-plan { min-height: 72px; padding: 11px 16px 12px; }
+.pw-plan .plan-n b { flex-wrap: wrap; gap: 2px 10px; font-size: 18px; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.pw-plan .plan-n small { margin-top: 3px; font-size: 13px; line-height: 1.35; }
+.pw-month { display: block; width: 100%; min-height: 44px; margin-top: 2px; font-size: 14px; font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums;
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--text-2) 50%, transparent); }
+.pw-month.on { color: var(--accent); text-decoration-color: currentColor; }
+.pw-gift { display: flex; align-items: flex-start; gap: 10px; margin-top: 14px; font-size: 15px; line-height: 1.3; }
+.pw-gift svg { flex: none; width: 20px; height: 20px; color: var(--accent); }
+.pw-gift b { font-weight: 700; }
+.pw-fine { margin-top: 2px; text-align: center; font-size: 12px; line-height: 1.4; color: var(--text-3); }
+.pw-demo { margin-top: 4px; }
+/* вещь из ссылки — карточка на стекле наверху, рядом с «Закрыть» */
+.pw-thing { position: absolute; z-index: 2; top: calc(var(--safe-t) + 12px); left: 16px; right: 72px; display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 6px 12px 6px 6px;
+  border-radius: 20px; text-align: left; color: var(--on-photo);
+  background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge); box-shadow: var(--glass-thin-hi); backdrop-filter: var(--glass-thin-filter); -webkit-backdrop-filter: var(--glass-thin-filter); }
+.pw-thing[hidden] { display: none; }
+.pw-thing img, .pw-thing .pt-ph { flex: none; width: 44px; height: 44px; border-radius: 14px; object-fit: cover; }
+.pw-thing .pt-ph { display: grid; place-items: center; padding: 11px; background: color-mix(in srgb, var(--accent) 24%, transparent); }
+.pt-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pt-t b { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pt-t small { font-size: 12.5px; line-height: 1.3; color: var(--text-glass-2); }
+
+/* строка пробного доступа (31 §4.2) — под поиском на Главной и на первом экране онбординга; в ленте без размытия */
+.hub-trial { display: grid; gap: 8px; margin: 10px 16px 0; }
+.hub-trial:empty { display: none; }
+.h-trial { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 14px 0 16px; border-radius: 24px; text-align: left;
+  font-size: 14.5px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, var(--text) 6%, transparent); border: 1px solid var(--line); }
+:root[data-theme="light"] .h-trial { background: var(--card); }
+.h-trial > svg:first-child { flex: none; width: 18px; height: 18px; color: var(--accent); }
+.h-trial span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.h-gift { padding-top: 8px; padding-bottom: 8px; }
+.h-gift span { white-space: normal; line-height: 1.3; }
+.h-trial > svg:last-child { flex: none; width: 16px; height: 16px; color: var(--text-3); }
+.o-trial { display: flex; align-items: center; gap: 8px; margin-top: 16px; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.o-trial svg { flex: none; width: 18px; height: 18px; color: var(--accent); }
+.ob-ticks b { font-weight: 550; }
+
+/* код после пробного (концепт v11 codelock): комбинация размыта под замком, «Открыть Pro» и «Сохранить» */
+.cl-pass { overflow: hidden; }
+.cl-blur { display: grid; place-items: center; min-height: 112px; filter: blur(7px); opacity: .5; pointer-events: none; }
+.cl-over { position: absolute; left: 0; right: 0; bottom: 0; top: 46px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 16px; text-align: center; }
+.cl-ic { width: 40px; height: 40px; margin-bottom: 4px; padding: 10px; border-radius: 50%; color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.cl-over b { font-size: 17px; font-weight: 700; }
+.cl-over span:last-child { font-size: 13px; color: var(--text-2); }
+.cl-btns { display: grid; gap: 10px; margin-top: 16px; }
+.cl-btns .btn-ghost { margin-top: 0; }
+.cl-save.on svg { color: var(--accent); }
+
+/* карта без Pro (концепт v11 map:trial): 10 секунд показа с полосой, потом карта под размытием и замок; слой поверх вкладки */
+#map-lock { position: absolute; inset: 0; z-index: calc(var(--z-map-overlay-top) + 1); pointer-events: none; }
+#map-lock[hidden] { display: none; }
+.ml-veil { position: absolute; inset: 0; opacity: 0; background: color-mix(in srgb, var(--bg) 45%, transparent); transition: opacity var(--d-slow);
+  backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); }
+#map-lock.done .ml-veil { opacity: 1; pointer-events: auto; }
+.ml-box { position: absolute; left: 16px; right: 16px; bottom: calc(var(--tabbar-h) + var(--safe-b) + 16px); pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 18px 18px 16px; border-radius: 28px; text-align: center;
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
+.ml-ic { width: 44px; height: 44px; padding: 12px; border-radius: 14px; color: var(--text); background: color-mix(in srgb, var(--text) 8%, transparent); }
+.ml-box b { font-size: 18px; font-weight: 700; line-height: 1.3; }
+.ml-bar { display: block; width: 100%; height: 6px; border-radius: 3px; overflow: hidden; background: color-mix(in srgb, var(--text) 16%, transparent); }
+.ml-bar i { display: block; width: 0; height: 100%; border-radius: 3px; background: var(--accent); transition: width .25s linear; }
+#map-lock.done .ml-bar { display: none; }
 
 /* ───── прочее ───── */
 #toast { position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + var(--safe-b) + 18px); transform: translate(-50%, 20px); opacity: 0; z-index: 60; background: var(--card-2); color: var(--text); padding: 10px 18px; border-radius: 999px; font-size: 15px; font-weight: 600; pointer-events: none; transition: .25s; box-shadow: var(--sh-float); white-space: nowrap; }
