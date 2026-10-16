@@ -27,7 +27,7 @@ python3 - design/js/places.js <<'PY'
 import sys
 p = sys.argv[1]; s = open(p, encoding="utf-8").read()
 old = "return ph ? (ph.thumb || ph.file) : '';"
-new = "const u = ph ? (ph.thumb || ph.file) : ''; return /\\/(beta|design)\\//.test(location.pathname) && u.startsWith('img/map/') ? '../' + u : u;"
+new = "const u = ph ? (ph.thumb || ph.file) : ''; return typeof u === 'string' && u.startsWith('img/map/') && /\\/(beta|design)\\//.test(location.pathname) ? '../' + u : u;"
 assert old in s, "СТОП: thumbOf в places.js изменился — поправьте make_design.sh"
 open(p, "w", encoding="utf-8").write(s.replace(old, new, 1))
 PY
