@@ -24,6 +24,20 @@ const data = {}; // gameId -> {cheats, ...}
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const mapMod = () => import('./map.js');
+// экраны креаторов (js/league.js, данные — window.SB.api из js/api.js): хаб «Для авторов» вверху Настроек и слой Лиги
+const crMod = () => import('./league.js');
+let crHub = '';   // последняя разметка хаба — Настройки рисуются сразу, без прыжка
+const crCtx = () => ({ openSheet, closeSheet, toast, haptic, openOnMap, game: () => store.game, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k) });
+let crLoaded = false;   // модуль грузится при первом заходе в Настройки или по вызову экрана креатора — не на старте
+function renderCrHub() {
+  if (!crLoaded && ui.tab !== 'settings') return;
+  crLoaded = true;
+  crMod().then((m) => { m.init(crCtx()); return m.renderHub(); }).then((h) => { crHub = h || ''; }).catch(() => { });
+}
+// вход для сессии карты: кнопка «Ролики об этом месте» в карточке места вызывает window.SB.openPlaceVideos(игра, id места)
+window.SB = window.SB || {};
+window.SB.openPlaceVideos = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.openPlaceVideos(world, placeId); }); };
+window.SB.openCreator = (id, args) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.openCreator(id, args); }); };
 const mapCtx = () => ({ mapsApp: () => store.mapsApp || 'google', openSheet, closeSheet, setSnap, sheetSnap: () => snap, sheetPx: snapPx, restSheet, haptic, toast, I, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k) });
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const game = () => GAMES.find((g) => g.id === store.game) || GAMES.find((g) => g.id === DEFAULTS.game);   // GTA 6 стоит в GAMES первой — запасная игра не от порядка
@@ -525,6 +539,7 @@ function renderSettings() {
   const g = game();
   const th = { dark: t('th_dark'), light: t('th_light'), auto: t('th_auto') };
   $('#settings-body').innerHTML = `
+    <div id="cr-hub" class="cr-hub"${crHub ? '' : ' hidden'}>${crHub}</div>
     <button class="pro-card${store.pro ? ' on' : ''}" data-action="${store.pro ? 'noop' : 'paywall'}">
       ${pic(HERO[store.game]?.banners[0], 'pro-photo', 860, 676, true)}
       <span class="pro-txt"><b>${t('st_pro')}</b><small>${store.pro ? t('st_pro_on') : t('st_get_pro')}</small></span>
@@ -552,6 +567,7 @@ function renderSettings() {
     </div>
     <div class="group">${row('reset', I.reset, t('st_reset'), '', false)}</div>
     <p class="ver">${t('hub_foot')}<br>${esc(APP.shortName)}, v${esc(APP.version)}</p>`;
+  renderCrHub();
 }
 
 function updateFavBadge(pulse = false) {
@@ -1088,7 +1104,7 @@ document.addEventListener('click', async (e) => {
     case 'search-clear': ui.query = ''; $('#search-input').value = ''; renderSearch(); $('#search-input').focus(); break;
     case 'theme': store.theme = v; save(); applyTheme(); renderSettings(); mapMod().then((m) => m.retheme()); break;
     case 'maps-app': haptic(); store.mapsApp = v; save(); renderSettings(); break;
-    case 'lang': store.lang = v; save(); setLang(v); renderAll(); mapMod().then((m) => m.relang()); break;
+    case 'lang': store.lang = v; save(); setLang(v); renderAll(); mapMod().then((m) => m.relang()); if (crLoaded) crMod().then((m) => m.relang()).catch(() => { }); break;
     case 'haptic-toggle': store.haptic = !store.haptic; save(); haptic(); renderSettings(); break;
     case 'howto': openHowto(); break;
     case 'about': openAbout(); break;

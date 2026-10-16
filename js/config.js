@@ -5,6 +5,8 @@ export const APP = {
   name: 'Secret Base — Cheats & Codes GTA 6',
   shortName: 'Secret Base',
   version: '0.3.1 demo',
+  // домен ссылок креаторов домен/КОД/мир/место?v=<ролик> — ЗАГЛУШКА: настоящий покупает и вписывает feature/foundation
+  domain: 'secretbase.example',
 };
 
 // icon — id значка из I (js/icons.js), не эмодзи
