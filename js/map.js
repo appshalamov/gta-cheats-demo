@@ -367,7 +367,9 @@ function meter(cf) {
 }
 function ytLink(ref) {
   const m = /(Trailer\s*1|Trailer\s*2|Extended\s*Look)\D{0,12}(\d{1,2}):(\d{2})/i.exec(ref || '');
-  if (!m) return null;
+  // «Extended Look» (tJbzMqJGH4k) на YouTube с возрастным ограничением — во встроенном плеере не играет никогда и показывает
+  // «Смотреть на YouTube» (увод из приложения). Кнопку не показываем, пока нет встраиваемого источника (тест 21.10.2026).
+  if (!m || /extended/i.test(m[1])) return null;
   const id = /trailer\s*1/i.test(m[1]) ? 'QdBZY2fkU-0' : /trailer\s*2/i.test(m[1]) ? 'VQRLujxTm3c' : 'tJbzMqJGH4k';
   return { id, t: (+m[2]) * 60 + (+m[3]), url: '', label: `${/1/.test(m[1]) && /trailer/i.test(m[1]) ? 'Trailer 1' : /trailer/i.test(m[1]) ? 'Trailer 2' : 'Extended Look'} · ${m[2]}:${m[3]}` };
 }
