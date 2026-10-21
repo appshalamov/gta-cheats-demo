@@ -60,7 +60,8 @@ export const catIcon = (c, cls = '') => ic(CAT_LABELS[c]?.icon || 'pin', ('ic-ca
 export const CONF = ['confirmed', 'likely', 'speculative'];
 
 export const titleOf = (o) => (o.kind === 'egg' ? L(o.t) : o.g || '');
-export const realOf = (o) => (o.kind === 'egg' ? (o.p || '').split(',')[0] : o.n || '');
+// у пасхалки место в жизни — первая часть адреса без русских пояснений («— прообраз …», «(Оаху)») — тест 21.10.2026
+export const realOf = (o) => (o.kind === 'egg' ? (o.p || '').split(',')[0].split(' — ')[0].replace(/\s*\([^)]*[А-Яа-яЁё][^)]*\)/g, '').trim() : o.n || '');
 export function cityOf(o) {
   const parts = String(o.kind === 'egg' ? o.p : o.a || '').split(',').map((s) => s.trim()).filter(Boolean);
   const st = parts.findIndex((s) => /^(FL|CA)\b/.test(s));

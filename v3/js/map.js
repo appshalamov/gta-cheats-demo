@@ -232,7 +232,8 @@ const devLang = () => (navigator.language || 'en').slice(0, 2).toLowerCase();
 function uiLang() {
   if (getLang() === 'ru') return 'ru';
   const d = devLang();
-  return W.game[d] ? d : 'en';
+  // приложение переключили на английский на русском телефоне — карта тоже по-английски (тест 21.10.2026)
+  return d !== 'ru' && W.game[d] ? d : 'en';
 }
 const w = (k) => (W[k] && (W[k][uiLang()] || W[k].en)) || k;
 
@@ -335,7 +336,16 @@ const mapsLink = (lat, lon, q) => (ctx?.mapsApp?.() === 'apple'
 // v2: в интерфейсе — настоящее название места; вымышленные названия из игры не выводим (Игорь 16.10.2026)
 const realShort = (p) => String(p.n || '').split(/,| \(/)[0] || p.n || '';
 const themeKey = () => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
-const txt = (o) => (o ? tr(o) : '');
+// у ~950 полей «en» (совет, интересно) в данных пока русский текст — вне русского интерфейса такой блок не показываем (тест 21.10.2026)
+const txt = (o) => { const s = o ? tr(o) : ''; return s && !['ru', 'uk'].includes(uiLang()) && /[А-Яа-яЁё]{3,}/.test(s) ? '' : s; };
+// подписи прав у фото: без имени файла скриншота (игровые названия, решение №15); вне русского интерфейса — по-английски
+const CRED_EN = [[/кадр через/g, 'frame via'], [/кадр из сериала/g, 'still from'], [/официальный скриншот/g, 'official screenshot'],
+  [/Трейлер/g, 'Trailer'], [/фото:/g, 'photo:'], [/снято рядом/g, 'shot nearby'], [/автор не указан/g, 'author unknown'], [/через/g, 'via']];
+const cred = (c) => {
+  let s = String(c || '').replace(/(официальный скриншот)\s+[\w.-]+/g, '$1');
+  if (uiLang() !== 'ru') for (const [re, to] of CRED_EN) s = s.replace(re, to);
+  return s;
+};
 
 function km(a, b) {
   const R = 6371, r = Math.PI / 180;
@@ -395,7 +405,8 @@ function actions(lat, lon, name, shareText, fav = '', view = null, key = '') {
 let ogTagsP = null, ogTagsV = null;
 const ogTags = () => (ogTagsP ||= fetch(`${/\/(beta|v3)\//.test(location.pathname) ? '../' : ''}s/og/p.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})).then((j) => (ogTagsV = j)));
 async function sharePlace(text, key, el) {
-  const base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '').replace(/beta\/$/, '');
+  // страницы s/ лежат только в корне сайта (до 21.10.2026 с /v3/ уходила ссылка на v3/s/… — 404)
+  const base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '').replace(/(beta|design|v3)\/$/, '');
   const k = key ? key.split(':') : null;
   // точки сообщества gtadb (db:<игра>:L123) — страницы s/<игра>/db-L123.html (Игорь 15.10.2026: на пирсе «американские
   // горки» — ссылки нет; у точек gtadb ключа не было и уходила ссылка на само приложение)
@@ -499,7 +510,7 @@ function playerBlock(gc) {
   const c = CATS[gc];
   if (!BETA || !c) return '';
   return `<div class="mp-player" style="--c:${c.c}"><span class="mp-player-t"><i></i>${esc(tr(c.t))}</span><p>${esc(tr(c.what))}</p>
-    ${c.cheat ? `<button class="mp-player-go" data-action="open-cheats" data-cat="${c.cheat}">${IC.game}<span>${esc(tr(c.ct))}</span>${IC.chevR}</button>` : ''}</div>`;
+    ${c.cheat ? `<button class="mp-player-go" data-action="open-cheats" data-cat="${c.cheat}" data-game="${game}">${IC.game}<span>${esc(tr(c.ct))}</span>${IC.chevR}</button>` : ''}</div>`;
 }
 function placeSheet(p, i) {
   const ck = catKey(p);
@@ -531,7 +542,7 @@ function placeSheet(p, i) {
     ${media.length ? `<div class="mp-yt">${media.map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
     ${nearbyRow(p, i)}
     ${(p.src || []).length ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u) => `<span>${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span>`).join('')}</div>` : ''}
-    <p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>`;
+    <p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(cred(x.credit))).join(' · ')}</p>`;
 }
 // ближайшие места (до 5 км) — следующий шаг прогулки в одно касание
 function nearbyRow(p, i) {
@@ -563,7 +574,7 @@ function eggSheet(e, i) {
     <p class="mp-text">${esc(txt(e.d))}</p>
     ${yt.length > 1 ? `<div class="mp-yt">${yt.slice(1).map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
     ${e.src ? `<div class="mp-src">${IC.link}<span>${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span></div>` : ''}
-    <p class="mp-cred">${[e.pg, e.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>`;
+    <p class="mp-cred">${[e.pg, e.pr].filter(Boolean).map((x) => esc(cred(x.credit))).join(' · ')}</p>`;
 }
 // фото точек сообщества — из открытого репозитория gtadb.org на GitHub (CC BY 4.0; кадры игры © Rockstar Games).
 // Пара «игра ⇄ жизнь» с одного ракурса — для сравнения ползунком (главная функция, Игорь 14.10.2026: не убирать).
@@ -835,7 +846,7 @@ function renderViewer(anim = '') {
     body = `<div class="mpv-stage" id="mpv-stage"><img src="${esc(ph.url)}"${ph.fb ? ` data-fb="${esc(ph.fb)}"` : ''} alt="" draggable="false">
         ${n > 0 ? `<button class="mpv-arr l" data-mp="viewer-step" data-d="-1" aria-label="‹">${IC.chevL}</button>` : ''}
         ${n < list.length - 1 ? `<button class="mpv-arr r" data-mp="viewer-step" data-d="1" aria-label="›">${IC.chevR}</button>` : ''}</div>
-      <p class="mpv-credit">${ph.ap ? `<b class="mpv-approx">${esc(w('approxT'))}</b> · ` : ''}${esc(ph.credit || '')}</p>`;
+      <p class="mpv-credit">${ph.ap ? `<b class="mpv-approx">${esc(w('approxT'))}</b> · ` : ''}${esc(cred(ph.credit))}</p>`;
   } else {
     const lab = { cmp: [IC.swap, w('compare'), P.length > 1 ? P.length : ''], r: [IC.camera, w('real'), R.length], g: [IC.game, w('game'), G.length] };
     head = `<div class="mpv-ttl"><b>${IC.game}<span>${esc(names.g || '')}</span></b><small>${esc(names.r || '')}</small></div>`;
@@ -850,7 +861,7 @@ function renderViewer(anim = '') {
           <div class="cmp-line"><span class="cmp-knob">${IC.chevL}${IC.chevR}</span></div>
         </div>
         ${P.length > 1 ? `<div class="cmp-pairs">${P.map((x, k) => `<button class="${k === v.pi ? 'on' : ''}" data-mp="pair" data-n="${k}" aria-label="${k + 1}/${P.length}"><img src="${esc(x.g.thumb)}" alt="" loading="lazy"><img src="${esc(x.r.url)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
-        <p class="mpv-credit">${esc(pr.g.credit)} · ${esc(pr.r.credit)}</p>`;
+        <p class="mpv-credit">${esc(cred(pr.g.credit))} · ${esc(cred(pr.r.credit))}</p>`;
     } else {
       const list = v.sec === 'r' ? R : G;
       body = `<div class="mpa-grid">${list.map((ph, k) => `<button class="mpa-img" data-mp="view" data-ref="${v.sec}:${key}" data-n="${k}"><img src="${esc(ph.thumb)}" alt="" loading="lazy" decoding="async"></button>`).join('')}</div>`;
@@ -992,6 +1003,23 @@ function ensureChrome() {
     const b = document.createElement('button'); b.className = 'map-fab'; b.dataset.mp = 'help'; b.setAttribute('aria-label', 'help'); b.innerHTML = IC.help;
     fabs.prepend(b);
   }
+  // «Игра ⇄ Жизнь» под большим пальцем (Игорь 16.10: «очень важная штука»; концепт этапа 2, решение 1 — уголок 64×64 у пальца):
+  // кнопка показывает, КУДА переключит; верхняя капсула остаётся — она показывает, где вы сейчас
+  if (BETA && fabs && !fabs.querySelector('.map-world')) {
+    const b = document.createElement('button'); b.className = 'map-fab map-world'; b.dataset.mp = 'mode-flip';
+    fabs.append(b);
+  }
+}
+function renderWorldFab() {
+  const b = document.querySelector('.map-world');
+  if (!b) return;
+  const to = otherMode();
+  b.hidden = !to;
+  if (!to) return;
+  const label = to === 'game' ? w('inGame') + (approx() ? ' ≈' : '') : w('life');
+  b.dataset.to = to;
+  b.setAttribute('aria-label', (to === 'game' ? w('modeGame') : w('modeReal')) + ': ' + label);
+  b.innerHTML = `${to === 'game' ? IC.game : IC.pin}<small>${esc(label)}</small>`;
 }
 function renderCards() {
   const box = document.getElementById('map-cards');
@@ -1624,6 +1652,7 @@ function renderChips() {
     (GAME_MAP[game]
       ? `<button class="${mode === 'game' ? 'on' : ''}" data-mp="mode" data-v="game" aria-pressed="${mode === 'game'}" title="${esc(w('modeGame'))}: ${esc(tr(G.gameCity))}">${IC.game}<b>${esc(w('inGame'))}${approx() ? ' ≈' : ''}</b></button></div>`
       : `<button class="mg-soon" disabled title="${esc(w('soon6'))}" aria-label="${esc(w('inGame'))}: ${esc(w('soon6'))}">${IC.game}<b>19.11</b></button></div>`);
+  renderWorldFab();
   const lg = document.getElementById('map-legend');
   if (lg) { const on = mode === 'game' && approx(); lg.classList.toggle('map-approx', on); lg.innerHTML = on ? `<span>${esc(w('approxMap'))}</span>` : ''; }
 }
@@ -1689,6 +1718,7 @@ document.addEventListener('click', (e) => {
   else if (a === 'gl-reveal') { if (el.classList.contains('spoil')) { ctx?.haptic(); el.classList.remove('spoil'); el.querySelector('.gl-pic-t')?.remove(); glSeen.add(el.dataset.id); saveSet('secret.gl.seen', glSeen); } }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
   else if (a === 'mode') { ctx?.haptic(); switchMode(el.dataset.v); }
+  else if (a === 'mode-flip') { const to = otherMode(); if (to) { ctx?.haptic(); switchMode(to); } }
   else if (a === 'cat') {
     ctx?.haptic(); activeCat = activeCat === el.dataset.v ? null : el.dataset.v;
     if (activeCat && !show.gtadb) { show.gtadb = true; loadGtadb(game).then(() => { refreshData(); applyShow(); applyCat(); renderCards(); }); }

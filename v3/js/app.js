@@ -554,7 +554,7 @@ function renderSettings() {
       ${row('about', I.info, t('st_about'))}
     </div>
     <div class="group">${row('reset', I.reset, t('st_reset'), '', false)}</div>
-    <div class="ver">${esc(APP.name)} · v${esc(APP.version)}</div>`;
+    <div class="ver">${esc(APP.shortName || 'Secret Base')} · v${esc(APP.version)}</div>`;
 }
 
 function updateFavBadge(pulse = false) {
@@ -1061,7 +1061,18 @@ document.addEventListener('click', async (e) => {
     }
     case 'set-platform': haptic(); store.platform = v; save(); closeSheet(); renderAll(); break;
     case 'sheet-close': closeSheet(); break;
-    case 'open-cheats': haptic(); if (el.dataset.cat) ui.cat = el.dataset.cat; ui.tab = 'cheats'; renderAll(); setTimeout(() => scrollToCat(ui.cat, false), 0); break;
+    case 'open-cheats': {
+      // из карточки места на карте («Читы на оружие»): шторку карты закрыть и показать коды игры этого места (тест 21.10.2026)
+      haptic(); closeSheet();
+      if (el.dataset.cat) ui.cat = el.dataset.cat;
+      const g = el.dataset.game;
+      if (g && g !== store.game && GAMES.some((x) => x.id === g)) {
+        store.game = g;
+        const g2 = game(); if (!g2.platforms.includes(store.platform)) store.platform = g2.platforms[0];
+        save(); await loadGame(g);
+      }
+      ui.tab = 'cheats'; renderAll(); setTimeout(() => scrollToCat(ui.cat, false), 0); break;
+    }
     case 'back-home': haptic(); ui.tab = 'home'; renderAll(); break;
     case 'hub-game': {
       if (v === store.game) break;
