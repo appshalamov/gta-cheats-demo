@@ -93,6 +93,17 @@
 }
 .map-fab:active { transform: scale(var(--press-scale)); }
 
+/* «Игра ⇄ Жизнь» под большим пальцем (16.10, концепт этапа 2, решение 1): квадрат 64 из обычного стекла, значок — акцент,
+   подпись — куда переключит; верхняя капсула показывает, где вы сейчас */
+.map-fabs .map-fab.map-world {
+  width: 64px; height: 64px; padding: 8px 4px 7px; border-radius: var(--r-md); gap: 3px;
+  background: var(--glass-regular-bg); border-color: var(--glass-regular-edge);
+  box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  -webkit-backdrop-filter: var(--glass-regular-filter); backdrop-filter: var(--glass-regular-filter);
+}
+.map-fab.map-world svg { color: var(--accent); }
+.map-fab.map-world small { font: var(--t-label); font-size: 13px; color: var(--mv-on-thin); }
+
 /* ───── плашки на карте: «приблизительная карта», легенда, подпись данных ───── */
 .map-legend:not(.map-approx) { left: var(--s-gutter); border-radius: var(--r-md); font: var(--t-caption); color: var(--text);
   background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);

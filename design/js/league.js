@@ -10,7 +10,7 @@ import './api.js';
 import { APP, HERO } from './config.js';
 import { getLang, L } from './i18n.js';
 import { I } from './icons.js';
-import { loadPlaces, realOf, thumbOf, placeKey, searchPlaces, featured } from './places.js';
+import { loadPlaces, realOf, thumbOf, placeKey, searchPlaces, featured, imgUrl } from './places.js';
 
 const api = () => window.SB.api;
 const $ = (s, r = document) => r.querySelector(s);
@@ -289,7 +289,7 @@ async function place(ref) {
 async function placesOf(list) { await Promise.all(list.map((x) => x && x.place && place(x.place))); }
 const pSync = (ref) => (ref && placeCache[ref.world]?.get(ref.id)) || null;
 const pName = (ref) => shortName(realOf(pSync(ref) || {})) || '';
-const pImg = (ref, big = false) => { const p = pSync(ref); if (!p) return ''; const ph = p.pr || p.pg; return ph ? (big ? ph.file || ph.thumb : ph.thumb || ph.file) || '' : ''; };
+const pImg = (ref, big = false) => { const p = pSync(ref); if (!p) return ''; const ph = p.pr || p.pg; return ph ? imgUrl((big ? ph.file || ph.thumb : ph.thumb || ph.file) || '') : ''; };
 const pCity = (ref) => (ref?.world === 'gta6' ? (lang() === 'en' ? 'Miami' : 'Майами') : (lang() === 'en' ? 'Los Angeles' : 'Лос-Анджелес'));
 
 // даты профиля: 'YYYY-MM-DD' — до конца дня, ISO со временем — как есть

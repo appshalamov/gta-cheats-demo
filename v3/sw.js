@@ -2,7 +2,7 @@
 // чтобы новые коды (например, GTA 6 после релиза) появлялись без обновления приложения.
 // При изменении файлов оболочки поднимите VERSION.
 // v2/glass-city: своя ветка номеров (v2-N, на основе main v72), при слиянии в main взять следующий свободный номер
-const VERSION = 'v3-v2-7';
+const VERSION = 'v3-v2-10';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css',
   'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/map-icons.js', 'js/places.js',
@@ -14,7 +14,7 @@ const SHELL = [
 ];
 // Картинки эпох (img/ui/<скин>/): критичный набор GTA 6 и GTA 5 — с установкой, чтобы смена игры работала офлайн;
 // остальное — при обращении и по просьбе skin.js ({type: 'warm'}). Отдельный кэш, переживает обновления оболочки.
-const UI = 'v3-ui-v2-7';
+const UI = 'v3-ui-v2-10';
 const UI_CRITICAL = ['gta6/gta6-banner-01', 'gta6/gta6-load-02', 'gta5/gta5-banner-01', 'gta5/gta5-load-01']
   .flatMap((n) => [`img/ui/${n}.avif`, `img/ui/${n}.webp`]);
 async function uiAsset(req) {

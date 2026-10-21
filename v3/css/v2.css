@@ -429,7 +429,7 @@ button, input { font-family: var(--font-ui); }
 }
 
 /* ── правки после первого прохода снимков (16.10.2026) ── */
-.wl-feats li > span { font-size: inherit; }
+.wl-feats li > span { font-size: inherit; flex: 1 1 auto; min-width: 0; }   /* hub.css ставит flex: none — длинная строка вылезала за панель (тест 21.10) */
 .ob-brand span { text-transform: none; letter-spacing: -.01em; font: var(--t-headline); }
 #onboarding .ob-body:not(.wl) { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -20px; padding: 0 20px 12px; overscroll-behavior: contain; }
 #onboarding .ob-cta { flex: none; margin-top: 12px; }

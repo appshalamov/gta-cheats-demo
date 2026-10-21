@@ -55,7 +55,9 @@ export const catIcon = (c) => CAT_LABELS[c]?.icon || 'pin'; // id значка �
 export const CONF = ['confirmed', 'likely', 'speculative'];
 
 export const titleOf = (o) => (o.kind === 'egg' ? L(o.t) : o.g || '');
-export const realOf = (o) => (o.kind === 'egg' ? (o.p || '').split(',')[0] : o.n || '');
+// у пасхалки место в жизни — первая часть адреса без пояснений («Piru United Methodist Church — прообраз …», «(Оаху)»):
+// пояснения в данных по-русски и с игровыми названиями (тест 21.10.2026: русский текст на Главной в английском интерфейсе)
+export const realOf = (o) => (o.kind === 'egg' ? (o.p || '').split(',')[0].split(' — ')[0].replace(/\s*\([^)]*[А-Яа-яЁё][^)]*\)/g, '').trim() : o.n || '');
 export function cityOf(o) {
   const parts = String(o.kind === 'egg' ? o.p : o.a || '').split(',').map((s) => s.trim()).filter(Boolean);
   const st = parts.findIndex((s) => /^(FL|CA)\b/.test(s));
@@ -63,10 +65,14 @@ export function cityOf(o) {
   return parts.length > 1 ? parts[parts.length - 2] : '';
 }
 export const textOf = (o) => (o.kind === 'egg' ? L(o.d) : L(o.s));
+// Копии сайта в подпапках (/beta/, /design/) берут картинки карты из общей img/map корня — как rebase в map.js.
+// До 21.10.2026 миниатюры Главной, Поиска и Избранного в бете шли в /beta/img/map/… и давали 404 (тест 21.10).
+const IMG_BASE = /\/(beta|design)\//.test(location.pathname) ? '../' : '';
+export const imgUrl = (u) => (IMG_BASE && typeof u === 'string' && u.startsWith('img/map/') ? IMG_BASE + u : u);
 export function thumbOf(o, prefer = 'real') {
   const a = prefer === 'game' ? [o.pg, o.pr] : [o.pr, o.pg];
   const ph = a.find(Boolean);
-  const u = ph ? (ph.thumb || ph.file) : ''; return typeof u === 'string' && u.startsWith('img/map/') && /\/(beta|design)\//.test(location.pathname) ? '../' + u : u;
+  return imgUrl(ph ? (ph.thumb || ph.file) : '');
 }
 export const hasPhoto = (o) => !!(o.pr || o.pg);
 

@@ -13,10 +13,10 @@
 // { from: ник, days: 30, place: {world,id} } → «+30 дней к первой покупке» и вещь из ссылки без Pro.
 // Деньги — в центах (целые), даты — ISO 'YYYY-MM-DD'.
 //
-// Состояние мока для показа: ?sbmock=<имя> (запоминается в sessionStorage) — league (по умолчанию), newbie, empty,
+// Состояние мока для показа: ?sbmock=<имя> (запоминается в sessionStorage) — league, newbie, empty,
 // player, guest, minor, nopay, trial, trialend, partner, partnerend, link, renew, pro. Всё ниже — ПРИМЕР,
 // настоящие цифры придут с сервера. Приложение (app.js) берёт доступ из профиля мока, только если состояние выбрано явно
-// (?sbmock=…); без него пробный доступ считается от первого запуска на устройстве.
+// (?sbmock=…); без него — гость (не вошёл), пробный доступ считается от первого запуска на устройстве.
 
 const FIRST_ROUND = '2026-11-20';
 const RULES = {
@@ -43,7 +43,8 @@ function mockPick() {
   try { s = s || sessionStorage.getItem('sb.mock') || localStorage.getItem('sb.mock'); } catch { }
   return STATES.includes(s) ? s : null;
 }
-const mockState = () => mockPick() || 'league';
+// без явного ?sbmock новый человек — гость (не вошёл): чужой пример-профиль (@sunset_drive) не показываем (тест 21.10)
+const mockState = () => mockPick() || 'guest';
 
 // ── ролики автора ──
 const day = (d) => `2026-10-${String(d).padStart(2, '0')}`;
