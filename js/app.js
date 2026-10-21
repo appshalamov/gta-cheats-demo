@@ -915,7 +915,19 @@ document.addEventListener('click', async (e) => {
     }
     case 'set-platform': haptic(); store.platform = v; save(); closeSheet(); renderAll(); break;
     case 'sheet-close': closeSheet(); break;
-    case 'open-cheats': haptic(); if (el.dataset.cat) ui.cat = el.dataset.cat; ui.tab = 'cheats'; renderAll(); setTimeout(() => scrollToCat(ui.cat, false), 0); break;
+    case 'open-cheats': {
+      // из карточки места на карте («Читы на оружие»): шторку карты закрыть и показать коды игры этого места
+      // (до 21.10.2026 карточка оставалась поверх экрана кодов, а коды были текущей игры приложения — тест 21.10)
+      haptic(); closeSheet();
+      if (el.dataset.cat) ui.cat = el.dataset.cat;
+      const g = el.dataset.game;
+      if (g && g !== store.game && GAMES.some((x) => x.id === g)) {
+        store.game = g;
+        const g2 = game(); if (!g2.platforms.includes(store.platform)) store.platform = g2.platforms[0];
+        save(); await loadGame(g);
+      }
+      ui.tab = 'cheats'; renderAll(); setTimeout(() => scrollToCat(ui.cat, false), 0); break;
+    }
     case 'back-home': haptic(); ui.tab = 'home'; renderAll(); break;
     case 'hub-game': {
       if (v === store.game) break;
