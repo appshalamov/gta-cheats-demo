@@ -22,6 +22,15 @@ sed -i '' 's/"short_name": "Secret Base"/"short_name": "Secret Base 3"/; s/"name
 sed -i '' "s#const IMG_BASE = /\\\\/beta\\\\//.test(location.pathname) ? '../' : '';#const IMG_BASE = /\\\\/(beta|design)\\\\//.test(location.pathname) ? '../' : '';#" design/js/map.js
 sed -i '' "s#location.pathname.includes('/beta/') ? '../' : ''#/\\\\/(beta|design)\\\\//.test(location.pathname) ? '../' : ''#" design/js/map.js
 grep -q "(beta|design)" design/js/map.js || { echo "СТОП: не удалось направить картинки карты в ../img/map"; exit 1; }
+# карта как в бете (Игорь 16.10: «очень важная штука»): переключатель «Игра ⇄ Жизнь», карта игры, слои коллекций, легенда
+python3 - design/js/map.js <<'PY'
+import sys
+p = sys.argv[1]; s = open(p, encoding="utf-8").read()
+old = "export const BETA = /\\/beta\\//.test(location.pathname)"
+new = "export const BETA = /\\/(beta|design)\\//.test(location.pathname)"
+assert old in s, "СТОП: строка BETA в map.js изменилась — поправьте make_design.sh"
+open(p, "w", encoding="utf-8").write(s.replace(old, new, 1))
+PY
 # миниатюры мест на Главной, в Поиске и Избранном (places.js thumbOf) тоже из корня сайта
 python3 - design/js/places.js <<'PY'
 import sys
