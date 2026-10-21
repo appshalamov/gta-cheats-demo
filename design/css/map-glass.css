@@ -1,0 +1,228 @@
+/* Карта и карточка места в стекле (редизайн, шаг 4; экраны 2 и 5 этапа 2: «стекло над городом», как на Главной).
+   Только вид поверх блоков карты из styles.css: подложка MapLibre, палитра точек, разметка и логика map.js не меняются.
+   Подключён после styles.css отдельным файлом, чтобы не мешать правкам сессии карты в styles.css.
+   Стекло — на плашках поверх карты (вкладки игр, «Жизнь | Игра», чипы, кнопки, лента мест, пометка, шторка).
+   Карточки в списках внутри шторки — без размытия: полупрозрачная заливка поверх стекла шторки. */
+
+/* ───── верх карты: без сплошной полосы — плашки висят над городом ───── */
+/* .map-top на всю высоту (касания проходят насквозь): от него считается уголок «Жизнь | Игра» у большого пальца */
+.map-top { bottom: 0; align-items: flex-start; background: none; padding: calc(var(--safe-t) + 8px) 12px 0; }
+.map-top::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: calc(var(--safe-t) + 28px); pointer-events: none;
+  background: linear-gradient(color-mix(in srgb, var(--bg) 55%, transparent), transparent); }
+
+/* вкладки игр (прод): капсула 52 на стекле, активная шире — как вкладки мира на Главной */
+.map-games { position: relative; height: 52px; gap: 4px; padding: 4px; border-radius: 26px;
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
+.map-games button { min-height: 44px; border-radius: 22px; align-items: center; justify-content: center; text-align: center; line-height: 1.15; padding: 0 10px;
+  color: var(--text-glass-2); transition: flex-grow var(--d-base) var(--e-out), background-color var(--d-fast); }
+.map-games b { font-size: 15px; font-weight: 750; }
+.map-games small { font-size: 11.5px; font-weight: 500; color: inherit; opacity: .85; }
+.map-games button.on { flex-grow: 1.4; color: var(--text); background: color-mix(in srgb, var(--text) 14%, transparent); box-shadow: inset 0 1px 0 rgba(255,255,255,.18); }
+.map-games button.on b { color: var(--text); }
+.map-games button:active { transform: scale(var(--press-scale)); }
+/* прод, карта игры: «← Реальная карта» и заголовок */
+.map-games .mg-back { flex: none; flex-direction: row; gap: 4px; padding: 0 12px 0 8px; color: var(--text); }
+.map-games .mg-title b svg { color: var(--accent); }
+
+/* бета: вкладки игр — своя капсула; «Жизнь | Игра» — уголок 64 у большого пальца (решение 15.10, экраны.md п. 1) */
+#map-games:has(.mg-seg) { height: auto; padding: 0; gap: 0; background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; position: static; }
+#map-games .mg-games { flex: 1; height: 52px; padding: 4px; gap: 4px; border-radius: 26px;
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
+#map-games .mg-seg button { min-height: 44px; border-radius: 22px; }
+#map-games .mg-seg button b { font-size: 15px; font-weight: 750; }
+#map-games .mg-games button.g6 b { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: inherit; }
+#map-games .mg-games button.g6.on { background: color-mix(in srgb, var(--text) 14%, transparent); box-shadow: inset 0 1px 0 rgba(255,255,255,.18); }
+.mg-new { position: static; display: inline-block; width: 7px; height: 7px; margin-left: 5px; background: var(--accent); box-shadow: none; animation: none; }
+/* уголок: видна только другая сторона — нажал и перешёл (кнопки и data-mp="mode" те же) */
+#map-games .mg-mode { position: absolute; z-index: 1; right: 12px; bottom: calc(var(--tabbar-h) + var(--safe-b) + 134px); flex: none; width: 64px; height: 64px; padding: 0; border-radius: 22px;
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--sh-float);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
+#map-games .mg-mode button { flex-direction: column; gap: 3px; width: 100%; min-height: 0; height: 100%; padding: 0 2px; border-radius: 21px; color: var(--text); }
+#map-games .mg-mode button svg { width: 22px; height: 22px; color: var(--accent); }
+#map-games .mg-mode button b { font-size: 13px; font-weight: 700; line-height: 1.1; white-space: normal; text-align: center; }
+#map-games .mg-mode button.on { display: none; }
+#map-games .mg-mode button.mg-soon { opacity: .6; }
+#map-games .mg-mode button:active { transform: scale(var(--press-scale)); }
+
+/* ───── чипы слоёв: видимая капсула 40 на стекле, зона нажатия 44 ───── */
+.map-chips { top: calc(var(--safe-t) + 66px); gap: 6px; }
+.mchip { position: relative; isolation: isolate; height: 44px; padding: 0 14px; gap: 7px; font-size: 14px; font-weight: 600; color: var(--text-glass-2);
+  background: none; border: 0; backdrop-filter: none; -webkit-backdrop-filter: none; transition: color var(--d-fast); }
+.mchip::before { content: ""; position: absolute; inset: 2px 0; z-index: -1; border-radius: 20px;
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); transition: border-color var(--d-fast); }
+.mchip em { color: inherit; opacity: .7; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.mchip.on { color: var(--text); }
+.mchip.on::before { border-color: color-mix(in srgb, var(--c, var(--accent)) 55%, transparent); }
+.mchip.on i { box-shadow: none; }
+.mchip:active::before { transform: scale(var(--press-scale)); }
+/* «Обозначения» (бета): та же капсула, подпись жирнее — без белой плашки */
+.mchip.mchip-lg { background: none !important; color: var(--text) !important; border-color: transparent !important; font-weight: 700; }
+
+/* ───── кнопки «я здесь», «показать всё», «?»: круги 44 на стекле, справа под чипами ───── */
+#view-map .map-fabs { top: calc(var(--safe-t) + 122px); bottom: auto; right: 12px; gap: 8px; }
+#view-map .map-fabs .map-fab { width: 44px; height: 44px; padding: 11px; color: var(--text);
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
+.map-fab:active { transform: scale(.92); }
+
+/* пометка «≈ карта по мотивам» (бета): плашка на стекле слева под чипами */
+.map-legend.map-approx { top: calc(var(--safe-t) + 122px); right: 68px; }
+.map-legend.map-approx span { padding: 8px 12px; border-radius: 16px; font-size: 13px; font-weight: 600; line-height: 1.3; color: var(--text);
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
+
+/* ───── лента мест: стеклянные карточки 286×112, фото «игра | жизнь» квадратом слева ───── */
+.map-cards { gap: 10px; padding: 0 12px 2px; scroll-padding: 0 12px; }
+.mc { flex: 0 0 286px; height: 112px; scroll-snap-align: start; display: grid; grid-template-columns: 96px minmax(0, 1fr); grid-template-rows: 1fr auto; column-gap: 12px;
+  padding: 8px 12px 8px 8px; border-radius: 24px; color: var(--text);
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); transition: transform var(--d-press), box-shadow var(--d-fast); }
+.mc:active { transform: scale(var(--press-scale)); }
+.mc.on { border-color: transparent; box-shadow: var(--glass-regular-hi), var(--sh-selected); }
+.mc-ph { grid-row: 1 / 3; width: 96px; height: 96px; border-radius: 18px; overflow: hidden; gap: 2px; background: var(--on-photo); }
+.mc-ph img, .mc-ph > i { height: 96px; }
+.mc-ph > i { background: var(--card-2); }
+.mc-ph em { left: 5px; top: auto; bottom: 5px; width: 18px; height: 18px; padding: 3px; border-radius: 6px; background: var(--glass-thin-bg); color: var(--on-photo);
+  -webkit-backdrop-filter: none; backdrop-filter: none; }
+.mc-ph em.r { left: auto; right: 5px; }
+.mc-t { align-self: end; padding: 0; gap: 3px; }
+.mc-t b { font-size: 15.5px; font-weight: 700; line-height: 1.2; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mc-t small { font-size: 12.5px; font-weight: 600; color: var(--accent); }
+.mc-ic { padding: 6px 0 2px; gap: 8px; color: var(--text-glass-2); }
+.mc-ic em { font-size: 12.5px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.mc-d { border-style: dashed; border-color: color-mix(in srgb, var(--text) 30%, transparent); }
+.mc-dot { background: var(--c-speculative); }
+/* приглашение в другую игру (бета): то же стекло, без градиентов */
+.mc.mc-promo { display: flex; flex-direction: column; justify-content: space-between; gap: 6px; padding: 12px 14px;
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); }
+.mc.mc-promo.g6 { background: var(--glass-regular-bg); border-color: color-mix(in srgb, var(--brand-game) 45%, transparent); }
+.mc-promo-t b { font-size: 19px; font-weight: 800; letter-spacing: -.01em; color: var(--text); }
+.mc.mc-promo.g6 .mc-promo-t b { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--brand-game); }
+.mc-promo-t small { font-size: 13px; color: var(--text-glass-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mc-promo-n { color: var(--text-glass-2); }
+.mc-empty { min-height: 44px; padding: 0 16px; border-radius: 22px; color: var(--text);
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
+
+/* ───── шторка карты: толстое стекло; в положениях полоска/половина/весь экран висит над капсулой панели ───── */
+#sheet.sheet-map { left: 8px; right: 8px; border-radius: var(--r-sheet) var(--r-sheet) 0 0; border: 1px solid var(--glass-thick-edge); border-bottom: 0;
+  background: var(--glass-thick-bg); box-shadow: var(--glass-thick-hi), var(--glass-thick-shadow);
+  backdrop-filter: var(--glass-thick-filter); -webkit-backdrop-filter: var(--glass-thick-filter);
+  /* карточки внутри — полупрозрачные поверх стекла, без своего размытия */
+  --card: color-mix(in srgb, var(--text) 7%, transparent); --card-2: color-mix(in srgb, var(--text) 11%, transparent); --sheet-bg: transparent; }
+#sheet-layer.snap #sheet.sheet-map { border-radius: var(--r-sheet); border-bottom: 1px solid var(--glass-thick-edge); }
+#sheet.sheet-map .grab i { width: 38px; background: color-mix(in srgb, var(--text) 35%, transparent); }
+#sheet.sheet-map .sheet-body { padding-left: 16px; padding-right: 16px; }
+
+/* полоска (peek): название и место одной строкой */
+#sheet-layer.snap[data-snap="peek"] .mp-peek { min-height: 44px; }
+.mp-peek b { font-size: 17px; font-weight: 750; }
+.mp-peek small { color: var(--text-glass-2); }
+
+/* сравнение «игра ⇄ жизнь» (вид; ползунок и жесты — map.js): шов 2 px, ручка 42, подписи на стекле */
+.cmp-inline { border-radius: var(--r-card); margin: 2px 0 10px; }
+.cmp-line { width: 2px; margin-left: -1px; background: var(--on-photo); box-shadow: 0 0 8px rgba(0,0,0,.45); }
+.cmp-lab { top: auto; bottom: 10px; padding: 5px 10px 5px 8px; border-radius: 10px; font-size: 12.5px; font-weight: 700; }
+.cmp-lab.g { background: var(--accent); color: var(--accent-ink); }
+.cmp-lab.r { background: var(--glass-thin-bg); color: var(--on-photo); box-shadow: inset 0 0 0 1px var(--glass-thin-edge); }
+.cmp-stage .cmp-approx { top: 10px; bottom: auto; }
+.cmp-full { top: 8px; bottom: auto; width: 40px; height: 40px; padding: 9px; background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.cmp-ipairs { gap: 8px; }
+.cmp-ipairs button { height: 44px; border-radius: 12px; }
+.mp-hero { gap: 6px; }
+.mp-shot { border-radius: var(--r-card); border-color: var(--line); }
+.mp-badge, .mp-gal > .mp-badge { background: var(--glass-thin-bg); color: var(--on-photo); border-radius: 10px; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.mp-shot.g .mp-badge, .mp-gal.g > .mp-badge { background: var(--accent); color: var(--accent-ink); }
+.mp-shot-exp { background: var(--glass-thin-bg); }
+.mp-vs { background: var(--glass-thick-bg); border-color: var(--glass-thick-edge); color: var(--text); }
+.mp-allbtn { min-height: 48px; border-radius: var(--r-md); border-color: var(--line); box-shadow: none; font-weight: 600; }
+.mp-allbtn > svg { color: var(--text-glass-2); }
+
+/* название крупно: место из игры — заголовок, настоящее место — строкой со ссылкой на карты */
+.mp-names { gap: 10px; margin: 4px 0 12px; }
+.mp-nm.g b { font-size: 25px; font-weight: 800; line-height: 1.12; letter-spacing: -.03em; color: var(--text); }
+.mp-nm.g small { font-size: 14px; color: var(--text-glass-2); margin-top: 4px; }
+.mp-nm.g .mp-nic { color: var(--accent); width: 30px; height: 30px; margin-top: 1px; }
+.mp-nm.r b { font-size: 16.5px; font-weight: 650; line-height: 1.25; }
+.mp-nm.r small { font-size: 13.5px; color: var(--text-glass-2); }
+.mp-nm.r .mp-nic { color: var(--text-glass-2); }
+.mp-nm-go { width: 36px; height: 36px; padding: 8px; }
+.mp-nm-link:active { background: var(--card); }
+
+/* факты — строка текста со значками (тип, доступ, точность, расстояние) */
+.mp-picto { gap: 6px 16px; margin: 0 0 16px; }
+.mp-picto .mp-pic small { font-size: 13.5px; color: var(--text-glass-2); }
+.mp-picto .mp-pic.ac-public > svg { color: var(--ok); }
+.mp-picto .mp-pic.ac-restricted > svg, .mp-picto .mp-pic.ac-gone > svg { color: var(--danger); }
+
+/* кнопки действий: «Проложить путь» — главная, капсула цвета эпохи на всю ширину; ниже «360°», избранное, поделиться.
+   Подпись берётся из aria-label ссылки маршрута (та же строка, язык устройства), сама ссылка — mapsLink как была */
+.mp-acts { flex-wrap: wrap; gap: 8px; margin: 2px 0 18px; }
+.mp-acts > a.mp-ib { order: -1; flex: 1 0 100%; width: auto; height: 52px; padding: 0 20px; gap: 10px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 26px; border: 0; background: var(--accent); color: var(--accent-ink); box-shadow: var(--sh-accent);
+  font: var(--t-button); letter-spacing: var(--t-button-track); text-decoration: none; }
+.mp-acts > a.mp-ib svg { width: 20px; height: 20px; flex: none; }
+.mp-acts > a.mp-ib::after { content: attr(aria-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-acts > a.mp-ib:active { transform: scale(.98); filter: brightness(1.08); }
+.mp-cta { height: 48px; border-radius: 24px; background: var(--card); color: var(--text); border: 1px solid var(--line); font-size: 15px; font-weight: 650; }
+.mp-cta svg { color: var(--accent); }
+.mp-ib { width: 48px; height: 48px; padding: 13px; border-radius: 50%; background: var(--card); border: 1px solid var(--line); box-shadow: none; color: var(--text); }
+.mp-ib:active, .mp-cta:active { transform: scale(var(--press-scale)); }
+.mp-fav.on { color: var(--fav); border-color: color-mix(in srgb, var(--fav) 45%, var(--line)); }
+.mp-fav.on svg path { fill: var(--fav); }
+.mp-fav.sm { width: 40px; height: 40px; padding: 10px; }
+.mp-cta-yt svg { color: var(--danger); }
+
+/* блоки текста внутри шторки — полупрозрачные, без размытия */
+.mp-text { font-size: 16px; line-height: 1.5; }
+.mp-blk { border-radius: var(--r-md); padding: 12px 14px; }
+.mp-blk > svg { color: var(--accent); }
+.mp-blk b { color: var(--text-glass-2); }
+.mp-ingame { border-radius: var(--r-card); border-color: var(--line); box-shadow: none; }
+.mp-ig-pin { border-color: var(--on-photo); }
+.mp-ingame.mp-ig-approx .mp-ig-txt small { color: var(--accent); }
+.mp-ig-txt small { text-transform: none; letter-spacing: 0; font-size: 13px; }
+.mp-near-t { color: var(--text-glass-2); font-weight: 600; }
+.mp-near-c { border-radius: var(--r-md); border-color: var(--line); }
+.mp-ytbtn, .mp-yt button { min-height: 44px; padding: 0 14px 0 12px; border-radius: 22px; background: var(--card); border: 1px solid var(--line); }
+.mp-ytbtn svg, .mp-yt button svg { color: var(--danger); }
+.mp-eggblk { border-radius: var(--r-md); background: color-mix(in srgb, var(--c-egg) 10%, transparent); border-color: color-mix(in srgb, var(--c-egg) 32%, transparent); }
+.mp-eggblk small, .mp-egghead small { text-transform: none; letter-spacing: 0; font-size: 12.5px; color: var(--c-egg); }
+.mp-eggic { background: color-mix(in srgb, var(--c-egg) 20%, transparent); color: var(--c-egg); }
+.mp-egghead h2 { font-size: 24px; letter-spacing: -.02em; }
+.mp-player { border-radius: var(--r-md); }
+.mp-player-t { text-transform: none; letter-spacing: 0; font-size: 13px; }
+.mp-player-go { min-height: 44px; border-radius: 22px; border-color: var(--line); }
+.mp-src, .mp-cred { color: var(--text-3); }
+.mp-ch { border-radius: var(--r-md); border-color: var(--line); min-height: 64px; }
+
+/* слои карты игры, обозначения, подсказка (бета) — строки на стекле шторки */
+.gl-head small { text-transform: none; letter-spacing: 0; font-size: 13px; }
+.gl-grp-h b { text-transform: none; letter-spacing: 0; font: var(--t-label); color: var(--text-glass-2); }
+.gl-grp-h button { min-height: 44px; padding: 0 2px; }
+.gl-row { border-bottom-color: var(--line); }
+.gl-ic { background: var(--card-2); border: 1px solid var(--line); }
+.gl-sw { width: 51px; height: 31px; border-radius: 16px; background: color-mix(in srgb, var(--text) 18%, transparent); }
+.gl-sw::after { left: 2px; top: 2px; width: 27px; height: 27px; background: var(--on-photo); box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+.gl-row.on .gl-sw::after { transform: translateX(20px); }
+.gl-got { min-height: 48px; border-radius: 24px; border-color: var(--line); }
+.gl-got.on { background: color-mix(in srgb, var(--ok) 20%, transparent); border-color: var(--ok); color: var(--text); }
+.gl-prog i { background: var(--ok); }
+.gl-pic { border-radius: var(--r-card); }
+
+/* ───── просмотр фото (во весь экран): тёмная панель для фото, переключатель разделов — капсулы 44 ───── */
+.mpv-panel { border-radius: var(--r-sheet) var(--r-sheet) 0 0; }
+#mp-viewer .mpv-x, #mp-viewer .mpv-back { width: 44px; height: 44px; padding: 11px; background: rgba(255,255,255,.14); }
+.mpv-seg { gap: 6px; padding: 0; background: none; }
+.mpv-seg button { height: 44px; border-radius: 22px; background: rgba(255,255,255,.1); }
+.mpv-seg button.on { background: var(--accent); color: var(--accent-ink); }
+.mpv-ttl b svg { color: var(--accent); }
+.cmp-pairs button.on, .mpv-thumbs button.on, .mp-th.on { border-color: var(--accent); }
+.mpv-arr { background: var(--glass-thin-bg); border-color: var(--glass-thin-edge); }
+
+@media (prefers-reduced-motion: reduce) {
+  .map-games button, .mc, .mchip, .mchip::before { transition: none; }
+}

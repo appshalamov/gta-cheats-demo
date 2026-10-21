@@ -43,7 +43,8 @@ function mockPick() {
   try { s = s || sessionStorage.getItem('sb.mock') || localStorage.getItem('sb.mock'); } catch { }
   return STATES.includes(s) ? s : null;
 }
-const mockState = () => mockPick() || 'league';
+// без явного ?sbmock новый человек — гость (не вошёл): чужой пример-профиль (@sunset_drive) не показываем (тест 21.10)
+const mockState = () => mockPick() || 'guest';
 
 // ── ролики автора ──
 const day = (d) => `2026-10-${String(d).padStart(2, '0')}`;

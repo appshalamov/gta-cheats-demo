@@ -93,7 +93,7 @@ const T = {
     video_soon: 'Video coming soon',
     st_game: 'Game', st_platform: 'Platform', st_theme: 'Theme', st_lang: 'Language', st_maps: 'Directions in',
     th_dark: 'Dark', th_light: 'Light', th_auto: 'Auto',
-    st_pro: 'PRO-доступ', st_pro_on: 'PRO active', st_get_pro: 'Unlock all cheats',
+    st_pro: 'PRO access', st_pro_on: 'PRO active', st_get_pro: 'Unlock all cheats',
     st_howto: 'How to enter cheats', st_share_app: 'Share the app', st_rate: 'Rate the app',
     st_reset: 'Reset demo (replay onboarding)', st_about: 'About', st_haptic: 'Haptics',
     about_text: 'Unofficial cheat code reference. Not affiliated with Rockstar Games or Take-Two Interactive. All trademarks belong to their owners. The app does not modify the game.',

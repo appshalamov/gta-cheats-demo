@@ -10,8 +10,8 @@ import { t, L as tr, getLang } from './i18n.js';
 
 const COLORS = { confirmed: '#22c3d9', likely: '#f5b942', speculative: '#9a8cab', egg: '#f472b6', gtadb: '#8b93a1' };
 const GAMES = {
-  gta6: { title: 'GTA 6', place: { ru: 'Майами', en: 'Miami' }, real: { ru: 'Майами', en: 'Miami' }, gameCity: { ru: 'Вайс-Сити', en: 'Vice City' } },
-  gta5: { title: 'GTA 5', place: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, real: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, gameCity: { ru: 'Лос-Сантос', en: 'Los Santos' } },
+  gta6: { title: 'GTA 6', place: { ru: 'Майами', en: 'Miami' }, real: { ru: 'Майами', en: 'Miami' }, gameCity: { ru: 'карта игры', en: 'game map' } },
+  gta5: { title: 'GTA 5', place: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, real: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, gameCity: { ru: 'карта игры', en: 'game map' } },
 };
 // ── режим «Карта игры»: точки по координатам игры (gm из build_map), подложка — плитки gtadb.
 // Мир игры −16384…16384 единиц ↔ веб-Меркатор; плитка gtadb z ↔ плитка MapLibre z+2 (переписывает transformRequest).
@@ -71,7 +71,7 @@ function leonidaStyle() {
     version: 8, glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
     sources: {
       omt: { type: 'vector', url: 'https://tiles.openfreemap.org/planet', attribution: '≈ GTA 6 по мотивам Флориды · © OpenStreetMap · OpenFreeMap' },
-      regions: { type: 'geojson', data: fc(LEONIDA_REGIONS.map((r) => pt(r.lon, r.lat, { name: r.name, tier: r.tier }))) },
+      regions: { type: 'geojson', data: fc([]) },   // вымышленные названия регионов не показываем (решение Игоря №15, 16.10.2026)
     },
     layers: [
       { id: 'bg', type: 'background', paint: { 'background-color': LEO.land } },
@@ -144,7 +144,7 @@ const STYLE = { dark: 'https://tiles.openfreemap.org/styles/dark', light: 'https
 const W = {
   game:   { en: 'In game', ru: 'В игре', es: 'En el juego', pt: 'No jogo', fr: 'En jeu', de: 'Im Spiel', it: 'Nel gioco', tr: 'Oyunda', uk: 'У грі', pl: 'W grze', zh: '游戏中', ja: 'ゲーム内', ko: '게임 속' },
   real:   { en: 'Real life', ru: 'В жизни', es: 'En la vida real', pt: 'Na vida real', fr: 'En vrai', de: 'In echt', it: 'Dal vivo', tr: 'Gerçekte', uk: 'У житті', pl: 'W realu', zh: '现实中', ja: '実際', ko: '실제' },
-  route:  { en: 'Go there', ru: 'Проложить путь', es: 'Cómo llegar', pt: 'Como chegar', fr: 'Y aller', de: 'Route', it: 'Indicazioni', tr: 'Yol tarifi', uk: 'Маршрут', pl: 'Trasa', zh: '导航', ja: '経路', ko: '길찾기' },
+  route:  { en: 'Open in Maps', ru: 'Открыть в Картах', es: 'Abrir en Mapas', pt: 'Abrir no Mapas', fr: 'Ouvrir dans Plans', de: 'In Karten öffnen', it: 'Apri in Mappe', tr: 'Haritalarda aç', uk: 'Відкрити в Картах', pl: 'Otwórz w Mapach', zh: '在地图中打开', ja: 'マップで開く', ko: '지도에서 열기' },
   look:   { en: 'Look around 360°', ru: 'Осмотреться 360°', es: 'Ver en 360°', pt: 'Ver em 360°', fr: 'Voir à 360°', de: '360°-Ansicht', it: 'Vista a 360°', tr: '360° bak', uk: 'Огляд 360°', pl: 'Widok 360°', zh: '360° 街景', ja: '360°で見る', ko: '360° 둘러보기' },
   share:  { en: 'Share', ru: 'Поделиться', es: 'Compartir', pt: 'Compartilhar', fr: 'Partager', de: 'Teilen', it: 'Condividi', tr: 'Paylaş', uk: 'Поділитися', pl: 'Udostępnij', zh: '分享', ja: '共有', ko: '공유' },
   here:   { en: 'Several places here', ru: 'Здесь несколько мест', es: 'Varios lugares aquí', pt: 'Vários lugares aqui', fr: 'Plusieurs lieux ici', de: 'Mehrere Orte hier', it: 'Più luoghi qui', tr: 'Burada birkaç yer', uk: 'Тут кілька місць', pl: 'Kilka miejsc tutaj', zh: '这里有多个地点', ja: 'ここに複数の場所', ko: '여기에 여러 장소' },
@@ -230,7 +230,8 @@ const devLang = () => (navigator.language || 'en').slice(0, 2).toLowerCase();
 function uiLang() {
   if (getLang() === 'ru') return 'ru';
   const d = devLang();
-  return W.game[d] ? d : 'en';
+  // приложение переключили на английский на русском телефоне — карта тоже по-английски (до 21.10.2026 оставалась русской)
+  return d !== 'ru' && W.game[d] ? d : 'en';
 }
 const w = (k) => (W[k] && (W[k][uiLang()] || W[k].en)) || k;
 
@@ -325,12 +326,27 @@ async function loadGtadb(g) {
 }
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-// маршрут: Google Maps по умолчанию, Apple — в настройках (Игорь 15.10.2026)
+// «Открыть в Картах»: точка места, не маршрут (решение Игоря №15, 16.10.2026: «большинство не будут в ЛА»).
+// Google Maps по умолчанию, Apple — в настройках (Игорь 15.10.2026). До 21.10.2026 здесь строился маршрут (dir/destination, daddr).
 const mapsLink = (lat, lon, q) => (ctx?.mapsApp?.() === 'apple'
-  ? `https://maps.apple.com/?daddr=${lat},${lon}&q=${encodeURIComponent(q || `${lat},${lon}`)}`
-  : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`);
+  ? `https://maps.apple.com/?ll=${lat},${lon}&q=${encodeURIComponent(q || `${lat},${lon}`)}`
+  : `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`);
+// Решение Игоря №15 (16.10.2026, для всех веток): в карточке места — настоящее название, без вымышленных названий из игры
+// (Ambrosia, Leonida, Vice City, Los Santos) и без «Rockstar Games». Так уже в v2; в main/дизайне осталось до 21.10.2026 (тест 21.10).
+// Подписи прав у фото: из данных приходят по-русски и с именем файла скриншота («официальный скриншот Leonida_Keys_01»).
+// Имя файла не нужно для права и несёт игровое название (решение №15) — убираем; вне русского интерфейса переводим.
+const CRED_EN = [[/кадр через/g, 'frame via'], [/кадр из сериала/g, 'still from'], [/официальный скриншот/g, 'official screenshot'],
+  [/Трейлер/g, 'Trailer'], [/фото:/g, 'photo:'], [/снято рядом/g, 'shot nearby'], [/автор не указан/g, 'author unknown'], [/через/g, 'via']];
+const cred = (c) => {
+  let s = String(c || '').replace(/(официальный скриншот)\s+[\w.-]+/g, '$1');
+  if (uiLang() !== 'ru') for (const [re, to] of CRED_EN) s = s.replace(re, to);
+  return s;
+};
+const realShort = (p) => String(p.n || '').split(/,| \(/)[0] || p.n || '';
 const themeKey = () => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
-const txt = (o) => (o ? tr(o) : '');
+// Тексты мест (почему похоже, совет, интересно…) есть по-русски; у ~950 полей «en» в данных пока тоже русский текст.
+// Пока перевода нет, вне русского интерфейса такой блок не показываем, а не показываем русский (тест 21.10.2026).
+const txt = (o) => { const s = o ? tr(o) : ''; return s && !['ru', 'uk'].includes(uiLang()) && /[А-Яа-яЁё]{3,}/.test(s) ? '' : s; };
 
 function km(a, b) {
   const R = 6371, r = Math.PI / 180;
@@ -390,7 +406,9 @@ function actions(lat, lon, name, shareText, fav = '', view = null, key = '') {
 let ogTagsP = null, ogTagsV = null;
 const ogTags = () => (ogTagsP ||= fetch(`${location.pathname.includes('/beta/') ? '../' : ''}s/og/p.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})).then((j) => (ogTagsV = j)));
 async function sharePlace(text, key, el) {
-  const base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '').replace(/beta\/$/, '');
+  // страницы s/ лежат только в корне сайта: из копий в подпапках (/beta/, /design/, /v3/) ссылка тоже в корень
+  // (до 21.10.2026 срезалась только beta/ — с /design/ и /v3/ уходила ссылка на 404)
+  const base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '').replace(/(beta|design|v3)\/$/, '');
   const k = key ? key.split(':') : null;
   // точки сообщества gtadb (db:<игра>:L123) — страницы s/<игра>/db-L123.html (Игорь 15.10.2026: на пирсе «американские
   // горки» — ссылки нет; у точек gtadb ключа не было и уходила ссылка на само приложение)
@@ -467,7 +485,7 @@ function gameBlock(gm, addr, region, gid, ref = {}) {
   const at = `data-k="${ref.k || ''}" data-i="${ref.i ?? ''}"`;
   if (approx() && mode !== 'game' && ref.k !== 'd')   // GTA 6 до выхода: место на «Леониде» — по реальным координатам, примерно
     return `<button class="mp-ingame mp-ig-approx" data-mp="ingame" ${at}>
-      <span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))} · ≈</small><b>${esc(region || GAMES[game].gameCity[uiLang()] || GAMES[game].gameCity.en)}</b><em>${esc(w('soon6'))}</em></span>
+      <span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))} · ≈</small><b>${esc(tr(GAMES[game].gameCity))}</b><em>${esc(w('soon6'))}</em></span>
       <span class="mp-ig-open">${esc(w('showInGame'))}${IC.chevR}</span></button>`;
   if (!gm && !(approx() && mode === 'game')) return '';
   if (mode === 'game') {   // на карте игры — обратный путь: где это в жизни
@@ -480,7 +498,7 @@ function gameBlock(gm, addr, region, gid, ref = {}) {
   let tiles = '';
   for (let y = ty - 1; y <= ty + 1; y++) for (let x = tx - 1; x <= tx + 1; x++)
     tiles += `<img src="${tileBase(c.v)}maps/tiles/${c.v}/${c.set}/${c.z}/${c.z},${y},${x}.jpg" style="left:${Math.round(x * 256 - px)}px;top:${Math.round(y * 256 - py)}px" alt="" loading="lazy" decoding="async" onerror="this.remove()">`;
-  const line = acc === 2 ? `${region ? esc(region) + ' · ' : ''}<em>${esc(w('approxHere'))}</em>` : esc(addr || region || '') + (acc === 1 ? ` <em>· ${esc(w('nextTo'))}</em>` : '');
+  const line = acc === 2 ? `<em>${esc(w('approxHere'))}</em>` : acc === 1 ? `<em>${esc(w('nextTo'))}</em>` : '';
   return `<button class="mp-ingame" data-mp="ingame" ${at}>
       <span class="mp-ig-map"><span class="mp-ig-tiles">${tiles}</span><span class="mp-ig-pin${acc === 2 ? ' est' : ''}"></span></span>
       <span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))}</small><b>${line}</b></span>
@@ -494,17 +512,17 @@ function playerBlock(gc) {
   const c = CATS[gc];
   if (!BETA || !c) return '';
   return `<div class="mp-player" style="--c:${c.c}"><span class="mp-player-t"><i></i>${esc(tr(c.t))}</span><p>${esc(tr(c.what))}</p>
-    ${c.cheat ? `<button class="mp-player-go" data-action="open-cheats" data-cat="${c.cheat}">${IC.game}<span>${esc(tr(c.ct))}</span>${IC.chevR}</button>` : ''}</div>`;
+    ${c.cheat ? `<button class="mp-player-go" data-action="open-cheats" data-cat="${c.cheat}" data-game="${game}">${IC.game}<span>${esc(tr(c.ct))}</span>${IC.chevR}</button>` : ''}</div>`;
 }
 function placeSheet(p, i) {
   const ck = catKey(p);
   const dist = distLabel(p);
   const media = (p.m || []).map(ytLink).filter(Boolean);
   return `
-    ${peekHead(p.g, p.n)}
-    ${heroBox('p' + i, p.pairs, gameList(p), realList(p), { g: p.g, r: p.n }, { pano: panoLink(p.lat, p.lon, p.view) })}
+    ${peekHead(realShort(p), p.a || p.n)}
+    ${heroBox('p' + i, p.pairs, gameList(p), realList(p), { g: GAMES[game]?.title || '', r: p.n }, { pano: panoLink(p.lat, p.lon, p.view) })}
     <div class="mp-names">
-      <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(p.g)}</b>${p.r ? `<small>${esc(p.r)}</small>` : ''}</div></div>
+      <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(GAMES[game]?.title || '')}</b><small>${esc(tr(GAMES[game]?.place || {}))}</small></div></div>
       <a class="mp-nm r mp-nm-link" href="${mapsLink(p.lat, p.lon, p.n)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(p.n)}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(p.n)}</b>${p.a ? `<small>${esc(p.a)}</small>` : ''}</div><span class="mp-nm-go">${IC.nav}</span></a>
     </div>
     ${gameBlock(p.gm, p.ga, p.r, '', { k: 'p', i, real: [p.n, p.a].filter(Boolean).join(' · ') })}
@@ -516,9 +534,8 @@ function placeSheet(p, i) {
       <span class="mp-pic">${meter(p.cf)}<small>${esc(w(p.cf || 'likely'))}</small></span>
       ${dist ? `<span class="mp-pic">${IC.pin}<small>${dist}</small></span>` : ''}
     </div>
-    ${actions(p.lat, p.lon, p.n, `${p.g} → ${p.n}`, favBtn('place', p.id), p.view, `place:${game}:${p.id}`)}
+    ${actions(p.lat, p.lon, p.n, `${realShort(p)} — ${GAMES[game]?.title || ''}`, favBtn('place', p.id), p.view, `place:${game}:${p.id}`)}
     ${BETA ? '' : eggBlocks(p)}
-    ${(p.alias || []).length ? `<p class="mp-alias">${IC.game}<span>${esc(w('also'))}: ${p.alias.map(esc).join(' · ')}</span></p>` : ''}
     ${txt(p.s) ? `<p class="mp-text">${esc(txt(p.s))}</p>` : ''}
     ${txt(p.why) ? `<div class="mp-blk">${IC.info}<div><b>${esc(w('why'))}</b><p>${esc(txt(p.why))}</p></div></div>` : ''}
     ${txt(p.tip) ? `<div class="mp-blk">${IC.bulb}<div><b>${esc(w('tip'))}</b><p>${esc(txt(p.tip))}</p></div></div>` : ''}
@@ -526,7 +543,7 @@ function placeSheet(p, i) {
     ${media.length ? `<div class="mp-yt">${media.map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
     ${nearbyRow(p, i)}
     ${(p.src || []).length ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u) => `<span>${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span>`).join('')}</div>` : ''}
-    <p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>`;
+    <p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(cred(x.credit))).join(' · ')}</p>`;
 }
 // ближайшие места (до 5 км) — следующий шаг прогулки в одно касание
 function nearbyRow(p, i) {
@@ -558,7 +575,7 @@ function eggSheet(e, i) {
     <p class="mp-text">${esc(txt(e.d))}</p>
     ${yt.length > 1 ? `<div class="mp-yt">${yt.slice(1).map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
     ${e.src ? `<div class="mp-src">${IC.link}<span>${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span></div>` : ''}
-    <p class="mp-cred">${[e.pg, e.pr].filter(Boolean).map((x) => esc(x.credit)).join(' · ')}</p>`;
+    <p class="mp-cred">${[e.pg, e.pr].filter(Boolean).map((x) => esc(cred(x.credit))).join(' · ')}</p>`;
 }
 // фото точек сообщества — из открытого репозитория gtadb.org на GitHub (CC BY 4.0; кадры игры © Rockstar Games).
 // Пара «игра ⇄ жизнь» с одного ракурса — для сравнения ползунком (главная функция, Игорь 14.10.2026: не убирать).
@@ -572,17 +589,16 @@ function gtadbSheet(p, g, i) {
   const [id, name, district, real, lat, lon, type] = p;
   const ph = gtadbPhotos(p, g);
   return `
-    ${peekHead(name || district || id, real.split(',')[0])}
-    ${heroBox('d' + i, ph.pg && ph.pr ? [{ g: ph.pg, r: ph.pr }] : [], gameList(ph), realList(ph), { g: name || district || id, r: real.split(',')[0] })}
+    ${peekHead(real.split(',')[0], GAMES[game]?.title || '')}
+    ${heroBox('d' + i, ph.pg && ph.pr ? [{ g: ph.pg, r: ph.pr }] : [], gameList(ph), realList(ph), { g: GAMES[game]?.title || '', r: real.split(',')[0] })}
     <div class="mp-names">
-      <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(name || district || id)}</b>${name && district ? `<small>${esc(district)}</small>` : ''}</div></div>
+      <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(GAMES[game]?.title || '')}</b><small>${esc(tr(GAMES[game]?.place || {}))}</small></div></div>
       <a class="mp-nm r mp-nm-link" href="${mapsLink(lat, lon, real)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(real.split(',')[0])}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(real.split(',')[0])}</b><small>${esc(real.split(',').slice(1).join(',').trim())}</small></div><span class="mp-nm-go">${IC.nav}</span></a>
     </div>
-    ${p[11] ? gameBlock([p[11][0], p[11][1], 0], [name, district].filter(Boolean).join(', '), '', id, { k: 'd', i, real }) : ''}
+    ${p[11] ? gameBlock([p[11][0], p[11][1], 0], '', '', id, { k: 'd', i, real }) : ''}
     ${playerBlock(p[12])}
     <div class="mp-picto"><span class="mp-pic">${IC.other}<small>${esc(type || w('other'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel({ lat, lon })}</small></span>` : ''}</div>
-    ${(p[9] || []).length ? `<div class="mp-also"><small>${esc(w('also'))}</small><span class="mp-also-list">${p[9].map(esc).join(' · ')}</span></div>` : ''}
-    ${actions(lat, lon, real, `${name || district || id} → ${real.split(',')[0]}`, '', p[10] || null, `db:${game}:${id}`)}
+    ${actions(lat, lon, real, `${real.split(',')[0]} — ${GAMES[game]?.title || ''}`, '', p[10] || null, `db:${game}:${id}`)}
     <div class="mp-src">${IC.link}<span>gtadb.org (CC BY 4.0)</span></div>
     <p class="d-note">${t('map_gtadb_credit')}</p>`;
 }
@@ -812,7 +828,7 @@ function renderViewer(anim = '') {
     const el = viewerEl(), src = `https://www.youtube-nocookie.com/embed/${v.video.id}?start=${v.video.t}&autoplay=1&playsinline=1&rel=0&modestbranding=1`;
     el.innerHTML = `<div class="mpv-panel${anim === 'in' ? ' enter' : ''}" role="dialog" aria-modal="true" tabindex="-1">
       <div class="mpv-top"><span class="mpv-grab" aria-hidden="true"></span>
-        <div class="mpv-head"><div class="mpv-ttl"><b>${IC.play}<span>${esc(v.video.label)}</span></b><small>Rockstar Games</small></div>
+        <div class="mpv-head"><div class="mpv-ttl"><b>${IC.play}<span>${esc(v.video.label)}</span></b></div>
           <button class="mpv-x" data-mp="viewer-close" aria-label="${esc(w('close'))}">${IC.close}</button></div></div>
       <div class="mpv-body"><div class="mpv-video"><iframe src="${src}" title="${esc(v.video.label)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div></div></div>`;
     el.classList.add('open');
@@ -830,7 +846,7 @@ function renderViewer(anim = '') {
     body = `<div class="mpv-stage" id="mpv-stage"><img src="${esc(ph.url)}"${ph.fb ? ` data-fb="${esc(ph.fb)}"` : ''} alt="" draggable="false">
         ${n > 0 ? `<button class="mpv-arr l" data-mp="viewer-step" data-d="-1" aria-label="‹">${IC.chevL}</button>` : ''}
         ${n < list.length - 1 ? `<button class="mpv-arr r" data-mp="viewer-step" data-d="1" aria-label="›">${IC.chevR}</button>` : ''}</div>
-      <p class="mpv-credit">${ph.ap ? `<b class="mpv-approx">${esc(w('approxT'))}</b> · ` : ''}${esc(ph.credit || '')}</p>`;
+      <p class="mpv-credit">${ph.ap ? `<b class="mpv-approx">${esc(w('approxT'))}</b> · ` : ''}${esc(cred(ph.credit))}</p>`;
   } else {
     const lab = { cmp: [IC.swap, w('compare'), P.length > 1 ? P.length : ''], r: [IC.camera, w('real'), R.length], g: [IC.game, w('game'), G.length] };
     head = `<div class="mpv-ttl"><b>${IC.game}<span>${esc(names.g || '')}</span></b><small>${esc(names.r || '')}</small></div>`;
@@ -845,7 +861,7 @@ function renderViewer(anim = '') {
           <div class="cmp-line"><span class="cmp-knob">${IC.chevL}${IC.chevR}</span></div>
         </div>
         ${P.length > 1 ? `<div class="cmp-pairs">${P.map((x, k) => `<button class="${k === v.pi ? 'on' : ''}" data-mp="pair" data-n="${k}" aria-label="${k + 1}/${P.length}"><img src="${esc(x.g.thumb)}" alt="" loading="lazy"><img src="${esc(x.r.url)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
-        <p class="mpv-credit">${esc(pr.g.credit)} · ${esc(pr.r.credit)}</p>`;
+        <p class="mpv-credit">${esc(cred(pr.g.credit))} · ${esc(cred(pr.r.credit))}</p>`;
     } else {
       const list = v.sec === 'r' ? R : G;
       body = `<div class="mpa-grid">${list.map((ph, k) => `<button class="mpa-img" data-mp="view" data-ref="${v.sec}:${key}" data-n="${k}"><img src="${esc(ph.thumb)}" alt="" loading="lazy" decoding="async"></button>`).join('')}</div>`;
@@ -1042,7 +1058,7 @@ function renderCards() {
     const ck = catKey(p);
     return `<button class="mc${i === selected ? ' on' : ''}" data-mp="card" data-i="${i}">
       <span class="mc-ph">${p.pg ? `<img src="${esc(p.pg.thumb || p.pg.file)}" alt="" loading="lazy" decoding="async">` : `<i class="g">${IC.game}</i>`}${p.pr ? `<img src="${esc(p.pr.thumb || p.pr.file)}" alt="" loading="lazy" decoding="async">` : `<i class="r">${IC.camera}</i>`}<em>${IC.game}</em><em class="r">${IC.camera}</em></span>
-      <span class="mc-t"><b>${esc(p.n)}</b><small>${IC.game}${esc(p.g)}</small></span>
+      <span class="mc-t"><b>${esc(realShort(p))}</b><small>${IC.game}${esc(GAMES[game]?.title || '')}</small></span>
       <span class="mc-ic">${IC[ck]}${p.ac && IC[p.ac] ? IC[p.ac] : ''}${meter(p.cf)}${me ? `<em>${distLabel(p)}</em>` : ''}</span>
     </button>`;
   }).join('') + (top.length ? extra : ''));
@@ -1584,7 +1600,7 @@ function chooserSheet(hits) {
   const row = (h) => {
     const i = h.properties.i, l = h.layer.id;
     let img = '', title = '', sub = '', ic = IC.pin;
-    if (l === 'places') { const p = data[game].places[i]; img = (p.pg || p.pr || {}).thumb || (p.pg || p.pr || {}).file || ''; title = p.n; sub = p.g; }
+    if (l === 'places') { const p = data[game].places[i]; img = (p.pg || p.pr || {}).thumb || (p.pg || p.pr || {}).file || ''; title = realShort(p); sub = GAMES[game]?.title || ''; }
     else if (l === 'eggs') { const e = data[game].eggs[i]; img = (e.pg || e.pr || {}).thumb || (e.pg || e.pr || {}).file || ''; title = txt(e.t); sub = w('egg'); ic = IC.egg; }
     else if (l === 'gl') { const p = glData[i], L = GL[p.k]; title = tr(L.t) + (p.n ? ` № ${p.n}` : ''); sub = p.key && GL_EGG[p.key] ? tr(GL_EGG[p.key]) : tr(GL_GROUPS.find((x) => x[0] === L.g)[1]); ic = `<span class="gl-ic">${L.ic}</span>`; }
     else { const q = gtadb[game].points[i]; const ph = gtadbPhotos(q, gtadb[game].game); img = (ph.pg || ph.pr || {}).file || ''; title = q[3].split(',')[0]; sub = q[1] || q[2]; }

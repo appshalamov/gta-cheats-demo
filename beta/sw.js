@@ -1,7 +1,7 @@
 // Офлайн-кэш. Оболочка — из кэша (быстро), данные data/*.json — сначала из сети,
 // чтобы новые коды (например, GTA 6 после релиза) появлялись без обновления приложения.
 // При изменении файлов оболочки поднимите VERSION.
-const VERSION = 'beta-v74';
+const VERSION = 'beta-v75';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css',
   'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/places.js',
@@ -14,8 +14,12 @@ self.addEventListener('install', (e) => {
   // cache: 'reload' — мимо HTTP-кэша браузера, иначе в новую версию может попасть старый файл
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
+// Прод, /beta/, /design/ и /v3/ живут на одном домене и делят хранилище кэшей: удаляем только старые версии своего
+// семейства (v73 → v74, beta-v73 → beta-v74), чужие не трогаем. До 21.10.2026 каждая версия стирала кэши остальных —
+// открыл прод, и бета или /design/ без сети не открывались (тест 21.10).
+const family = (k) => k.replace(/\d+$/, '');
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSION && k !== PHOTOS).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSION && family(k) === family(VERSION)).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 // Фото мест (кадры игры, фото из жизни) — отдельный кэш, переживает обновления приложения: второй раз карточка
 // открывается мгновенно и на слабом интернете (Игорь 15.10.2026: «на слабом интернете хуже открывается»).

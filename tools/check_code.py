@@ -100,4 +100,18 @@ if bad:
     for b in bad:
         print("  ✗", b)
     sys.exit(1)
+# 7. Service worker: при обновлении удаляет только старые версии своего семейства (v73 → v74). Прод, /beta/, /design/
+#    и /v3/ — один домен и одно хранилище кэшей; до 21.10.2026 каждая версия стирала кэши остальных (тест 21.10).
+for _sw in [ROOT / "sw.js", *sorted(ROOT.glob("*/sw.js"))]:
+    if _sw.exists() and not _sw.parent.name.startswith("._"):
+        _s = _sw.read_text("utf-8")
+        if "caches.delete" in _s and "family(k) === family(VERSION)" not in _s and "k.startsWith('v3-')" not in _s:
+            print(f"СТОП: {_sw.relative_to(ROOT)} при обновлении стирает чужие кэши — удаляйте только family(k) === family(VERSION)")
+            sys.exit(1)
+# 8. Миниатюры мест (places.js thumbOf) в копиях сайта в подпапках берут img/map из корня — как rebase в map.js
+#    (21.10.2026: в бете миниатюры Главной давали 404).
+_pl = (ROOT / "js" / "places.js").read_text("utf-8")
+if "export function thumbOf" in _pl and not re.search(r"IMG_BASE|imgUrl\(", _pl.split("export function thumbOf", 1)[1].split("\n}", 1)[0]):
+    print("СТОП: thumbOf в js/places.js не добавляет ../ для /beta/ и /design/ — миниатюры там будут 404")
+    sys.exit(1)
 print("правила кода: ок")
