@@ -126,4 +126,61 @@ for _g in ("gta5", "gta6"):
         if _ru:
             print(f"СТОП: data/map/{_g}.json — русский текст в адресе или названии места (видно в EN): {_ru[:5]}")
             sys.exit(1)
+# 10. Режим demo (08 ТЗ §1, FTC: реклама с суммами): на каждом экране и в каждой шторке креаторского раздела внизу строка
+#     «Пример интерфейса. Цифры показаны для примера». Флагом её не убрать: modeNote() в demo отдаёт её без условий,
+#     её вставляют body() (все экраны) и sheet() (все шторки), а ctx.openSheet в league.js вызывается только внутри sheet().
+DEMO_NOTE = "Пример интерфейса. Цифры показаны для примера"
+_lg = (ROOT / "js" / "league.js").read_text("utf-8")
+demo_bad = []
+if f"demo_note: '{DEMO_NOTE}'" not in _lg:
+    demo_bad.append(f"league.js: нет строки demo_note: '{DEMO_NOTE}'")
+_mn = re.search(r"const modeNote = \([^)]*\) => \(mode\(\) === 'demo' \? `[^`]*tx\('demo_note'\)[^`]*`", _lg)
+if not _mn:
+    demo_bad.append("league.js: modeNote() в demo должна первой веткой, без условий, отдавать tx('demo_note')")
+_bd = re.search(r"^const body = .*$", _lg, re.M)
+if not _bd or "modeNote(" not in _bd.group(0):
+    demo_bad.append("league.js: body() не вставляет modeNote() — экраны в demo останутся без «Пример интерфейса»")
+_sh = re.search(r"^const sheet = .*$", _lg, re.M)
+if not _sh or "modeNote(" not in _sh.group(0) or "ctx.openSheet(" not in _sh.group(0):
+    demo_bad.append("league.js: sheet() не вставляет modeNote() в шторку")
+_os = [n for n, line in enumerate(_lg.splitlines(), 1) if "ctx.openSheet(" in line and not line.startswith("const sheet = ")]
+if _os:
+    demo_bad.append(f"league.js: шторка мимо sheet() (без пометки режима), строки {_os[:5]}")
+# экраны раздела без body(): каждый SCREENS[...].html даёт body( или явный modeNote(
+_scr = re.search(r"^const SCREENS = \{(.*?)^\};", _lg, re.S | re.M)
+if _scr:
+    for m in re.finditer(r"^  (\w+): \{ html: (.*)$", _scr.group(1), re.M):
+        name, line = m.group(1), m.group(2)
+        fn = re.match(r"(?:async \([^)]*\) => )?(\w+)\b", line)
+        src = line
+        if fn and fn.group(1) not in ("async",):
+            dm = re.search(r"^(?:async )?function " + re.escape(fn.group(1)) + r"\b.*?^\}", _lg, re.S | re.M)
+            if dm: src += dm.group(0)
+        if "body(" not in src and "modeNote(" not in src:
+            # лента роликов: пометка — в плашке «Заработок с ролика»
+            if name == "feed" and "${modeNote(" in _lg.split("async function feedHTML", 1)[1].split("\nfunction ", 1)[0]:
+                continue
+            demo_bad.append(f"league.js: экран {name} без body()/modeNote() — в demo нет «Пример интерфейса»")
+else:
+    demo_bad.append("league.js: не нашёл SCREENS")
+_hub = re.search(r"^async function hubHTML\(\).*?^\}", _lg, re.S | re.M)
+if not _hub or "modeNote(" not in _hub.group(0):
+    demo_bad.append("league.js: хаб «Для авторов» без modeNote() в demo")
+if demo_bad:
+    print("СТОП: режим demo без строки «Пример интерфейса» (08 ТЗ §1, FTC):")
+    for b in demo_bad:
+        print("  ✗", b)
+    sys.exit(1)
+# 11. ?sbmock — не в боевой сборке (06 В-1, 08 §1): только на localhost / 127.0.0.1 или при включённом demo админа.
+_api = (ROOT / "js" / "api.js").read_text("utf-8")
+_mp = re.search(r"^function mockPick\(\) \{\n(.*?)^\}", _api, re.S | re.M)
+if not _mp or not re.match(r"\s*if \(!devGate\(\)\) \{[^\n]*return null; \}", _mp.group(1)) or not re.search(r"const devGate = \(\) => DEV \|\| DEMO_ON;", _api) \
+        or r"const DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);" not in _api:
+    print("СТОП: js/api.js — ?sbmock должен первой строкой mockPick() отключаться вне localhost и без demo (devGate)")
+    sys.exit(1)
+_sbm = [f"{f.name}:{n}" for f in sorted((ROOT / "js").glob("*.js")) if not f.name.startswith("._") and f.name != "api.js"
+        for n, line in enumerate(f.read_text("utf-8").splitlines(), 1) if "sbmock" in line and not line.lstrip().startswith("//")]
+if _sbm:
+    print(f"СТОП: ?sbmock читают вне js/api.js (мимо devGate): {_sbm[:5]}")
+    sys.exit(1)
 print("правила кода: ок")

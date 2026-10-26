@@ -133,6 +133,61 @@ const S = {
     inv_h: 'Код приглашения', inv_p: 'Код от модератора или амбассадора открывает Лигу сразу. Одноразовый, действует 30 дней.', inv_ph: 'Например, LIGA-7Q2K', inv_send: 'Открыть Лигу',
     inv_bad: 'Код не подошёл. Проверьте буквы и цифры', inv_old: 'Срок кода истёк. Попросите новый', inv_ok: 'Лига открыта',
     err: 'Не получилось. Проверьте сеть и попробуйте ещё раз', soon_pair: 'Пара откроется после 5 принятых вкладов', soon_found: 'Откроется с выхода GTA 6, 19 ноября',
+    // режимы (08 ТЗ §1, §2.4): demo — «Пример интерфейса» на каждом экране с суммами (FTC; check_code.py), beta — «предварительные»
+    demo_note: 'Пример интерфейса. Цифры показаны для примера', beta_note: 'Суммы предварительные: программа в закрытом доступе',
+    beta_pay: 'Выплаты начнутся, когда программа откроется для всех. Начисления сохранятся', for_month_pre: 'предварительно за {m}',
+    rs_pair: 'Пары Скаута', rs_pair_d: '$10 за принятую пару «игра и жизнь»', d_pair: 'пара принята',
+    rj_no_disclosure: 'В начале ролика нет пометки о рекламе. Добавьте её голосом и текстом',
+    // список ожидания и приглашение (08 §2)
+    wl_title: 'Снимайте ролики о местах из игр — мы платим за просмотры и делимся покупками',
+    wl_l1: '{r} за 1 000 просмотров, до {cap} за ролик, от {min}. Shorts — {rs}', wl_l2: '{p}% с каждой покупки по вашей ссылке в течение {m} месяцев',
+    wl_l3: 'Участие бесплатное, с 18 лет', wl_plate: 'Программа откроется {d}, в день выхода GTA 6. Сейчас — закрытый доступ по приглашениям',
+    wl_join: 'Записаться', wl_have: 'У меня есть приглашение', wl_partner: 'Стать партнёром',
+    wl_joined: 'Вы в списке. Номер {n}', wl_joined_p: 'Пришлём приглашение на почту, когда программа откроется', wl_since: 'В списке с {d}',
+    wl_early: 'Хотите раньше? Подтвердите канал — авторов с подтверждённым каналом приглашаем первыми', wl_verify: 'Подтвердить канал',
+    wl_verified: 'Канал подтверждён. Вы в первой волне', wl_pending: 'Проверяем канал {h}. Обычно это несколько минут',
+    wj_h: 'Записаться', wj_sub: 'Пришлём приглашение на эту почту', wj_where: 'Где вы снимаете?', wj_where_sub: 'Можно выбрать несколько',
+    wj_profile: 'Ссылка на профиль — необязательно', wj_profile_ph: 'tiktok.com/@ник', wj_send: 'Записаться', wj_pick: 'Выберите хотя бы одну площадку',
+    inv_b_h: 'Приглашение', inv_b_sub: 'Код из письма или сообщения: SB- и 6 знаков', inv_b_send: 'Принять приглашение',
+    inv_nf: 'Код не найден', inv_used: 'Код уже использован', inv_exp: 'Срок приглашения закончился', inv_b_ok: 'Приглашение принято',
+    inv_card: 'Приглашение принято', inv_card_p: 'Осталось стать партнёром: 18+, правила и страна. Это бесплатно', inv_open: 'Программа открыта для всех',
+    gate_p: 'Раздел откроется по приглашению или в день открытия программы',
+    // «Стать партнёром» (02 §7.1, §7.9)
+    pt_step: 'Шаг {a} из {b}', pt_age_sub: 'Партнёрство — с 18 лет. Возраст подтвердим при первом выводе вместе с личностью',
+    pt_minor_h: 'Партнёрство с 18 лет', pt_minor_p: 'Вы можете добавлять места и получать дни Pro', pt_add: 'Добавить место',
+    pt_terms_h: 'Правила партнёрства', pt_terms_sub: 'Коротко, по пунктам. Полностью — в «Честных правилах»',
+    tm_rate: 'Ставка за просмотры', tm_rate_v: '{r} за 1 000 просмотров TikTok, Reels и YouTube, Shorts — {rs}. Ставку считаем от того, сколько покупают зрители, поэтому она может вырасти',
+    tm_count: 'Что засчитываем', tm_count_v: 'Ролик про место и упоминание места. Shorts — по своей ставке. Snapchat и ролики с кадрами игры — без оплаты просмотров, доля с покупок остаётся',
+    tm_hold: 'Холд и раунд', tm_hold_v: 'Доля с покупки — после холда 30 дней. Выплата 20-го числа, от {min}',
+    tm_lim: 'Лимиты', tm_lim_v: 'До {cap} за ролик по просмотрам, от {floor}. Новый партнёр — до $100 в месяц за просмотры до первой выплаты. Первую выплату и всё больше $500 проверяет человек',
+    tm_no: 'Что нельзя', tm_no_v: 'Накрутка, чужие ролики, обещания заработка зрителям, кадры Rockstar как основа ролика, съёмка на частной территории',
+    tm_appeal: 'Апелляция', tm_appeal_v: 'Одна апелляция на решение, ответ до 48 часов',
+    tm_change: 'Изменения правил', tm_change_v: 'С анонсом за 30 дней. Ставка вниз — только с анонсом, вверх — сразу',
+    pt_accept: 'Принимаю условия партнёрства', pt_need: 'Отметьте, что принимаете условия',
+    pt_country_h: 'Страна', pt_country_sub: 'Определили по сети — поправьте, если нужно', pt_country: 'Страна проживания',
+    pt_np_h: 'Вы партнёр', pt_np_p: 'Для вашей страны за ролики и вклады — дни Pro: 30 дней за каждый принятый ролик от 1 000 просмотров',
+    // подтверждение канала (02 §7.1 п. 5)
+    vf_h: 'Подтвердите канал', vf_sub: 'Так мы знаем, что ролики с этого аккаунта ваши', vf_url: 'Ссылка на профиль',
+    vf_bad: 'Нужна ссылка на профиль {p}', vf_code_h: 'Добавьте код в профиль', vf_code_p: 'Добавьте в описание профиля код {c}',
+    vf_code_s1: 'Откройте профиль {h} в {p}', vf_code_s2: 'Вставьте код в описание и сохраните', vf_code_s3: 'Вернитесь и нажмите «Проверить» — проверим за несколько минут',
+    vf_code_note: 'Код можно удалить после проверки', vf_check: 'Проверить', vf_pending_h: 'Проверяем канал',
+    vf_pending_p: 'Ищем код {c} в описании профиля {h}. Обычно несколько минут — экран обновится сам', vf_again: 'Проверить ещё раз',
+    vf_ok_h: 'Канал подтверждён', vf_ok_p: '{h} в {p}', vf_ok_pro: 'Рабочий Pro включён на 14 дней', vf_ok_wl: 'Вы в первой волне: пришлём приглашение раньше остальных',
+    vf_fail_h: 'Код не нашли', vf_fail_p: 'В описании профиля {h} нет кода {c}. Добавьте его, сохраните профиль и проверьте снова', vf_other: 'Другой аккаунт',
+    // «Готово» (02 §7.1)
+    dn_h: 'Готово', dn_sub: 'Вы партнёр Secret Base', dn_link: 'Ваша ссылка', dn_code: 'Код', dn_pro: 'Рабочий Pro до {d}',
+    dn_shoot: 'Снять про это место', dn_shoot_d: 'Место недели: {p}', dn_submit: 'Подать ролик', dn_hub: 'К разделу «Для авторов»',
+    hub_verify: 'Подтвердите канал, чтобы ролики засчитывались', hub_verify_np: 'Подтвердите канал, чтобы получать дни Pro за ролики',
+    // «Для админов» (08 №18)
+    ad_h: 'Для админов', ad_code: 'Код админа', ad_in: 'Войти', ad_bad: 'Код не подошёл', ad_nocrypto: 'Браузер не умеет проверять код. Откройте сайт по https',
+    ad_mode: 'Режим показа', ad_demo: 'Демо для съёмки', ad_demo_p: 'Цифры из набора @sunset_drive. На каждом экране с суммами — «Пример интерфейса»',
+    ad_off: 'Выкл', ad_on: 'Вкл', ad_stage: 'Что показать', ad_st_partner: 'Партнёр с роликами', ad_st_start: 'Путь с начала', ad_reset: 'Сбросить демо',
+    ad_inv: 'Приглашения', ad_inv_p: 'Одноразовые коды SB- для своих. Действуют до {d}', ad_make: 'Создать 10', ad_copy_all: 'Скопировать все',
+    ad_inv_none: 'Пока не создавали', ad_inv_used: 'принят', ad_inv_left: 'Коды кончились: нужна новая партия',
+    ad_wl: 'Список ожидания', ad_wl_line: 'Записались {j}, каналы {v} из {g}', ad_wl_j: 'Записались', ad_wl_v: 'Подтверждённые каналы',
+    ad_wl_p: 'Боевые выплаты — когда 500 записавшихся, из них 100 с подтверждённым каналом, ответ юриста, касса и Whop',
+    ad_req: 'Подтверждение каналов', ad_req_p: 'Найдите код в описании профиля и отметьте', ad_req_none: 'Заявок нет',
+    ad_yes: 'Подтвердить', ad_no: 'Не нашли', ad_st_verified: 'подтверждён', ad_st_failed: 'код не нашли', ad_out: 'Выйти',
   },
   en: {
     for_authors: 'For creators', league: 'Creator League', title: 'Earn by filming videos about places',
@@ -248,6 +303,55 @@ const S = {
     inv_h: 'Invite code', inv_p: 'A code from a moderator or ambassador opens the League at once. Single use, valid for 30 days.', inv_ph: 'For example, LIGA-7Q2K', inv_send: 'Open the League',
     inv_bad: 'The code did not work. Check letters and digits', inv_old: 'The code has expired. Ask for a new one', inv_ok: 'League is open',
     err: 'Something went wrong. Check the connection and try again', soon_pair: 'Pairs open after 5 accepted contributions', soon_found: 'Opens with the GTA 6 release on November 19',
+    demo_note: 'Interface example. Numbers are shown as an example', beta_note: 'Amounts are preliminary: the program is invite-only',
+    beta_pay: 'Payouts start when the program opens to everyone. Your earnings are kept', for_month_pre: 'preliminary for {m}',
+    rs_pair: 'Scout pairs', rs_pair_d: '$10 per accepted game and life pair', d_pair: 'pair accepted',
+    rj_no_disclosure: 'The start of the video has no ad disclosure. Add it by voice and on screen',
+    wl_title: 'Film videos about places from games — we pay for views and share purchases',
+    wl_l1: '{r} per 1,000 views, up to {cap} per video, from {min}. Shorts — {rs}', wl_l2: '{p}% of every purchase with your link for {m} months',
+    wl_l3: 'Free to join, 18+', wl_plate: 'The program opens on {d}, the day GTA 6 comes out. For now it is invite-only',
+    wl_join: 'Join the list', wl_have: 'I have an invite', wl_partner: 'Become a partner',
+    wl_joined: 'You are on the list. Number {n}', wl_joined_p: 'We will email your invite when the program opens', wl_since: 'On the list since {d}',
+    wl_early: 'Want in sooner? Confirm your channel — creators with a confirmed channel are invited first', wl_verify: 'Confirm channel',
+    wl_verified: 'Channel confirmed. You are in the first wave', wl_pending: 'Checking the channel {h}. Usually a few minutes',
+    wj_h: 'Join the list', wj_sub: 'We will send the invite to this email', wj_where: 'Where do you post?', wj_where_sub: 'You can pick several',
+    wj_profile: 'Profile link — optional', wj_profile_ph: 'tiktok.com/@name', wj_send: 'Join the list', wj_pick: 'Pick at least one platform',
+    inv_b_h: 'Invite', inv_b_sub: 'The code from the email or message: SB- and 6 characters', inv_b_send: 'Accept invite',
+    inv_nf: 'Code not found', inv_used: 'Code already used', inv_exp: 'The invite has expired', inv_b_ok: 'Invite accepted',
+    inv_card: 'Invite accepted', inv_card_p: 'One step left: 18+, the rules and your country. It is free', inv_open: 'The program is open to everyone',
+    gate_p: 'This section opens with an invite or on the day the program opens',
+    pt_step: 'Step {a} of {b}', pt_age_sub: 'Partners must be 18+. We confirm age with identity on the first payout',
+    pt_minor_h: 'Partnership is 18+', pt_minor_p: 'You can add places and get Pro days', pt_add: 'Add a place',
+    pt_terms_h: 'Partner rules', pt_terms_sub: 'Short, point by point. In full — in “Fair rules”',
+    tm_rate: 'View rate', tm_rate_v: '{r} per 1,000 views on TikTok, Reels and YouTube, Shorts — {rs}. The rate comes from how much viewers buy, so it can go up',
+    tm_count: 'What counts', tm_count_v: 'A video about a place and a mention of a place. Shorts at their own rate. Snapchat and videos with game footage — no view pay, the purchase share stays',
+    tm_hold: 'Hold and round', tm_hold_v: 'The purchase share comes after a 30-day hold. Payouts on the 20th, from {min}',
+    tm_lim: 'Limits', tm_lim_v: 'Up to {cap} per video for views, from {floor}. New partners — up to $100 a month for views until the first payout. A person checks the first payout and anything over $500',
+    tm_no: 'Not allowed', tm_no_v: 'Boosting, other people’s videos, promising viewers income, Rockstar footage as the base of a video, filming on private property',
+    tm_appeal: 'Appeal', tm_appeal_v: 'One appeal per decision, answered within 48 hours',
+    tm_change: 'Rule changes', tm_change_v: 'With 30 days’ notice. Rate cuts only with notice, raises at once',
+    pt_accept: 'I accept the partner terms', pt_need: 'Tick that you accept the terms',
+    pt_country_h: 'Country', pt_country_sub: 'Detected from your network — change it if needed', pt_country: 'Country of residence',
+    pt_np_h: 'You are a partner', pt_np_p: 'In your country videos and contributions earn Pro days: 30 days for each accepted video with 1,000+ views',
+    vf_h: 'Confirm your channel', vf_sub: 'That is how we know videos from this account are yours', vf_url: 'Profile link',
+    vf_bad: 'We need a link to your {p} profile', vf_code_h: 'Add the code to your profile', vf_code_p: 'Add the code {c} to your profile description',
+    vf_code_s1: 'Open the profile {h} on {p}', vf_code_s2: 'Paste the code into the description and save', vf_code_s3: 'Come back and tap “Check” — it takes a few minutes',
+    vf_code_note: 'You can remove the code after the check', vf_check: 'Check', vf_pending_h: 'Checking the channel',
+    vf_pending_p: 'Looking for {c} in the profile description of {h}. Usually a few minutes — this screen updates itself', vf_again: 'Check again',
+    vf_ok_h: 'Channel confirmed', vf_ok_p: '{h} on {p}', vf_ok_pro: 'Working Pro is on for 14 days', vf_ok_wl: 'You are in the first wave: we will invite you before others',
+    vf_fail_h: 'Code not found', vf_fail_p: 'The profile description of {h} has no {c}. Add it, save the profile and check again', vf_other: 'Another account',
+    dn_h: 'Done', dn_sub: 'You are a Secret Base partner', dn_link: 'Your link', dn_code: 'Code', dn_pro: 'Working Pro until {d}',
+    dn_shoot: 'Film this place', dn_shoot_d: 'Place of the week: {p}', dn_submit: 'Submit a video', dn_hub: 'Back to “For creators”',
+    hub_verify: 'Confirm your channel so your videos count', hub_verify_np: 'Confirm your channel to get Pro days for videos',
+    ad_h: 'For admins', ad_code: 'Admin code', ad_in: 'Sign in', ad_bad: 'The code did not work', ad_nocrypto: 'This browser cannot check the code. Open the site over https',
+    ad_mode: 'Display mode', ad_demo: 'Demo for filming', ad_demo_p: 'Numbers from the @sunset_drive set. Every screen with amounts says “Interface example”',
+    ad_off: 'Off', ad_on: 'On', ad_stage: 'What to show', ad_st_partner: 'Partner with videos', ad_st_start: 'From the start', ad_reset: 'Reset demo',
+    ad_inv: 'Invites', ad_inv_p: 'Single-use SB- codes for your people. Valid until {d}', ad_make: 'Create 10', ad_copy_all: 'Copy all',
+    ad_inv_none: 'None created yet', ad_inv_used: 'accepted', ad_inv_left: 'No codes left: a new batch is needed',
+    ad_wl: 'Waitlist', ad_wl_line: '{j} joined, {v} of {g} channels', ad_wl_j: 'Joined', ad_wl_v: 'Confirmed channels',
+    ad_wl_p: 'Live payouts start at 500 joined with 100 confirmed channels, the lawyer’s answer, checkout and Whop',
+    ad_req: 'Channel checks', ad_req_p: 'Find the code in the profile description and mark it', ad_req_none: 'No requests',
+    ad_yes: 'Confirm', ad_no: 'Not found', ad_st_verified: 'confirmed', ad_st_failed: 'code not found', ad_out: 'Sign out',
   },
 };
 const lang = () => (getLang() === 'en' ? 'en' : 'ru');
@@ -272,7 +376,7 @@ const MON = { ru: ['января', 'февраля', 'марта', 'апреля
   en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] };
 function dfmt(iso) { const [, m, d] = String(iso).split('-').map(Number); return lang() === 'en' ? `${MON.en[m - 1]} ${d}` : `${d} ${MON.ru[m - 1]}`; }
 const pct = (a, b) => (b ? (a / b * 100).toFixed(a / b < 0.1 ? 1 : 0) : '0').replace('.', lang() === 'en' ? '.' : ',') + '%';
-const PLAT = { tiktok: 'TikTok', youtube: 'YouTube', shorts: 'YouTube Shorts', reels: 'Instagram Reels', snapchat: 'Snapchat' };
+const PLAT = { tiktok: 'TikTok', youtube: 'YouTube', shorts: 'YouTube Shorts', reels: 'Instagram Reels', instagram: 'Instagram', snapchat: 'Snapchat' };
 const shortName = (s) => String(s || '').split(/[,(–]/)[0].trim();
 const slugOf = (id, world) => String(id || '').replace(new RegExp('^' + world + '-'), '');
 
@@ -309,8 +413,22 @@ const moneyOK = () => isPartner() && !noPay();
 const trialOnly = () => isTrial() && !isPartner();
 // строка рабочего Pro партнёра: «до <дата>» или «закончился <дата>» — с правилом +30 дней за принятый ролик
 const workLine = () => { const w = workPro(); return w && isPartner() && !noPay() ? `<div class="cr-note">${I.star}<span>${esc(tx(active(w) ? 'work_pro' : 'work_pro_end', { d: dfmt(String(w).slice(0, 10)) }))}</span></div>` : ''; };
-const medLine = () => (R && R.median_cents != null ? tx('median', { m: money(R.median_cents) }) : tx('first_pay', { d: dfmt(R?.first_round || '2026-11-20') }));
+// подпись под суммами: beta — «Выплаты начнутся, когда программа откроется для всех» (08 §2.4); demo и live до раунда — первые выплаты
+const medLine = () => (mode() === 'beta' ? tx('beta_pay') : R && R.median_cents != null ? tx('median', { m: money(R.median_cents) }) : tx('first_pay', { d: dfmt(R?.first_round || '2026-11-20') }));
 const med = (cls = '') => `<p class="cr-med${cls ? ' ' + cls : ''}">${esc(medLine())}</p>`;
+// ───────── режимы площадки (08 ТЗ §1): rules.mode из SB.api — экраны не знают, откуда данные ─────────
+const mode = () => R?.mode || 'beta';
+// пометка внизу экрана: в demo — на КАЖДОМ экране и шторке (FTC, реклама с суммами; check_code.py правило 10), в beta — где есть суммы
+const modeNote = (html = '', rates = false) => (mode() === 'demo' ? `<p class="cr-mode">${I.info}<span>${esc(tx('demo_note'))}</span></p>`
+  : mode() === 'beta' && !rates && /\$\d/.test(html) ? `<p class="cr-mode">${I.info}<span>${esc(tx('beta_note'))}</span></p>` : '');
+// все шторки раздела — только через sheet(): пометка режима добавляется сама
+const sheet = (html, onClose) => ctx.openSheet(html.replace(/<\/div>\s*$/, modeNote(html) + '</div>'), 'cr-sheet', onClose);
+// открыт ли раздел с деньгами: demo, live, приглашение или день открытия (rules.open_at); иначе — список ожидания (08 §2)
+const today = () => new Date().toISOString().slice(0, 10);
+const isOpen = () => mode() === 'live' || (R?.open_at && today() >= R.open_at);
+const hasAccess = () => isOpen() || !!P?.invited;
+const verifiedAcc = () => (P?.accounts || []).find((a) => a.status === 'verified');
+const workingAcc = () => [...(P?.accounts || [])].reverse().find((a) => a.status === 'pending' || a.status === 'failed');
 const link = (code, world, id, v) => `${APP.domain}/${code}${world ? `/${world}/${slugOf(id, world)}` : ''}${v ? `?v=${v}` : ''}`;
 const daysTo = (iso) => Math.max(0, Math.ceil((new Date(iso + 'T00:00:00') - new Date()) / 864e5));
 
@@ -342,7 +460,15 @@ function steps(n, code) {
 export function hubHTMLSync() { return hubCache; }
 async function hubHTML() {
   await load();
-  if (trialOnly()) return trialHub();
+  if (window.Capacitor?.isNativePlatform?.()) return '';   // раздел только на вебе: в iOS-сборке его нет (07 §2.2)
+  const admin = await api().adminState().then((x) => x.admin).catch(() => false);
+  const tail = (admin ? `<div class="group">${row('open:admin', 'shield', tx('ad_h'))}</div>` : '') + (mode() === 'demo' ? modeNote() : '');
+  if (trialOnly()) return trialHub() + tail;
+  // без приглашения (и до rules.open_at) — список ожидания: waitlist_new / waitlist_joined / waitlist_verified (08 §2.1)
+  if (!hasAccess()) return `<div class="cr-hub-h">${esc(tx('for_authors'))}</div>${waitlistHTML()}<div class="group">${row('open:rules', 'doc', tx('rules'), tx('rules_sub'))}</div>${tail}`;
+  return (await hubMain()) + tail;
+}
+async function hubMain() {
   const game = ctx?.game?.() || 'gta6', banner = HERO[game]?.banners[0];
   const np = noPay(), minor = isMinor(), guest = isGuest(), partner = isPartner();
   const title = minor ? tx('title_minor') : np ? tx('title_np') : tx('title');
@@ -356,7 +482,13 @@ async function hubHTML() {
       : `<span class="cr-hline">${esc(tx('hub_lock'))}</span>${bar(pr.views / pr.goal * 100)}<span class="cr-prog">${esc(tx('of', { a: num(pr.views), b: num(pr.goal) }))}</span>`;
   }
   const go = guest || (!partner && !minor) ? 'login' : 'open:league';
-  const card = `<button class="cr-hero" data-cr="${go}">${picture(banner, 'cr-hero-ph')}<span class="cr-hero-in glass-plate"><b>${esc(title)}</b><span class="cr-hero-sub">${esc(sub)}</span>${foot}</span></button>`;
+  // приглашение принято (или программа открыта), партнёром ещё не стал — состояние invite: дальше «Стать партнёром»
+  const card = !partner && !minor
+    ? `<button class="cr-hero" data-cr="login">${picture(banner, 'cr-hero-ph')}<span class="cr-hero-in glass-plate"><b>${esc(P.invited ? tx('inv_card') : tx('inv_open'))}</b><span class="cr-hero-sub">${esc(tx('inv_card_p'))}</span><span class="cr-hcta">${esc(tx('wl_partner'))}</span></span></button>`
+    : `<button class="cr-hero" data-cr="${go}">${picture(banner, 'cr-hero-ph')}<span class="cr-hero-in glass-plate"><b>${esc(title)}</b><span class="cr-hero-sub">${esc(sub)}</span>${foot}</span></button>`;
+  // партнёр без подтверждённого канала — partner_unverified: подтверждение обязательно для денег, можно позже (02 §7.1 п. 5)
+  const wa = workingAcc();
+  const verify = partner && !minor && !verifiedAcc() ? `<button class="cr-verify" data-cr="open:verify">${I.shield}<span><b>${esc(np ? tx('hub_verify_np') : tx('hub_verify'))}</b>${wa ? `<small>${esc(wa.status === 'failed' ? tx('vf_fail_h') : tx('wl_pending', { h: wa.handle }))}</small>` : ''}</span>${I.chevron}</button>` : '';
   const how = (!partner || (P.league_unlocked === false && !minor)) ? `<ol class="cr-how">${[tx('how1'), tx('how2'), np ? tx('how3_np') : tx('how3')].map((t, i) => `<li><span>${i + 1}</span>${esc(t)}</li>`).join('')}</ol>` : '';
   let rows = '';
   if (guest) rows = row('open:rules', 'doc', tx('rules'), tx('rules_sub'));
@@ -372,7 +504,29 @@ async function hubHTML() {
       + row('open:rules', 'doc', tx('rules'), np ? tx('rules_sub_np') : tx('rules_sub'));
   }
   const me = guest ? '' : `<div class="cr-me"><span class="cr-av">${esc((P.nick || '?').charAt(0).toUpperCase())}</span><span class="m"><b>@${esc(P.nick)}</b><small>${esc(tx('code_sub', { c: P.ref_code }))}</small></span>${partner ? `<button class="cr-ib" data-cr="share-link" aria-label="${esc(tx('share'))}">${I.share}</button>` : ''}</div>`;
-  return `<div class="cr-hub-h">${esc(tx('for_authors'))}</div>${me}${card}${how}${partner ? workLine() : ''}<div class="group">${rows}</div>`;
+  return `<div class="cr-hub-h">${esc(tx('for_authors'))}</div>${me}${verify}${card}${how}${partner ? workLine() : ''}<div class="group">${rows}</div>`;
+}
+// Блок списка ожидания: заголовок и три строки (ставки из rules), плашка даты из rules.open_at, «Записаться» / «У меня есть приглашение».
+// После открытия плашки нет, «Записаться» → «Стать партнёром» (08 §2.3). Записался — номер и дата; подтвердил канал — первая волна.
+function waitlistHTML() {
+  const game = ctx?.game?.() || 'gta6', banner = HERO[game]?.banners[0], w = P?.waitlist, open = isOpen();
+  const lines = [tx('wl_l1', { r: money(R.rpm.tiktok), cap: money(R.rpm_cap_cents), min: money(R.rpm_min_cents), rs: money(R.rpm.shorts) }),
+    tx('wl_l2', { p: R.share_pct, m: R.author_fee_months || 12 }), tx('wl_l3')];
+  const top = `<div class="cr-hero cr-wl-top">${picture(banner, 'cr-hero-ph')}<span class="cr-hero-in glass-plate"><b>${esc(tx('wl_title'))}</b></span></div>`;
+  const list = `<ul class="cr-wl-l">${lines.map((t, i) => `<li>${[I.eye, I.link, I.check][i]}<span>${esc(t)}</span></li>`).join('')}</ul>`;
+  const plate = open ? '' : `<div class="cr-note cr-plate">${I.clock}<span>${esc(tx('wl_plate', { d: dfmt(R.open_at) }))}</span></div>`;
+  const acc = workingAcc(), ver = w?.status === 'verified' || !!verifiedAcc();
+  let st = '';
+  if (open) st = `<button class="btn-primary" data-cr="login">${esc(tx('wl_partner'))}</button>`;
+  else if (!w) st = `<button class="btn-primary" data-cr="wl-join">${esc(tx('wl_join'))}</button><button class="btn-ghost" data-cr="inv-beta">${esc(tx('wl_have'))}</button>`;
+  else {
+    st = `<div class="cr-wl-me"><b>${esc(tx('wl_joined', { n: num(w.no) }))}</b><span>${esc(tx('wl_joined_p'))}</span><small>${esc(tx('wl_since', { d: dfmt(w.joined_at) }))}</small></div>`
+      + (ver ? `<div class="cr-note ok">${I.check}<span>${esc(tx('wl_verified'))}</span></div>`
+        : acc ? `<button class="cr-verify" data-cr="open:verify">${I.shield}<span><b>${esc(acc.status === 'failed' ? tx('vf_fail_h') : tx('vf_pending_h'))}</b><small>${esc(acc.status === 'failed' ? tx('vf_fail_p', { h: acc.handle, c: acc.verify_code }) : tx('wl_pending', { h: acc.handle }))}</small></span>${I.chevron}</button>`
+        : `<div class="cr-note">${I.shield}<span>${esc(tx('wl_early'))}</span></div><button class="btn-primary" data-cr="open:verify">${esc(tx('wl_verify'))}</button>`)
+      + `<button class="btn-ghost" data-cr="inv-beta">${esc(tx('wl_have'))}</button>`;
+  }
+  return `<div class="cr-wl">${top}${list}${plate}<div class="cr-wl-act">${st}</div></div>`;
 }
 // Пробный доступ 72 часа (файл 31, решение №14), пока человек не стал партнёром: Лиги, «Моего заработка» и «Моей ссылки» нет;
 // «Стать партнёром» есть — партнёрство бесплатное по закону (FTC, 16 CFR 437); правила — без слов о деньгах.
@@ -391,6 +545,9 @@ export async function renderHub(el) {
 
 // ───────── слой и стопка экранов ─────────
 const stack = [];
+// без приглашения денежные экраны не открываются: вместо них — список ожидания в том же месте (08 §7, задача 2)
+const GATED = new Set(['league', 'earn', 'myvideos', 'mylink', 'review']);
+const screenOf = (id) => (GATED.has(id) && !hasAccess() ? SCREENS.authors : SCREENS[id]);
 function layer() {
   let el = document.getElementById('cr');
   if (!el) { el = document.createElement('div'); el.id = 'cr'; el.hidden = true; document.body.insertBefore(el, document.getElementById('sheet-layer')); }
@@ -402,7 +559,7 @@ async function push(id, args = {}, replace = false) {
   el.scrollTop = 0;
   const scr = document.createElement('section');
   scr.className = 'cr-scr'; scr.dataset.s = id;
-  scr.innerHTML = await SCREENS[id].html(args);
+  scr.innerHTML = await screenOf(id).html(args);
   const first = el.hidden;
   if (first) { el.hidden = false; el.classList.remove('out'); requestAnimationFrame(() => el.classList.add('on')); }
   const prev = stack[stack.length - 1];
@@ -410,7 +567,7 @@ async function push(id, args = {}, replace = false) {
   else if (prev && !first) { prev.el.classList.add('under'); scr.classList.add('in'); requestAnimationFrame(() => requestAnimationFrame(() => scr.classList.remove('in'))); }
   el.appendChild(scr);
   stack.push({ id, args, el: scr });
-  SCREENS[id].bind?.(scr, args);
+  screenOf(id).bind?.(scr, args);
   ctx?.haptic?.();
 }
 function pop() {
@@ -431,12 +588,13 @@ function close(top) {
 async function rerender() {
   const top = stack[stack.length - 1]; if (!top) return;
   const y = top.el.querySelector('.cr-body')?.scrollTop || 0;
-  top.el.innerHTML = await SCREENS[top.id].html(top.args);
-  SCREENS[top.id].bind?.(top.el, top.args);
+  top.el.innerHTML = await screenOf(top.id).html(top.args);
+  screenOf(top.id).bind?.(top.el, top.args);
   const b = top.el.querySelector('.cr-body'); if (b) b.scrollTop = y;
 }
 const head = (title, opts = {}) => `<header class="cr-hd${opts.big ? ' big' : ''}">${opts.noBack ? '' : `<button class="cr-ib" data-cr="back" aria-label="${esc(tx('back'))}">${I.back}</button>`}<h1>${esc(title)}</h1>${opts.close ? `<button class="cr-ib" data-cr="close" aria-label="${esc(tx('close'))}">${I.close}</button>` : ''}</header>`;
-const body = (html, cls = '') => `<div class="cr-body${cls ? ' ' + cls : ''}">${html}${api().isMock ? `<p class="cr-mock">${I.info}${esc(tx('mock_note'))}</p>` : ''}</div>`;
+// rates = true: на экране ставки и правила, а не начисления — в beta без «предварительные» (в demo пометка есть всегда)
+const body = (html, cls = '', rates = false) => `<div class="cr-body${cls ? ' ' + cls : ''}">${html}${modeNote(html, rates)}</div>`;
 
 // ───────── Лига ─────────
 function ratesHTML() {
@@ -481,7 +639,8 @@ async function videosGrid(filter = 'all') {
 const LTABS = ['tasks', 'videos', 'earn', 'rating'];
 
 // ───────── «Мой заработок» ─────────
-const GRP = { share: 'code', rpm: 'views', task: 'other', cpa: 'other', author_fee: 'other', queue_batch: 'other' };
+const GRP = { share: 'code', rpm: 'views', task: 'other', pair: 'other', cpa: 'other', author_fee: 'other', queue_batch: 'other' };
+const monthName = (m) => (lang() === 'en' ? MON.en : ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'])[+String(m).slice(5, 7) - 1] || '';
 function dayBars(days, keys, ymax, label, fmt) {
   const W = 343, H = 172, Lp = 40, Rp = 4, T = 10, B = 24, n = days.length, pw = (W - Lp - Rp) / n, bw = Math.max(2, pw - 2.4), y = (v) => T + (H - T - B) * (1 - v / ymax);
   const ticks = [0, ymax / 2, ymax];
@@ -519,7 +678,7 @@ async function earnBody(inLeague = false) {
   const by = (r) => e.ledger.filter((x) => x.reason === r), sum = (a) => a.reduce((s, x) => s + x.amount_cents, 0);
   const stOf = (a) => { const st = [...new Set(a.map((x) => x.status))]; return st.map((s) => tx('st_' + s)).join(', '); };
   const SRC = [['share', 'code', tx('rs_share', { c: P.ref_code }), tx('rs_share_d', { n: by('share').length })], ['rpm', 'views', tx('rs_rpm'), tx('rs_rpm_d')],
-    ['cpa', 'other', tx('rs_cpa'), tx('rs_cpa_d')], ['task', 'other', tx('rs_task'), tx('rs_task_d')], ['author_fee', 'other', tx('rs_author'), tx('rs_author_d')], ['queue_batch', 'other', tx('rs_queue'), tx('rs_queue_d')]]
+    ['cpa', 'other', tx('rs_cpa'), tx('rs_cpa_d')], ['task', 'other', tx('rs_task'), tx('rs_task_d')], ['pair', 'other', tx('rs_pair'), tx('rs_pair_d')], ['author_fee', 'other', tx('rs_author'), tx('rs_author_d')], ['queue_batch', 'other', tx('rs_queue'), tx('rs_queue_d')]]
     .map(([r, k, t, d]) => ({ r, k, t, d, c: sum(by(r)), st: stOf(by(r)) })).filter((x) => x.c);
   const totalAll = SRC.reduce((a, x) => a + x.c, 0) || 1;
   const buys = ['pass', 'year', 'month'].map((k) => { const l = by('share').filter((x) => x.plan === k); return { k, n: l.length, c: l[0]?.amount_cents || 0 }; }).filter((x) => x.n);
@@ -535,11 +694,11 @@ async function earnBody(inLeague = false) {
   const dayParts = (o) => {
     const c = (r) => o.items.filter((x) => x.reason === r).length, parts = [];
     if (c('share')) parts.push(plural(c('share'), 'd_share'));
-    if (c('rpm')) parts.push(tx('d_rpm')); if (c('task')) parts.push(tx('d_task')); if (c('cpa')) parts.push(tx('d_cpa')); if (c('author_fee')) parts.push(tx('d_author')); if (c('queue_batch')) parts.push(tx('d_queue'));
+    if (c('rpm')) parts.push(tx('d_rpm')); if (c('task')) parts.push(tx('d_task')); if (c('pair')) parts.push(tx('d_pair')); if (c('cpa')) parts.push(tx('d_cpa')); if (c('author_fee')) parts.push(tx('d_author')); if (c('queue_batch')) parts.push(tx('d_queue'));
     const s = parts.join(', '); return s.charAt(0).toUpperCase() + s.slice(1);
   };
   return `<div class="cr-money">${picture(HERO[game]?.banners[1] || HERO[game]?.banners[0], 'cr-money-ph')}<div class="cr-money-in glass-plate">
-      <b class="cr-money-v">${money(T.total)}</b><span class="cr-money-s">${esc(tx('for_month', { m: tx('month_10') }))}</span>
+      <b class="cr-money-v">${money(T.total)}</b><span class="cr-money-s">${esc(tx(mode() === 'beta' ? 'for_month_pre' : 'for_month', { m: monthName(e.month) }))}</span>
       ${med('on-photo')}
       <span class="cr-money-r">${I.clock}${esc(tx('round_in', { d: dfmt(e.round_date), n: plural(daysTo(e.round_date), 'n_days_x') }))}</span></div></div>
     <div class="cr-tri"><div><span>${esc(tx('accruing'))}</span><b>${money(T.maturing)}</b></div><div class="hi"><span>${esc(payout ? tx('in_payout') : tx('available'))}</span><b>${money(T.available)}</b></div><div><span>${esc(tx('paid'))}</span><b>${money(T.paid)}</b></div></div>
@@ -578,7 +737,7 @@ function bindChart(root) {
 }
 
 // ───────── «Мои ролики» ─────────
-const RJ = { no_code: 'rj_no_code', gameplay: 'rj_gameplay', not_place: 'rj_not_place', reused: 'rj_reused' };
+const RJ = { no_code: 'rj_no_code', gameplay: 'rj_gameplay', not_place: 'rj_not_place', reused: 'rj_reused', no_disclosure: 'rj_no_disclosure' };
 async function myVideosHTML(filter = 'all') {
   const vids = await api().listMyVideos(); await placesOf(vids);
   if (!vids.length) return `<div class="cr-empty">${I.video}<b>${esc(tx('videos_empty'))}</b><p>${esc(tx('videos_empty_p'))}</p><button class="btn-primary" data-cr="submit">${I.video}${esc(tx('submit_video'))}</button></div>`;
@@ -599,7 +758,7 @@ async function videoSheet(id) {
   if (v.status === 'rejected') h += `<div class="cr-note no">${I.alert}<span>${esc(tx(RJ[v.reject_code] || 'rj_not_place', { code }))}</span></div><button class="btn-primary" data-cr="submit" data-w="${v.place.world}" data-p="${esc(v.place.id)}">${esc(tx('send_again'))}</button><button class="btn-ghost" data-cr="open:rules">${esc(tx('rules'))}</button>`;
   else if (v.status === 'unavailable') h += `<div class="cr-note no">${I.info}<span>${esc(tx('vu_note'))}</span></div><button class="btn-ghost" data-cr="sheet-close">${esc(tx('ok'))}</button>`;
   else h += `${steps(n, code)}${field(tx('sv_ok_code'), code, code)}${field(tx('vstat_link'), link(P.ref_code, v.place.world, v.place.id, v.id), 'https://' + link(P.ref_code, v.place.world, v.place.id, v.id))}${v.views ? `<p class="cr-p">${esc(tx('views_n', { n: num(v.views) }))}</p>` : ''}<button class="btn-ghost" data-cr="sheet-close">${esc(tx('done'))}</button>`;
-  ctx.openSheet(h + '</div>', 'cr-sheet');
+  sheet(h + '</div>');
 }
 
 // ───────── «Ролики об этом месте» — вертикальная лента ─────────
@@ -633,7 +792,7 @@ async function feedHTML(args) {
       <div class="cr-info">
         <p class="cr-who"><b>${esc(v.author)}</b>${v.mine ? `<em>${esc(tx('your_video'))}</em>` : v.team ? `<em>${esc(tx('team'))}</em>` : ''}<span>${esc(PLAT[v.platform])}</span></p>
         <p class="cr-vt">${esc(L(v.title))}</p><p class="cr-views">${I.eye}${esc(tx('views_n', { n: num(v.views) }))}</p>
-        ${my ? `<div class="cr-vearn cr-solid"><div class="h"><span>${esc(tx('earn_video'))}</span><b>${money(my.earned.total_cents)}</b></div>${med('on-photo')}<div class="f"><span><b>${num(my.views)}</b>${esc(tx('f_views'))}</span><span><b>${num(my.clicks)}</b>${esc(tx('f_clicks'))}</span><span><b>${num(my.pays)}</b>${esc(tx('f_pays'))}</span></div></div>` : ''}
+        ${my ? `<div class="cr-vearn cr-solid"><div class="h"><span>${esc(tx('earn_video'))}</span><b>${money(my.earned.total_cents)}</b></div>${med('on-photo')}${modeNote('$0')}<div class="f"><span><b>${num(my.views)}</b>${esc(tx('f_views'))}</span><span><b>${num(my.clicks)}</b>${esc(tx('f_clicks'))}</span><span><b>${num(my.pays)}</b>${esc(tx('f_pays'))}</span></div></div>` : ''}
         <button class="cr-place cr-solid" data-cr="vplace" data-w="${v.place.world}" data-p="${esc(v.place.id)}"><img src="${esc(pImg(v.place))}" alt=""><span class="m"><b>${esc(pName(v.place))}</b><span>${esc(pCity(v.place))}</span></span>${I.chevron}</button>
       </div></section>`;
   };
@@ -686,7 +845,7 @@ async function statsSheet(id) {
     <div class="cr-fun">${[[tx('f_views'), num(s.views), ''], [tx('f_clicks'), num(s.clicks), tx('f_of', { p: pct(s.clicks, s.views) })], [tx('f_trials'), num(s.trials), tx('f_of', { p: pct(s.trials, s.clicks) })], [tx('f_pays'), num(s.pays), tx('f_of', { p: pct(s.pays, s.trials) })]].map(([a, b, c], i) => `<div><span class="cr-k">${i + 1}</span><span class="t">${esc(a)}${c ? `<small>${esc(c)}</small>` : ''}</span><b>${b}</b></div>`).join('')}</div>
     ${field(tx('vstat_link'), l, 'https://' + l, tx('vstat_link_note'))}
     <button class="btn-ghost" data-cr="sheet-close">${esc(tx('close'))}</button></div>`;
-  ctx.openSheet(h, 'cr-sheet');
+  sheet(h);
   bindChart($('#sheet-body'));
 }
 
@@ -753,8 +912,8 @@ async function decide(scr, decision, reason) {
 function askReason(scr) {
   const q = queue[qi]; if (!q) return;
   const card = scr.querySelector(`.cr-card[data-id="${CSS.escape(q.id)}"]`);
-  ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('rv_why'))}</h2><div class="cr-reasons">${RR[q.kind].map((r) => `<button class="row" data-cr="rv-reason" data-v="${r}"><span class="row-l">${esc(tx(r))}</span></button>`).join('')}</div>
-    <button class="btn-ghost" data-cr="sheet-close">${esc(tx('back'))}</button></div>`, 'cr-sheet', () => { if (card && !card.classList.contains('fly-l')) card.style.transform = ''; });
+  sheet(`<div class="cr-sh"><h2>${esc(tx('rv_why'))}</h2><div class="cr-reasons">${RR[q.kind].map((r) => `<button class="row" data-cr="rv-reason" data-v="${r}"><span class="row-l">${esc(tx(r))}</span></button>`).join('')}</div>
+    <button class="btn-ghost" data-cr="sheet-close">${esc(tx('back'))}</button></div>`, () => { if (card && !card.classList.contains('fly-l')) card.style.transform = ''; });
 }
 function bindDeck(scr) {
   const card = scr.querySelector('.cr-card[style*="--d:0"]'); if (!card) return;
@@ -776,13 +935,13 @@ function rulesHTML() {
   const sec = (t, rows) => `<h2 class="cr-h">${esc(tx(t))}</h2><div class="cr-ledger kv">${rows.map(([a, b]) => `<div><b>${esc(tx(a))}</b><span class="v">${esc(b.startsWith('=') ? b.slice(1) : tx(b))}</span></div>`).join('')}</div>`;
   const rl = (k) => '=' + tx('r_line', { r: money(R.rpm[k]), cap: money(R.rpm_cap_cents), min: money(R.rpm_min_cents) });
   if (noPay() || isMinor() || trialOnly()) return `${head(tx('rules'))}${body(`${sec('ru_h_np', [['ru_np1', 'ru_np1v'], ['ru_np2', 'ru_np2v'], ['ru_np3', 'ru_np3v']])}
-    ${sec('ru_h_no', [['ru_no1', 'ru_no1v'], ['ru_no2', 'ru_no2v'], ['ru_no3', 'ru_no3v'], ['ru_no4', 'ru_no4v'], ['ru_no5', 'ru_no5v']])}<p class="cr-p">${esc(tx('ru_change'))}</p>`)}`;
+    ${sec('ru_h_no', [['ru_no1', 'ru_no1v'], ['ru_no2', 'ru_no2v'], ['ru_no3', 'ru_no3v'], ['ru_no4', 'ru_no4v'], ['ru_no5', 'ru_no5v']])}<p class="cr-p">${esc(tx('ru_change'))}</p>`, '', true)}`;
   return `${head(tx('rules'))}${body(`${med()}${sec('ru_h_rates', [['ru_code', 'ru_code_v'], ['ru_views', rl('tiktok')], ['ru_shorts', rl('shorts')], ['ru_author', 'ru_author_v'], ['ru_scout', 'ru_scout_v'], ['ru_cpa', 'ru_cpa_v'], ['ru_mod', 'ru_mod_v']])}
     ${sec('ru_h_terms', [['ru_views_t', 'ru_views_tv'], ['ru_tasks_t', 'ru_tasks_tv'], ['ru_hold', 'ru_hold_v'], ['ru_pay', 'ru_pay_v'], ['ru_first', 'ru_first_v'], ['ru_big', 'ru_big_v']])}
     <h2 class="cr-h">${esc(tx('ru_h_pro'))}</h2><p class="cr-p">${esc(tx('ru_pro_p'))}</p>
     ${sec('ru_h_no', [['ru_no1', 'ru_no1v'], ['ru_no2', 'ru_no2v'], ['ru_no3', 'ru_no3v'], ['ru_no4', 'ru_no4v'], ['ru_no5', 'ru_no5v']])}
     <h2 class="cr-h">${esc(tx('ru_h_rate'))}</h2><p class="cr-p">${esc(tx('ru_rate_p'))}</p>
-    <h2 class="cr-h">${esc(tx('ru_h_ad'))}</h2><p class="cr-p">${esc(tx('ru_ad_p'))}</p><p class="cr-p">${esc(tx('ru_change'))}</p>`)}`;
+    <h2 class="cr-h">${esc(tx('ru_h_ad'))}</h2><p class="cr-p">${esc(tx('ru_ad_p'))}</p><p class="cr-p">${esc(tx('ru_change'))}</p>`, '', true)}`;
 }
 
 // ───────── шторки: добавить, подать ролик, место, сообщить, вход, вывод, приглашение ─────────
@@ -790,26 +949,27 @@ let form = {};   // черновик формы — переживает вхо�
 function addSheet() {
   const g = ctx?.game?.() || 'gta6', minor = isMinor();
   const it = (cr, icon, t, d, attrs = '', lock = false) => `<button class="row cr-row${lock ? ' off' : ''}" data-cr="${cr}" ${attrs}><span class="row-ic">${ic(icon)}</span><span class="row-l">${esc(t)}<small>${esc(d)}</small></span><span class="row-chev">${lock ? I.lock : I.chevron}</span></button>`;
-  ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('add_h'))}</h2><div class="group">
+  sheet(`<div class="cr-sh"><h2>${esc(tx('add_h'))}</h2><div class="group">
     ${minor ? '' : it('submit', 'video', tx('ty_video'), tx('ty_video_d'))}
     ${it('pform', 'pin', tx('ty_place'), tx('ty_place_d'))}
     ${it('locked', 'swap', tx('ty_pair'), tx('ty_pair_d'), 'data-v="soon_pair"', true)}
     ${g === 'gta6' ? it('locked', 'egg', tx('ty_found'), tx('ty_found_d6'), 'data-v="soon_found"', true) : it('pform', 'egg', tx('ty_found'), tx('ty_found_d5'), 'data-v="found"')}
-    ${it('report', 'alert', tx('ty_report'), tx('ty_report_d'))}</div></div>`, 'cr-sheet');
+    ${it('report', 'alert', tx('ty_report'), tx('ty_report_d'))}</div></div>`);
 }
 async function submitSheet(pref) {
   if (pref) form.place = pref;
   if (!form.place) { const lg = await api().getLeague().catch(() => null); const w = lg?.tasks.find((x) => x.place)?.place; if (w) form.place = w; }
+  if (!hasAccess()) { ctx.closeSheet(); push('authors', {}); return; }   // без приглашения роликов не подают
   if (isGuest() || !isPartner()) { loginSheet(() => submitSheet()); return; }
   if (form.place) await place(form.place);
   const p = form.place;
-  ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('sv_h'))}</h2>
+  sheet(`<div class="cr-sh"><h2>${esc(tx('sv_h'))}</h2>
     <label class="cr-in"><span>${esc(tx('sv_url'))}</span><input id="cr-url" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(tx('sv_url_ph'))}" value="${esc(form.url || '')}"></label>
     <div class="cr-field"><span>${esc(tx('sv_place'))}</span><b>${p ? `${esc(pName(p))}, ${esc(pCity(p))}` : '—'}</b><button class="cr-mini" data-cr="pick" data-next="submit">${esc(p ? tx('sv_change') : tx('sv_pick'))}</button></div>
     ${field(tx('sv_code'), P.ref_code)}
     <div class="cr-note">${I.info}<span>${esc(tx('sv_note'))}</span></div>
     <p class="cr-err" id="cr-err" hidden></p>
-    <button class="btn-primary" data-cr="sv-send">${I.send}${esc(tx('sv_send'))}</button></div>`, 'cr-sheet');
+    <button class="btn-primary" data-cr="sv-send">${I.send}${esc(tx('sv_send'))}</button></div>`);
 }
 async function svSend() {
   form.url = $('#cr-url')?.value.trim();
@@ -818,9 +978,9 @@ async function svSend() {
     const r = await api().submitVideo({ url: form.url, world: form.place?.world, place_id: form.place?.id });
     const p = form.place, l = link(P.ref_code, p.world, p.id, r.link_v);
     form = {};
-    ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('sv_ok'))}</h2><p class="sub">${esc(pName(p))}, ${esc(pCity(p))}</p>${steps(0, r.verify_code)}
+    sheet(`<div class="cr-sh"><h2>${esc(tx('sv_ok'))}</h2><p class="sub">${esc(pName(p))}, ${esc(pCity(p))}</p>${steps(0, r.verify_code)}
       ${field(tx('sv_ok_code'), r.verify_code, r.verify_code)}${field(tx('sv_ok_link'), l, 'https://' + l, tx('sv_ok_link_note'))}
-      <button class="btn-primary" data-cr="open:myvideos">${esc(tx('my_videos'))}</button></div>`, 'cr-sheet');
+      <button class="btn-primary" data-cr="open:myvideos">${esc(tx('my_videos'))}</button></div>`);
     renderHub(); if (stack.length) rerender();
   } catch (e) {
     if (err) { err.hidden = false; err.textContent = tx(e.code === 'no_place' ? 'sv_no_place' : e.code === 'bad_url' ? 'sv_bad_url' : 'err'); }
@@ -828,7 +988,7 @@ async function svSend() {
 }
 async function pickSheet(next) {
   const g = form.place?.world || ctx?.game?.() || 'gta6';
-  ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('pick_h'))}</h2><label class="cr-in"><span class="vh">${esc(tx('pick_ph'))}</span><input id="cr-q" type="search" autocomplete="off" placeholder="${esc(tx('pick_ph'))}" enterkeyhint="search"></label><div class="cr-picks" id="cr-picks"></div></div>`, 'cr-sheet');
+  sheet(`<div class="cr-sh"><h2>${esc(tx('pick_h'))}</h2><label class="cr-in"><span class="vh">${esc(tx('pick_ph'))}</span><input id="cr-q" type="search" autocomplete="off" placeholder="${esc(tx('pick_ph'))}" enterkeyhint="search"></label><div class="cr-picks" id="cr-picks"></div></div>`);
   const box = $('#cr-picks'), d = await loadPlaces(g);
   const draw = (q) => {
     const res = (q ? searchPlaces(d, q) : featured(d, 'place', 12)).slice(0, 12);
@@ -841,14 +1001,14 @@ async function placeForm(kind = 'place') {
   form.kind = form.kind || (kind === 'found' ? 'egg' : 'place'); form.side = form.side || 'real';
   if (form.place) await place(form.place);
   const seg = (k, opts) => `<div class="cr-seg">${opts.map(([v, l]) => `<button data-cr="pf-set" data-k="${k}" data-v="${v}" aria-selected="${form[k] === v}">${esc(tx(l))}</button>`).join('')}</div>`;
-  ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('pf_h'))}</h2>
+  sheet(`<div class="cr-sh"><h2>${esc(tx('pf_h'))}</h2>
     <p class="cr-lbl">${esc(tx('pf_kind'))}</p>${seg('kind', [['place', 'k_place'], ['egg', 'k_egg']])}
     <p class="cr-lbl">${esc(tx('pf_side'))}</p>${seg('side', [['real', 'in_life'], ['game', 'in_game']])}
     <div class="cr-field"><span>${esc(tx('pf_where'))}</span><b>${form.place ? `${esc(pName(form.place))}, ${esc(pCity(form.place))}` : '—'}</b><button class="cr-mini" data-cr="pick" data-next="pform">${esc(form.place ? tx('sv_change') : tx('sv_pick'))}</button></div>
     <label class="cr-in"><span>${esc(tx('pf_where'))}</span><input id="cr-where" type="text" autocomplete="off" placeholder="${esc(tx('pf_where_ph'))}" value="${esc(form.where || '')}"></label>
     <label class="cr-in"><span>${esc(tx('pf_src'))}</span><input id="cr-src" type="text" autocomplete="off" placeholder="${esc(tx('pf_src_ph'))}" value="${esc(form.source || '')}"></label>
     <p class="cr-err" id="cr-err" hidden></p>
-    <button class="btn-primary" data-cr="pf-send">${I.send}${esc(tx('sv_send'))}</button></div>`, 'cr-sheet');
+    <button class="btn-primary" data-cr="pf-send">${I.send}${esc(tx('sv_send'))}</button></div>`);
 }
 function keepPlaceFields() { form.where = $('#cr-where')?.value.trim() ?? form.where; form.source = $('#cr-src')?.value.trim() ?? form.source; }
 async function pfSend(type) {
@@ -857,33 +1017,35 @@ async function pfSend(type) {
   if (isGuest()) { loginSheet(() => pfSend(type), true); return; }
   try { await api().submitContribution({ type, place: form.place || null, where: form.where, side: form.side, ref_kind: form.kind, source: form.source, note: form.note }); } catch { ctx.toast(tx('err')); return; }
   form = {};
-  ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('sent_h'))}</h2><div class="cr-steps"><div class="on">${I.check}<span>${esc(tx('sent_1'))}</span></div><div>${I.clock}<span>${esc(tx('sent_2'))}</span></div></div>
-    <p class="cr-p">${esc(tx('sent_p', { n: P.nick || 'nick' }))}</p><button class="btn-ghost" data-cr="sheet-close">${esc(tx('done'))}</button></div>`, 'cr-sheet');
+  sheet(`<div class="cr-sh"><h2>${esc(tx('sent_h'))}</h2><div class="cr-steps"><div class="on">${I.check}<span>${esc(tx('sent_1'))}</span></div><div>${I.clock}<span>${esc(tx('sent_2'))}</span></div></div>
+    <p class="cr-p">${esc(tx('sent_p', { n: P.nick || 'nick' }))}</p><button class="btn-ghost" data-cr="sheet-close">${esc(tx('done'))}</button></div>`);
 }
 function reportSheet() {
   form.reason = form.reason || 'rp_r1';
-  ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('rp_h'))}</h2><div class="cr-chips">${['rp_r1', 'rp_r2', 'rp_r3', 'rp_r4'].map((r) => `<button data-cr="rp-set" data-v="${r}" aria-pressed="${form.reason === r}">${esc(tx(r))}</button>`).join('')}</div>
+  sheet(`<div class="cr-sh"><h2>${esc(tx('rp_h'))}</h2><div class="cr-chips">${['rp_r1', 'rp_r2', 'rp_r3', 'rp_r4'].map((r) => `<button data-cr="rp-set" data-v="${r}" aria-pressed="${form.reason === r}">${esc(tx(r))}</button>`).join('')}</div>
     <label class="cr-in"><span>${esc(tx('rp_note'))}</span><input id="cr-note" type="text" autocomplete="off" placeholder="${esc(tx('rp_note_ph'))}" value="${esc(form.note || '')}"></label>
     <div class="cr-field"><span>${esc(tx('pf_where'))}</span><b>${form.place ? `${esc(pName(form.place))}` : '—'}</b><button class="cr-mini" data-cr="pick" data-next="report">${esc(form.place ? tx('sv_change') : tx('sv_pick'))}</button></div>
-    <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="rp-send">${I.send}${esc(tx('sv_send'))}</button></div>`, 'cr-sheet');
+    <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="rp-send">${I.send}${esc(tx('sv_send'))}</button></div>`);
 }
 let loginNext = null, loginEmail = '';
 function loginSheet(next, draft = false) {
   loginNext = next || null;
-  if (!isGuest() && !P.adult_at && !P.minor) { ageSheet(); return; }
-  ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('lg_h'))}</h2><p class="sub">${esc(tx('lg_sub'))}</p>
+  if (!isGuest() && !isPartner() && !isMinor() && hasAccess()) { ageSheet(); return; }   // вошёл, но не партнёр — экран 2
+  sheet(`<div class="cr-sh"><h2>${esc(tx('lg_h'))}</h2><p class="sub">${esc(tx('lg_sub'))}</p>
     <label class="cr-in"><span>${esc(tx('lg_email'))}</span><input id="cr-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="name@mail.com" value="${esc(loginEmail || P?.email || '')}"></label>
     <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="lg-send">${I.mail}${esc(tx('lg_send'))}</button>
-    <p class="cr-p">${esc(tx('lg_note'))}${draft ? ' ' + esc(tx('lg_draft')) + '.' : ''}</p></div>`, 'cr-sheet');
+    <p class="cr-p">${esc(tx('lg_note'))}${draft ? ' ' + esc(tx('lg_draft')) + '.' : ''}</p></div>`);
 }
 function codeSheet() {
-  ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('lg_code_h'))}</h2><p class="sub">${esc(tx('lg_code_sub', { e: loginEmail }))}</p>
+  sheet(`<div class="cr-sh"><h2>${esc(tx('lg_code_h'))}</h2><p class="sub">${esc(tx('lg_code_sub', { e: loginEmail }))}</p>
     <label class="cr-in"><span>${esc(tx('lg_code'))}</span><input id="cr-code" class="otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="0000"></label>
-    <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="lg-code">${esc(tx('lg_enter'))}</button></div>`, 'cr-sheet');
+    <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="lg-code">${esc(tx('lg_enter'))}</button></div>`);
 }
+// «Стать партнёром» — отдельный экран (08 №2): 18+, правила, страна. Старая шторка 18+ — только запасной путь
 function ageSheet() {
-  ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('lg_age_h'))}</h2><p class="sub">${esc(tx('lg_age_sub'))}</p>
-    <div class="cr-two"><button class="btn-primary" data-cr="lg-age" data-v="1">${esc(tx('lg_yes'))}</button><button class="btn-ghost" data-cr="lg-age" data-v="0">${esc(tx('lg_no'))}</button></div></div>`, 'cr-sheet');
+  if (hasAccess()) { ctx.closeSheet(); loginNext = null; push('partner', {}); return; }
+  sheet(`<div class="cr-sh"><h2>${esc(tx('lg_age_h'))}</h2><p class="sub">${esc(tx('lg_age_sub'))}</p>
+    <div class="cr-two"><button class="btn-primary" data-cr="lg-age" data-v="1">${esc(tx('lg_yes'))}</button><button class="btn-ghost" data-cr="lg-age" data-v="0">${esc(tx('lg_no'))}</button></div></div>`);
 }
 async function afterLogin() {
   P = await api().getProfile(); ctx?.onProfile?.(P); await renderHub(); if (stack.length) await rerender();
@@ -893,17 +1055,179 @@ async function afterLogin() {
 async function withdrawSheet() {
   const e = await api().getEarnings(), av = e.totals.available;
   if (av < R.payout_min_cents) {
-    ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('wd_below_h', { min: money(R.payout_min_cents) }))}</h2><p class="cr-p">${esc(tx('wd_below_p', { s: money(av) }))}</p>${med()}<button class="btn-ghost" data-cr="sheet-close">${esc(tx('ok'))}</button></div>`, 'cr-sheet');
+    sheet(`<div class="cr-sh"><h2>${esc(tx('wd_below_h', { min: money(R.payout_min_cents) }))}</h2><p class="cr-p">${esc(tx('wd_below_p', { s: money(av) }))}</p>${med()}<button class="btn-ghost" data-cr="sheet-close">${esc(tx('ok'))}</button></div>`);
     return;
   }
-  ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('wd_h', { s: money(av) }))}</h2><p class="sub">${esc(tx('wd_sub', { d: dfmt(e.round_date), min: money(R.payout_min_cents) }))}</p>${med()}
+  sheet(`<div class="cr-sh"><h2>${esc(tx('wd_h', { s: money(av) }))}</h2><p class="sub">${esc(tx('wd_sub', { d: dfmt(e.round_date), min: money(R.payout_min_cents) }))}</p>${med()}
     <div class="cr-steps"><div class="on">${I.check}<span>${esc(tx('wd_1', { s: money(av) }))}</span></div><div>${I.clock}<span>${esc(tx('wd_2', { e: P.email }))}</span></div><div>${I.clock}<span>${esc(tx('wd_3', { d: dfmt(e.round_date) }))}</span></div></div>
-    <p class="cr-p">${esc(tx('wd_fee'))}</p><button class="btn-primary" data-cr="wd-send">${esc(tx('wd_send'))}</button></div>`, 'cr-sheet');
+    <p class="cr-p">${esc(tx('wd_fee'))}</p><button class="btn-primary" data-cr="wd-send">${esc(tx('wd_send'))}</button></div>`);
 }
 function inviteSheet() {
-  ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('inv_h'))}</h2><p class="sub">${esc(tx('inv_p'))}</p>
+  sheet(`<div class="cr-sh"><h2>${esc(tx('inv_h'))}</h2><p class="sub">${esc(tx('inv_p'))}</p>
     <label class="cr-in"><span>${esc(tx('inv_h'))}</span><input id="cr-inv" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="${esc(tx('inv_ph'))}"></label>
-    <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="inv-send">${esc(tx('inv_send'))}</button></div>`, 'cr-sheet');
+    <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="inv-send">${esc(tx('inv_send'))}</button></div>`);
+}
+
+// ───────── список ожидания и приглашение (08 §2.1, §2.2) ─────────
+let wlForm = { platforms: [] };
+function wlSheet(step = 1) {
+  if (step === 1) {
+    sheet(`<div class="cr-sh"><h2>${esc(tx('wj_h'))}</h2><p class="sub">${esc(tx('wj_sub'))}</p>
+      <label class="cr-in"><span>${esc(tx('lg_email'))}</span><input id="cr-wmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="name@mail.com" value="${esc(wlForm.email || '')}"></label>
+      <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="wl-next">${esc(tx('next'))}</button></div>`);
+    return;
+  }
+  if (step === 2) {
+    sheet(`<div class="cr-sh"><h2>${esc(tx('wj_where'))}</h2><p class="sub">${esc(tx('wj_where_sub'))}</p>
+      <div class="cr-chips">${['tiktok', 'youtube', 'instagram'].map((k) => `<button data-cr="wl-pl" data-v="${k}" aria-pressed="${wlForm.platforms.includes(k)}">${esc(PLAT[k])}</button>`).join('')}</div>
+      <label class="cr-in"><span>${esc(tx('wj_profile'))}</span><input id="cr-wprof" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(tx('wj_profile_ph'))}" value="${esc(wlForm.profile || '')}"></label>
+      <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="wl-send">${esc(tx('wj_send'))}</button></div>`);
+    return;
+  }
+  const w = P.waitlist || {};
+  sheet(`<div class="cr-sh"><h2>${esc(tx('wl_joined', { n: num(w.no) }))}</h2><p class="sub">${esc(tx('wl_joined_p'))}</p>
+    <div class="cr-note">${I.shield}<span>${esc(tx('wl_early'))}</span></div>
+    <button class="btn-primary" data-cr="open:verify">${esc(tx('wl_verify'))}</button><button class="btn-ghost" data-cr="sheet-close">${esc(tx('done'))}</button></div>`);
+}
+function inviteBetaSheet() {
+  sheet(`<div class="cr-sh"><h2>${esc(tx('inv_b_h'))}</h2><p class="sub">${esc(tx('inv_b_sub'))}</p>
+    <label class="cr-in"><span>${esc(tx('inv_b_h'))}</span><input id="cr-binv" class="cr-codein" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="SB-"></label>
+    <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="inv-b-send">${esc(tx('inv_b_send'))}</button></div>`);
+}
+const err = (t) => { const e = $('#cr-err'); if (e) { e.hidden = false; e.textContent = t; } };
+// после входа почтой: партнёр — дальше по просьбе, иначе — «Стать партнёром» (экран 2)
+async function afterSignIn() {
+  P = await api().getProfile(); ctx?.onProfile?.(P); renderHub();
+  if (isPartner() || isMinor() || !hasAccess()) return afterLogin();
+  ctx.closeSheet(); loginNext = null; push('partner', {});
+}
+
+// ───────── экран 2 «Стать партнёром»: 18+, правила, страна (02 §7.1, §7.9) ─────────
+const COUNTRIES = ['US', 'CA', 'GB', 'IE', 'DE', 'FR', 'ES', 'IT', 'NL', 'PL', 'UA', 'KZ', 'TR', 'MX', 'BR', 'CL', 'AR', 'IN', 'ID', 'PH', 'AU', 'AE', 'RU', 'BY'];
+const cName = (c) => { try { return new Intl.DisplayNames([lang()], { type: 'region' }).of(c) || c; } catch { return c; } };
+const stepLbl = (a) => `<p class="cr-lbl">${esc(tx('pt_step', { a, b: 4 }))}</p>`;
+function partnerStep(a = {}) {
+  if (a.step) return a.step;
+  if (isMinor()) return 'minor';
+  if (!P.adult_at) return 'age';
+  if (!P.terms_at) return 'terms';
+  if (isPartner() && noPay()) return 'nopay';
+  return 'country';
+}
+function partnerHTML(a = {}) {
+  const st = partnerStep(a), h = head(tx('wl_partner'));
+  if (st === 'age') return `${h}${body(`${stepLbl(1)}<h2 class="cr-q">${esc(tx('lg_age_h'))}</h2><p class="cr-lead">${esc(tx('pt_age_sub'))}</p>
+    <div class="cr-two"><button class="btn-primary" data-cr="pt-age" data-v="1">${esc(tx('lg_yes'))}</button><button class="btn-ghost" data-cr="pt-age" data-v="0">${esc(tx('lg_no'))}</button></div>`)}`;
+  if (st === 'minor') return `${h}${body(`<div class="cr-empty">${I.star}<b>${esc(tx('pt_minor_h'))}</b><p>${esc(tx('pt_minor_p'))}</p>
+    <button class="btn-primary" data-cr="add">${I.plus}${esc(tx('pt_add'))}</button><button class="btn-ghost" data-cr="close">${esc(tx('done'))}</button></div>`)}`;
+  if (st === 'terms') {
+    const m = money, v = { r: m(R.rpm.tiktok), rs: m(R.rpm.shorts), min: m(R.payout_min_cents), cap: m(R.rpm_cap_cents), floor: m(R.rpm_min_cents) };
+    const T = [['tm_rate', 'tm_rate_v'], ['tm_count', 'tm_count_v'], ['tm_hold', 'tm_hold_v'], ['tm_lim', 'tm_lim_v'], ['tm_no', 'tm_no_v'], ['tm_appeal', 'tm_appeal_v'], ['tm_change', 'tm_change_v']];
+    return `${h}${body(`${stepLbl(2)}<h2 class="cr-q">${esc(tx('pt_terms_h'))}</h2><p class="cr-lead">${esc(tx('pt_terms_sub'))}</p>
+      <ol class="cr-terms">${T.map(([a1, b1]) => `<li><b>${esc(tx(a1))}</b><span>${esc(tx(b1, v))}</span></li>`).join('')}</ol>
+      <label class="cr-check"><input id="cr-terms" type="checkbox"><span>${esc(tx('pt_accept'))}</span></label>
+      <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="pt-terms">${esc(tx('next'))}</button>
+      <button class="btn-ghost" data-cr="open:rules">${esc(tx('rules'))}</button>`, '', true)}`;
+  }
+  if (st === 'country') {
+    const guess = String(P.country || (navigator.language || '').split('-')[1] || 'US').toUpperCase();
+    const list = COUNTRIES.includes(guess) ? COUNTRIES : [guess, ...COUNTRIES];
+    return `${h}${body(`${stepLbl(3)}<h2 class="cr-q">${esc(tx('pt_country_h'))}</h2><p class="cr-lead">${esc(tx('pt_country_sub'))}</p>
+      <label class="cr-in"><span>${esc(tx('pt_country'))}</span><select id="cr-country">${list.map((c) => `<option value="${c}"${c === guess ? ' selected' : ''}>${esc(cName(c))}</option>`).join('')}</select></label>
+      <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="pt-country">${esc(tx('next'))}</button>`)}`;
+  }
+  // nopay: Россия, Беларусь — роль партнёра есть, вместо денег дни Pro; о выплатах ни слова (02 §7.1 п. 4)
+  return `${h}${body(`<div class="cr-empty">${I.star}<b>${esc(tx('pt_np_h'))}</b><p>${esc(tx('pt_np_p'))}</p>
+    <button class="btn-primary" data-cr="vf-go">${esc(tx('wl_verify'))}</button><button class="btn-ghost" data-cr="close">${esc(tx('done'))}</button></div>`)}`;
+}
+
+// ───────── экран 3 «Подтверждение канала»: pick, code, pending, verified, failed (02 §7.1 п. 5) ─────────
+let vfForm = { platform: 'tiktok', url: '' };
+const VF_PH = { tiktok: 'tiktok.com/@ник', youtube: 'youtube.com/@ник', instagram: 'instagram.com/ник' };
+async function verifyHTML(a = {}) {
+  P = await api().getProfile();
+  const acc = a.pick ? null : (a.id ? (P.accounts || []).find((x) => x.id === a.id) : workingAcc() || (a.flow ? null : verifiedAcc()));
+  const view = !acc ? 'pick' : acc.status === 'pending' ? (a.view === 'code' ? 'code' : 'pending') : acc.status;
+  const h = head(tx('vf_h')), lbl = a.flow ? stepLbl(4) : '';
+  if (view === 'pick') {
+    return `${h}${body(`${lbl}<h2 class="cr-q">${esc(tx('vf_h'))}</h2><p class="cr-lead">${esc(tx('vf_sub'))}</p>
+      <div class="cr-seg" role="radiogroup">${['tiktok', 'youtube', 'instagram'].map((k) => `<button role="radio" data-cr="vf-pl" data-v="${k}" aria-selected="${vfForm.platform === k}" aria-checked="${vfForm.platform === k}">${esc(PLAT[k])}</button>`).join('')}</div>
+      <label class="cr-in"><span>${esc(tx('vf_url'))}</span><input id="cr-vurl" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(VF_PH[vfForm.platform])}" value="${esc(vfForm.url)}"></label>
+      <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="vf-send">${esc(tx('next'))}</button>`)}`;
+  }
+  const pn = PLAT[acc.platform] || acc.platform, c = acc.verify_code, hd = acc.handle;
+  if (view === 'code') {
+    return `${h}${body(`${lbl}<h2 class="cr-q">${esc(tx('vf_code_h'))}</h2><p class="cr-lead">${esc(tx('vf_code_p', { c }))}</p>
+      <div class="cr-code"><span>${esc(pn)}, ${esc(hd)}</span><b>${esc(c)}</b><button class="cr-mini" data-cr="copy" data-v="${esc(c)}">${I.copy}${esc(tx('copy'))}</button></div>
+      <div class="cr-steps">${[tx('vf_code_s1', { h: hd, p: pn }), tx('vf_code_s2'), tx('vf_code_s3')].map((t, i) => `<div>${[I.link, I.doc, I.check][i]}<span>${esc(t)}</span></div>`).join('')}</div>
+      <p class="cr-p">${esc(tx('vf_code_note'))}</p><button class="btn-primary" data-cr="vf-check" data-id="${esc(acc.id)}">${esc(tx('vf_check'))}</button>`)}`;
+  }
+  if (view === 'pending') {
+    return `${h}${body(`${lbl}<div class="cr-empty" data-wait="${esc(acc.id)}">${I.clock}<b>${esc(tx('vf_pending_h'))}</b><p>${esc(tx('vf_pending_p', { c, h: hd }))}</p></div>
+      <div class="cr-code"><span>${esc(pn)}, ${esc(hd)}</span><b>${esc(c)}</b><button class="cr-mini" data-cr="copy" data-v="${esc(c)}">${I.copy}${esc(tx('copy'))}</button></div>
+      <button class="btn-primary" data-cr="vf-again">${esc(tx('vf_again'))}</button><button class="btn-ghost" data-cr="vf-other">${esc(tx('vf_other'))}</button>`)}`;
+  }
+  if (view === 'failed') {
+    return `${h}${body(`${lbl}<div class="cr-empty">${I.alert}<b>${esc(tx('vf_fail_h'))}</b><p>${esc(tx('vf_fail_p', { h: hd, c }))}</p></div>
+      <div class="cr-code"><span>${esc(pn)}, ${esc(hd)}</span><b>${esc(c)}</b><button class="cr-mini" data-cr="copy" data-v="${esc(c)}">${I.copy}${esc(tx('copy'))}</button></div>
+      <button class="btn-primary" data-cr="vf-retry" data-id="${esc(acc.id)}">${esc(tx('vf_again'))}</button><button class="btn-ghost" data-cr="vf-other">${esc(tx('vf_other'))}</button>`)}`;
+  }
+  const partner = isPartner();
+  return `${h}${body(`${lbl}<div class="cr-empty">${I.check}<b>${esc(tx('vf_ok_h'))}</b><p>${esc(tx('vf_ok_p', { h: hd, p: pn }))}</p></div>
+    ${partner && !noPay() ? `<div class="cr-note ok">${I.star}<span>${esc(a.flow || !workPro() ? tx('vf_ok_pro') : tx('dn_pro', { d: dfmt(String(workPro()).slice(0, 10)) }))}</span></div>` : !partner ? `<div class="cr-note ok">${I.check}<span>${esc(tx('vf_ok_wl'))}</span></div>` : ''}
+    <button class="btn-primary" data-cr="${partner ? 'vf-next' : 'close'}">${esc(partner ? tx('next') : tx('done'))}</button>`)}`;
+}
+// ожидание проверки: экран сам смотрит статус раз в 3 секунды, пока открыт
+function bindVerify(scr, a) {
+  const w = scr.querySelector('[data-wait]'); if (!w) return;
+  const id = w.dataset.wait;
+  const t = setInterval(async () => {
+    if (!scr.isConnected) { clearInterval(t); return; }
+    const p = await api().getProfile().catch(() => null), acc = p?.accounts?.find((x) => x.id === id);
+    if (acc && acc.status !== 'pending') { clearInterval(t); P = p; ctx?.onProfile?.(p); renderHub(); const top = stack[stack.length - 1]; if (top && top.el === scr) { top.args = { ...a, id, view: '' }; rerender(); } }
+  }, 3000);
+}
+
+// ───────── экран 4 «Готово»: ссылка, код, рабочий Pro, «Снять про это место», «Подать ролик» (02 §7.1) ─────────
+async function doneHTML() {
+  P = await api().getProfile();
+  const l = link(P.ref_code), lg = await api().getLeague().catch(() => null), wk = lg?.tasks?.find((x) => x.kind === 'place_week')?.place || null;
+  if (wk) await place(wk);
+  const w = workPro();
+  return `${head(tx('dn_h'), { noBack: true, close: true })}${body(`<div class="cr-empty cr-done">${I.check}<b>${esc(tx('dn_sub'))}</b><p>@${esc(P.nick)}</p></div>
+    ${field(tx('dn_link'), l, 'https://' + l)}${field(tx('dn_code'), P.ref_code, P.ref_code)}
+    ${w && active(w) ? `<div class="cr-note ok">${I.star}<span>${esc(tx('dn_pro', { d: dfmt(String(w).slice(0, 10)) }))}</span></div>` : ''}
+    ${wk ? `<button class="cr-li" data-cr="dn-shoot" data-w="${esc(wk.world)}" data-p="${esc(wk.id)}"><img src="${esc(pImg(wk))}" alt="" loading="lazy"><span class="m"><b>${esc(tx('dn_shoot'))}</b><small>${esc(tx('dn_shoot_d', { p: pName(wk) }))}</small></span>${I.chevron}</button>` : ''}
+    <button class="btn-primary" data-cr="submit">${I.video}${esc(tx('dn_submit'))}</button><button class="btn-ghost" data-cr="close">${esc(tx('dn_hub'))}</button>`)}`;
+}
+
+// ───────── экран 18 «Для админов» (только веб): вход по коду, demo, приглашения, список ожидания, каналы ─────────
+async function adminHTML() {
+  const st = await api().adminState();
+  if (!st.admin) {
+    return `${head(tx('ad_h'))}${body(`<label class="cr-in"><span>${esc(tx('ad_code'))}</span><input id="cr-adm" type="password" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+      <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="ad-in">${esc(tx('ad_in'))}</button>`)}`;
+  }
+  const [inv, wl, req] = await Promise.all([api().listInvites().catch(() => []), api().getWaitlistStats().catch(() => null), api().listAccountRequests().catch(() => [])]);
+  const seg = (cr, opts, cur) => `<div class="cr-seg">${opts.map(([v, l]) => `<button data-cr="${cr}" data-v="${v}" aria-selected="${cur === v}">${esc(tx(l))}</button>`).join('')}</div>`;
+  const until = inv.find((x) => !x.used)?.until || '2026-12-31';
+  return `${head(tx('ad_h'))}${body(`<h2 class="cr-h">${esc(tx('ad_mode'))}</h2>
+    <p class="cr-lbl">${esc(tx('ad_demo'))}</p>${seg('ad-demo', [['0', 'ad_off'], ['1', 'ad_on']], st.demo ? '1' : '0')}
+    <p class="cr-p">${esc(tx('ad_demo_p'))}</p>
+    ${st.demo ? `<p class="cr-lbl">${esc(tx('ad_stage'))}</p>${seg('ad-stage', [['partner', 'ad_st_partner'], ['start', 'ad_st_start']], st.stage)}<button class="btn-ghost" data-cr="ad-stage" data-v="${esc(st.stage)}">${esc(tx('ad_reset'))}</button>` : ''}
+    <h2 class="cr-h">${esc(tx('ad_inv'))}</h2><p class="cr-p">${esc(tx('ad_inv_p', { d: dfmt(until) }))}</p>
+    <div class="cr-two"><button class="btn-primary" data-cr="ad-make">${I.plus}${esc(tx('ad_make'))}</button>${inv.length ? `<button class="btn-ghost" data-cr="copy" data-v="${esc(inv.filter((x) => !x.used).map((x) => x.code).join('\n'))}">${esc(tx('ad_copy_all'))}</button>` : ''}</div>
+    <p class="cr-err" id="cr-err" hidden></p>
+    ${inv.length ? `<div class="cr-inv">${inv.map((x) => `<div><b>${esc(x.code)}</b><small>${esc(x.used ? tx('ad_inv_used') : dfmt(x.until))}</small><button class="cr-mini" data-cr="copy" data-v="${esc(x.code)}">${I.copy}${esc(tx('copy'))}</button></div>`).join('')}</div>` : `<p class="cr-p">${esc(tx('ad_inv_none'))}</p>`}
+    <h2 class="cr-h">${esc(tx('ad_wl'))}</h2>
+    ${wl ? `<p class="cr-lead">${esc(tx('ad_wl_line', { j: num(wl.joined), v: num(wl.verified), g: num(wl.goal_verified) }))}</p>
+      <div class="cr-wlbar"><span>${esc(tx('ad_wl_j'))}</span>${bar(wl.joined / wl.goal_joined * 100)}<span class="cr-prog">${esc(tx('of', { a: num(wl.joined), b: num(wl.goal_joined) }))}</span></div>
+      <div class="cr-wlbar"><span>${esc(tx('ad_wl_v'))}</span>${bar(wl.verified / wl.goal_verified * 100)}<span class="cr-prog">${esc(tx('of', { a: num(wl.verified), b: num(wl.goal_verified) }))}</span></div>` : ''}
+    <p class="cr-p">${esc(tx('ad_wl_p'))}</p>
+    <h2 class="cr-h">${esc(tx('ad_req'))}</h2><p class="cr-p">${esc(tx('ad_req_p'))}</p>
+    ${req.length ? `<div class="cr-reqs">${req.map((r) => `<div><span class="m"><b>@${esc(String(r.nick).replace(/^@/, ''))}, ${esc(PLAT[r.platform] || r.platform)}</b><small>${esc(r.url)}, ${esc(tx('ml_code').toLowerCase())} ${esc(r.verify_code)}</small></span>
+      ${r.status === 'pending' ? `<span class="b"><button class="cr-mini acc" data-cr="ad-mark" data-id="${esc(r.id)}" data-v="verified">${esc(tx('ad_yes'))}</button><button class="cr-mini" data-cr="ad-mark" data-id="${esc(r.id)}" data-v="failed">${esc(tx('ad_no'))}</button></span>` : `<span class="cr-tag ${r.status === 'verified' ? 'ok' : 'no'}">${esc(tx('ad_st_' + r.status))}</span>`}</div>`).join('')}</div>` : `<p class="cr-p">${esc(tx('ad_req_none'))}</p>`}
+    <button class="btn-ghost" data-cr="ad-out">${esc(tx('ad_out'))}</button>`)}`;
 }
 
 // ───────── экраны ─────────
@@ -924,6 +1248,12 @@ const SCREENS = {
   rules: { html: async () => rulesHTML() },
   review: { html: reviewHTML, bind: (s) => bindDeck(s) },
   feed: { html: async (a) => `<div class="cr-vscr">${await feedHTML(a)}</div>`, bind: bindFeed },
+  // без приглашения: вместо денежных экранов — список ожидания (08 §2, задача 2)
+  authors: { html: async () => `${head(tx('for_authors'))}${body(`${waitlistHTML()}<p class="cr-p">${esc(tx('gate_p'))}</p>`, '', true)}` },
+  partner: { html: async (a) => partnerHTML(a) },
+  verify: { html: verifyHTML, bind: bindVerify },
+  done: { html: doneHTML },
+  admin: { html: adminHTML },
 };
 function feedMine(id) {
   api().listMyVideos().then((a) => { const acc = a.filter((v) => v.status === 'accruing'); const i = Math.max(0, acc.findIndex((v) => v.id === id)); ctx.closeSheet(); push('feed', { source: 'mine', start: i }); });
@@ -976,23 +1306,27 @@ async function onClick(e) {
     case 'locked': ctx.toast(tx(v)); break;
     case 'lg-send': {
       const em = $('#cr-email').value.trim(), er = $('#cr-err');
-      try { await api().signIn(em); loginEmail = em; codeSheet(); setTimeout(() => $('#cr-code')?.focus(), 350); } catch { er.hidden = false; er.textContent = tx('lg_bad_email'); }
+      try {
+        const r = await api().signIn(em); loginEmail = em;
+        if (r.signed_in) { afterSignIn(); break; }   // закрытый доступ без сервера: вход по принятому приглашению, без письма (08 §6)
+        codeSheet(); setTimeout(() => $('#cr-code')?.focus(), 350);
+      } catch { er.hidden = false; er.textContent = tx('lg_bad_email'); }
       break;
     }
     case 'lg-code': {
       const c = $('#cr-code').value.trim(), er = $('#cr-err');
-      try { P = await api().verifyCode(loginEmail, c); if (!P.adult_at && !P.minor) ageSheet(); else afterLogin(); } catch { er.hidden = false; er.textContent = tx('lg_bad_code'); }
+      try { P = await api().verifyCode(loginEmail, c); if (!isPartner() && !P.minor) { if (hasAccess()) afterSignIn(); else ageSheet(); } else afterLogin(); } catch { er.hidden = false; er.textContent = tx('lg_bad_code'); }
       break;
     }
     case 'lg-age': {
       P = await api().confirmAge(v === '1'); ctx?.onProfile?.(P);
       if (v === '1') afterLogin();
-      else { loginNext = null; await renderHub(); ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('lg_minor_h'))}</h2><p class="sub">${esc(tx('lg_minor_sub'))}</p><button class="btn-primary" data-cr="sheet-close">${esc(tx('ok'))}</button></div>`, 'cr-sheet'); }
+      else { loginNext = null; await renderHub(); sheet(`<div class="cr-sh"><h2>${esc(tx('lg_minor_h'))}</h2><p class="sub">${esc(tx('lg_minor_sub'))}</p><button class="btn-primary" data-cr="sheet-close">${esc(tx('ok'))}</button></div>`); }
       break;
     }
     case 'withdraw': withdrawSheet(); break;
     case 'wd-send': {
-      try { const r = await api().requestPayout(); ctx.openSheet(`<div class="cr-sh"><h2>${esc(tx('wd_ok_h'))}</h2><p class="sub">${money(r.amount_cents)}</p>${med()}<div class="cr-steps"><div class="on">${I.check}<span>${esc(tx('wd_ok_1'))}</span></div><div class="on">${I.check}<span>${esc(tx('wd_ok_2'))}</span></div><div>${I.clock}<span>${esc(tx('wd_ok_3', { d: dfmt(r.round_date) }))}</span></div></div><button class="btn-ghost" data-cr="sheet-close">${esc(tx('done'))}</button></div>`, 'cr-sheet'); rerender(); } catch { ctx.toast(tx('err')); }
+      try { const r = await api().requestPayout(); sheet(`<div class="cr-sh"><h2>${esc(tx('wd_ok_h'))}</h2><p class="sub">${money(r.amount_cents)}</p>${med()}<div class="cr-steps"><div class="on">${I.check}<span>${esc(tx('wd_ok_1'))}</span></div><div class="on">${I.check}<span>${esc(tx('wd_ok_2'))}</span></div><div>${I.clock}<span>${esc(tx('wd_ok_3', { d: dfmt(r.round_date) }))}</span></div></div><button class="btn-ghost" data-cr="sheet-close">${esc(tx('done'))}</button></div>`); rerender(); } catch (x) { ctx.toast(tx(x.code === 'beta_off' ? 'beta_pay' : 'err')); }
       break;
     }
     case 'invite': inviteSheet(); break;
@@ -1006,6 +1340,73 @@ async function onClick(e) {
     case 'rv-reason': { ctx.closeSheet(); decide(stack[stack.length - 1]?.el, 'no', v); break; }
     case 'rv-again': { const s = stack[stack.length - 1]; await rerender(); bindDeck(s.el); break; }
     case 'sheet-close': ctx.closeSheet(); break;
+    // список ожидания и приглашение
+    case 'wl-join': await load(); wlForm = { platforms: [], email: P?.email || '' }; wlSheet(1); break;
+    case 'wl-next': { const em = $('#cr-wmail').value.trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { err(tx('lg_bad_email')); break; } wlForm.email = em; wlSheet(2); break; }
+    case 'wl-pl': { wlForm.profile = $('#cr-wprof')?.value.trim(); const i = wlForm.platforms.indexOf(v); if (i >= 0) wlForm.platforms.splice(i, 1); else wlForm.platforms.push(v); el.setAttribute('aria-pressed', String(i < 0)); break; }
+    case 'wl-send': {
+      wlForm.profile = $('#cr-wprof')?.value.trim();
+      if (!wlForm.platforms.length) { err(tx('wj_pick')); break; }
+      try { await api().joinWaitlist({ email: wlForm.email, platforms: wlForm.platforms, profile_url: wlForm.profile }); P = await api().getProfile(); renderHub(); if (stack.length) rerender(); wlSheet(3); }
+      catch (x) { err(tx(x.code === 'bad_email' ? 'lg_bad_email' : 'err')); }
+      break;
+    }
+    case 'inv-beta': await load(); inviteBetaSheet(); setTimeout(() => $('#cr-binv')?.focus(), 350); break;
+    case 'inv-b-send': {
+      try { await api().redeemInvite($('#cr-binv').value); P = await api().getProfile(); ctx.toast(tx('inv_b_ok')); renderHub(); ctx.closeSheet(); if (stack.length) close(); setTimeout(() => loginSheet(), stack.length ? 320 : 0); }
+      catch (x) { err(tx({ used: 'inv_used', expired: 'inv_exp' }[x.code] || 'inv_nf')); }
+      break;
+    }
+    // «Стать партнёром»
+    case 'pt-age': {
+      P = await api().confirmAge(v === '1'); ctx?.onProfile?.(P); renderHub();
+      push('partner', { step: v === '1' ? 'terms' : 'minor' }, true); break;
+    }
+    case 'pt-terms': {
+      if (!$('#cr-terms')?.checked) { err(tx('pt_need')); break; }
+      try { P = await api().acceptTerms(); push('partner', { step: 'country' }, true); } catch { err(tx('err')); }
+      break;
+    }
+    case 'pt-country': {
+      try { P = await api().becomePartner({ country: $('#cr-country').value }); } catch { err(tx('err')); break; }
+      ctx?.onProfile?.(P); renderHub();
+      if (P.payouts === false) push('partner', { step: 'nopay' }, true);
+      else if (verifiedAcc()) push('done', {}, true);
+      else push('verify', { flow: true }, true);
+      break;
+    }
+    // подтверждение канала
+    case 'vf-go': push('verify', { flow: isPartner() }, true); break;
+    case 'vf-pl': vfForm = { platform: v, url: $('#cr-vurl')?.value.trim() || '' }; await rerender(); break;
+    case 'vf-send': {
+      vfForm.url = $('#cr-vurl').value.trim();
+      try { const acc = await api().verifyAccount({ platform: vfForm.platform, url: vfForm.url }); const top = stack[stack.length - 1]; top.args = { ...top.args, pick: false, id: acc.id, view: 'code' }; await rerender(); renderHub(); }
+      catch { err(tx('vf_bad', { p: PLAT[vfForm.platform] })); }
+      break;
+    }
+    case 'vf-check': case 'vf-again': { const top = stack[stack.length - 1]; top.args = { ...top.args, view: '' }; await rerender(); break; }
+    case 'vf-retry': {
+      const acc = (P.accounts || []).find((x) => x.id === el.dataset.id); if (!acc) break;
+      try { const n = await api().verifyAccount({ platform: acc.platform, url: acc.url }); const top = stack[stack.length - 1]; top.args = { ...top.args, id: n.id, view: 'code' }; await rerender(); } catch { ctx.toast(tx('err')); }
+      break;
+    }
+    case 'vf-other': { const top = stack[stack.length - 1]; top.args = { ...top.args, pick: true, id: null }; vfForm = { platform: 'tiktok', url: '' }; await rerender(); break; }
+    case 'vf-next': push('done', {}, true); break;
+    case 'dn-shoot': openPlaceVideos(el.dataset.w, el.dataset.p); break;   // заглушка: экран «Снять про это» делает следующая часть
+    // «Для админов»
+    case 'ad-in': {
+      try { await api().adminSignIn($('#cr-adm').value); await rerender(); renderHub(); } catch (x) { err(tx(x.code === 'no_crypto' ? 'ad_nocrypto' : 'ad_bad')); }
+      break;
+    }
+    case 'ad-demo': case 'ad-stage': {
+      const st = await api().adminState(), on = a === 'ad-demo' ? v === '1' : true;
+      if (a === 'ad-demo' && on === st.demo) break;
+      await api().adminSetDemo(on, a === 'ad-stage' ? v : st.stage);
+      history.replaceState(null, '', location.pathname + location.search + '#admin'); location.reload(); break;   // app.js откроет экран снова
+    }
+    case 'ad-make': { try { await api().createInvites(10); await rerender(); } catch (x) { err(tx(x.code === 'no_invites_left' ? 'ad_inv_left' : 'err')); } break; }
+    case 'ad-mark': { await api().markAccount(el.dataset.id, v); P = await api().getProfile(); ctx?.onProfile?.(P); await rerender(); renderHub(); break; }
+    case 'ad-out': await api().adminSignOut(); await rerender(); renderHub(); break;
   }
 }
 
