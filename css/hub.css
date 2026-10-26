@@ -118,7 +118,10 @@
 :root[data-theme="light"] .mini-cheat { background: var(--card); box-shadow: var(--sh-raised); }
 .mini-cheat:active { transform: scale(var(--press-scale)); }
 .mc-top { display: flex; width: 100%; justify-content: space-between; align-items: center; }
-.mc-ic { width: 20px; height: 20px; color: var(--accent); }
+/* значок кода на мини-карточке — только внутри .mini-cheat: класс .mc-ic есть и у строки значков в ленте карточек карты (map.js),
+   общий .mc-ic { width: 20px } сжимал её до 20 px (значки, точность и расстояние вылезали). Вид значка — как был в проде на 26.10:
+   отступы и цвет раньше приходили из map-glass.css, теперь заданы здесь явно (акцент из старого правила не применялся — вопрос дизайну) */
+.mini-cheat .mc-ic { width: 20px; height: 20px; padding: 6px 0 2px; color: var(--text-glass-2); }
 .mc-lock { width: 18px; height: 18px; color: var(--accent); }
 .mini-cheat b { font-size: 15px; font-weight: 650; line-height: 1.25; min-height: 2.5em; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .mc-code { display: flex; align-items: center; gap: 5px; min-height: 28px; }
