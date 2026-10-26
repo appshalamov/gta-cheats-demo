@@ -16,7 +16,9 @@ const GAMES = {
 // ── режим «Карта игры»: точки по координатам игры (gm из build_map), подложка — плитки gtadb.
 // Мир игры −16384…16384 единиц ↔ веб-Меркатор; плитка gtadb z ↔ плитка MapLibre z+2 (переписывает transformRequest).
 // Бета «карта игры в основе» (гипотеза Игоря 14.10.2026: миру известна карта GTA 5 — люди ищут, что из игры есть в жизни).
-export const BETA = /\/beta\//.test(location.pathname) || new URLSearchParams(location.search).has('beta');
+// Запуск «Стекло над городом» (Игорь 26.10.2026: «делай запуск стеклом над городом… чтобы всё работало»): карта как в бете —
+// «Игра ⇄ Жизнь», карта игры, слои, легенда — теперь и в проде. Старый вид карты — только по ?nobeta (для сравнения).
+export const BETA = !new URLSearchParams(location.search).has('nobeta');
 let mode = !BETA ? 'real' : (() => { try { return localStorage.getItem('secret.map.mode') === 'real' ? 'real' : 'game'; } catch { return 'game'; } })();
 let wantMode = mode;     // что выбрал человек; у игры без своей карты (GAME_MAP) показываем реальную
 // Карта игры GTA 6 выключена (14.10.2026): фанатская карта Леониды (yanis) и игровые координаты GTA 6 в gtadb собраны
