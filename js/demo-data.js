@@ -34,20 +34,20 @@ function videos() {
   const c = buys(2, 2, 2, [10, 12, 15, 19, 24, 28]);
   return [
     { id: '7K2Q', platform: 'tiktok', fmt: 'v', place: pl('gta6', 'gta6-stiltsville'), places: [{ ...pl('gta6', 'gta6-stiltsville'), as: 'about', status: 'ok' }],
-      title: { ru: 'Этот мост есть в GTA 6', en: 'This bridge is in GTA 6' }, status: 'accruing', submitted_at: d(2),
+      title: { ru: 'Этот мост есть в GTA 6', en: 'This bridge is in GTA 6' }, status: 'accruing', submitted_at: d(2), url: 'tiktok.com/@sunset_drive/video/7431902218641505566', has_gameplay: false,
       views: 412300, clicks: 618, trials: 210, pays: 18, ...a, by_day: spread(412300, 2, 30, 5), embed: { kind: 'tiktok', id: '' } },
     { id: '9MX4', platform: 'shorts', fmt: 'v', place: pl('gta6', 'gta6-portmiami'),
       places: [{ ...pl('gta6', 'gta6-portmiami'), as: 'about', status: 'ok' }, { ...pl('gta6', 'gta6-midtown-interchange'), as: 'mention', at: '0:21', status: 'ok' }, { ...pl('gta6', 'gta6-ten-museum-park'), as: 'mention', at: '0:38', status: 'ok' }],
-      title: { ru: '3 места Майами из трейлера', en: '3 Miami places from the trailer' }, status: 'accruing', submitted_at: d(5),
+      title: { ru: '3 места Майами из трейлера', en: '3 Miami places from the trailer' }, status: 'accruing', submitted_at: d(5), url: 'youtube.com/shorts/q9MX4sunset', has_gameplay: false,
       views: 186000, clicks: 140, trials: 52, pays: 4, ...b, by_day: spread(186000, 5, 30, 6), embed: { kind: 'youtube', id: '' } },
     { id: 'P2LD', platform: 'youtube', fmt: 'h', place: pl('gta5', 'gta5-bay-city-incline'), places: [{ ...pl('gta5', 'gta5-bay-city-incline'), as: 'about', status: 'ok' }],
-      title: { ru: 'Где в жизни этот спуск к океану', en: 'Where this slope to the ocean is in real life' }, status: 'accruing', submitted_at: d(8),
+      title: { ru: 'Где в жизни этот спуск к океану', en: 'Where this slope to the ocean is in real life' }, status: 'accruing', submitted_at: d(8), url: 'youtube.com/watch?v=P2LDsunset1', has_gameplay: false,
       views: 54200, clicks: 163, trials: 59, pays: 6, ...c, by_day: spread(54200, 8, 30, 7), embed: { kind: 'youtube', id: '' } },
     { id: 'R8TW', platform: 'tiktok', fmt: 'v', place: pl('gta6', 'gta6-providence-canyon'), places: [{ ...pl('gta6', 'gta6-providence-canyon'), as: 'about', status: 'ok' }],
-      title: { ru: 'Место недели', en: 'Place of the week' }, status: 'awaiting_threshold', submitted_at: d(24),
+      title: { ru: 'Место недели', en: 'Place of the week' }, status: 'awaiting_threshold', submitted_at: d(24), url: 'tiktok.com/@sunset_drive/video/7436118270331229471', has_gameplay: false,
       views: 640, clicks: 1, trials: 1, pays: 0, buys: [], pay_days: [], by_day: spread(640, 24, 30, 3), embed: { kind: 'tiktok', id: '' } },
     { id: 'Z1QA', platform: 'reels', fmt: 'v', place: pl('gta6', 'gta6-little-haiti'), places: [{ ...pl('gta6', 'gta6-little-haiti'), as: 'about', status: 'ok' }],
-      title: '', status: 'rejected', reject_code: 'no_disclosure', submitted_at: d(26),
+      title: '', status: 'rejected', reject_code: 'no_disclosure', submitted_at: d(26), url: 'instagram.com/reel/Z1QAsunset', has_gameplay: false,
       views: 0, clicks: 0, trials: 0, pays: 0, buys: [], pay_days: [], by_day: [], embed: null },
   ];
 }
@@ -66,6 +66,7 @@ function ledger(vids) {
   return L.sort((x, y) => x.date.localeCompare(y.date));
 }
 
+// ссылки роликов (url) — вымышленные, нужны, чтобы повторная подача той же ссылки показала «Этот ролик уже подан» (02 §7.3)
 // цифры вокруг персонажа: модератор, автор места, список ожидания (экран админа), коды для показа приглашения
 export const DEMO = {
   month: MONTH,

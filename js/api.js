@@ -9,10 +9,12 @@
 //            (localStorage sb.beta.v1). rules.mode = CREATOR_MODE из config.js ('beta'): суммы «предварительные».
 //   'mock' — примеры состояний для стендов (?sbmock=<имя>), ТОЛЬКО на localhost / 127.0.0.1 или при включённом demo
 //            (06 В-1: в боевой сборке ?sbmock не работает). Состояния: league, newbie, empty, player, guest, minor, nopay, trial,
-//            trialend, partner, partnerend, link, renew, pro.
+//            trialend, partner, partnerend, link, renew, pro; для экранов 7–9 — statuses (8 статусов ролика 02 §7.4),
+//            paying (выплата в раунде), paid (выплачено).
 //   потом 'server' — та же форма методов, данные из Supabase (feature/server заменит реализацию, не имена).
 //
-// Статусы ролика:     submitted → pending_review → awaiting_threshold → accruing → rejected (reject_code) / unavailable
+// Статусы ролика (02 §7.4): submitted → in_review → awaiting_threshold → accruing → closed; ветки rejected (reject_code),
+//                     unavailable, frozen. Ролик: places[{world,id,role:'about'|'mention',at:'м:сс'}], has_gameplay, url, fmt
 // Статусы начисления: maturing → available → paid / reversed
 // Причины начисления: share (40% с покупки по коду), cpa ($15 за приведённого креатора), task (задание), pair (пара Скаута),
 //                     queue_batch (проверки модератора), rpm (оплата просмотров), author_fee (10% автору места), friend_pro (дни Pro)
@@ -50,7 +52,7 @@ const PLACES = {   // id мест из data/map — подписи и фото �
 };
 const pl = (k) => ({ world: PLACES[k][0], id: PLACES[k][1] });
 
-const STATES = ['league', 'newbie', 'empty', 'player', 'guest', 'minor', 'nopay', 'trial', 'trialend', 'partner', 'partnerend', 'link', 'renew', 'pro'];
+const STATES = ['league', 'newbie', 'empty', 'player', 'guest', 'minor', 'nopay', 'trial', 'trialend', 'partner', 'partnerend', 'link', 'renew', 'pro', 'statuses', 'paying', 'paid'];
 function mockPick() {
   if (!devGate()) { try { sessionStorage.removeItem('sb.mock'); } catch { } return null; }   // боевая сборка: ?sbmock не действует
   let s = null;
@@ -90,7 +92,7 @@ function videosFull() {
       by_day: spread(80000, 14, 31, 7), embed: { kind: 'youtube', id: '' } },
     { id: '9P4L', platform: 'reels', place: pl('c'), title: { ru: 'Santa Monica Pier вечером', en: 'Santa Monica Pier at night' }, status: 'accruing', submitted_at: day(20),
       views: 9400, clicks: 95, trials: 9, pays: 1, buys: ['pass'], pay_days: [22], by_day: spread(9400, 20, 31, 5), embed: null },
-    { id: 'Q2W9', platform: 'tiktok', place: pl('d'), title: { ru: 'One Biscayne Tower на закате', en: 'One Biscayne Tower at sunset' }, status: 'pending_review', submitted_at: day(30),
+    { id: 'Q2W9', platform: 'tiktok', place: pl('d'), title: { ru: 'One Biscayne Tower на закате', en: 'One Biscayne Tower at sunset' }, status: 'in_review', submitted_at: day(30),
       views: 0, clicks: 0, trials: 0, pays: 0, buys: [], pay_days: [], by_day: [], embed: { kind: 'tiktok', id: '' } },
     { id: 'R7T1', platform: 'tiktok', place: pl('e'), title: { ru: 'Clock Tower в Санта-Монике', en: 'Clock Tower in Santa Monica' }, status: 'rejected', reject_code: 'no_code', submitted_at: day(25),
       views: 0, clicks: 0, trials: 0, pays: 0, buys: [], pay_days: [], by_day: [], embed: { kind: 'tiktok', id: '' } },
@@ -108,7 +110,7 @@ function videosNewbie() {
       views: 0, clicks: 0, trials: 0, pays: 0, buys: [], pay_days: [], by_day: [], embed: null },
   ];
 }
-const rate = (v) => RULES.rpm[v.platform] ?? 12;
+const rate = (v) => (v.platform === 'snapchat' ? 0 : RULES.rpm[v.platform] ?? 12);   // Snapchat — без оплаты просмотров (02 §7.3)
 function rpmCents(v) { const c = Math.round(v.views * rate(v) / 1000); return c < RULES.rpm_min_cents ? 0 : Math.min(c, RULES.rpm_cap_cents); }
 function ledgerOf(videos, extra) {
   const L = []; let n = 0;
@@ -130,7 +132,7 @@ function build(state) {
   const base = { nick: 'sunset_drive', ref_code: 'SUNSET', email: 'sunset_drive@mail.com', country: 'US', payouts: true,
     roles: ['player'], level: 'new', adult_at: '2026-10-02', terms_at: '2026-10-02', invited: true, waitlist: null, pro_until: null, trial_until: null, league_unlocked: false,
     league_progress: { views: 0, goal: RULES.league_goal_views }, mod: null, accounts: [] };
-  const P = { ...base }; let videos = [], ledger = [], pro_days = [];
+  const P = { ...base }; let videos = [], ledger = [], pro_days = [], payout = null;
   const accts = [{ platform: 'tiktok', status: 'verified' }, { platform: 'reels', status: 'pending' }, { platform: 'youtube', status: 'soon' }];
   if (state === 'league') {
     Object.assign(P, { roles: ['player', 'creator', 'mod', 'author'], level: 'creator', league_unlocked: true, work_pro_until: '2026-12-12',
@@ -176,12 +178,34 @@ function build(state) {
       accounts: [{ platform: 'tiktok', status: 'verified' }, { platform: 'reels', status: 'none' }, { platform: 'youtube', status: 'soon' }] });
     videos = videosNewbie().filter((v) => v.status !== 'awaiting_threshold');
     ledger = ledgerOf(videos, []);
+  } else if (state === 'statuses' || state === 'paying' || state === 'paid') {
+    // стенд экранов 7–9: восемь статусов ролика (тексты 02 §7.4 — 48 200 просмотров → $5,78; итог 210 400 → $25,25, 9 покупок),
+    // выплата в раунде (paying) и выплаченная (paid)
+    Object.assign(P, { roles: ['player', 'creator'], level: 'creator', work_pro_until: '2026-12-12', accounts: accts });
+    if (state === 'statuses') {
+      const v = (id, st, k, views, o = {}) => ({ id, platform: 'tiktok', place: pl(k), title: '', status: st, submitted_at: day(o.d || 6), url: `tiktok.com/@sunset_drive/video/74${id}`,
+        views, clicks: Math.round(views / 900), trials: Math.round(views / 2800), pays: (o.buys || []).length, buys: o.buys || [], pay_days: (o.buys || []).map((_, i) => 8 + i * 2),
+        by_day: views ? spread(views, o.d || 6, 31, 6) : [], embed: null, ...o.x });
+      videos = [v('S1B2', 'submitted', 'a', 0, { d: 31 }), v('S2C3', 'in_review', 'b', 0, { d: 30 }), v('S3D4', 'rejected', 'c', 0, { d: 27, x: { reject_code: 'no_code' } }),
+        v('S4E5', 'awaiting_threshold', 'g', 640, { d: 25 }), v('S5F6', 'accruing', 'd', 48200, { d: 12, buys: ['pass', 'month'] }),
+        v('S6G7', 'closed', 'h', 210400, { d: 1, buys: ['year', 'pass', 'month', 'year', 'pass', 'month', 'year', 'pass', 'month'] }),
+        v('S7H8', 'unavailable', 'e', 3100, { d: 5 }), v('S8J9', 'frozen', 'i', 96500, { d: 9, buys: ['month'] })];
+      ledger = ledgerOf(videos.map((x) => (x.status === 'closed' || x.status === 'frozen' ? { ...x, status: 'accruing', rpm_done: x.status === 'closed' } : x)), []);
+      ledger.filter((x) => x.ref === 'S8J9').forEach((x) => { x.status = 'frozen'; });
+    } else {
+      videos = videosFull();
+      ledger = ledgerOf(videos, [{ date: day(15), reason: 'pair', amount_cents: 1000, status: 'available', ref: 'pair:gta6-arsht-metromover' }]);
+      const av = ledger.filter((x) => x.status === 'available');
+      const amount = av.reduce((a, x) => a + x.amount_cents, 0);
+      if (state === 'paying') payout = { status: 'queued', amount_cents: amount, round_date: FIRST_ROUND };
+      else { av.forEach((x) => { x.status = 'paid'; }); payout = { status: 'paid', amount_cents: amount, round_date: FIRST_ROUND, paid_at: FIRST_ROUND }; }
+    }
   } else if (state === 'renew') {   // пропуск релиза кончается через 5 дней
     Object.assign(P, { roles: ['player'], adult_at: null, pro_until: inD(5), pro_kind: 'pass' });
   } else if (state === 'pro') {   // купил год
     Object.assign(P, { roles: ['player'], adult_at: null, pro_until: inD(365), pro_kind: 'year' });
   }
-  return { P, videos, ledger, pro_days, payout: null, decisions: [] };
+  return { P, videos, ledger, pro_days, payout, decisions: [] };
 }
 
 // ── закрытый доступ без сервера (08 §6): всё на устройстве, форма — как у сервера ──
@@ -274,6 +298,19 @@ function signInLocal(P, email) {
 // demo «с начала»: после «Готово» персонаж — партнёр с роликами за ноябрь (тот же набор, что в режиме «партнёр»)
 function demoFinish() { const full = demoDB('partner'); Object.assign(db().P, { ...full.P, work_pro_until: DEMO.work_pro_first }); db().stage = 'partner'; persist(); }
 const PLAT_RE = { tiktok: /tiktok\.com\/@?[\w.]+/i, youtube: /(youtube\.com\/(@|c\/|channel\/)[\w.-]+|youtu\.be)/i, instagram: /instagram\.com\/[\w.]+/i };
+// ссылка на ролик → { platform, fam, id }: семейство youtube одно у YouTube и Shorts (один ролик нельзя подать дважды, 02 §7.3)
+function videoIdOf(url) {
+  const u = String(url || '').trim().replace(/^https?:\/\//i, '').replace(/^(www\.|m\.|vm\.)/i, '');
+  let m;
+  if ((m = u.match(/^tiktok\.com\/@[\w.]+\/video\/(\d{6,})/i)) || (m = u.match(/^tiktok\.com\/t\/(\w{5,})/i))) return { platform: 'tiktok', fam: 'tiktok', id: m[1] };
+  if ((m = u.match(/^youtube\.com\/shorts\/([\w-]{6,})/i))) return { platform: 'shorts', fam: 'youtube', id: m[1] };
+  if ((m = u.match(/^youtube\.com\/watch\?(?:.*&)?v=([\w-]{6,})/i)) || (m = u.match(/^youtu\.be\/([\w-]{6,})/i))) return { platform: 'youtube', fam: 'youtube', id: m[1] };
+  if ((m = u.match(/^instagram\.com\/(?:reels?|p)\/([\w-]{5,})/i))) return { platform: 'reels', fam: 'instagram', id: m[1] };
+  if ((m = u.match(/^snapchat\.com\/(?:spotlight|t)\/([\w-]{5,})/i))) return { platform: 'snapchat', fam: 'snapchat', id: m[1] };
+  return null;
+}
+const fmtOf = (platform) => (platform === 'youtube' ? 'h' : 'v');
+const placesOfVideo = (v) => (v.places && v.places.length ? v.places : v.place ? [{ ...v.place, role: 'about' }] : []).map((x) => ({ world: x.world, id: x.id, role: x.role || x.as || 'about', ...(x.at ? { at: x.at } : {}), status: x.status || 'ok' }));
 const handleOf = (url) => '@' + (String(url).replace(/[?#].*$/, '').replace(/\/+$/, '').split('/').pop() || '').replace(/^@/, '');
 
 const api = {
@@ -379,30 +416,65 @@ const api = {
     db().P.league_unlocked = true; persist(); return wait({ ok: true, unlocked: true }, 250);
   },
 
-  /** Мои ролики: [{ id, platform, place{world,id}, title, status, reject_code?, submitted_at, views, clicks, trials, pays, earned{share_cents,rpm_cents,total_cents}, link_v }] */
+  /** Мои ролики: [{ id, platform, fmt, place{world,id}, places[{world,id,role,at}], title, status, reject_code?, submitted_at, url, has_gameplay,
+   *  views, clicks, trials, pays, rate_cents, earned{share_cents,rpm_cents,total_cents}, link_v }]. Статусы — 02 §7.4 (8 штук) */
   listMyVideos: () => {
     const { videos, ledger } = db();
     return wait(videos.map((v) => {
       const own = ledger.filter((x) => x.ref === v.id), share = sumBy(own.filter((x) => x.reason === 'share'), (x) => x.amount_cents), rpm = sumBy(own.filter((x) => x.reason === 'rpm'), (x) => x.amount_cents);
       const { buys, pay_days, by_day, ...rest } = v;
-      return { ...rest, link_v: v.id, earned: { share_cents: share, rpm_cents: rpm, total_cents: share + rpm } };
+      return { ...rest, status: v.status === 'pending_review' ? 'in_review' : v.status, places: placesOfVideo(v), fmt: v.fmt || fmtOf(v.platform), rate_cents: rate(v),
+        link_v: v.id, earned: { share_cents: share, rpm_cents: rpm, total_cents: share + rpm } };
     }));
   },
-  /** Подать ролик → { id, status:'submitted', verify_code:'SB-…', link_v } */
-  submitVideo: ({ url, world, place_id }) => {
-    if (!/^(https?:\/\/)?(www\.|m\.|vm\.)?(tiktok\.com|youtube\.com|youtu\.be|instagram\.com|snapchat\.com)\//i.test(String(url || '').trim())) return fail('bad_url');
-    if (!place_id) return fail('no_place');
-    const id = Math.random().toString(36).slice(2, 6).toUpperCase();
-    const platform = /tiktok/i.test(url) ? 'tiktok' : /shorts/i.test(url) ? 'shorts' : /youtu/i.test(url) ? 'youtube' : /instagram/i.test(url) ? 'reels' : 'snapchat';
-    const v = { id, platform, place: { world, id: place_id }, title: '', status: 'submitted', submitted_at: new Date().toISOString().slice(0, 10), views: 0, clicks: 0, trials: 0, pays: 0, buys: [], pay_days: [], by_day: [], embed: null };
-    db().videos.unshift(v); persist();
-    return wait({ id, status: 'submitted', verify_code: 'SB-' + id, link_v: id }, 350);
+  /** «Снять про это» (02 §7.2): номер ролика выдаём заранее, чтобы ссылка в описании сразу считала переходы этого ролика.
+   *  { world, place_id } → { v, verify_code:'SB-…' }. Повторный вызов для того же места — тот же номер, пока ролик не подан.
+   *  В demo у места с роликом из набора — номер этого ролика (stiltsville → 7K2Q, ссылка домен/SUNSET/gta6/stiltsville?v=7K2Q) */
+  reserveVideo: ({ world, place_id } = {}) => {
+    const d = db(), key = `${world || ''}/${place_id || ''}`;
+    d.reserved = d.reserved || {};
+    let v = d.reserved[key];
+    if (!v && SOURCE !== 'beta' && place_id) v = d.videos.find((x) => x.place?.id === place_id)?.id;
+    if (!v) { do { v = Array.from({ length: 4 }, () => ALPHA[Math.floor(Math.random() * 32)]).join(''); } while (d.videos.some((x) => x.id === v)); }
+    d.reserved[key] = v; persist();
+    return wait({ v, verify_code: 'SB-' + v }, 80);
   },
-  /** Статистика своего ролика (только автор): { id, views_by_day[{date,views}], views, clicks, trials, pays, earned{…} } */
+  /** Подать ролик (02 §7.3, решение №17): { url, places[{world,id,role:'about'|'mention',at?:'м:сс'}], has_gameplay, disclosure, v? }
+   *  (старая форма { url, world, place_id } — одно место «про место»). → { id, status:'submitted', verify_code, link_v, account_verified }.
+   *  Ошибки: bad_url (не ссылка на ролик), duplicate (тот же platform + id ролика уже подан; поле video_id), no_place, bad_at (таймкод
+   *  упоминания не м:сс), too_many (больше 5 мест), need_disclosure (нет отметки о раскрытии рекламы) */
+  submitVideo: ({ url, places, world, place_id, has_gameplay = false, disclosure = true, v: want } = {}) => {
+    const u = String(url || '').trim(), pv = videoIdOf(u);
+    if (!pv) return fail('bad_url');
+    const dup = db().videos.find((x) => { const o = videoIdOf(x.url || ''); return o && o.fam === pv.fam && o.id === pv.id; });
+    if (dup) return Promise.reject(Object.assign(new Error('duplicate'), { code: 'duplicate', video_id: dup.id }));
+    const list = (places && places.length ? places : place_id ? [{ world, id: place_id, role: 'about' }] : []).map((x) => ({ world: x.world, id: x.id, role: x.role === 'mention' ? 'mention' : 'about', ...(x.role === 'mention' ? { at: String(x.at || '').trim() } : {}) }));
+    if (!list.length) return fail('no_place');
+    if (list.length > 5) return fail('too_many');
+    if (list.some((x) => x.role === 'mention' && !/^\d{1,2}:[0-5]\d$/.test(x.at))) return fail('bad_at');
+    if (!disclosure) return fail('need_disclosure');
+    const d = db();
+    let id = want && /^[A-Z0-9]{4}$/.test(want) && !d.videos.some((x) => x.id === want) ? want : null;
+    while (!id || d.videos.some((x) => x.id === id)) id = Array.from({ length: 4 }, () => ALPHA[Math.floor(Math.random() * 32)]).join('');
+    const vid = { id, platform: pv.platform, fmt: fmtOf(pv.platform), place: { world: list[0].world, id: list[0].id }, places: list.map((x) => ({ ...x, status: 'ok' })),
+      title: '', status: 'submitted', submitted_at: today(), url: u.replace(/^https?:\/\//, ''), has_gameplay: !!has_gameplay,
+      views: 0, clicks: 0, trials: 0, pays: 0, buys: [], pay_days: [], by_day: [], embed: null };
+    d.videos.unshift(vid);
+    if (d.reserved) Object.keys(d.reserved).forEach((k) => { if (d.reserved[k] === id) delete d.reserved[k]; });
+    persist();
+    const verified = (d.P.accounts || []).some((a) => a.status === 'verified');
+    return wait({ id, status: 'submitted', verify_code: 'SB-' + id, link_v: id, account_verified: verified }, 350);
+  },
+  /** Статистика своего ролика (только автор, 02 §9 п. 6): { id, status, views_by_day[{date,views}], views, clicks, trials, pays, rate_cents,
+   *  rpm{calc_cents, cents, rule:'ok'|'min'|'cap'|'wait'|'gameplay'|'no_rpm'}, buys{year,pass,month}, earned{share_cents,rpm_cents,rpm_available_cents} } */
   getVideoStats: (id) => {
     const v = db().videos.find((x) => x.id === id); if (!v) return fail('not_found');
-    const own = db().ledger.filter((x) => x.ref === id);
-    return wait({ id, views_by_day: v.by_day, views: v.views, clicks: v.clicks, trials: v.trials, pays: v.pays, rate_cents: rate(v),
+    const own = db().ledger.filter((x) => x.ref === id), calc = Math.round(v.views * rate(v) / 1000);
+    const rule = v.platform === 'snapchat' ? 'no_rpm' : v.has_gameplay ? 'gameplay' : v.views < 1000 ? 'wait' : calc < RULES.rpm_min_cents ? 'min' : calc > RULES.rpm_cap_cents ? 'cap' : 'ok';
+    const cents = rule === 'ok' ? calc : rule === 'min' ? RULES.rpm_min_cents : rule === 'cap' ? RULES.rpm_cap_cents : 0;
+    const buys = { year: 0, pass: 0, month: 0 }; (v.buys || []).forEach((b) => { buys[b] = (buys[b] || 0) + 1; });
+    return wait({ id, status: v.status === 'pending_review' ? 'in_review' : v.status, views_by_day: v.by_day, views: v.views, clicks: v.clicks, trials: v.trials, pays: v.pays, rate_cents: rate(v),
+      rpm: { calc_cents: calc, cents, rule }, buys, share_cents_each: { ...PRICE },
       earned: { share_cents: sumBy(own.filter((x) => x.reason === 'share'), (x) => x.amount_cents), rpm_cents: sumBy(own.filter((x) => x.reason === 'rpm'), (x) => x.amount_cents),
         rpm_available_cents: sumBy(own.filter((x) => x.reason === 'rpm' && x.status === 'available'), (x) => x.amount_cents) } });
   },
@@ -438,10 +510,12 @@ const api = {
   getEarnings: (month = db().month || '2026-10') => {
     const { ledger, videos, payout, pro_days } = db();
     const t = (s) => sumBy(ledger.filter((x) => x.status === s), (x) => x.amount_cents);
-    const totals = { maturing: t('maturing'), available: t('available'), paid: t('paid') }; totals.total = totals.maturing + totals.available + totals.paid;
+    // frozen (антифрод, 03 §5) — в «Начисляется», но приостановлено: список роликов — в frozen_videos
+    const totals = { maturing: t('maturing') + t('frozen'), available: t('available'), paid: t('paid') }; totals.total = totals.maturing + totals.available + totals.paid;
     const funnel = { views: sumBy(videos, (v) => v.views), clicks: sumBy(videos, (v) => v.clicks) + (ledger.some((x) => x.ref === 'profile') ? 40 : 0),
       trials: sumBy(videos, (v) => v.trials) + (ledger.some((x) => x.ref === 'profile') ? 3 : 0), pays: ledger.filter((x) => x.reason === 'share').length };
-    return wait({ month, totals, round_date: FIRST_ROUND, median_cents: RULES.median_cents, payout, ledger, funnel, pro_days, pro_days_total: sumBy(pro_days, (x) => x.days) });
+    const frozen_videos = videos.filter((v) => v.status === 'frozen').map((v) => v.id);
+    return wait({ month, totals, round_date: SOURCE === 'demo' ? DEMO.first_round : FIRST_ROUND, median_cents: RULES.median_cents, payout, ledger, funnel, frozen_videos, pro_days, pro_days_total: sumBy(pro_days, (x) => x.days) });
   },
   /** Вывод доступного (от $25) → { status:'pending_review', amount_cents, round_date } */
   requestPayout: () => {
