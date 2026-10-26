@@ -145,7 +145,9 @@
 .pc-tags i { font-style: normal; font-size: 12px; font-weight: 650; line-height: 1.25; padding: 3px 8px; border-radius: 6px; color: var(--on-photo); background: var(--glass-thin-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .pc-tags .conf-confirmed { color: var(--c-confirmed); } .pc-tags .conf-likely { color: var(--c-likely); } .pc-tags .conf-speculative { color: var(--c-speculative); }
 .pc-tags .tag-egg { color: var(--c-egg); }
-.pc-fav { position: absolute; right: 8px; top: 8px; width: 36px; height: 36px; padding: 8px; border-radius: 50%; color: var(--on-photo); background: var(--glass-thin-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.pc-fav { position: absolute; right: 4px; top: 4px; z-index: 1; width: 44px; height: 44px; padding: 12px; border-radius: 0; color: var(--on-photo); background: none; }
+/* видимый круг 36 — на ::before; зона нажатия — весь квадрат 44×44 (без скругления: скругление режет попадание по углам); центр круга на прежнем месте: 8 + 18 = 4 + 22 */
+.pc-fav::before { content: ''; position: absolute; inset: 4px; z-index: -1; border-radius: 50%; background: var(--glass-thin-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .pc-fav.on { color: var(--fav); }
 .pc-txt { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; flex-direction: column; gap: 4px; color: var(--on-photo); }
 .pc-txt b { font-size: 16px; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -190,7 +192,7 @@ mark.hl { background: none; color: var(--accent); font-weight: 750; } /* сов�
 .s-sec { margin-bottom: 20px; }
 .s-h { display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 0 2px; font: var(--t-title-2); letter-spacing: var(--t-title-2-track); color: var(--text); }
 .s-h em { font-style: normal; font-size: 14px; font-weight: 500; letter-spacing: 0; color: var(--text-3); font-variant-numeric: tabular-nums; }
-.s-h button { margin-left: auto; min-height: 44px; padding-left: 12px; font-size: 15px; font-weight: 600; letter-spacing: 0; color: var(--accent); }
+.s-h button { margin-left: auto; min-height: 44px; min-width: 44px; padding-left: 12px; font-size: 15px; font-weight: 600; letter-spacing: 0; color: var(--accent); }
 /* недавние и примеры запросов: зона 44, видимая капсула 34 */
 .qchips { display: flex; flex-wrap: wrap; gap: 0 6px; margin-top: -2px; }
 .qchip { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 6px; min-width: 44px; height: 44px; padding: 0 13px; font-size: 14px; font-weight: 500; color: var(--text); }
