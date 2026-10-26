@@ -114,4 +114,16 @@ _pl = (ROOT / "js" / "places.js").read_text("utf-8")
 if "export function thumbOf" in _pl and not re.search(r"IMG_BASE|imgUrl\(", _pl.split("export function thumbOf", 1)[1].split("\n}", 1)[0]):
     print("СТОП: thumbOf в js/places.js не добавляет ../ для /beta/ и /design/ — миниатюры там будут 404")
     sys.exit(1)
+# 9. Адреса и названия мест в данных карты — без русского текста: показываются и в английском интерфейсе
+#    (21.10.2026: «Угол Wythe Ave и N 11th St», «— прообраз Hill Valley Church» на Главной в EN).
+import json as _json
+for _g in ("gta5", "gta6"):
+    _f = ROOT / "data" / "map" / f"{_g}.json"
+    if _f.exists():
+        _d = _json.loads(_f.read_text("utf-8"))
+        _ru = [x.get("id") for x in _d.get("places", []) if re.search("[А-Яа-яЁё]", str(x.get("n", "")) + str(x.get("a", "")))]
+        _ru += [x.get("id") for x in _d.get("eggs", []) if re.search("[А-Яа-яЁё]", str(x.get("p", "")))]
+        if _ru:
+            print(f"СТОП: data/map/{_g}.json — русский текст в адресе или названии места (видно в EN): {_ru[:5]}")
+            sys.exit(1)
 print("правила кода: ок")
