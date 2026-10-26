@@ -129,7 +129,7 @@
 .cmp-lab.g { background: var(--accent); color: var(--accent-ink); }
 .cmp-lab.r { background: var(--glass-thin-bg); color: var(--on-photo); box-shadow: inset 0 0 0 1px var(--glass-thin-edge); }
 .cmp-stage .cmp-approx { top: 10px; bottom: auto; }
-.cmp-full { top: 8px; bottom: auto; width: 40px; height: 40px; padding: 9px; background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.cmp-full { top: 8px; bottom: auto; padding: 11px; background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge); -webkit-backdrop-filter: none; backdrop-filter: none; }
 .cmp-ipairs { gap: 8px; }
 .cmp-ipairs button { height: 44px; border-radius: 12px; }
 .mp-hero { gap: 6px; }

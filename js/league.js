@@ -2407,8 +2407,17 @@ export async function shootPlace(world, placeId) { await load(); return shootShe
 export async function fixPlace(world, placeId) { await load(); return cfOpen('fix', { place: { world, id: placeId }, world }); }
 /** Новое место долгим тапом по карте (сессия карты): window.SB.addPlaceAt('gta6', lat, lon) — форма вклада с точкой */
 export async function addPlaceAt(world, lat, lon) { await load(); return cfOpen('new_place', { world, lat: +lat, lon: +lon }); }
-/** Любой экран креатора: league ({ tab }) | earn | payout | myvideos | mylink | review | exam | rules | vstats ({ id }) | board ({ world }) | contribs */
-export async function openCreator(id = 'league', args = {}) { await load(); return push(id, args); }
+/** Любой экран креатора: league ({ tab }) | earn | payout | myvideos | mylink | review | exam | rules | vstats ({ id }) | board ({ world }) | contribs.
+ *  Формат карты: { world: 'real' | 'game', game: 'gta6' | 'gta5' } — вид карты в `view`, игра в `world` (так её ждут экраны раздела).
+ *  Старый формат { world: 'gta6' } работает как раньше. */
+function crArgs(args) {
+  const a = { ...(args || {}) };
+  if (a.world === 'real' || a.world === 'game') { a.view = a.world; a.world = a.game; }
+  if (a.world !== 'gta6' && a.world !== 'gta5') delete a.world;
+  delete a.game;
+  return a;
+}
+export async function openCreator(id = 'league', args = {}) { await load(); return push(id, crArgs(args)); }
 /** «Стать партнёром» снаружи (пейвол nopay): вход почтой и 18+; уже партнёр — Лига */
 export async function becomePartner() { await load(); if (isPartner()) return push('league', {}); loginSheet(); }
 /** Сброс кэша профиля (смена языка, вход) — хаб перерисуется */
