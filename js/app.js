@@ -1370,14 +1370,18 @@ addEventListener('resize', () => scrollToCat(ui.cat, false));
   if (window.speechSynthesis) speechSynthesis.getVoices();
   // пробный доступ: 72 часа с первого открытия на устройстве (если сервер не дал trial_until)
   if (!store.trialStart) { store.trialStart = Date.now(); save(); }
-  // профиль SB.api: доступ (Pro, рабочий Pro, пробный, подарок, страна). Мок — только при явном ?sbmock=… (js/api.js)
-  const apiP = import('./api.js').then(() => { const api = window.SB.api; return api && (!api.isMock || api.mockChosen) ? api.getProfile() : null; }).catch(() => null);
+  // профиль SB.api: доступ (Pro, рабочий Pro, пробный, подарок, страна). Источник выбирает js/api.js: закрытый доступ на
+  // устройстве (новый человек — гость), demo для съёмки (включает экран «Для админов»), ?sbmock — только на localhost
+  const apiP = import('./api.js').then(() => { const api = window.SB.api; return api && (!api.isMock || api.useProfile || api.mockChosen) ? api.getProfile() : null; }).catch(() => null);
   const [P] = await Promise.all([apiP, loadGame(store.game).catch(() => { })]);
   acc.P = P; lastAccess = access();
   renderAll();
   // ссылка «поделиться местом» (…/?open=place:gta5:<id>): друг сразу видит это место (и без Pro); знакомство — в следующий раз
   const openKey = new URLSearchParams(location.search).get('open');
   if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); openOnMap(openKey); }
+  else if (/[?&#]admin\b/.test(location.search + location.hash)) {   // экран «Для админов» (только веб): ?admin или #admin
+    store.onboarded = true; save(); if (location.hash) history.replaceState(null, '', location.pathname + location.search); window.SB.openCreator('admin');
+  }
   else if (!store.onboarded) showOnboarding();
   document.body.classList.add('ready');
   requestAnimationFrame(guardTabbar);

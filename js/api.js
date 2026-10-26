@@ -1,22 +1,36 @@
-// SB.api — контракт экранов креаторов с сервером. ЭТОТ ФАЙЛ — МОК (пример данных, без сети).
-// Сессия feature/server заменит его настоящим с теми же именами методов и полями (docs/api-contract.md).
-// Экраны (js/league.js) ходят только через window.SB.api; все методы возвращают Promise.
+// SB.api — контракт экранов креаторов с сервером (04 §2, docs/api-contract.md). Сервера пока нет: этот файл сам выбирает
+// источник данных, а экраны (js/league.js) ходят только через window.SB.api и не знают, откуда данные (08 ТЗ §1, §6).
+// Все методы возвращают Promise; ошибки — Error с полем code; деньги — в центах (целые), даты — ISO 'YYYY-MM-DD'.
+//
+// Источники (SOURCE):
+//   'demo' — набор js/demo-data.js (@sunset_drive, 08 §5). Включает только экран «Для админов» после кода админа:
+//            localStorage sb.demo = '1'. Режим площадки (rules.mode) тогда 'demo' — на экранах с суммами «Пример интерфейса».
+//   'beta' — закрытый доступ без сервера: профиль, список ожидания, приглашение, каналы и ролики — на устройстве
+//            (localStorage sb.beta.v1). rules.mode = CREATOR_MODE из config.js ('beta'): суммы «предварительные».
+//   'mock' — примеры состояний для стендов (?sbmock=<имя>), ТОЛЬКО на localhost / 127.0.0.1 или при включённом demo
+//            (06 В-1: в боевой сборке ?sbmock не работает). Состояния: league, newbie, empty, player, guest, minor, nopay, trial,
+//            trialend, partner, partnerend, link, renew, pro.
+//   потом 'server' — та же форма методов, данные из Supabase (feature/server заменит реализацию, не имена).
 //
 // Статусы ролика:     submitted → pending_review → awaiting_threshold → accruing → rejected (reject_code) / unavailable
 // Статусы начисления: maturing → available → paid / reversed
-// Причины начисления: share (40% с покупки по коду), cpa ($15 за приведённого креатора), task (задание, пара Скаута),
+// Причины начисления: share (40% с покупки по коду), cpa ($15 за приведённого креатора), task (задание), pair (пара Скаута),
 //                     queue_batch (проверки модератора), rpm (оплата просмотров), author_fee (10% автору места), friend_pro (дни Pro)
-// Профиль: roles, level, adult_at, ref_code, pro_until, pro_kind, work_pro_until, trial_until, league_unlocked, gift
-// (+ email, nick, country, payouts). Доступ (шаг 9, файл 31 §4.2–4.3): Pro — pro_until (куплен: year | pass | month)
-// или work_pro_until (рабочий Pro партнёра: 14 дней после «Стать партнёром», +30 дней за принятый ролик от 1 000 просмотров);
-// пробный — trial_until (ISO с временем, 72 часа с первого открытия); gift — пришёл по ссылке домен/КОД/…:
-// { from: ник, days: 30, place: {world,id} } → «+30 дней к первой покупке» и вещь из ссылки без Pro.
-// Деньги — в центах (целые), даты — ISO 'YYYY-MM-DD'.
-//
-// Состояние мока для показа: ?sbmock=<имя> (запоминается в sessionStorage) — league, newbie, empty,
-// player, guest, minor, nopay, trial, trialend, partner, partnerend, link, renew, pro. Всё ниже — ПРИМЕР,
-// настоящие цифры придут с сервера. Приложение (app.js) берёт доступ из профиля мока, только если состояние выбрано явно
-// (?sbmock=…); без него — гость (не вошёл), пробный доступ считается от первого запуска на устройстве.
+// Профиль: roles, level, adult_at, terms_at, partner_since, ref_code, pro_until, pro_kind, work_pro_until, trial_until,
+// league_unlocked, gift, invited (принято приглашение в закрытый доступ), waitlist {no, joined_at, status:'joined'|'verified'},
+// accounts [{id, platform:'tiktok'|'youtube'|'instagram'|'reels', status:'none'|'pending'|'verified'|'failed'|'soon', handle, url,
+// verify_code}], demo (+ email, nick, country, payouts). Доступ (шаг 9): Pro — pro_until; рабочий Pro партнёра —
+// work_pro_until (14 дней после подтверждения канала, +30 дней за принятый ролик от 1 000 просмотров); пробный — trial_until.
+
+import { CREATOR_MODE, CREATOR } from './config.js';
+import { demoDB, DEMO } from './demo-data.js';
+
+const ls = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+  set: (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch { } } };
+const DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+const DEMO_ON = ls.get('sb.demo') === '1';
+const devGate = () => DEV || DEMO_ON;   // ?sbmock и подмена даты открытия — только здесь
+const today = () => new Date().toISOString().slice(0, 10);
 
 const FIRST_ROUND = '2026-11-20';
 const RULES = {
@@ -38,13 +52,21 @@ const pl = (k) => ({ world: PLACES[k][0], id: PLACES[k][1] });
 
 const STATES = ['league', 'newbie', 'empty', 'player', 'guest', 'minor', 'nopay', 'trial', 'trialend', 'partner', 'partnerend', 'link', 'renew', 'pro'];
 function mockPick() {
+  if (!devGate()) { try { sessionStorage.removeItem('sb.mock'); } catch { } return null; }   // боевая сборка: ?sbmock не действует
   let s = null;
   try { s = new URLSearchParams(location.search).get('sbmock'); if (s) sessionStorage.setItem('sb.mock', s); } catch { }
   try { s = s || sessionStorage.getItem('sb.mock') || localStorage.getItem('sb.mock'); } catch { }
   return STATES.includes(s) ? s : null;
 }
-// без явного ?sbmock новый человек — гость (не вошёл): чужой пример-профиль (@sunset_drive) не показываем (тест 21.10)
-const mockState = () => mockPick() || 'guest';
+const MOCK = mockPick();
+const SOURCE = MOCK ? 'mock' : DEMO_ON ? 'demo' : 'beta';
+const MODE = DEMO_ON ? 'demo' : CREATOR_MODE;
+// дата открытия программы для всех (08 §2.3); на стенде можно подменить: ?sbopen=2026-10-01 (только localhost / demo)
+const OPEN_AT = (() => {
+  if (devGate()) { try { const q = new URLSearchParams(location.search).get('sbopen'); if (q) sessionStorage.setItem('sb.open_at', q); return sessionStorage.getItem('sb.open_at') || CREATOR.open_at; } catch { } }
+  return CREATOR.open_at;
+})();
+const mockState = () => MOCK || 'guest';
 
 // ── ролики автора ──
 const day = (d) => `2026-10-${String(d).padStart(2, '0')}`;
@@ -106,7 +128,7 @@ function ledgerOf(videos, extra) {
 
 function build(state) {
   const base = { nick: 'sunset_drive', ref_code: 'SUNSET', email: 'sunset_drive@mail.com', country: 'US', payouts: true,
-    roles: ['player'], level: 'new', adult_at: '2026-10-02', pro_until: null, trial_until: null, league_unlocked: false,
+    roles: ['player'], level: 'new', adult_at: '2026-10-02', terms_at: '2026-10-02', invited: true, waitlist: null, pro_until: null, trial_until: null, league_unlocked: false,
     league_progress: { views: 0, goal: RULES.league_goal_views }, mod: null, accounts: [] };
   const P = { ...base }; let videos = [], ledger = [], pro_days = [];
   const accts = [{ platform: 'tiktok', status: 'verified' }, { platform: 'reels', status: 'pending' }, { platform: 'youtube', status: 'soon' }];
@@ -131,7 +153,7 @@ function build(state) {
   } else if (state === 'player') {
     Object.assign(P, { roles: ['player'], adult_at: null });
   } else if (state === 'guest') {
-    Object.assign(P, { nick: null, ref_code: null, email: null, adult_at: null, roles: [] });
+    Object.assign(P, { nick: null, ref_code: null, email: null, adult_at: null, terms_at: null, roles: [], invited: false });
   } else if (state === 'minor') {
     Object.assign(P, { roles: ['player', 'author'], adult_at: null, minor: true });
     pro_days = [{ date: day(28), reason: 'friend_pro', days: 30, note: 'friend' }, { date: day(19), reason: 'friend_pro', days: 7, note: 'contrib' }];
@@ -162,43 +184,171 @@ function build(state) {
   return { P, videos, ledger, pro_days, payout: null, decisions: [] };
 }
 
+// ── закрытый доступ без сервера (08 §6): всё на устройстве, форма — как у сервера ──
+const BKEY = 'sb.beta.v1', DKEY = 'sb.demo.db';
+function freshBeta() {
+  return { P: { nick: null, ref_code: null, email: null, country: null, payouts: true, roles: [], level: 'new', adult_at: null, terms_at: null,
+    partner_since: null, invited: false, invite: null, waitlist: null, pro_until: null, trial_until: null, work_pro_until: null, league_unlocked: false,
+    league_progress: { views: 0, goal: RULES.league_goal_views }, mod: null, accounts: [] }, videos: [], ledger: [], pro_days: [], payout: null, decisions: [] };
+}
+function loadStore(key) { try { const v = JSON.parse(ls.get(key) || 'null'); return v && v.P ? v : null; } catch { return null; } }
 let DB = null;
-const db = () => (DB = DB || build(mockState()));
+const demoStage = () => (ls.get('sb.demo.stage') === 'start' ? 'start' : 'partner');
+const db = () => (DB = DB || (SOURCE === 'mock' ? build(mockState()) : SOURCE === 'demo' ? (loadStore(DKEY) || demoDB(demoStage())) : (loadStore(BKEY) || freshBeta())));
+// изменения профиля и роликов переживают перезагрузку (beta — до сервера, demo — до «Сбросить демо» у админа)
+const persist = () => { if (SOURCE === 'beta') ls.set(BKEY, JSON.stringify(db())); else if (SOURCE === 'demo') ls.set(DKEY, JSON.stringify(db())); };
 const wait = (v, ms = 120) => new Promise((r) => setTimeout(() => r(structuredClone(v)), ms));
 const fail = (code) => Promise.reject(Object.assign(new Error(code), { code }));
 const pub = (v) => ({ id: v.id, platform: v.platform, place: v.place, title: v.title, views: v.views, author: '@' + db().P.nick, mine: true, embed: v.embed, submitted_at: v.submitted_at });
 const sumBy = (arr, f) => arr.reduce((a, x) => a + f(x), 0);
+const addDays = (iso, n) => { const t = new Date(iso + 'T12:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
+const NOPAY = ['RU', 'BY'];
+
+// ── хэши кодов (config.js → CREATOR, tools/make_invites.py): PBKDF2-SHA256 50 000, коды приглашений — HMAC от кода админа ──
+const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const enc = (x) => new TextEncoder().encode(x);
+const hex = (b) => [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
+async function kdf(code, salt, bytes) {
+  const k = await crypto.subtle.importKey('raw', enc(code), 'PBKDF2', false, ['deriveBits']);
+  return hex(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc(salt), iterations: 50000 }, k, bytes * 8));
+}
+async function inviteCode(admin, i) {
+  const k = await crypto.subtle.importKey('raw', enc(admin), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const b = new Uint8Array(await crypto.subtle.sign('HMAC', k, enc('sb-invite:' + i)));
+  return 'SB-' + [...b.slice(0, 6)].map((x) => ALPHA[x % 32]).join('');
+}
+const normCode = (c) => String(c || '').toUpperCase().replace(/[\s_]/g, '').replace(/^SB(?!-)/, 'SB-');
+const INVITE_RE = /^SB-[A-Z0-9]{6}$/;
+const usedInvites = () => { try { return JSON.parse(ls.get('sb.inv.used') || '[]'); } catch { return []; } };
+// приглашение: { status: 'ok' | 'not_found' | 'used' | 'expired', until }
+async function checkInvite(code) {
+  const c = normCode(code);
+  if (!INVITE_RE.test(c)) return { status: 'not_found' };
+  if (SOURCE !== 'beta') {   // demo и стенды: коды для показа (demo-data.js) + настоящие
+    if (DEMO.invites.ok.includes(c)) return { status: 'ok', until: '2026-12-31' };
+    if (DEMO.invites.used.includes(c)) return { status: 'used' };
+    if (DEMO.invites.expired.includes(c)) return { status: 'expired' };
+  }
+  let h; try { h = await kdf(c, 'sb-invite-v1', 8); } catch { return { status: 'not_found' }; }
+  const batch = CREATOR.invites.find(([, hs]) => hs.split(' ').includes(h));
+  if (!batch) return { status: 'not_found' };
+  if (usedInvites().includes(h)) return { status: 'used' };
+  if (batch[0] < today()) return { status: 'expired', until: batch[0] };
+  return { status: 'ok', until: batch[0], h };
+}
+// ── экран «Для админов»: вход по коду админа (хэш в config.js), код хранится только на устройстве админа ──
+const adminCode = () => ls.get('sb.admin');
+let adminOK = null;
+async function isAdmin() {
+  if (adminOK !== null) return adminOK;
+  const c = adminCode(); if (!c) return (adminOK = false);
+  try { adminOK = (await kdf(c, 'sb-admin-v1', 32)) === CREATOR.admin; } catch { adminOK = false; }
+  return adminOK;
+}
+const created = () => { try { return JSON.parse(ls.get('sb.admin.invites') || '[]'); } catch { return []; } };
+// подтверждение канала — код для описания профиля; в demo — SB-7F3K (08 ТЗ §3, 02 §7.1)
+const verifyCodeFor = () => (SOURCE === 'beta' ? 'SB-' + Array.from({ length: 4 }, () => ALPHA[Math.floor(Math.random() * 32)]).join('') : DEMO.verify_code);
+function setAccount(acc, status) {
+  const P = db().P; acc.status = status;
+  if (status === 'verified') {
+    acc.verified_at = today();
+    if (P.waitlist) P.waitlist.status = 'verified';
+    // рабочий Pro на 14 дней после подтверждения (02 §7.1), только партнёру
+    if (P.roles.includes('creator')) {
+      // demo «с начала»: подтвердил канал — дальше это @sunset_drive с роликами за ноябрь, «Рабочий Pro до 9 ноября»
+      if (SOURCE === 'demo' && db().stage === 'start') { demoFinish(); P.accounts = [acc, ...P.accounts.filter((x) => x.platform !== acc.platform)]; return; }
+      const w = addDays(today(), RULES.partner_pro_days);
+      if (!P.work_pro_until || P.work_pro_until < w) P.work_pro_until = w;
+    }
+  }
+}
+const programOpen = () => MODE === 'live' || today() >= OPEN_AT;
+function signInLocal(P, email) {
+  const e = String(email).trim(), nick = e.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20) || 'author';
+  const code = nick.replace(/[^a-z0-9]/g, '').toUpperCase().slice(0, 8) || 'AUTHOR';
+  Object.assign(P, { email: e, nick: P.nick || nick, ref_code: P.ref_code || code });
+  if (!P.roles.includes('player')) P.roles.unshift('player');
+  // demo «с начала»: вход — это и есть @sunset_drive из набора
+  if (SOURCE === 'demo') Object.assign(P, { email: 'sunset_drive@mail.com', nick: 'sunset_drive', ref_code: 'SUNSET' });
+}
+// demo «с начала»: после «Готово» персонаж — партнёр с роликами за ноябрь (тот же набор, что в режиме «партнёр»)
+function demoFinish() { const full = demoDB('partner'); Object.assign(db().P, { ...full.P, work_pro_until: DEMO.work_pro_first }); db().stage = 'partner'; persist(); }
+const PLAT_RE = { tiktok: /tiktok\.com\/@?[\w.]+/i, youtube: /(youtube\.com\/(@|c\/|channel\/)[\w.-]+|youtu\.be)/i, instagram: /instagram\.com\/[\w.]+/i };
+const handleOf = (url) => '@' + (String(url).replace(/[?#].*$/, '').replace(/\/+$/, '').split('/').pop() || '').replace(/^@/, '');
 
 const api = {
-  isMock: true,
+  isMock: true,   // сервера нет: данные на устройстве, в demo — набор, на стенде — ?sbmock
   mockState,
   mockStates: STATES,
-  /** состояние мока выбрано явно (?sbmock=…): только тогда приложение берёт доступ (Pro, пробный, подарок) из профиля мока */
-  mockChosen: !!mockPick(),
+  /** профиль из SB.api задаёт доступ в приложении (app.js): Pro, рабочий Pro, пробный, подарок. Новый человек — гость, без чужого профиля */
+  useProfile: true,
+  mockChosen: !!MOCK,
 
   /** Профиль: { nick, ref_code, email, country, payouts, roles[], level, adult_at, pro_until, pro_kind:'year'|'pass'|'month'|'work', work_pro_until, trial_until (ISO), gift{from,days,place}|null, league_unlocked, league_progress{views,goal}, mod{today{checked,accuracy,cents},stage}, accounts[{platform,status}] } */
-  getProfile: () => wait(db().P, 60),
+  getProfile: () => wait({ ...db().P, demo: MODE === 'demo' }, 60),
   /** Правила и цифры (rules.json на сервере): ставки, холды, порог вывода, дата первого раунда, медиана (null до раунда) */
-  getRules: () => wait(RULES, 40),
+  getRules: () => wait({ ...RULES, mode: MODE, open_at: OPEN_AT, ...(SOURCE === 'demo' ? { first_round: DEMO.first_round } : {}) }, 40),
 
   /** Вход почтой: код на почту */
-  signIn: (email) => (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(email)) ? wait({ sent: true, email }, 300) : fail('bad_email')),
+  // В закрытом доступе без сервера письмо с кодом не уходит: вход — по принятому приглашению (08 §6), ответ { sent:false, signed_in:true }.
+  signIn: (email) => {
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(email))) return fail('bad_email');
+    if (SOURCE === 'mock') return wait({ sent: true, email }, 300);
+    const P = db().P; signInLocal(P, email); persist();
+    return wait({ sent: false, signed_in: true, email }, 250);
+  },
   /** Проверка кода из письма → профиль */
   verifyCode: (email, code) => {
     if (!/^\d{4,6}$/.test(String(code))) return fail('bad_code');
-    const P = db().P; if (!P.email) Object.assign(P, { email, nick: String(email).split('@')[0].replace(/[^a-z0-9_]/gi, '').slice(0, 20) || 'author', ref_code: 'NEW' + Math.floor(Math.random() * 90 + 10), roles: ['player'] });
+    const P = db().P; if (!P.email) signInLocal(P, email); persist();
     return wait(P, 300);
   },
-  /** 18+ — в момент первой денежной роли. adult=true → роль creator и код; false → дни Pro вместо денег */
+  /** «Стать партнёром», шаг 18+ (02 §7.1 п. 2). adult=false → дни Pro вместо денег (minor). Роль creator — после правил и страны */
   confirmAge: (adult) => {
     const P = db().P;
-    if (adult) {
-      P.adult_at = new Date().toISOString().slice(0, 10); P.minor = false; if (!P.roles.includes('creator')) P.roles.push('creator');
-      // рабочий Pro партнёра — сразу 14 дней (решение ведения 16.10, 31 §4.3); дальше +30 дней за принятый ролик от 1 000 просмотров
-      if (!P.work_pro_until || P.work_pro_until < inD(0)) P.work_pro_until = inD(RULES.partner_pro_days);
-    }
+    if (adult) { P.adult_at = today(); P.minor = false; }
     else { P.adult_at = null; P.minor = true; P.roles = P.roles.filter((r) => r !== 'creator' && r !== 'mod'); }
-    return wait(P, 200);
+    persist(); return wait(P, 200);
+  },
+  /** Правила партнёрства приняты (02 §7.1 п. 3) → partner_terms_accepted_at */
+  acceptTerms: () => { const P = db().P; if (!P.adult_at) return fail('need_age'); P.terms_at = today(); persist(); return wait(P, 150); },
+  /** Страна и роль партнёра (02 §7.1 п. 4): РФ, РБ — payouts:false, вместо денег дни Pro. Бесплатно, без покупки (07 §3, решение B) */
+  becomePartner: ({ country } = {}) => {
+    const P = db().P;
+    if (!P.adult_at) return fail('need_age'); if (!P.terms_at) return fail('need_terms');
+    const c = String(country || P.country || 'US').toUpperCase();
+    Object.assign(P, { country: c, payouts: !NOPAY.includes(c), partner_since: P.partner_since || today(), level: P.level || 'new' });
+    if (!P.roles.includes('creator')) P.roles.push('creator');
+    // канал подтвердили ещё в списке ожидания — рабочий Pro начинается сейчас
+    if ((P.accounts || []).some((a) => a.status === 'verified') && !P.work_pro_until) P.work_pro_until = addDays(today(), RULES.partner_pro_days);
+    persist(); return wait(P, 200);
+  },
+  /** Подтверждение канала (02 §7.1 п. 5): { platform:'tiktok'|'youtube'|'instagram', url } → { id, status:'pending', verify_code, handle }.
+   *  Сервер ищет код в описании профиля (YouTube — Data API, TikTok и Instagram — оператор). Без сервера — отметка на экране «Для админов»;
+   *  в demo — подтверждается сам через несколько секунд. Ошибки: bad_platform, bad_url */
+  verifyAccount: ({ platform, url } = {}) => {
+    if (!PLAT_RE[platform]) return fail('bad_platform');
+    if (!PLAT_RE[platform].test(String(url || ''))) return fail('bad_url');
+    const P = db().P; P.accounts = (P.accounts || []).filter((a) => !(a.platform === platform && a.status !== 'verified'));
+    const acc = { id: 'A' + Date.now().toString(36).toUpperCase(), platform, url: String(url).trim().replace(/^https?:\/\//, ''), handle: handleOf(url), verify_code: verifyCodeFor(), status: 'pending', at: today() };
+    P.accounts.push(acc); persist();
+    if (SOURCE !== 'beta' && !/fail/i.test(url)) setTimeout(() => { setAccount(acc, 'verified'); persist(); }, 4000);   // demo: «проверили за несколько минут»
+    else if (SOURCE !== 'beta') setTimeout(() => { setAccount(acc, 'failed'); persist(); }, 4000);
+    return wait(acc, 300);
+  },
+  /** Список ожидания (08 §2.1): { email, platforms[], profile_url? } → { no, joined_at, status:'joined'|'verified' }. Ошибка bad_email */
+  joinWaitlist: ({ email, platforms = [], profile_url = '' } = {}) => {
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(email || ''))) return fail('bad_email');
+    const P = db().P;
+    if (!P.waitlist) {
+      const no = SOURCE === 'beta' ? CREATOR.waitlist_count + 1 : DEMO.waitlist_no;
+      P.waitlist = { no, joined_at: today(), email: String(email).trim(), platforms, profile_url: String(profile_url || '').trim(), status: (P.accounts || []).some((a) => a.status === 'verified') ? 'verified' : 'joined' };
+      if (SOURCE === 'beta' && CREATOR.waitlist_endpoint) {   // Cloudflare-форма на почту админа (адрес — только из config.js)
+        try { fetch(CREATOR.waitlist_endpoint, { method: 'POST', mode: 'no-cors', body: new URLSearchParams({ email: P.waitlist.email, platforms: platforms.join(','), profile: P.waitlist.profile_url }) }).catch(() => { }); } catch { }
+      }
+      persist();
+    }
+    return wait(P.waitlist, 300);
   },
 
   /** Лига: { unlocked, progress{views,goal}, tasks[{ id, kind:'unlock'|'place_week'|'fresh_find'|'month_views', goal?, progress?, done?, place?{world,id}, found_by?, found_at? }], rating_after } */
@@ -206,18 +356,27 @@ const api = {
     const { P } = db();
     const tasks = [
       { id: 't1', kind: 'unlock', goal: RULES.league_goal_views, progress: P.league_progress.views, done: P.league_unlocked },
-      { id: 't2', kind: 'place_week', place: pl('a') },
+      { id: 't2', kind: 'place_week', place: SOURCE === 'demo' ? { world: 'gta6', id: 'gta6-providence-canyon' } : pl('a') },   // demo: место недели — ролик R8TW
       { id: 't3', kind: 'fresh_find', place: pl('g'), found_by: '@keys_hunter', found_at: day(14) },
       { id: 't4', kind: 'month_views', goal: 100000, progress: sumBy(db().videos, (v) => v.views), done: sumBy(db().videos, (v) => v.views) >= 100000 },
     ];
     return wait({ unlocked: P.league_unlocked, progress: P.league_progress, tasks, rating_after: FIRST_ROUND });
   },
 
-  /** Код приглашения в Лигу → { ok, unlocked } (одноразовый, 30 дней) */
-  redeemInvite: (code) => {
+  /** Код приглашения. SB- + 6 знаков — закрытый доступ (08 §2.2) → { ok, kind:'beta' }; ошибки not_found, used, expired.
+   *  Другие коды — приглашение в Лигу → { ok, unlocked } (одноразовый, 30 дней); ошибки bad_code, expired */
+  redeemInvite: async (code) => {
+    const c = normCode(code);
+    if (/^SB-/.test(c)) {
+      const r = await checkInvite(c);
+      if (r.status !== 'ok') return fail(r.status);
+      const P = db().P; P.invited = true; P.invite = { at: today(), until: r.until };
+      if (r.h) ls.set('sb.inv.used', JSON.stringify([...usedInvites(), r.h]));
+      persist(); return wait({ ok: true, kind: 'beta' }, 200);
+    }
     if (!/^[A-Z0-9-]{4,12}$/i.test(String(code || '').trim())) return fail('bad_code');
     if (/^OLD/i.test(code)) return fail('expired');
-    db().P.league_unlocked = true; return wait({ ok: true, unlocked: true }, 250);
+    db().P.league_unlocked = true; persist(); return wait({ ok: true, unlocked: true }, 250);
   },
 
   /** Мои ролики: [{ id, platform, place{world,id}, title, status, reject_code?, submitted_at, views, clicks, trials, pays, earned{share_cents,rpm_cents,total_cents}, link_v }] */
@@ -236,7 +395,7 @@ const api = {
     const id = Math.random().toString(36).slice(2, 6).toUpperCase();
     const platform = /tiktok/i.test(url) ? 'tiktok' : /shorts/i.test(url) ? 'shorts' : /youtu/i.test(url) ? 'youtube' : /instagram/i.test(url) ? 'reels' : 'snapchat';
     const v = { id, platform, place: { world, id: place_id }, title: '', status: 'submitted', submitted_at: new Date().toISOString().slice(0, 10), views: 0, clicks: 0, trials: 0, pays: 0, buys: [], pay_days: [], by_day: [], embed: null };
-    db().videos.unshift(v);
+    db().videos.unshift(v); persist();
     return wait({ id, status: 'submitted', verify_code: 'SB-' + id, link_v: id }, 350);
   },
   /** Статистика своего ролика (только автор): { id, views_by_day[{date,views}], views, clicks, trials, pays, earned{…} } */
@@ -276,7 +435,7 @@ const api = {
 
   /** Заработок за месяц: { month, totals{maturing,available,paid,total}, round_date, median_cents|null, payout|null,
    *  ledger[{id,date,reason,amount_cents,status,ref,part?,plan?}], funnel{views,clicks,trials,pays}, pro_days[{date,reason,days,note}], pro_days_total } */
-  getEarnings: (month = '2026-10') => {
+  getEarnings: (month = db().month || '2026-10') => {
     const { ledger, videos, payout, pro_days } = db();
     const t = (s) => sumBy(ledger.filter((x) => x.status === s), (x) => x.amount_cents);
     const totals = { maturing: t('maturing'), available: t('available'), paid: t('paid') }; totals.total = totals.maturing + totals.available + totals.paid;
@@ -289,6 +448,7 @@ const api = {
     const d = db(), av = sumBy(d.ledger.filter((x) => x.status === 'available'), (x) => x.amount_cents);
     if (!d.P.adult_at || !d.P.payouts) return fail('not_allowed');
     if (av < RULES.payout_min_cents) return fail('below_min');
+    if (SOURCE !== 'mock' && MODE !== 'live') return fail('beta_off');   // выплаты начнутся, когда программа откроется для всех (08 §2.4)
     d.payout = { status: 'pending_review', amount_cents: av, round_date: FIRST_ROUND };
     return wait(d.payout, 300);
   },
@@ -315,7 +475,66 @@ const api = {
     m.today.checked += 1; m.today.cents += 1; db().decisions.push({ id, decision, reason_code });
     return wait({ ok: true, today: m.today }, 80);
   },
+  // ───────── экран «Для админов» (08 №18, только веб). С сервером — роль admin в GET /me и методы /ops ─────────
+  /** Вход по коду админа → { ok }; ошибка bad_code. Код остаётся только на этом устройстве (нужен, чтобы выводить коды приглашений) */
+  adminSignIn: async (code) => {
+    const c = String(code || '').trim().toUpperCase();
+    let h = ''; try { h = await kdf(c, 'sb-admin-v1', 32); } catch { return fail('no_crypto'); }
+    if (h !== CREATOR.admin) return fail('bad_code');
+    ls.set('sb.admin', c); adminOK = true; return wait({ ok: true }, 100);
+  },
+  adminSignOut: () => { ls.set('sb.admin', null); adminOK = false; return wait({ ok: true }, 50); },
+  /** { admin, demo, stage:'partner'|'start' } */
+  adminState: async () => wait({ admin: await isAdmin(), demo: DEMO_ON, stage: demoStage() }, 30),
+  /** Режим demo вкл/выкл (только админ). stage: 'partner' — партнёр с роликами, 'start' — путь с начала. После — перезагрузка */
+  adminSetDemo: async (on, stage = 'partner') => {
+    if (!(await isAdmin())) return fail('not_admin');
+    ls.set('sb.demo', on ? '1' : null); ls.set('sb.demo.stage', stage === 'start' ? 'start' : null); ls.set(DKEY, null);
+    return wait({ demo: !!on, stage }, 50);
+  },
+  /** «Создать 10»: следующие коды SB-XXXXXX из партий config.js (действующих, не прошедших) → [{ code, i, until, created_at }] */
+  createInvites: async (n = 10) => {
+    if (!(await isAdmin())) return fail('not_admin');
+    const have = created(), top = have.reduce((m, x) => Math.max(m, x.i), 9), out = [];
+    for (let i = top + 1; out.length < n && i < CREATOR.invites.length * 10; i++) {
+      const until = CREATOR.invites[Math.floor(i / 10)][0]; if (until < today()) continue;
+      out.push({ code: await inviteCode(adminCode(), i), i, until, created_at: today() });
+    }
+    if (!out.length) return fail('no_invites_left');   // партии кончились: tools/make_invites.py --batches N
+    ls.set('sb.admin.invites', JSON.stringify([...out, ...have])); return wait(out, 120);
+  },
+  /** Созданные на этом устройстве приглашения → [{ code, until, created_at, used }] (used — принят на этом устройстве; с сервером — у всех) */
+  listInvites: async () => {
+    if (!(await isAdmin())) return fail('not_admin');
+    const used = usedInvites(), all = created();
+    const hs = await Promise.all(all.map((x) => kdf(x.code, 'sb-invite-v1', 8).catch(() => '')));
+    return wait(all.map((x, k) => ({ code: x.code, until: x.until, created_at: x.created_at, used: used.includes(hs[k]) })), 40);
+  },
+  /** Счётчик списка ожидания (08 §2.4): { joined, verified, goal_joined:500, goal_verified:100 } */
+  getWaitlistStats: async () => {
+    if (!(await isAdmin())) return fail('not_admin');
+    if (SOURCE !== 'beta') return wait({ ...DEMO.whitelist }, 60);
+    const P = db().P, me = P.waitlist ? 1 : 0;
+    return wait({ joined: CREATOR.waitlist_count + me, verified: P.waitlist?.status === 'verified' ? 1 : 0, goal_joined: 500, goal_verified: 100 }, 60);
+  },
+  /** Заявки на подтверждение канала (заглушка §6: видно админу на том же устройстве) → [{ id, nick, platform, url, verify_code, at, status }] */
+  listAccountRequests: async () => {
+    if (!(await isAdmin())) return fail('not_admin');
+    const P = db().P, mine = (P.accounts || []).filter((a) => a.status === 'pending' || a.status === 'failed').map((a) => ({ ...a, nick: P.nick || String(a.handle || '').replace(/^@/, ''), own: true }));
+    const extra = SOURCE === 'beta' ? [] : DEMO.requests.map((r) => ({ ...r, status: (db().reqs || {})[r.id] || r.status }));
+    return wait([...mine, ...extra], 60);
+  },
+  /** Ручная отметка «канал подтверждён» / «код не нашли»: status 'verified' | 'failed' */
+  markAccount: async (id, status) => {
+    if (!(await isAdmin())) return fail('not_admin');
+    if (!['verified', 'failed'].includes(status)) return fail('bad_status');
+    const acc = (db().P.accounts || []).find((a) => a.id === id);
+    if (acc) setAccount(acc, status); else { const d = db(); d.reqs = { ...(d.reqs || {}), [id]: status }; }
+    persist(); return wait({ id, status }, 120);
+  },
 };
+// стенд (localhost / demo): тот же набор в источнике beta — проверка «demo ⇄ beta не меняет разметку» (08 §6)
+if (devGate()) api._seedBeta = (stage = 'partner') => { const x = demoDB(stage); x.P.demo = false; ls.set(BKEY, JSON.stringify(x)); return true; };
 
 window.SB = window.SB || {};
 window.SB.api = api;
