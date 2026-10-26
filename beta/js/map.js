@@ -145,6 +145,8 @@ const W = {
   game:   { en: 'In game', ru: 'В игре', es: 'En el juego', pt: 'No jogo', fr: 'En jeu', de: 'Im Spiel', it: 'Nel gioco', tr: 'Oyunda', uk: 'У грі', pl: 'W grze', zh: '游戏中', ja: 'ゲーム内', ko: '게임 속' },
   real:   { en: 'Real life', ru: 'В жизни', es: 'En la vida real', pt: 'Na vida real', fr: 'En vrai', de: 'In echt', it: 'Dal vivo', tr: 'Gerçekte', uk: 'У житті', pl: 'W realu', zh: '现实中', ja: '実際', ko: '실제' },
   route:  { en: 'Open in Maps', ru: 'Открыть в Картах', es: 'Abrir en Mapas', pt: 'Abrir no Mapas', fr: 'Ouvrir dans Plans', de: 'In Karten öffnen', it: 'Apri in Mappe', tr: 'Haritalarda aç', uk: 'Відкрити в Картах', pl: 'Otwórz w Mapach', zh: '在地图中打开', ja: 'マップで開く', ko: '지도에서 열기' },
+  shoot:  { en: 'Film a video about this place', ru: 'Снять ролик об этом месте', es: 'Grabar un vídeo de este lugar', pt: 'Gravar um vídeo deste lugar', fr: 'Filmer une vidéo de ce lieu', de: 'Video über diesen Ort drehen', it: 'Gira un video su questo luogo', tr: 'Bu yer hakkında video çek', uk: 'Зняти ролик про це місце', pl: 'Nagraj film o tym miejscu', zh: '拍摄这个地点的视频', ja: 'この場所の動画を撮る', ko: '이 장소 영상 찍기' },
+  pvids:  { en: 'Videos about this place', ru: 'Ролики об этом месте', es: 'Vídeos de este lugar', pt: 'Vídeos deste lugar', fr: 'Vidéos de ce lieu', de: 'Videos über diesen Ort', it: 'Video su questo luogo', tr: 'Bu yer hakkında videolar', uk: 'Ролики про це місце', pl: 'Filmy o tym miejscu', zh: '关于这个地点的视频', ja: 'この場所の動画', ko: '이 장소 영상' },
   look:   { en: 'Look around 360°', ru: 'Осмотреться 360°', es: 'Ver en 360°', pt: 'Ver em 360°', fr: 'Voir à 360°', de: '360°-Ansicht', it: 'Vista a 360°', tr: '360° bak', uk: 'Огляд 360°', pl: 'Widok 360°', zh: '360° 街景', ja: '360°で見る', ko: '360° 둘러보기' },
   share:  { en: 'Share', ru: 'Поделиться', es: 'Compartir', pt: 'Compartilhar', fr: 'Partager', de: 'Teilen', it: 'Condividi', tr: 'Paylaş', uk: 'Поділитися', pl: 'Udostępnij', zh: '分享', ja: '共有', ko: '공유' },
   here:   { en: 'Several places here', ru: 'Здесь несколько мест', es: 'Varios lugares aquí', pt: 'Vários lugares aqui', fr: 'Plusieurs lieux ici', de: 'Mehrere Orte hier', it: 'Più luoghi qui', tr: 'Burada birkaç yer', uk: 'Тут кілька місць', pl: 'Kilka miejsc tutaj', zh: '这里有多个地点', ja: 'ここに複数の場所', ko: '여기에 여러 장소' },
@@ -400,7 +402,19 @@ function actions(lat, lon, name, shareText, fav = '', view = null, key = '') {
     <a class="mp-cta" href="${panoLink(lat, lon, view)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>
     <a class="mp-ib" href="${mapsLink(lat, lon, name)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}" title="${esc(w('route'))}">${IC.nav}</a>
     ${fav}<button class="mp-ib" data-mp="share" data-t="${esc(shareText)}" data-k="${esc(key)}" aria-label="${esc(w('share'))}" title="${esc(w('share'))}">${IC.share}</button>
-  </div>`;
+  </div>${creatorActs(key)}`;
+}
+// креаторский раздел (вёрстка, design/glass-city): «Снять ролик об этом месте» → SB.shootPlace, «Ролики об этом месте» →
+// SB.openPlaceVideos. Кнопки — только там, где раздел подключён (в проде и бете функций нет — кнопок нет).
+function creatorActs(key) {
+  const [kind, g, raw] = (key || '').split(':');
+  const id = kind === 'db' ? 'db-' + raw : raw;   // точки gtadb — как в ссылках шера (s/<игра>/db-<id>)
+  if (!g || !raw) return '';
+  const sb = window.SB || {};
+  const b = (fn, mp, ic, label) => (typeof sb[fn] === 'function'
+    ? `<button class="mp-cta mp-cta-cr" data-mp="${mp}" data-g="${esc(g)}" data-id="${esc(id)}">${ic}<span>${esc(w(label))}</span></button>` : '');
+  const html = b('shootPlace', 'shoot', IC.camera, 'shoot') + b('openPlaceVideos', 'pvids', IC.play, 'pvids');
+  return html ? `<div class="mp-acts mp-acts-cr">${html}</div>` : '';
 }
 // «Поделиться местом»: ссылка на страницу-превью s/<игра>/<id>.html (в мессенджерах — карточка с кадром и названием,
 // на странице — превью и «Открыть в Secret Base»). Страницы собирает tools/build_share.py; ссылка всегда на прод.
@@ -1716,6 +1730,8 @@ document.addEventListener('click', (e) => {
     el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 300);
   }
   else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t, el.dataset.k, el); }
+  else if (a === 'shoot') { ctx?.haptic(); window.SB?.shootPlace?.(el.dataset.g, el.dataset.id); }
+  else if (a === 'pvids') { ctx?.haptic(); window.SB?.openPlaceVideos?.(el.dataset.g, el.dataset.id); }
   else if (a === 'legend') { ctx?.haptic(); ctx.openSheet(legendSheet(), 'sheet-map'); }
   else if (a === 'gl-reveal') { if (el.classList.contains('spoil')) { ctx?.haptic(); el.classList.remove('spoil'); el.querySelector('.gl-pic-t')?.remove(); glSeen.add(el.dataset.id); saveSet('secret.gl.seen', glSeen); } }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
