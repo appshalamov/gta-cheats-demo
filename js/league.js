@@ -100,7 +100,7 @@ const S = {
     lg_code_h: 'Код из письма', lg_code_sub: 'Отправили на {e}', lg_code: 'Код', lg_enter: 'Войти', lg_bad_email: 'Проверьте адрес почты', lg_bad_code: 'Код — 4–6 цифр из письма',
     lg_age_h: 'Вам есть 18 лет?', lg_age_sub: 'Деньги начисляем только с 18 лет. Возраст подтвердим при первом выводе вместе с личностью', lg_yes: 'Да, мне 18', lg_no: 'Нет',
     lg_minor_h: 'Пока без денег', lg_minor_sub: 'До 18 лет за принятые вклады начисляем дни Pro. Вклады и «Найдено @ник» работают как обычно',
-    lg_draft: 'Черновик сохранится, пока вы вводите код',
+    lg_draft: 'Черновик сохранён на этом устройстве и отправится после входа',
     wd_h: 'Вывести {s}', wd_sub: 'Выплата {d}, от {min}. Первый вывод — с проверкой личности', wd_1: 'Сумма: {s}, всё доступное', wd_2: 'Проверка личности и возраста 18+ у платёжного партнёра, один раз. Ссылку пришлём на {e}', wd_3: 'Раунд {d}',
     wd_fee: 'Комиссию способа выплаты платит получатель.', wd_send: 'Отправить заявку', wd_below_h: 'Пока меньше {min}', wd_below_p: 'Доступно {s}. Остаток перейдёт на следующий раунд и сложится с новыми начислениями.',
     wd_ok_h: 'Заявка принята', wd_ok_1: 'Заявка отправлена', wd_ok_2: 'На проверке: первую выплату смотрит человек', wd_ok_3: 'Выплата в раунд {d}', wd_status: 'Статус выплаты: на проверке',
@@ -310,7 +310,7 @@ const S = {
     lg_code_h: 'Code from the email', lg_code_sub: 'Sent to {e}', lg_code: 'Code', lg_enter: 'Sign in', lg_bad_email: 'Check the email address', lg_bad_code: 'The code is 4–6 digits from the email',
     lg_age_h: 'Are you 18 or older?', lg_age_sub: 'We pay only from 18. We confirm age with identity on the first payout', lg_yes: 'Yes, I am 18+', lg_no: 'No',
     lg_minor_h: 'No money for now', lg_minor_sub: 'Under 18, accepted contributions earn Pro days. Contributions and “Found by @name” work as usual',
-    lg_draft: 'Your draft is kept while you enter the code',
+    lg_draft: 'The draft is saved on this device and goes out after you sign in',
     wd_h: 'Withdraw {s}', wd_sub: 'Payout on {d}, from {min}. The first payout includes an identity check', wd_1: 'Amount: {s}, everything available', wd_2: 'Identity and 18+ check with the payout partner, once. We will email the link to {e}', wd_3: 'Round on {d}',
     wd_fee: 'The payout method fee is paid by the recipient.', wd_send: 'Send request', wd_below_h: 'Less than {min} so far', wd_below_p: '{s} available. The rest moves to the next round and adds up with new earnings.',
     wd_ok_h: 'Request received', wd_ok_1: 'Request sent', wd_ok_2: 'In review: a person checks the first payout', wd_ok_3: 'Payout in the {d} round', wd_status: 'Payout status: in review',
@@ -429,6 +429,134 @@ const S = {
     e_frozen: 'Earnings for video {id} are paused: we are checking views. We answer within 48 hours', e_pd: 'Pro days: {n}',
   },
 };
+// строки доски заданий, формы вклада и «Моих вкладов» (08 ТЗ §3 №11–13, §4; 02 §6). Словарь: «место / пасхалка», «Pro»
+const TS = {
+  ru: {
+    board_h: 'Задания', bd_a: 'Для всех', bd_a_p: 'Нужен только вход почтой при отправке. Награда указана на каждой карточке',
+    bd_b: 'Для партнёров', bd_b_p: 'Видно всем, делать — после «Стать партнёром». Деньги — партнёрам 18+ за ролик, пару фото и проверку',
+    bd_b_p_np: 'Видно всем, делать — после «Стать партнёром»', bd_c: 'Лига', bd_c_p: 'Задания с фиксированной оплатой из бюджета. Сумма видна только партнёру',
+    bd_c_p_np: 'Задания для участников Лиги: ролик о нескольких местах', hub_tasks: 'Задания', hub_tasks_sub: 'Места, пасхалки, фото и ролики',
+    hub_mine: 'Мои вклады', hub_mine_sub: 'Принято {a}, на проверке {b}', hub_mine_none: 'Ваши находки и правки', you_nick: 'ваш_ник',
+    tk_found: 'Узнаю это место', tk_found_d: '{p}: это то место из игры? «Нашёл» или «Не то место»', tk_found_v: 'Отметить',
+    tk_fix: 'Поправьте место', tk_fix_d: '{p}: не там, закрыто, не то здание или нет координат', tk_fix_v: 'Поправить',
+    tk_new_place: 'Новое место', tk_new_place_d: 'Нашли место из игры в жизни: точка, название, что в игре и источник', tk_new_place_v: 'Добавить место',
+    tk_new_egg: 'Новая пасхалка', tk_new_egg_d: 'Отсылка или прообраз из игры: где это и откуда известно', tk_new_egg_v: 'Добавить пасхалку',
+    tk_game_frame: 'Кадр из игры', tk_game_frame_d: '{p}: свой снимок экрана из игры с того же ракурса, что фото из жизни', tk_game_frame_v: 'Добавить кадр',
+    tk_free_photo: 'Свободное фото', tk_free_photo_d: '{p}: фото из жизни ещё нет. Нужна ссылка на фото со свободной лицензией', tk_free_photo_v: 'Добавить фото',
+    tk_place_week: 'Снимите ролик о месте недели: {p}', tk_place_week_d: 'Место недели получает «Снято про это» в карточке и первым стоит в ленте', tk_place_week_v: 'Снять',
+    tk_fresh_find: 'Свежая находка: {p}, роликов ещё нет', tk_fresh_find_d: 'Нашёл {who}, {d}. Первый ролик места закрепим в ленте на 30 дней', tk_fresh_find_v: 'Снять',
+    tk_mention3: 'Снимите ролик с упоминанием 3 мест', tk_mention3_d: 'До 5 мест в ролике, у каждого — секунда, где его видно или слышно', tk_mention3_v: 'Подать ролик',
+    tk_need_pair: 'Нужна пара: {p}', tk_need_pair_d: 'Снимите тот же ракурс, что кадр игры: камера покажет его полупрозрачно', tk_need_pair_v: 'Переснять ракурс',
+    tk_review: 'Проверка', tk_review_d: 'Карточки по одной: «Подходит» или «Не подходит». Решаем только: законно, то место, не чужое', tk_review_v: 'Проверять',
+    tk_review_today: 'Сегодня: проверено {n}, точность {a}%',
+    tk_league_d: '{pl}. Мест в ролике: {n}. Осталось участников: {s} из {all}', tk_league_v: 'Подать ролик', tk_until: 'Срок — до {d}',
+    rw_check: 'Галочка у места', rw_found: 'Найдено {n}', rw_photo: 'Фото: {n}', rw_frame: 'Кадр: {n}', rw_free_photo: 'Фото: найдено {n}',
+    rw_author: '{p}% с роликов о месте', rw_pair: '{s} за принятую пару', rw_dec: '{s} за точное решение', rw_rpm: '{r} за 1 000 просмотров и {p}% с покупок по ссылке',
+    rw_fixed: '{s} при {v} просмотров', rw_league_np: 'Сумма видна партнёрам. Порог — {v} просмотров', rw_vpro: '{d} за ролик от {v} просмотров',
+    rw_pre: 'Предварительно: {x}', rw_frame_note: 'Без денег: права на кадры игры — у её издателя',
+    st_draft: 'Черновик', st_draft_p: 'Сохранён на этом устройстве', st_continue: 'Продолжить', st_sent: 'На проверке', st_sent_p: 'На проверке, обычно до 48 часов',
+    st_ok: 'Принято', st_no: 'Не принято', st_fix: 'Исправить', st_more_place: 'Добавить ещё место', st_more_egg: 'Добавить ещё пасхалку', st_more_video: 'Снять ещё',
+    lk_release: 'Откроется в день выхода GTA 6, {d}', lk_adult: 'Только с 18 лет', lk_invite: 'Откроется по приглашению в закрытый доступ',
+    lk_partner: 'Откроется после «Стать партнёром»', lk_scout: 'Откроется после 5 принятых вкладов: у вас {n}', lk_mod: 'Для модераторов: 5 принятых вкладов и экзамен',
+    lk_league: 'Откроется после 10 000 просмотров ролика (сейчас {n}) или по коду приглашения', lk_starts: 'Откроется {d}',
+    tr_opens: 'Ваше место открыли {n} раз за неделю', tr_videos: ', о нём {v}', tr_compares: 'По вашей паре сравнивают {n}', tr_frame: 'По вашему кадру сравнивают {n}',
+    tr_fixed: 'Ваша правка исправила адрес для {n}', n_people: '{n} человек|{n} человека|{n} человек',
+    tr_votes: '«Нашёл»: {n} из {need}. Три голоса — и место «Проверено игроками»', tr_votes_ok: 'Место проверено игроками: {n} из {need} «Нашёл»',
+    rjc_checked_ok: 'Мы проверили: место на карте верное', rjc_no_source: 'Нет источника: ссылки на ролик, кадр или статью', rjc_duplicate: 'Это место уже есть на карте',
+    rjc_license: 'У фото нет свободной лицензии', rjc_angle: 'Ракурс не совпадает с кадром игры', rjc_not_game: 'Это не кадр из игры', rjc_people: 'На фото видны лица людей',
+    rjc_other: 'Не подходит под правила',
+    mc_h: 'Мои вклады', mc_empty: 'Здесь будут ваши находки', mc_empty_p: 'Начните с «Узнаю это место» на любой карточке.', mc_open_board: 'Открыть задания',
+    mc_drafts: 'Черновики', mc_places: 'Ваши места', mc_places_p: 'Вы автор: ваше имя у места навсегда', mc_places_p_money: 'Вы автор: ваше имя у места навсегда и {p}% с роликов о нём {m} месяцев',
+    mc_edits: 'Ваши правки и фото', mc_edits_p: 'Ваш ник у правок и фото', mc_sum: 'Принято {a}, на проверке {b}',
+    mc_pro: '{d} за вклады. Не больше 60 дней в год', mc_pro_beta: 'Дни Pro за вклады начнутся, когда программа откроется для всех',
+    ct_found: 'Узнаю это место', ct_fix: 'Правка', ct_new_place: 'Новое место', ct_new_egg: 'Новая пасхалка', ct_pair: 'Фото из жизни', ct_game_frame: 'Кадр из игры', ct_free_photo: 'Свободное фото',
+    ty_new_place: 'Новое место', ty_new_place_d: 'Точка, название, что в игре и источник', ty_new_egg: 'Новая пасхалка', ty_new_egg_d: 'Отсылка или прообраз из игры',
+    ty_fix: 'Поправить место', ty_fix_d: 'Не там, закрыто, не то здание, нет координат', ty_pair2: 'Фото из жизни', ty_pair2_d: 'Тот же ракурс, что кадр игры. Для Скаутов: 5 принятых вкладов',
+    ty_frame: 'Кадр из игры', ty_frame_d: 'Свой снимок экрана из игры, без денег', ty_free: 'Свободное фото', ty_free_d: 'Ссылка на фото со свободной лицензией',
+    cf_point_sub: 'Точка, название, что в игре и источник. Черновик сохраняется на этом устройстве', cf_where_h: 'Где это в жизни', cf_where: 'Координаты или адрес',
+    cf_where_ph: '25.7617, -80.1918 или улица и город', cf_pick: 'Выбрать место на карте', cf_point: 'Точка на карте', cf_name: 'Название', cf_name_ph: 'Как называется в жизни',
+    cf_what: 'Что в игре', cf_what_ph: 'Как это выглядит в игре', cf_what_egg_ph: 'Что за отсылка и где в игре', cf_src: 'Источник', cf_src_ph: 'Ролик с таймкодом, кадр или статья',
+    cf_src_need: 'Нужна ссылка на ролик, кадр или статью, где это видно', cf_or_photo: 'Или фото', cf_add_photo: 'Добавить фото', cf_photo_ok: 'Фото добавлено',
+    cf_next: 'Дальше', cf_place: 'Место', cf_dup_h: 'Похоже, это место уже есть', cf_dup_q: 'Это оно?', cf_dup_yes: 'Да, дополнить', cf_dup_no: 'Нет, другое',
+    fx_wrong_spot: 'Не там', fx_closed: 'Закрыто', fx_wrong_building: 'Не то здание', fx_no_coords: 'Нет координат', fx_violation: 'Нарушение',
+    cf_note: 'Что не так', cf_note_ph: 'Одной строкой', cf_pr_sub: 'Пересними ракурс: встаньте так, чтобы кадр игры совпал с видом',
+    cf_cam: 'Открыть камеру', cf_shot: 'Снять', cf_ghost: 'Кадр игры', cf_ghost_p: 'Камера покажет его полупрозрачно поверх вида', cf_cam_off: 'Камера недоступна: выберите фото с того же ракурса',
+    cf_pick_photo: 'Выбрать фото', cf_retake: 'Переснять', cf_your_photo: 'Ваше фото', cf_opacity: 'Прозрачность кадра игры',
+    cf_pg_sub: 'Снимок экрана из игры с того же ракурса, что фото из жизни', cf_ref: 'Фото из жизни', cf_ref_p: 'Снимите в игре этот же ракурс', cf_pg_pick: 'Выбрать снимок экрана',
+    cf_pg_other: 'Выбрать другой', cf_fp_url: 'Ссылка на фото', cf_fp_ph: 'commons.wikimedia.org/… или flickr.com/…',
+    cf_fp_note: 'Подойдут фото со свободной лицензией: Wikimedia Commons или Flickr с CC BY и CC BY-SA', cf_found_q: 'Это то место из игры? Сравните ползунком на карте',
+    cf_yes: 'Нашёл', cf_no: 'Не то место', cf_on_map: 'Открыть на карте',
+    cf_draft_h: 'Черновик сохранён', cf_draft_p: 'Он на этом устройстве. Войдите почтой — отправим без повторного заполнения', cf_login_send: 'Войти и отправить', cf_later: 'Позже',
+    cf_kind: 'Что', cf_sent_h: 'Отправлено', cf_sent_1: 'На проверке, обычно до 48 часов', cf_sent_2: 'Модератор проверит место и источник', cf_sent_found: 'Голос учтён',
+    cf_sent_found_p: 'Место с тремя «Нашёл» помечается «Проверено игроками» — его чаще открывают', cf_reward: 'После проверки: {r}', cf_to_mine: 'Мои вклады',
+    ce_no_place: 'Выберите место', ce_no_point: 'Укажите точку: координаты, адрес или место на карте', ce_no_name: 'Напишите название', ce_no_source: 'Нужна ссылка на ролик, кадр или статью, где это видно',
+    ce_no_photo: 'Добавьте фото', ce_bad_reason: 'Выберите, что не так', ce_bad_url: 'Нужна ссылка на страницу фото', ce_limit: 'Не больше 5 мест в сутки. Остальные — завтра',
+    ce_photo: 'Не получилось открыть фото', cf_send: 'Отправить', lg_h_c: 'Вход почтой', lg_sub_c: 'Чтобы ваш ник стоял у находки. Без пароля и покупки',
+  },
+  en: {
+    board_h: 'Tasks', bd_a: 'For everyone', bd_a_p: 'You only sign in with email when sending. Each card shows its reward',
+    bd_b: 'For partners', bd_b_p: 'Everyone can see them; you do them after “Become a partner”. Money goes to partners 18+ for a video, a photo pair or a review',
+    bd_b_p_np: 'Everyone can see them; you do them after “Become a partner”', bd_c: 'League', bd_c_p: 'Tasks with fixed pay from the budget. Only partners see the amount',
+    bd_c_p_np: 'Tasks for League members: a video about several places', hub_tasks: 'Tasks', hub_tasks_sub: 'Places, easter eggs, photos and videos',
+    hub_mine: 'My contributions', hub_mine_sub: '{a} accepted, {b} in review', hub_mine_none: 'Your finds and fixes', you_nick: 'your_nick',
+    tk_found: 'I know this place', tk_found_d: '{p}: is it the place from the game? “Found” or “Not this place”', tk_found_v: 'Mark',
+    tk_fix: 'Fix the place', tk_fix_d: '{p}: wrong spot, closed, wrong building or no coordinates', tk_fix_v: 'Fix',
+    tk_new_place: 'New place', tk_new_place_d: 'Found a game place in real life: a point, a name, what it is in the game and a source', tk_new_place_v: 'Add a place',
+    tk_new_egg: 'New easter egg', tk_new_egg_d: 'A reference or a prototype from the game: where it is and how you know', tk_new_egg_v: 'Add an easter egg',
+    tk_game_frame: 'Game frame', tk_game_frame_d: '{p}: your own game screenshot from the same angle as the real-life photo', tk_game_frame_v: 'Add a frame',
+    tk_free_photo: 'Free photo', tk_free_photo_d: '{p}: no real-life photo yet. We need a link to a photo with a free license', tk_free_photo_v: 'Add a photo',
+    tk_place_week: 'Film a video about the place of the week: {p}', tk_place_week_d: 'The place of the week gets “Filmed here” on its card and leads the feed', tk_place_week_v: 'Film',
+    tk_fresh_find: 'Fresh find: {p}, no videos yet', tk_fresh_find_d: 'Found by {who}, {d}. We pin the place’s first video in its feed for 30 days', tk_fresh_find_v: 'Film',
+    tk_mention3: 'Film a video that mentions 3 places', tk_mention3_d: 'Up to 5 places in a video, each with the second where it is seen or heard', tk_mention3_v: 'Submit a video',
+    tk_need_pair: 'Pair needed: {p}', tk_need_pair_d: 'Shoot the same angle as the game frame: the camera shows it see-through', tk_need_pair_v: 'Reshoot the angle',
+    tk_review: 'Review', tk_review_d: 'One card at a time: “Fits” or “Does not fit”. We only decide: legal, the right place, not someone else’s', tk_review_v: 'Review',
+    tk_review_today: 'Today: {n} reviewed, accuracy {a}%',
+    tk_league_d: '{pl}. Places in the video: {n}. Spots left: {s} of {all}', tk_league_v: 'Submit a video', tk_until: 'Due {d}',
+    rw_check: 'A check mark on the place', rw_found: 'Found by {n}', rw_photo: 'Photo: {n}', rw_frame: 'Frame: {n}', rw_free_photo: 'Photo: found by {n}',
+    rw_author: '{p}% of videos about the place', rw_pair: '{s} per accepted pair', rw_dec: '{s} per accurate decision', rw_rpm: '{r} per 1,000 views and {p}% of purchases with your link',
+    rw_fixed: '{s} at {v} views', rw_league_np: 'Partners see the amount. Threshold: {v} views', rw_vpro: '{d} for a video with {v}+ views',
+    rw_pre: 'Preliminary: {x}', rw_frame_note: 'No money: the rights to game frames belong to the game’s publisher',
+    st_draft: 'Draft', st_draft_p: 'Saved on this device', st_continue: 'Continue', st_sent: 'In review', st_sent_p: 'In review, usually within 48 hours',
+    st_ok: 'Accepted', st_no: 'Not accepted', st_fix: 'Fix', st_more_place: 'Add another place', st_more_egg: 'Add another easter egg', st_more_video: 'Film another',
+    lk_release: 'Opens on the GTA 6 release day, {d}', lk_adult: '18+ only', lk_invite: 'Opens with an invite to the closed access',
+    lk_partner: 'Opens after “Become a partner”', lk_scout: 'Opens after 5 accepted contributions: you have {n}', lk_mod: 'For moderators: 5 accepted contributions and an exam',
+    lk_league: 'Opens after a video reaches 10,000 views (now {n}) or with an invite code', lk_starts: 'Opens {d}',
+    tr_opens: 'Your place was opened {n} times this week', tr_videos: ', {v} about it', tr_compares: 'People comparing with your pair: {n}', tr_frame: 'People comparing with your frame: {n}',
+    tr_fixed: 'Your fix corrected the address for {n}', n_people: '{n} person|{n} people',
+    tr_votes: '“Found”: {n} of {need}. Three votes and the place is “Checked by players”', tr_votes_ok: 'Checked by players: {n} of {need} “Found”',
+    rjc_checked_ok: 'We checked: the place on the map is right', rjc_no_source: 'No source: a link to a video, a frame or an article', rjc_duplicate: 'This place is already on the map',
+    rjc_license: 'The photo has no free license', rjc_angle: 'The angle does not match the game frame', rjc_not_game: 'This is not a game frame', rjc_people: 'People’s faces are visible in the photo',
+    rjc_other: 'Does not fit the rules',
+    mc_h: 'My contributions', mc_empty: 'Your finds will be here', mc_empty_p: 'Start with “I know this place” on any card.', mc_open_board: 'Open tasks',
+    mc_drafts: 'Drafts', mc_places: 'Your places', mc_places_p: 'You are the author: your name stays on the place', mc_places_p_money: 'You are the author: your name stays on the place, plus {p}% of videos about it for {m} months',
+    mc_edits: 'Your fixes and photos', mc_edits_p: 'Your nick on fixes and photos', mc_sum: '{a} accepted, {b} in review',
+    mc_pro: '{d} for contributions. Up to 60 days a year', mc_pro_beta: 'Pro days for contributions start when the program opens for everyone',
+    ct_found: 'I know this place', ct_fix: 'Fix', ct_new_place: 'New place', ct_new_egg: 'New easter egg', ct_pair: 'Real-life photo', ct_game_frame: 'Game frame', ct_free_photo: 'Free photo',
+    ty_new_place: 'New place', ty_new_place_d: 'A point, a name, what it is in the game and a source', ty_new_egg: 'New easter egg', ty_new_egg_d: 'A reference or a prototype from the game',
+    ty_fix: 'Fix a place', ty_fix_d: 'Wrong spot, closed, wrong building, no coordinates', ty_pair2: 'Real-life photo', ty_pair2_d: 'The same angle as the game frame. For Scouts: 5 accepted contributions',
+    ty_frame: 'Game frame', ty_frame_d: 'Your own game screenshot, no money', ty_free: 'Free photo', ty_free_d: 'A link to a photo with a free license',
+    cf_point_sub: 'A point, a name, what it is in the game and a source. The draft is saved on this device', cf_where_h: 'Where it is in real life', cf_where: 'Coordinates or address',
+    cf_where_ph: '25.7617, -80.1918 or a street and city', cf_pick: 'Choose a place on the map', cf_point: 'Point on the map', cf_name: 'Name', cf_name_ph: 'What it is called in real life',
+    cf_what: 'In the game', cf_what_ph: 'How it looks in the game', cf_what_egg_ph: 'What the reference is and where in the game', cf_src: 'Source', cf_src_ph: 'A video with a timecode, a frame or an article',
+    cf_src_need: 'We need a link to a video, a frame or an article where it is seen', cf_or_photo: 'Or a photo', cf_add_photo: 'Add a photo', cf_photo_ok: 'Photo added',
+    cf_next: 'Next', cf_place: 'Place', cf_dup_h: 'This place may already exist', cf_dup_q: 'Is this it?', cf_dup_yes: 'Yes, add to it', cf_dup_no: 'No, a different one',
+    fx_wrong_spot: 'Wrong spot', fx_closed: 'Closed', fx_wrong_building: 'Wrong building', fx_no_coords: 'No coordinates', fx_violation: 'Violation',
+    cf_note: 'What is wrong', cf_note_ph: 'In one line', cf_pr_sub: 'Reshoot the angle: stand where the game frame lines up with the view',
+    cf_cam: 'Open the camera', cf_shot: 'Shoot', cf_ghost: 'Game frame', cf_ghost_p: 'The camera shows it see-through over the view', cf_cam_off: 'The camera is not available: choose a photo from the same angle',
+    cf_pick_photo: 'Choose a photo', cf_retake: 'Reshoot', cf_your_photo: 'Your photo', cf_opacity: 'Game frame opacity',
+    cf_pg_sub: 'A game screenshot from the same angle as the real-life photo', cf_ref: 'Real-life photo', cf_ref_p: 'Shoot this same angle in the game', cf_pg_pick: 'Choose a screenshot',
+    cf_pg_other: 'Choose another', cf_fp_url: 'Photo link', cf_fp_ph: 'commons.wikimedia.org/… or flickr.com/…',
+    cf_fp_note: 'Photos with a free license work: Wikimedia Commons or Flickr with CC BY and CC BY-SA', cf_found_q: 'Is it the place from the game? Compare with the slider on the map',
+    cf_yes: 'Found', cf_no: 'Not this place', cf_on_map: 'Open on the map',
+    cf_draft_h: 'Draft saved', cf_draft_p: 'It is on this device. Sign in with email and we send it without filling it in again', cf_login_send: 'Sign in and send', cf_later: 'Later',
+    cf_kind: 'What', cf_sent_h: 'Sent', cf_sent_1: 'In review, usually within 48 hours', cf_sent_2: 'A moderator checks the place and the source', cf_sent_found: 'Vote counted',
+    cf_sent_found_p: 'A place with three “Found” is marked “Checked by players” and gets opened more', cf_reward: 'After review: {r}', cf_to_mine: 'My contributions',
+    ce_no_place: 'Choose a place', ce_no_point: 'Set a point: coordinates, an address or a place on the map', ce_no_name: 'Write the name', ce_no_source: 'We need a link to a video, a frame or an article where it is seen',
+    ce_no_photo: 'Add a photo', ce_bad_reason: 'Choose what is wrong', ce_bad_url: 'We need a link to the photo page', ce_limit: 'Up to 5 places a day. The rest tomorrow',
+    ce_photo: 'Could not open the photo', cf_send: 'Send', lg_h_c: 'Sign in with email', lg_sub_c: 'So your nick stays on the find. No password, no purchase',
+  },
+};
+Object.assign(S.ru, TS.ru); Object.assign(S.en, TS.en);
 const lang = () => (getLang() === 'en' ? 'en' : 'ru');
 function tx(k, v = {}) {
   let s = S[lang()][k] ?? S.ru[k] ?? k;
@@ -558,9 +686,9 @@ async function hubHTML() {
   if (window.Capacitor?.isNativePlatform?.()) return '';   // раздел только на вебе: в iOS-сборке его нет (07 §2.2)
   const admin = await api().adminState().then((x) => x.admin).catch(() => false);
   const tail = (admin ? `<div class="group">${row('open:admin', 'shield', tx('ad_h'))}</div>` : '') + (mode() === 'demo' ? modeNote() : '');
-  if (trialOnly()) return trialHub() + tail;
+  if (trialOnly()) return (await trialHub()) + tail;
   // без приглашения (и до rules.open_at) — список ожидания: waitlist_new / waitlist_joined / waitlist_verified (08 §2.1)
-  if (!hasAccess()) return `<div class="cr-hub-h">${esc(tx('for_authors'))}</div>${waitlistHTML()}<div class="group">${row('open:rules', 'doc', tx('rules'), tx('rules_sub'))}</div>${tail}`;
+  if (!hasAccess()) return `<div class="cr-hub-h">${esc(tx('for_authors'))}</div>${waitlistHTML()}<div class="group">${await workRows()}${row('open:rules', 'doc', tx('rules'), tx('rules_sub'))}</div>${tail}`;
   return (await hubMain()) + tail;
 }
 async function hubMain() {
@@ -586,20 +714,26 @@ async function hubMain() {
   const verify = partner && !minor && !verifiedAcc() ? `<button class="cr-verify" data-cr="open:verify">${I.shield}<span><b>${esc(np ? tx('hub_verify_np') : tx('hub_verify'))}</b>${wa ? `<small>${esc(wa.status === 'failed' ? tx('vf_fail_h') : tx('wl_pending', { h: wa.handle }))}</small>` : ''}</span>${I.chevron}</button>` : '';
   const how = (!partner || (P.league_unlocked === false && !minor)) ? `<ol class="cr-how">${[tx('how1'), tx('how2'), np ? tx('how3_np') : tx('how3')].map((t, i) => `<li><span>${i + 1}</span>${esc(t)}</li>`).join('')}</ol>` : '';
   let rows = '';
-  if (guest) rows = row('open:rules', 'doc', tx('rules'), tx('rules_sub'));
-  else if (minor) rows = row('add', 'plus', tx('add_minor')) + row('open:earn', 'star', tx('pro_days'), tx('pro_days_sub')) + row('open:rules', 'doc', tx('rules'), tx('rules_sub_np'));
-  else if (!partner) rows = row('login', 'link', tx('hub_player'), tx('partner')) + row('open:mylink', 'gift', tx('my_link_p'), tx('gift_sub')) + row('add', 'plus', tx('add_minor')) + row('open:rules', 'doc', tx('rules'), tx('rules_sub'));
+  const work = await workRows();   // «Задания» и «Мои вклады» (08 №11, №13) — у всех, вклады без денег
+  if (guest) rows = work + row('open:rules', 'doc', tx('rules'), tx('rules_sub'));
+  else if (minor) rows = work + row('add', 'plus', tx('add_minor')) + row('open:earn', 'star', tx('pro_days'), tx('pro_days_sub')) + row('open:rules', 'doc', tx('rules'), tx('rules_sub_np'));
+  else if (!partner) rows = row('login', 'link', tx('hub_player'), tx('partner')) + row('open:mylink', 'gift', tx('my_link_p'), tx('gift_sub')) + work + row('add', 'plus', tx('add_minor')) + row('open:rules', 'doc', tx('rules'), tx('rules_sub'));
   else {
     const vids = await api().listMyVideos(), rev = vids.filter((v) => ['submitted', 'in_review', 'pending_review'].includes(v.status)).length;
     rows = (np ? row('open:earn', 'star', tx('pro_days'), tx('pro_days_sub')) : row('open:earn', 'wallet', tx('my_earn'), tx('my_earn_sub')))
       + row('open:myvideos', 'video', tx('my_videos'), vids.length ? `${plural(vids.length, 'n_videos')}${rev ? `, ${rev} ${tx('n_on_review')}` : ''}` : '')
       + row('open:mylink', 'link', tx('my_link'), tx('code_sub', { c: P.ref_code }))
       + (isMod() ? row('open:review', 'shield', tx('review'), tx('review_sub')) : row('open:review', 'shield', tx('review_how')))
-      + row('add', 'plus', tx('add'))
+      + work + row('add', 'plus', tx('add'))
       + row('open:rules', 'doc', tx('rules'), np ? tx('rules_sub_np') : tx('rules_sub'));
   }
   const me = guest ? '' : `<div class="cr-me"><span class="cr-av">${esc((P.nick || '?').charAt(0).toUpperCase())}</span><span class="m"><b>@${esc(P.nick)}</b><small>${esc(tx('code_sub', { c: P.ref_code }))}</small></span>${partner ? `<button class="cr-ib" data-cr="share-link" aria-label="${esc(tx('share'))}">${I.share}</button>` : ''}</div>`;
   return `<div class="cr-hub-h">${esc(tx('for_authors'))}</div>${me}${verify}${card}${how}${partner ? workLine() : ''}<div class="group">${rows}</div>`;
+}
+async function workRows() {
+  const mine = isGuest() ? [] : await api().listMyContributions().catch(() => []);
+  const acc = mine.filter((c) => c.status === 'accepted').length, rev = mine.filter((c) => c.status === 'in_review' || c.status === 'pending_review').length;
+  return row('open:board', 'star', tx('hub_tasks'), tx('hub_tasks_sub')) + (isGuest() ? '' : row('open:contribs', 'doc', tx('hub_mine'), mine.length ? tx('hub_mine_sub', { a: acc, b: rev }) : tx('hub_mine_none')));
 }
 // Блок списка ожидания: заголовок и три строки (ставки из rules), плашка даты из rules.open_at, «Записаться» / «У меня есть приглашение».
 // После открытия плашки нет, «Записаться» → «Стать партнёром» (08 §2.3). Записался — номер и дата; подтвердил канал — первая волна.
@@ -626,9 +760,9 @@ function waitlistHTML() {
 // Пробный доступ 72 часа (файл 31, решение №14), пока человек не стал партнёром: Лиги, «Моего заработка» и «Моей ссылки» нет;
 // «Стать партнёром» есть — партнёрство бесплатное по закону (FTC, 16 CFR 437); правила — без слов о деньгах.
 // Стал партнёром — обычный хаб партнёра (Лига, ролики, заработок) и рабочий Pro 14 дней.
-function trialHub() {
+async function trialHub() {
   const rows = `<div class="group">${row('login', 'link', tx('hub_player'), tx('partner'))}`
-    + row('add', 'plus', tx('add_minor')) + row('open:rules', 'doc', tx('rules'), tx('rules_sub_np')) + '</div>';
+    + await workRows() + row('add', 'plus', tx('add_minor')) + row('open:rules', 'doc', tx('rules'), tx('rules_sub_np')) + '</div>';
   return `<div class="cr-hub-h">${esc(tx('for_authors'))}</div><div class="cr-trial"><span class="row-ic">${I.clock}</span><span><b>${esc(tx('trial_t'))}</b><small>${esc(tx('trial_p'))}</small></span></div>${rows}`;
 }
 export async function renderHub(el) {
@@ -914,7 +1048,7 @@ async function feedHTML(args) {
         <p class="cr-who"><b>${esc(v.author)}</b>${v.mine ? `<em>${esc(tx('your_video'))}</em>` : v.team ? `<em>${esc(tx('team'))}</em>` : ''}<span>${esc(PLAT[v.platform])}</span></p>
         <p class="cr-vt">${esc(L(v.title))}</p><p class="cr-views">${I.eye}${esc(tx('views_n', { n: num(v.views) }))}</p>
         ${my ? `<div class="cr-vearn cr-solid"><div class="h"><span>${esc(tx('earn_video'))}</span><b>${money(my.earned.total_cents)}</b></div>${med('on-photo')}${modeNote('$0')}<div class="f"><span><b>${num(my.views)}</b>${esc(tx('f_views'))}</span><span><b>${num(my.clicks)}</b>${esc(tx('f_clicks'))}</span><span><b>${num(my.pays)}</b>${esc(tx('f_pays'))}</span></div></div>` : ''}
-        <button class="cr-place cr-solid" data-cr="vplace" data-w="${v.place.world}" data-p="${esc(v.place.id)}"><img src="${esc(pImg(v.place))}" alt=""><span class="m"><b>${esc(pName(v.place))}</b><span>${esc(pCity(v.place))}</span></span>${I.chevron}</button>
+        ${!my && mode() === 'demo' ? modeNote() : ''}<button class="cr-place cr-solid" data-cr="vplace" data-w="${v.place.world}" data-p="${esc(v.place.id)}"><img src="${esc(pImg(v.place))}" alt=""><span class="m"><b>${esc(pName(v.place))}</b><span>${esc(pCity(v.place))}</span></span>${I.chevron}</button>
       </div></section>`;
   };
   return `<div class="cr-feed" data-feed>${list.map(reel).join('')}</div>
@@ -1076,17 +1210,299 @@ function rulesHTML() {
     <h2 class="cr-h">${esc(tx('ru_h_ad'))}</h2><p class="cr-p">${esc(tx('ru_ad_p'))}</p><p class="cr-p">${esc(tx('ru_change'))}</p>`, '', true)}`;
 }
 
+// ───────── экран 11 «Доска заданий» (02 §6.2, 08 §4): разделы А «Для всех», Б «Для партнёров», В «Лига»;
+// карточки open, in_progress (черновик), sent, accepted (со следом), rejected (причина и «Исправить»), locked (что откроет) ─────────
+// Награды и состояния карточек отдаёт SB.api.getTasks — экран их только показывает (demo и live — по ставкам, beta — «предварительно»).
+const TICON = { found: 'check', fix: 'alert', new_place: 'pin', new_egg: 'egg', game_frame: 'gamepad', free_photo: 'camera', place_week: 'video', fresh_find: 'video',
+  mention3: 'video', need_pair: 'swap', review: 'shield', league_fixed: 'star' };
+const REPEAT = { new_place: 'st_more_place', new_egg: 'st_more_egg', place_week: 'st_more_video', fresh_find: 'st_more_video', mention3: 'st_more_video' };
+const nickTag = () => '@' + (P?.nick || tx('you_nick'));
+const proDays = (n) => plural(n, 'n_days_x') + ' Pro';
+// награда строкой: «Найдено @ник, +7 дней Pro, 10% с роликов о месте»; «Кадр из игры» денег не имеет (api.js правило 13 check_code.py)
+function rwText(r = {}) {
+  const n = nickTag(), out = [];
+  if (r.name) out.push(tx('rw_' + r.name, { n }));
+  if (r.pro_days) out.push('+' + proDays(r.pro_days));
+  if (r.author_pct) out.push(tx('rw_author', { p: r.author_pct }));
+  if (r.cents && r.per) out.push(tx(r.per === 'pair' ? 'rw_pair' : 'rw_dec', { s: money(r.cents) }));
+  if (r.rpm) out.push(tx('rw_rpm', { r: money(R.rpm.tiktok), p: r.share_pct }));
+  if (r.fixed_cents) out.push(tx('rw_fixed', { s: money(r.fixed_cents), v: num(r.threshold_views) }));
+  else if (r.video_pro_days) out.push(tx('rw_vpro', { d: proDays(r.video_pro_days), v: num(r.threshold_views) }));
+  else if (r.threshold_views) out.push(tx('rw_league_np', { v: num(r.threshold_views) }));
+  const s = out.join(', ');
+  return s && r.preliminary ? tx('rw_pre', { x: s }) : s;
+}
+const lockText = (l = {}) => tx('lk_' + l.code, { n: num(l.n || 0), d: l.date ? dfmt(l.date) : '' });
+const rjcText = (code) => tx('rjc_' + code) === 'rjc_' + code ? tx('rjc_other') : tx('rjc_' + code);
+// след принятого вклада (02 §6.1, v_place_stats): «Ваше место открыли 1 240 раз за неделю»
+function traceText(t) {
+  if (!t) return '';
+  if (t.kind === 'opens') return tx('tr_opens', { n: num(t.n) }) + (t.videos ? tx('tr_videos', { v: plural(t.videos, 'n_videos') }) : '');
+  if (t.kind === 'compares') return tx('tr_compares', { n: plural(t.n, 'n_people') });
+  if (t.kind === 'frame_compares') return tx('tr_frame', { n: plural(t.n, 'n_people') });
+  if (t.kind === 'fixed_for') return tx('tr_fixed', { n: plural(t.n, 'n_people') });
+  if (t.kind === 'votes') return tx(t.n >= t.need ? 'tr_votes_ok' : 'tr_votes', { n: t.n, need: t.need });
+  return '';
+}
+function taskText(t) {
+  const p = t.place ? pName(t.place) : '';
+  if (t.kind === 'league_fixed') return { t: L(t.title), d: tx('tk_league_d', { pl: t.platforms.map((k) => PLAT[k]).join(', '), n: t.places_n, s: t.slots_left, all: t.slots }) + (t.ends_at ? '. ' + tx('tk_until', { d: dfmt(t.ends_at) }) : ''), v: tx('tk_league_v') };
+  return { t: tx('tk_' + t.kind, { p }), d: tx('tk_' + t.kind + '_d', { p, who: t.found_by || '', d: t.found_at ? dfmt(t.found_at) : '' }), v: tx('tk_' + t.kind + '_v') };
+}
+let board = { tasks: [], vids: [] };
+function taskCard(t) {
+  const x = taskText(t), img = t.place ? pImg(t.place) : '', st = t.state, c = t.claim;
+  const v = c?.kind === 'video' ? board.vids.find((y) => y.id === c.id) : null;
+  let stl = '', btn = '';
+  if (st === 'locked') stl = `<p class="cr-task-lk">${I.lock}<span>${esc(lockText(t.lock))}</span></p>`;
+  else if (st === 'in_progress') { stl = `${tag('wait', tx('st_draft'))}<small>${esc(tx('st_draft_p'))}</small>`; btn = tx('st_continue'); }
+  else if (st === 'sent') stl = `${tag('wait', tx('st_sent'))}<small>${esc(v ? nb(vdesc(v)) : tx('st_sent_p'))}</small>`;
+  else if (st === 'rejected') { stl = `${tag('no', tx('st_no'))}<small class="no">${esc(v ? rjText(v) : rjcText(c.reject_code))}</small>`; btn = tx('st_fix'); }
+  else if (st === 'accepted') {
+    const tr = v ? vdesc(v) : traceText(c.trace);
+    stl = `${tag('ok', tx('st_ok'))}${tr ? `<p class="cr-trace">${v ? I.chart : I.eye}<span>${esc(nb(tr))}</span></p>` : ''}`;
+    if (REPEAT[t.kind]) btn = tx(REPEAT[t.kind]);
+  } else btn = x.v;
+  const rw = rwText(t.reward);
+  const tday = t.kind === 'review' && t.today && st !== 'locked' ? `<p class="cr-task-rw">${I.chart}<span>${esc(tx('tk_review_today', { n: num(t.today.checked), a: t.today.accuracy }))}</span></p>` : '';
+  return `<article class="cr-task${st === 'locked' ? ' off' : ''}" data-k="${esc(t.kind)}" data-st="${esc(st)}" data-id="${esc(t.id)}">
+    <div class="cr-task-h">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : `<span class="cr-task-ic">${ic(TICON[t.kind])}</span>`}<div class="m"><b>${esc(x.t)}</b><span>${esc(x.d)}</span></div></div>
+    ${rw ? `<p class="cr-task-rw">${I.star}<span>${esc(nb(rw))}</span></p>` : ''}${t.kind === 'game_frame' ? `<p class="cr-task-rw sub">${I.info}<span>${esc(tx('rw_frame_note'))}</span></p>` : ''}${tday}
+    ${stl ? `<div class="cr-task-st">${stl}</div>` : ''}${btn ? `<button class="cr-mini acc" data-cr="tk-go" data-id="${esc(t.id)}">${esc(btn)}</button>` : ''}</article>`;
+}
+async function boardHTML(a) {
+  const world = a.world || ctx?.game?.() || 'gta6'; a.world = world;
+  const [tasks, vids, mine] = await Promise.all([api().getTasks({ world }), api().listMyVideos().catch(() => []), api().listMyContributions().catch(() => [])]);
+  board = { tasks, vids, world };
+  await placesOf(tasks.filter((t) => t.place));
+  const np = noPay() || isMinor();
+  const sec = (k, h, p, extra = '') => { const list = tasks.filter((t) => t.section === k); return list.length ? `<h2 class="cr-h">${esc(tx(h))}</h2><p class="cr-p">${esc(tx(p))}</p>${extra}<div class="cr-tasks">${list.map(taskCard).join('')}</div>` : ''; };
+  const join = isMinor() || isPartner() ? '' : hasAccess() ? `<button class="btn-ghost" data-cr="login">${esc(tx('wl_partner'))}</button>` : `<button class="btn-ghost" data-cr="inv-beta">${esc(tx('wl_have'))}</button>`;
+  const acc = mine.filter((c) => c.status === 'accepted').length, rev = mine.filter((c) => c.status === 'in_review' || c.status === 'pending_review').length;
+  return `${head(tx('board_h'))}${body(`<div class="cr-seg" role="tablist">${['gta6', 'gta5'].map((g) => `<button role="tab" data-cr="bd-w" data-v="${g}" aria-selected="${g === world}">${g === 'gta6' ? 'GTA 6' : 'GTA 5'}</button>`).join('')}</div>
+    ${sec('all', 'bd_a', 'bd_a_p')}${sec('partner', 'bd_b', np ? 'bd_b_p_np' : 'bd_b_p', join)}${sec('league', 'bd_c', np ? 'bd_c_p_np' : 'bd_c_p')}
+    <div class="group">${row('open:contribs', 'doc', tx('hub_mine'), mine.length ? tx('hub_mine_sub', { a: acc, b: rev }) : tx('hub_mine_none'))}</div>`)}`;
+}
+async function taskGo(id) {
+  const t = board.tasks.find((x) => x.id === id); if (!t) return;
+  const fixFrom = t.state === 'rejected' && t.claim?.kind === 'contribution' ? t.claim.id : null;
+  switch (t.kind) {
+    case 'found': return foundSheet(t.place, t.id);
+    case 'review': return push('review', {});
+    case 'place_week': case 'fresh_find': return shootSheet(t.place.world, t.place.id);
+    case 'mention3': form = { mode: 'mention', places: [] }; return submitSheet();
+    case 'league_fixed': form = { task: t.id }; return submitSheet();
+    default: return cfOpen(t.kind === 'need_pair' ? 'pair' : t.kind, { place: t.place, task: t.id, world: t.place?.world || board.world, from: fixFrom, fresh: t.state === 'accepted' });
+  }
+}
+
+// ───────── экран 13 «Мои вклады» (02 §6.4): list, empty; «Ваши места» (автор) и «Ваши правки и фото»; след под каждым принятым ─────────
+const CST = { in_review: 'wait', pending_review: 'wait', accepted: 'ok', rejected: 'no' };
+const cbName = (c) => (c.place ? pName(c.place) : '') || c.payload?.name || c.name || tx('ct_' + c.type);
+function contribRow(c, draft = false) {
+  const img = c.place ? pImg(c.place) : c.payload?.photo || c.photo || '';
+  const st = draft ? 'draft' : c.status === 'pending_review' ? 'in_review' : c.status;
+  let line = '', btn = '';
+  if (draft) { line = `<small>${esc(tx('st_draft_p'))}</small>`; btn = `<button class="cr-mini acc" data-cr="cf-resume" data-v="${esc(c.type)}">${esc(tx('st_continue'))}</button>`; }
+  else if (st === 'in_review') line = `<small>${esc(tx('st_sent_p'))}</small>`;
+  else if (st === 'rejected') { line = `<small class="no">${esc(rjcText(c.reject_code))}</small>`; btn = `<button class="cr-mini acc" data-cr="cf-refix" data-v="${esc(c.id)}">${esc(tx('st_fix'))}</button>`; }
+  else if (st === 'accepted') { const tr = traceText(c.trace); line = `<small>${esc(nb(rwText(c.reward)))}</small>${tr ? `<p class="cr-trace">${I.eye}<span>${esc(nb(tr))}</span></p>` : ''}`; }
+  const tg = draft ? tag('wait', tx('st_draft')) : tag(CST[st] || '', tx(st === 'accepted' ? 'st_ok' : st === 'rejected' ? 'st_no' : 'st_sent'));
+  return `<div class="cr-li cr-ci" data-st="${esc(st)}" data-t="${esc(c.type)}">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : `<span class="cr-task-ic">${ic(TICON[c.type] || 'pin')}</span>`}
+    <span class="m"><b>${esc(cbName(c))}</b><small>${esc(tx('ct_' + c.type))}${c.created_at || c.saved_at ? `, ${esc(dfmt(c.created_at || c.saved_at))}` : ''}</small>${tg}${line}${btn}</span></div>`;
+}
+async function contribsHTML() {
+  const [list, drafts] = await Promise.all([api().listMyContributions(), api().getDrafts()]);
+  await placesOf([...list, ...drafts].filter((x) => x.place));
+  if (!list.length && !drafts.length) return `${head(tx('mc_h'))}${body(`<div class="cr-empty">${I.pin}<b>${esc(tx('mc_empty'))}</b><p>${esc(tx('mc_empty_p'))}</p><button class="btn-primary" data-cr="open:board">${esc(tx('mc_open_board'))}</button></div>`)}`;
+  const acc = list.filter((c) => c.status === 'accepted'), rev = list.filter((c) => CST[c.status] === 'wait');
+  const pro = Math.min(60, acc.reduce((a, c) => a + (c.reward?.pro_days || 0), 0));
+  const places = list.filter((c) => c.type === 'new_place' || c.type === 'new_egg'), edits = list.filter((c) => !places.includes(c));
+  const grp = (h, p, rows) => (rows.length ? `<h2 class="cr-h">${esc(tx(h))}</h2>${p ? `<p class="cr-p">${esc(p)}</p>` : ''}<div class="cr-list">${rows.join('')}</div>` : '');
+  const author = moneyOK() && mode() !== 'beta' ? tx('mc_places_p_money', { p: R.author_fee_pct, m: R.author_fee_months }) : tx('mc_places_p');
+  return `${head(tx('mc_h'))}${body(`<div class="cr-note">${I.star}<span><b>${esc(tx('mc_sum', { a: acc.length, b: rev.length }))}</b>. ${esc(mode() === 'beta' ? tx('mc_pro_beta') : tx('mc_pro', { d: '+' + proDays(pro) }))}</span></div>
+    ${grp('mc_drafts', '', drafts.map((d) => contribRow(d, true)))}${grp('mc_places', author, places.map((c) => contribRow(c)))}${grp('mc_edits', tx('mc_edits_p'), edits.map((c) => contribRow(c)))}
+    <button class="btn-primary" data-cr="open:board">${esc(tx('mc_open_board'))}</button>`)}`;
+}
+
+// ───────── экран 12 «Форма вклада» (шторка, 02 §6.3, 08 §4): types → point → dup → draft → вход → sent; photo_real («Пересними ракурс»), photo_game.
+// Черновик — SB.api.saveDraft: сохраняется на устройстве до входа почтой и после входа отправляется без повторного заполнения ─────────
+let cf = null, cam = null;
+const LL_RE = /(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/;
+const fmtLL = (o) => `${Number(o.lat).toFixed(5)}, ${Number(o.lon).toFixed(5)}`.replace(/-/g, '−');
+function cfCollect() {
+  if (!cf) return;
+  for (const [id, k] of [['cf-where', 'where'], ['cf-name', 'name'], ['cf-what', 'what'], ['cf-src', 'source'], ['cf-note', 'note'], ['cf-url', 'url']]) { const e = $('#' + id); if (e) cf[k] = e.value.trim(); }
+  const m = LL_RE.exec(cf.where || ''); if (m && !cf.from_map) { cf.lat = +m[1]; cf.lon = +m[2]; } else if (!cf.from_map) { cf.lat = null; cf.lon = null; }
+}
+const cfHas = () => !!(cf && (cf.name || cf.what || cf.where || cf.source || cf.photo || cf.note || cf.url || cf.reason || cf.from_map));
+function cfKeep() { stopCam(); if (!cf || cf.view === 'sent') return; cfCollect(); if (cfHas()) api().saveDraft(cfDraft()).catch(() => { }); }
+const cfDraft = () => { const { view, dup, busy, ...d } = cf; return d; };
+const srcOK = () => !!(cf.source || cf.photo);
+async function cfOpen(type, o = {}) {
+  await load(); stopCam();
+  const dr = o.fresh ? null : (await api().getDrafts()).find((d) => d.type === type && (!o.place || !d.place || (d.place.world === o.place.world && d.place.id === o.place.id)));
+  cf = dr ? { ...dr } : { type, world: o.place?.world || o.world || ctx?.game?.() || 'gta6', place: o.place || null, task: o.task || null };
+  if (o.from) {   // «Исправить» у не принятого: прежние ответы — в форму
+    const c = (await api().listMyContributions()).find((x) => x.id === o.from);
+    if (c) Object.assign(cf, { place: c.place, reason: c.payload?.reason, note: c.payload?.note || '', name: c.payload?.name || '', url: c.source_url || '', source: c.source_url || '' });
+  }
+  if (o.lat != null) Object.assign(cf, { lat: o.lat, lon: o.lon, from_map: true, place: null });
+  if (cf.what && typeof cf.what === 'object') cf.what = L(cf.what);
+  if (cf.place) await place(cf.place);
+  if (type === 'found') return foundSheet(cf.place, cf.task);
+  cf.view = '';
+  cfRender();
+}
+const cfHead = (k) => `<h2>${esc(tx(k))}</h2>${cf.place ? `<p class="sub">${esc([pName(cf.place), pCity(cf.place)].filter(Boolean).join(', '))}</p>` : ''}`;
+const placeField = () => `<div class="cr-field"><span>${esc(tx('cf_place'))}</span><b>${cf.place ? esc(pName(cf.place)) : '—'}</b><button class="cr-mini" data-cr="pick" data-next="cf">${esc(cf.place ? tx('sv_change') : tx('sv_pick'))}</button></div>`;
+const photoBox = (label) => (cf.photo ? `<div class="cr-ph"><img src="${cf.photo}" alt=""><span><b>${esc(tx('cf_your_photo'))}</b><small>${esc(tx('cf_photo_ok'))}</small></span></div>` : '')
+  + `<input id="cf-file" type="file" accept="image/*" hidden${cf.type === 'pair' ? ' capture="environment"' : ''}><button class="btn-ghost" data-cr="cf-photo">${I.camera}${esc(tx(cf.photo ? (cf.type === 'pair' ? 'cf_retake' : 'cf_pg_other') : label))}</button>`;
+const inp = (id, label, ph, val, type = 'text') => `<label class="cr-in"><span>${esc(tx(label))}</span><input id="${id}" data-cf type="${type}" autocomplete="off"${type === 'url' ? ' inputmode="url" autocapitalize="off" spellcheck="false"' : ''} placeholder="${esc(tx(ph))}" value="${esc(val || '')}"></label>`;
+function cfView() {
+  const t = cf.type, send = (k = 'cf_send', dis = false) => `<p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="cf-send"${dis ? ' disabled' : ''}>${I.send}${esc(tx(k))}</button>`;
+  if (cf.view === 'draft') {
+    const rows = [['cf_kind', tx('ct_' + t)], ...(cf.place ? [['cf_place', pName(cf.place)]] : []), ...(cf.name ? [['cf_name', cf.name]] : []), ...(cf.lat != null ? [['cf_point', fmtLL(cf)]] : cf.where ? [['cf_where', cf.where]] : []),
+      ...(cf.source ? [['cf_src', cf.source]] : []), ...(cf.reason ? [['cf_note', tx('fx_' + cf.reason)]] : [])];
+    return { st: 'draft', html: `<h2>${esc(tx('cf_draft_h'))}</h2><p class="sub">${esc(tx('cf_draft_p'))}</p>
+      <div class="cr-ledger kv">${rows.map(([a, b]) => `<div><b>${esc(tx(a))}</b><span class="v">${esc(b)}</span></div>`).join('')}</div>${cf.photo ? `<div class="cr-ph"><img src="${cf.photo}" alt=""><span><b>${esc(tx('cf_your_photo'))}</b></span></div>` : ''}
+      <button class="btn-primary" data-cr="cf-login">${I.mail}${esc(tx('cf_login_send'))}</button><button class="btn-ghost" data-cr="sheet-close">${esc(tx('cf_later'))}</button>` };
+  }
+  if (cf.view === 'dup') {
+    const ref = cf.dup, p = pSync(ref);
+    return { st: 'dup', html: `<h2>${esc(tx('cf_dup_h'))}</h2><p class="sub">${esc(tx('cf_dup_q'))}</p>
+      <div class="cr-li"><img src="${esc(pImg(ref))}" alt=""><span class="m"><b>${esc(pName(ref))}</b><small>${esc(p?.a || pCity(ref))}</small></span></div>
+      <div class="cr-two"><button class="btn-primary" data-cr="cf-dup" data-v="yes">${esc(tx('cf_dup_yes'))}</button><button class="btn-ghost" data-cr="cf-dup" data-v="no">${esc(tx('cf_dup_no'))}</button></div>` };
+  }
+  if (t === 'new_place' || t === 'new_egg') {
+    const where = cf.place ? `<div class="cr-field"><span>${esc(tx('cf_place'))}</span><b>${esc(pName(cf.place))}</b><button class="cr-mini" data-cr="cf-unplace">${esc(tx('sv_change'))}</button></div>`
+      : cf.from_map ? field(tx('cf_point'), fmtLL(cf)) : inp('cf-where', 'cf_where', 'cf_where_ph', cf.where);
+    return { st: 'point', html: `<h2>${esc(tx('tk_' + t))}</h2><p class="sub">${esc(tx('cf_point_sub'))}</p>
+      <p class="cr-lbl">${esc(tx('cf_where_h'))}</p>${where}${cf.place || cf.from_map ? '' : `<button class="cr-mini" data-cr="pick" data-next="cf">${I.pin}${esc(tx('cf_pick'))}</button>`}
+      ${inp('cf-name', 'cf_name', 'cf_name_ph', cf.name)}${inp('cf-what', 'cf_what', t === 'new_egg' ? 'cf_what_egg_ph' : 'cf_what_ph', cf.what)}${inp('cf-src', 'cf_src', 'cf_src_ph', cf.source, 'url')}
+      <p class="cr-lbl">${esc(tx('cf_or_photo'))}</p>${photoBox('cf_add_photo')}
+      <p class="cr-hint cr-need" id="cf-need"${srcOK() ? ' hidden' : ''}>${esc(tx('cf_src_need'))}</p><p class="cr-err" id="cr-err" hidden></p>
+      <button class="btn-primary" data-cr="cf-next"${srcOK() ? '' : ' disabled'}>${esc(tx('cf_next'))}</button>` };
+  }
+  if (t === 'fix') return { st: 'fix', html: `${cfHead('tk_fix')}${cf.place ? '' : placeField()}
+      <div class="cr-chips">${['wrong_spot', 'closed', 'wrong_building', 'no_coords', 'violation'].map((r) => `<button data-cr="cf-reason" data-v="${r}" aria-pressed="${cf.reason === r}">${esc(tx('fx_' + r))}</button>`).join('')}</div>
+      ${inp('cf-note', 'cf_note', 'cf_note_ph', cf.note)}${send()}` };
+  if (t === 'free_photo') return { st: 'free', html: `${cfHead('tk_free_photo')}${cf.place ? '' : placeField()}${inp('cf-url', 'cf_fp_url', 'cf_fp_ph', cf.url, 'url')}<p class="cr-p">${esc(tx('cf_fp_note'))}</p>${send()}` };
+  if (t === 'game_frame') {
+    const ref = cf.place ? pSync(cf.place) : null, real = ref?.pr ? imgUrl(ref.pr.thumb || ref.pr.file) : '';
+    return { st: 'photo_game', html: `${cfHead('tk_game_frame')}${cf.place ? '' : placeField()}<p class="cr-p">${esc(tx('cf_pg_sub'))}</p>
+      ${real ? `<div class="cr-ph ref"><img src="${esc(real)}" alt=""><span><b>${esc(tx('cf_ref'))}</b><small>${esc(tx('cf_ref_p'))}</small></span></div>` : ''}
+      <div class="cr-note">${I.info}<span>${esc(tx('rw_frame_note'))}</span></div>${photoBox('cf_pg_pick')}${cf.photo ? send() : ''}` };
+  }
+  if (t === 'pair') {
+    const ref = cf.place ? pSync(cf.place) : null, ghost = ref?.pg ? imgUrl(ref.pg.file || ref.pg.thumb) : '', small = ref?.pg ? imgUrl(ref.pg.thumb || ref.pg.file) : '';
+    const live = cam && cam.live;
+    const view = live ? `<div class="cr-cam"><video id="cf-video" playsinline muted autoplay></video>${ghost ? `<img class="ghost" id="cf-ghost" src="${esc(ghost)}" alt="" style="opacity:${cam.op}">` : ''}</div>
+      <label class="cr-in cr-range"><span>${esc(tx('cf_opacity'))}</span><input id="cf-op" type="range" min="0.1" max="0.8" step="0.05" value="${cam.op}"></label>
+      <button class="btn-primary" data-cr="cf-shot">${I.camera}${esc(tx('cf_shot'))}</button>`
+      : `${small && !cf.photo ? `<div class="cr-ph ref"><img src="${esc(small)}" alt=""><span><b>${esc(tx('cf_ghost'))}</b><small>${esc(tx('cf_ghost_p'))}</small></span></div>` : ''}
+      ${cf.cam_off && !cf.photo ? `<div class="cr-note">${I.info}<span>${esc(tx('cf_cam_off'))}</span></div>` : ''}
+      ${cf.photo || cf.cam_off ? '' : `<button class="btn-primary" data-cr="cf-cam">${I.camera}${esc(tx('cf_cam'))}</button>`}${photoBox('cf_pick_photo')}${cf.photo ? send() : ''}`;
+    return { st: 'photo_real', html: `${cfHead('ty_pair2')}${cf.place ? '' : placeField()}<p class="cr-p">${esc(tx('cf_pr_sub'))}</p>${view}` };
+  }
+  return { st: 'types', html: '' };
+}
+function cfRender(e = '') {
+  const v = cfView();
+  sheet(`<div class="cr-sh cr-cf" data-st="${v.st}" data-t="${esc(cf.type)}">${v.html}</div>`, cfKeep);
+  if (e) err(e);
+  if (cam?.live) { const vd = $('#cf-video'); if (vd) { vd.srcObject = cam.stream; vd.play?.().catch(() => { }); } }
+}
+// «Узнаю это место»: фото из жизни, «Нашёл» / «Не то место», сравнить ползунком — на карте
+async function foundSheet(ref, task) {
+  await load(); if (ref) await place(ref);
+  cf = { type: 'found', world: ref?.world || ctx?.game?.() || 'gta6', place: ref, task: task || null };
+  const p = pSync(ref), real = p?.pr ? imgUrl(p.pr.thumb || p.pr.file) : '';
+  sheet(`<div class="cr-sh cr-cf" data-st="found" data-t="found">${cfHead('tk_found')}${real ? `<img class="cr-lad-ph" src="${esc(real)}" alt="" loading="lazy">` : ''}
+    <p class="cr-p">${esc(tx('cf_found_q'))}</p><p class="cr-err" id="cr-err" hidden></p>
+    <div class="cr-two"><button class="btn-primary" data-cr="cf-vote" data-v="yes">${I.check}${esc(tx('cf_yes'))}</button><button class="btn-ghost" data-cr="cf-vote" data-v="no">${esc(tx('cf_no'))}</button></div>
+    ${ref ? `<button class="cr-mini" data-cr="vplace" data-w="${esc(ref.world)}" data-p="${esc(ref.id)}">${I.map}${esc(tx('cf_on_map'))}</button>` : ''}</div>`, cfKeep);
+}
+const CE = { no_place: 'ce_no_place', no_point: 'ce_no_point', no_name: 'ce_no_name', no_source: 'ce_no_source', no_photo: 'ce_no_photo', bad_reason: 'ce_bad_reason', bad_url: 'ce_bad_url', limit: 'ce_limit' };
+// проверки до отправки — те же, что у SB.api.submitContribution (ошибка видна сразу, без входа)
+function cfCheck() {
+  const t = cf.type;
+  if (['fix', 'pair', 'game_frame', 'free_photo', 'found'].includes(t) && !cf.place) return 'no_place';
+  if (t === 'new_place' || t === 'new_egg') { if (!cf.place && cf.lat == null && !cf.where) return 'no_point'; if (!cf.name) return 'no_name'; if (!srcOK()) return 'no_source'; }
+  if ((t === 'pair' || t === 'game_frame') && !cf.photo) return 'no_photo';
+  if (t === 'fix' && !cf.reason) return 'bad_reason';
+  if (t === 'free_photo' && !/^(https?:\/\/)?[\w.-]+\.[a-z]{2,}\/\S+/i.test(cf.url || '')) return 'bad_url';
+  return '';
+}
+async function cfNext() {
+  cfCollect(); const e = cfCheck(); if (e) { err(tx(CE[e])); return; }
+  if (!cf.place && !cf.dupChecked) {
+    const r = await api().checkDuplicate({ world: cf.world, name: cf.name, lat: cf.lat, lon: cf.lon }).catch(() => ({ match: null }));
+    if (r.match) { await place(r.match); cf.dup = r.match; cf.view = 'dup'; cfRender(); return; }
+  }
+  cfSend();
+}
+let loginFor = null;
+async function cfSend() {
+  if (!cf) return; cfCollect(); stopCam();
+  const e = cfCheck(); if (e) { if (cf.view === 'draft') { cf.view = ''; cfRender(tx(CE[e])); } else err(tx(CE[e])); return; }
+  if (isGuest()) { await api().saveDraft(cfDraft()); cf.view = 'draft'; cfRender(); return; }   // вход почтой — после него отправим без повторного заполнения
+  const b = $('[data-cr="cf-send"], [data-cr="cf-next"], [data-cr="cf-login"]'); if (b) b.disabled = true;
+  const payload = { name: cf.name || '', what: cf.what || '', where: cf.where || '', lat: cf.lat ?? null, lon: cf.lon ?? null, reason: cf.reason || null, note: cf.note || '', vote: cf.vote || null, photo: cf.photo || null, extend: !!cf.extend };
+  try { await api().submitContribution({ type: cf.type, task_id: cf.task, place: cf.place, payload, source_url: cf.type === 'free_photo' ? cf.url : cf.source || '' }); }
+  catch (x) { if (b) b.disabled = false; const k = CE[x.code]; if (cf.view === 'draft') { cf.view = ''; cfRender(k ? tx(k) : tx('err')); } else err(k ? tx(k) : tx('err')); return; }
+  const done = cf; cf = null;
+  const r = rwText((board.tasks.find((t) => t.id === done.task) || board.tasks.find((t) => t.type === done.type) || {}).reward || {});
+  sheet(`<div class="cr-sh" data-st="sent" data-t="${esc(done.type)}"><h2>${esc(tx(done.type === 'found' ? 'cf_sent_found' : 'cf_sent_h'))}</h2>
+    ${done.type === 'found' ? `<p class="cr-p">${esc(tx('cf_sent_found_p'))}</p>` : `<div class="cr-steps"><div class="on">${I.check}<span>${esc(tx('cf_sent_1'))}</span></div><div>${I.clock}<span>${esc(tx('cf_sent_2'))}</span></div></div>`}
+    ${r && done.type !== 'found' ? `<p class="cr-p">${esc(nb(tx('cf_reward', { r })))}</p>` : ''}
+    <button class="btn-primary" data-cr="open:contribs">${esc(tx('cf_to_mine'))}</button><button class="btn-ghost" data-cr="sheet-close">${esc(tx('done'))}</button></div>`);
+  if (stack.length && ['board', 'contribs'].includes(stack[stack.length - 1].id)) rerender();
+  renderHub();
+}
+// снимок → JPEG до 720 px (на устройстве; с сервером — загрузка в хранилище)
+function shrink(src, max = 720) {
+  return new Promise((ok, no) => {
+    const im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight)); const cv = document.createElement('canvas'); cv.width = Math.round(im.naturalWidth * k); cv.height = Math.round(im.naturalHeight * k); cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); ok(cv.toDataURL('image/jpeg', 0.72)); };
+    im.onerror = no; im.src = src;
+  });
+}
+async function cfFile(file) {
+  if (!cf || !file) return;
+  const u = URL.createObjectURL(file);
+  try { cf.photo = await shrink(u); cfRender(); } catch { err(tx('ce_photo')); } finally { URL.revokeObjectURL(u); }
+}
+// «Пересними ракурс»: камера с полупрозрачным кадром игры поверх вида (кадр — только в живом видоискателе, не в превью)
+async function startCam() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 } }, audio: false });
+    cam = { stream, live: true, op: 0.35 }; cfRender();
+  } catch { cf.cam_off = true; cfRender(); }
+}
+function stopCam() { if (cam?.stream) cam.stream.getTracks().forEach((t) => t.stop()); cam = null; }
+async function camShot() {
+  const v = $('#cf-video'); if (!v || !v.videoWidth) return;
+  const k = Math.min(1, 720 / Math.max(v.videoWidth, v.videoHeight)), cv = document.createElement('canvas');
+  cv.width = Math.round(v.videoWidth * k); cv.height = Math.round(v.videoHeight * k); cv.getContext('2d').drawImage(v, 0, 0, cv.width, cv.height);
+  cf.photo = cv.toDataURL('image/jpeg', 0.72); stopCam(); cfRender();
+}
+
 // ───────── шторки: добавить, подать ролик, место, сообщить, вход, вывод, приглашение ─────────
 let form = {};   // черновик формы — переживает вход почтой
+// «Добавить» (шаг 8, В9) — первое состояние формы вклада `types` (08 №12): ролик, новое место, пасхалка, правка, фото из жизни, кадр из игры, свободное фото
 function addSheet() {
-  const g = ctx?.game?.() || 'gta6', minor = isMinor();
+  const g = ctx?.game?.() || 'gta6', minor = isMinor(), scout = !!P?.roles?.includes('scout');
   const it = (cr, icon, t, d, attrs = '', lock = false) => `<button class="row cr-row${lock ? ' off' : ''}" data-cr="${cr}" ${attrs}><span class="row-ic">${ic(icon)}</span><span class="row-l">${esc(t)}<small>${esc(d)}</small></span><span class="row-chev">${lock ? I.lock : I.chevron}</span></button>`;
-  sheet(`<div class="cr-sh"><h2>${esc(tx('add_h'))}</h2><div class="group">
+  const release = g === 'gta6' && today() < '2026-11-19';
+  sheet(`<div class="cr-sh" data-st="types"><h2>${esc(tx('add_h'))}</h2><div class="group">
     ${minor ? '' : it('submit', 'video', tx('ty_video'), tx('ty_video_d'))}
-    ${it('pform', 'pin', tx('ty_place'), tx('ty_place_d'))}
-    ${it('locked', 'swap', tx('ty_pair'), tx('ty_pair_d'), 'data-v="soon_pair"', true)}
-    ${g === 'gta6' ? it('locked', 'egg', tx('ty_found'), tx('ty_found_d6'), 'data-v="soon_found"', true) : it('pform', 'egg', tx('ty_found'), tx('ty_found_d5'), 'data-v="found"')}
-    ${it('report', 'alert', tx('ty_report'), tx('ty_report_d'))}</div></div>`);
+    ${it('cf-type', 'pin', tx('ty_new_place'), tx('ty_new_place_d'), 'data-v="new_place"')}
+    ${it('cf-type', 'egg', tx('ty_new_egg'), tx('ty_new_egg_d'), 'data-v="new_egg"')}
+    ${it('cf-type', 'alert', tx('ty_fix'), tx('ty_fix_d'), 'data-v="fix"')}
+    ${scout && !minor ? it('cf-type', 'swap', tx('ty_pair2'), tx('ty_pair2_d'), 'data-v="pair"') : it('locked', 'swap', tx('ty_pair2'), tx('ty_pair2_d'), 'data-v="soon_pair"', true)}
+    ${release ? it('locked', 'gamepad', tx('ty_frame'), tx('ty_found_d6'), 'data-v="soon_found"', true) : it('cf-type', 'gamepad', tx('ty_frame'), tx('ty_frame_d'), 'data-v="game_frame"')}
+    ${it('cf-type', 'camera', tx('ty_free'), tx('ty_free_d'), 'data-v="free_photo"')}</div>
+    <div class="group">${row('open:board', 'star', tx('hub_tasks'), tx('hub_tasks_sub'))}</div></div>`);
 }
 // ───────── экран 6 «Подача ролика» (02 §7.3, решение №17): form, places (упоминания с таймкодами), gameplay_on, submitting, duplicate, sent ─────────
 const AT_RE = /^\d{1,2}:[0-5]\d$/;
@@ -1261,8 +1677,8 @@ async function saveCard() {
   sheet(`<div class="cr-sh" data-st="hold"><h2>${esc(tx('sh_hold_h'))}</h2><p class="sub">${esc(tx('sh_hold_p'))}</p>
     <img class="cr-shot-big" src="${s.url}" alt="${esc(tx('sh_card'))}" width="1080" height="1920"><button class="btn-primary" data-cr="sh-held">${esc(tx('done'))}</button></div>`);
 }
-async function pickSheet(next) {
-  const g = form.place?.world || ctx?.game?.() || 'gta6';
+async function pickSheet(next, world) {
+  const g = world || form.place?.world || ctx?.game?.() || 'gta6';
   sheet(`<div class="cr-sh"><h2>${esc(tx('pick_h'))}</h2><label class="cr-in"><span class="vh">${esc(tx('pick_ph'))}</span><input id="cr-q" type="search" autocomplete="off" placeholder="${esc(tx('pick_ph'))}" enterkeyhint="search"></label><div class="cr-picks" id="cr-picks"></div></div>`);
   const box = $('#cr-picks'), d = await loadPlaces(g);
   const draw = (q) => {
@@ -1272,41 +1688,11 @@ async function pickSheet(next) {
   draw('');
   $('#cr-q').addEventListener('input', (e) => draw(e.target.value.trim()));
 }
-async function placeForm(kind = 'place') {
-  form.kind = form.kind || (kind === 'found' ? 'egg' : 'place'); form.side = form.side || 'real';
-  if (form.place) await place(form.place);
-  const seg = (k, opts) => `<div class="cr-seg">${opts.map(([v, l]) => `<button data-cr="pf-set" data-k="${k}" data-v="${v}" aria-selected="${form[k] === v}">${esc(tx(l))}</button>`).join('')}</div>`;
-  sheet(`<div class="cr-sh"><h2>${esc(tx('pf_h'))}</h2>
-    <p class="cr-lbl">${esc(tx('pf_kind'))}</p>${seg('kind', [['place', 'k_place'], ['egg', 'k_egg']])}
-    <p class="cr-lbl">${esc(tx('pf_side'))}</p>${seg('side', [['real', 'in_life'], ['game', 'in_game']])}
-    <div class="cr-field"><span>${esc(tx('pf_where'))}</span><b>${form.place ? `${esc(pName(form.place))}, ${esc(pCity(form.place))}` : '—'}</b><button class="cr-mini" data-cr="pick" data-next="pform">${esc(form.place ? tx('sv_change') : tx('sv_pick'))}</button></div>
-    <label class="cr-in"><span>${esc(tx('pf_where'))}</span><input id="cr-where" type="text" autocomplete="off" placeholder="${esc(tx('pf_where_ph'))}" value="${esc(form.where || '')}"></label>
-    <label class="cr-in"><span>${esc(tx('pf_src'))}</span><input id="cr-src" type="text" autocomplete="off" placeholder="${esc(tx('pf_src_ph'))}" value="${esc(form.source || '')}"></label>
-    <p class="cr-err" id="cr-err" hidden></p>
-    <button class="btn-primary" data-cr="pf-send">${I.send}${esc(tx('sv_send'))}</button></div>`);
-}
-function keepPlaceFields() { form.where = $('#cr-where')?.value.trim() ?? form.where; form.source = $('#cr-src')?.value.trim() ?? form.source; }
-async function pfSend(type) {
-  keepPlaceFields();
-  if (!form.place && !form.where) { const e = $('#cr-err'); if (e) { e.hidden = false; e.textContent = tx('req_fields'); } return; }
-  if (isGuest()) { loginSheet(() => pfSend(type), true); return; }
-  try { await api().submitContribution({ type, place: form.place || null, where: form.where, side: form.side, ref_kind: form.kind, source: form.source, note: form.note }); } catch { ctx.toast(tx('err')); return; }
-  form = {};
-  sheet(`<div class="cr-sh"><h2>${esc(tx('sent_h'))}</h2><div class="cr-steps"><div class="on">${I.check}<span>${esc(tx('sent_1'))}</span></div><div>${I.clock}<span>${esc(tx('sent_2'))}</span></div></div>
-    <p class="cr-p">${esc(tx('sent_p', { n: P.nick || 'nick' }))}</p><button class="btn-ghost" data-cr="sheet-close">${esc(tx('done'))}</button></div>`);
-}
-function reportSheet() {
-  form.reason = form.reason || 'rp_r1';
-  sheet(`<div class="cr-sh"><h2>${esc(tx('rp_h'))}</h2><div class="cr-chips">${['rp_r1', 'rp_r2', 'rp_r3', 'rp_r4'].map((r) => `<button data-cr="rp-set" data-v="${r}" aria-pressed="${form.reason === r}">${esc(tx(r))}</button>`).join('')}</div>
-    <label class="cr-in"><span>${esc(tx('rp_note'))}</span><input id="cr-note" type="text" autocomplete="off" placeholder="${esc(tx('rp_note_ph'))}" value="${esc(form.note || '')}"></label>
-    <div class="cr-field"><span>${esc(tx('pf_where'))}</span><b>${form.place ? `${esc(pName(form.place))}` : '—'}</b><button class="cr-mini" data-cr="pick" data-next="report">${esc(form.place ? tx('sv_change') : tx('sv_pick'))}</button></div>
-    <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="rp-send">${I.send}${esc(tx('sv_send'))}</button></div>`);
-}
 let loginNext = null, loginEmail = '';
 function loginSheet(next, draft = false) {
-  loginNext = next || null;
+  loginNext = next || null; if (!draft) loginFor = null;
   if (!isGuest() && !isPartner() && !isMinor() && hasAccess()) { ageSheet(); return; }   // вошёл, но не партнёр — экран 2
-  sheet(`<div class="cr-sh"><h2>${esc(tx('lg_h'))}</h2><p class="sub">${esc(tx('lg_sub'))}</p>
+  sheet(`<div class="cr-sh"><h2>${esc(tx(draft ? 'lg_h_c' : 'lg_h'))}</h2><p class="sub">${esc(tx(draft ? 'lg_sub_c' : 'lg_sub'))}</p>
     <label class="cr-in"><span>${esc(tx('lg_email'))}</span><input id="cr-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="name@mail.com" value="${esc(loginEmail || P?.email || '')}"></label>
     <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="lg-send">${I.mail}${esc(tx('lg_send'))}</button>
     <p class="cr-p">${esc(tx('lg_note'))}${draft ? ' ' + esc(tx('lg_draft')) + '.' : ''}</p></div>`);
@@ -1324,7 +1710,7 @@ function ageSheet() {
 }
 async function afterLogin() {
   P = await api().getProfile(); ctx?.onProfile?.(P); await renderHub(); if (stack.length) await rerender();
-  const n = loginNext; loginNext = null;
+  const n = loginNext; loginNext = null; loginFor = null;
   if (n) n(); else ctx.closeSheet();
 }
 async function withdrawSheet() {
@@ -1373,7 +1759,7 @@ const err = (t) => { const e = $('#cr-err'); if (e) { e.hidden = false; e.textCo
 // после входа почтой: партнёр — дальше по просьбе, иначе — «Стать партнёром» (экран 2)
 async function afterSignIn() {
   P = await api().getProfile(); ctx?.onProfile?.(P); renderHub();
-  if (isPartner() || isMinor() || !hasAccess()) return afterLogin();
+  if (loginFor === 'contrib' || isPartner() || isMinor() || !hasAccess()) return afterLogin();   // вклад: после входа — сразу отправка черновика
   ctx.closeSheet(); loginNext = null; push('partner', {});
 }
 
@@ -1530,6 +1916,8 @@ const SCREENS = {
   done: { html: doneHTML },
   vstats: { html: async (a) => `${head(tx('vstat_h'))}${body(await vstatsHTML(a))}`, bind: (s) => bindChart(s) },
   admin: { html: adminHTML },
+  board: { html: boardHTML },
+  contribs: { html: async () => contribsHTML() },
 };
 function feedMine(id) {
   api().listMyVideos().then((a) => { const acc = a.filter((v) => v.status === 'accruing' || v.status === 'closed'); const i = Math.max(0, acc.findIndex((v) => v.id === id)); ctx.closeSheet(); push('feed', { source: 'mine', start: i }); });
@@ -1571,11 +1959,14 @@ async function onClick(e) {
     case 'add': await load(); addSheet(); break;
     case 'submit': await load(); submitSheet(el.dataset.p ? { world: el.dataset.w, id: el.dataset.p } : null); break;
     case 'sv-send': svSend(); break;
-    case 'pick': keepSv(); keepPlaceFields(); form.note = $('#cr-note')?.value.trim() ?? form.note; pickSheet(el.dataset.next); break;
+    case 'pick':
+      if (el.dataset.next === 'cf') { cfCollect(); if (cf && cfHas()) api().saveDraft(cfDraft()).catch(() => { }); stopCam(); pickSheet('cf', cf?.world); break; }
+      keepSv(); pickSheet(el.dataset.next); break;
     case 'picked': {
       const ref = { world: el.dataset.w, id: el.dataset.p }; await place(ref);
       if (el.dataset.next === 'mention') { form.places = form.places || []; if (!form.places.some((x) => x.id === ref.id) && form.places.length < 5) form.places.push({ ...ref, at: '' }); submitSheet(); break; }
-      form.place = ref; ({ submit: () => submitSheet(), pform: () => placeForm(), report: reportSheet })[el.dataset.next]?.(); break;
+      if (el.dataset.next === 'cf') { if (cf) { cf.place = ref; cf.world = ref.world; cf.dupChecked = false; cfRender(); } break; }
+      form.place = ref; ({ submit: () => submitSheet() })[el.dataset.next]?.(); break;
     }
     // подача ролика: «Про место» / «Упоминание», кадры из игры, убрать место
     case 'sv-mode': {
@@ -1597,12 +1988,22 @@ async function onClick(e) {
       break;
     }
     case 'sh-submit': if (shoot) { form = { place: shoot.ref, v: shoot.v, mode: 'about' }; submitSheet(); } break;
-    case 'pform': form = { place: form.place }; placeForm(v); break;
-    case 'pf-set': keepPlaceFields(); form[el.dataset.k] = v; placeForm(); break;
-    case 'pf-send': pfSend('place'); break;
-    case 'report': form = { place: form.place }; reportSheet(); break;
-    case 'rp-set': form.note = $('#cr-note')?.value.trim(); form.reason = v; reportSheet(); break;
-    case 'rp-send': form.note = $('#cr-note')?.value.trim(); if (!form.place) { const er = $('#cr-err'); er.hidden = false; er.textContent = tx('req_fields'); break; } pfSend('report'); break;
+    // задания и вклады (08 №11–13)
+    case 'bd-w': { const top = stack[stack.length - 1]; if (top) { top.args.world = v; await rerender(); } break; }
+    case 'tk-go': await taskGo(el.dataset.id); break;
+    case 'cf-type': await cfOpen(v, { world: ctx?.game?.() || 'gta6' }); break;
+    case 'cf-resume': ctx.closeSheet(); await cfOpen(v, {}); break;
+    case 'cf-refix': { const c = (await api().listMyContributions()).find((x) => x.id === v); if (c) await cfOpen(c.type, { place: c.place, from: c.id, fresh: true }); break; }
+    case 'cf-next': cfNext(); break;
+    case 'cf-send': cfSend(); break;
+    case 'cf-dup': if (cf) { if (v === 'yes') { cf.place = cf.dup; cf.extend = true; } cf.dupChecked = true; cf.view = ''; cfSend(); } break;
+    case 'cf-unplace': if (cf) { cf.place = null; cf.dupChecked = false; cfRender(); } break;
+    case 'cf-reason': if (cf) { cfCollect(); cf.reason = v; cfRender(); } break;
+    case 'cf-vote': if (cf) { cf.vote = v; cfSend(); } break;
+    case 'cf-photo': cfCollect(); $('#cf-file')?.click(); break;
+    case 'cf-cam': if (cf) startCam(); break;
+    case 'cf-shot': camShot(); break;
+    case 'cf-login': if (cf) { cfCollect(); await api().saveDraft(cfDraft()); loginFor = 'contrib'; const t = cf.type; loginSheet(async () => { const d = (await api().getDrafts()).find((x) => x.type === t); if (d) { cf = { ...d, view: '' }; await cfSend(); } else ctx.closeSheet(); }, true); } break;
     case 'locked': ctx.toast(tx(v)); break;
     case 'lg-send': {
       const em = $('#cr-email').value.trim(), er = $('#cr-err');
@@ -1615,7 +2016,7 @@ async function onClick(e) {
     }
     case 'lg-code': {
       const c = $('#cr-code').value.trim(), er = $('#cr-err');
-      try { P = await api().verifyCode(loginEmail, c); if (!isPartner() && !P.minor) { if (hasAccess()) afterSignIn(); else ageSheet(); } else afterLogin(); } catch { er.hidden = false; er.textContent = tx('lg_bad_code'); }
+      try { P = await api().verifyCode(loginEmail, c); if (loginFor === 'contrib') afterLogin(); else if (!isPartner() && !P.minor) { if (hasAccess()) afterSignIn(); else ageSheet(); } else afterLogin(); } catch { er.hidden = false; er.textContent = tx('lg_bad_code'); }
       break;
     }
     case 'lg-age': {
@@ -1715,12 +2116,23 @@ export function init(c) {
   ctx = c;
   if (init.done) return; init.done = true;
   document.addEventListener('click', onClick);
+  // форма вклада: поля переживают перерисовку, «Дальше» без источника не активна (02 §6.3), фото — с устройства
+  document.addEventListener('input', (e) => {
+    if (e.target.id === 'cf-op' && cam) { cam.op = +e.target.value; const g = $('#cf-ghost'); if (g) g.style.opacity = cam.op; return; }
+    if (!cf || !e.target.matches?.('[data-cf]')) return;
+    cfCollect(); const ok = srcOK(), b = $('[data-cr="cf-next"]'), h = $('#cf-need'); if (b) b.disabled = !ok; if (h) h.hidden = ok;
+  });
+  document.addEventListener('change', (e) => { if (e.target.id === 'cf-file') cfFile(e.target.files?.[0]); });
 }
 /** Лента «Ролики об этом месте» — вызывает карточка места (сессия карты): window.SB.openPlaceVideos('gta6', 'gta6-…') */
 export async function openPlaceVideos(world, placeId) { await load(); ctx?.closeSheet?.(); return push('feed', { source: 'place', world, id: placeId }); }
 /** «Снять про это» — вызывает карточка места (сессия карты): window.SB.shootPlace('gta6', 'gta6-stiltsville'). Не партнёр — вход и «Стать партнёром» */
 export async function shootPlace(world, placeId) { await load(); return shootSheet(world, placeId); }
-/** Любой экран креатора: league | earn | myvideos | mylink | review | rules | vstats ({ id }) */
+/** «Поправить» из карточки места (сессия карты): window.SB.fixPlace('gta6', 'gta6-…') — форма вклада, вид «Поправить место» */
+export async function fixPlace(world, placeId) { await load(); return cfOpen('fix', { place: { world, id: placeId }, world }); }
+/** Новое место долгим тапом по карте (сессия карты): window.SB.addPlaceAt('gta6', lat, lon) — форма вклада с точкой */
+export async function addPlaceAt(world, lat, lon) { await load(); return cfOpen('new_place', { world, lat: +lat, lon: +lon }); }
+/** Любой экран креатора: league | earn | myvideos | mylink | review | rules | vstats ({ id }) | board ({ world }) | contribs */
 export async function openCreator(id = 'league', args = {}) { await load(); return push(id, args); }
 /** «Стать партнёром» снаружи (пейвол nopay): вход почтой и 18+; уже партнёр — Лига */
 export async function becomePartner() { await load(); if (isPartner()) return push('league', {}); loginSheet(); }

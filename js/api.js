@@ -26,6 +26,7 @@
 
 import { CREATOR_MODE, CREATOR } from './config.js';
 import { demoDB, DEMO } from './demo-data.js';
+import { loadPlaces } from './places.js';
 
 const ls = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
   set: (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch { } } };
@@ -205,7 +206,7 @@ function build(state) {
   } else if (state === 'pro') {   // купил год
     Object.assign(P, { roles: ['player'], adult_at: null, pro_until: inD(365), pro_kind: 'year' });
   }
-  return { P, videos, ledger, pro_days, payout, decisions: [] };
+  return { P, videos, ledger, pro_days, payout, decisions: [], contributions: [], drafts: {} };
 }
 
 // ── закрытый доступ без сервера (08 §6): всё на устройстве, форма — как у сервера ──
@@ -213,7 +214,7 @@ const BKEY = 'sb.beta.v1', DKEY = 'sb.demo.db';
 function freshBeta() {
   return { P: { nick: null, ref_code: null, email: null, country: null, payouts: true, roles: [], level: 'new', adult_at: null, terms_at: null,
     partner_since: null, invited: false, invite: null, waitlist: null, pro_until: null, trial_until: null, work_pro_until: null, league_unlocked: false,
-    league_progress: { views: 0, goal: RULES.league_goal_views }, mod: null, accounts: [] }, videos: [], ledger: [], pro_days: [], payout: null, decisions: [] };
+    league_progress: { views: 0, goal: RULES.league_goal_views }, mod: null, accounts: [] }, videos: [], ledger: [], pro_days: [], payout: null, decisions: [], contributions: [], drafts: {} };
 }
 function loadStore(key) { try { const v = JSON.parse(ls.get(key) || 'null'); return v && v.P ? v : null; } catch { return null; } }
 let DB = null;
@@ -227,6 +228,99 @@ const pub = (v) => ({ id: v.id, platform: v.platform, place: v.place, title: v.t
 const sumBy = (arr, f) => arr.reduce((a, x) => a + f(x), 0);
 const addDays = (iso, n) => { const t = new Date(iso + 'T12:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
 const NOPAY = ['RU', 'BY'];
+
+// ── задания и вклады (08 ТЗ §3 №11–13, §4; 02 §6) ──
+// Задание (GET /tasks, таблица tasks 04 §1.4): { id, kind, section:'all'|'partner'|'league', world, type? (вид вклада), place?, title?, platforms?,
+//   threshold_views?, reward_cents?, slots?, slots_left?, starts_at?, ends_at?, found_by?, found_at?,
+//   reward { name?:'check'|'found'|'photo'|'frame'|'free_photo', pro_days?, author_pct?, cents?, per?:'pair'|'decision', rpm?, share_pct?, pin_days?,
+//            fixed_cents?, threshold_views?, video_pro_days?, preliminary },
+//   state:'open'|'in_progress'|'sent'|'accepted'|'rejected'|'locked', lock? { code, n?, need?, date? }, claim? { kind:'contribution'|'video', id, status, reject_code, trace } }
+// Виды заданий: found, fix, new_place, new_egg, game_frame, free_photo (раздел А); place_week, fresh_find, mention3, need_pair, review (Б); league_fixed (В).
+// Вклад (POST/GET /contributions): { id, type:'found'|'fix'|'new_place'|'new_egg'|'free_photo'|'pair'|'game_frame', task_id?, place|null,
+//   payload { name, what, where, lat, lon, reason, note, vote, photo (уменьшенный снимок) }, source_url, status:'in_review'|'accepted'|'rejected',
+//   reject_code, reward, trace { kind:'opens'|'compares'|'frame_compares'|'fixed_for'|'votes', n, need?, period?, videos? }, created_at, decided_at }
+// Черновик — только на устройстве (saveDraft / getDrafts / clearDraft): переживает вход почтой и перезагрузку, отправляется после входа.
+const RELEASE6 = '2026-11-19';   // GTA 6: до выхода нет своих кадров из игры
+const TASKS = [
+  { id: 'a-found-6', kind: 'found', section: 'all', world: 'gta6', type: 'found', place: { world: 'gta6', id: 'gta6-bayside-marketplace-skyviews' } },
+  { id: 'a-fix-6', kind: 'fix', section: 'all', world: 'gta6', type: 'fix', place: { world: 'gta6', id: 'gta6-little-haiti-ne60-mural' } },
+  { id: 'a-new-6', kind: 'new_place', section: 'all', world: 'gta6', type: 'new_place' },
+  { id: 'a-egg-6', kind: 'new_egg', section: 'all', world: 'gta6', type: 'new_egg' },
+  { id: 'a-frame-6', kind: 'game_frame', section: 'all', world: 'gta6', type: 'game_frame', place: { world: 'gta6', id: 'gta6-fisher-island' } },
+  { id: 'a-free-6', kind: 'free_photo', section: 'all', world: 'gta6', type: 'free_photo', place: { world: 'gta6', id: 'gta6-stuart-yard' } },
+  { id: 'a-found-5', kind: 'found', section: 'all', world: 'gta5', type: 'found', place: { world: 'gta5', id: 'gta5-pleasure-pier' } },
+  { id: 'a-fix-5', kind: 'fix', section: 'all', world: 'gta5', type: 'fix', place: { world: 'gta5', id: 'gta5-bay-city-incline' } },
+  { id: 'a-new-5', kind: 'new_place', section: 'all', world: 'gta5', type: 'new_place' },
+  { id: 'a-egg-5', kind: 'new_egg', section: 'all', world: 'gta5', type: 'new_egg' },
+  { id: 'a-frame-5', kind: 'game_frame', section: 'all', world: 'gta5', type: 'game_frame', place: { world: 'gta5', id: 'gta5-vinewood-walk-of-fame' } },
+  { id: 'a-free-5', kind: 'free_photo', section: 'all', world: 'gta5', type: 'free_photo', place: { world: 'gta5', id: 'gta5-rancho' } },
+  { id: 'b-week-6', kind: 'place_week', section: 'partner', world: 'gta6', place: { world: 'gta6', id: 'gta6-providence-canyon' } },
+  { id: 'b-fresh-6', kind: 'fresh_find', section: 'partner', world: 'gta6', place: { world: 'gta6', id: 'gta6-shark-valley-everglades' }, found_by: '@keys_hunter', found_at: '2026-11-14' },
+  { id: 'b-week-5', kind: 'place_week', section: 'partner', world: 'gta5', place: { world: 'gta5', id: 'gta5-del-perro-pier' } },
+  { id: 'b-fresh-5', kind: 'fresh_find', section: 'partner', world: 'gta5', place: { world: 'gta5', id: 'gta5-chumash' }, found_by: '@palm_route', found_at: '2026-11-12' },
+  { id: 'b-three', kind: 'mention3', section: 'partner', world: '*' },
+  { id: 'b-pair-6', kind: 'need_pair', section: 'partner', world: 'gta6', type: 'pair', place: { world: 'gta6', id: 'gta6-no-name-pub' } },
+  { id: 'b-pair-5', kind: 'need_pair', section: 'partner', world: 'gta5', type: 'pair', place: { world: 'gta5', id: 'gta5-vinewood-police-station' } },
+  { id: 'b-review', kind: 'review', section: 'partner', world: '*' },
+  // Лига (02 §6.2 В): создаёт оператор; сумма видна только партнёру, «$30 при 20 000 просмотров» — без «до»
+  { id: 'c-miami5', kind: 'league_fixed', section: 'league', world: '*', title: { ru: 'Ролик о 5 местах Майами до 19 ноября', en: 'A video about 5 Miami places by November 19' },
+    places_n: 5, platforms: ['tiktok', 'shorts', 'reels'], threshold_views: 20000, reward_cents: 3000, slots: 20, slots_left: 12, ends_at: '2026-11-19' },
+  { id: 'c-keys', kind: 'league_fixed', section: 'league', world: '*', title: { ru: 'Мосты Оверсиз-хайвей: ролик о 3 мостах', en: 'Overseas Highway bridges: a video about 3 bridges' },
+    places_n: 3, platforms: ['tiktok', 'shorts'], threshold_views: 10000, reward_cents: 1500, slots: 10, slots_left: 10, starts_at: '2026-11-19' },
+];
+const isPartnerP = (P) => !!(P.roles.includes('creator') && P.adult_at);
+// награда задания по режиму (08 §4): beta — имя на карте и «предварительные» суммы; demo и live — по ставкам.
+// «Кадр из игры» — НИКОГДА без денег: права на кадры игры у издателя (красная линия, check_code.py правило 13)
+function rewardOf(kind, P) {
+  const live = MODE !== 'beta', money = isPartnerP(P) && P.payouts !== false && !P.minor, pre = !live;
+  switch (kind) {
+    case 'found': return { name: 'check' };
+    case 'fix': return { name: 'found', ...(live ? { pro_days: 1 } : {}) };
+    case 'new_place': case 'new_egg': return { name: 'found', ...(live ? { pro_days: 7 } : {}), ...(live && money ? { author_pct: RULES.author_fee_pct } : {}) };
+    case 'game_frame': return { name: 'frame', ...(live ? { pro_days: 2 } : {}) };
+    case 'free_photo': return { name: 'free_photo', ...(live ? { pro_days: 2 } : {}) };
+    case 'need_pair': case 'pair': return live && P.payouts !== false && !P.minor ? { name: 'photo', cents: RULES.scout_pair_cents, per: 'pair' } : { name: 'photo' };
+    case 'review': return P.payouts === false || P.minor ? {} : { cents: RULES.mod_decision_cents, per: 'decision', preliminary: pre };
+    case 'place_week': case 'fresh_find': case 'mention3':
+      if (P.payouts === false || P.minor) return { video_pro_days: RULES.partner_pro_per_video_days, threshold_views: RULES.partner_pro_min_views };
+      return { rpm: true, share_pct: RULES.share_pct, preliminary: pre, ...(kind === 'fresh_find' ? { pin_days: 30 } : {}) };
+    default: return {};
+  }
+}
+function leagueReward(t, P) {
+  if (P.payouts === false || P.minor) return { video_pro_days: RULES.partner_pro_per_video_days, threshold_views: RULES.partner_pro_min_views };
+  return isPartnerP(P) ? { fixed_cents: t.reward_cents, threshold_views: t.threshold_views, preliminary: MODE === 'beta' } : { threshold_views: t.threshold_views };
+}
+const contribs = () => (db().contributions = db().contributions || []);
+const draftsOf = () => (db().drafts = db().drafts || {});
+const sameRef = (a, b) => !!(a && b && a.world === b.world && a.id === b.id);
+function lockOf(t, P) {
+  const access = programOpen() || !!P.invited, partner = isPartnerP(P), acc = contribs().filter((c) => c.status === 'accepted').length;
+  if (t.section === 'all') return t.kind === 'game_frame' && t.world === 'gta6' && today() < RELEASE6 ? { code: 'release', date: RELEASE6 } : null;
+  if (P.minor) return { code: 'adult' };
+  if (!access) return { code: 'invite' };
+  if (!partner) return { code: 'partner' };
+  if (t.kind === 'need_pair' && !P.roles.includes('scout') && acc < 5) return { code: 'scout', n: acc, need: 5 };
+  if (t.kind === 'review' && !P.roles.includes('mod')) return { code: 'mod' };
+  if (t.section === 'league' && !P.league_unlocked) return { code: 'league', n: P.league_progress?.views || 0, need: RULES.league_goal_views };
+  if (t.starts_at && today() < t.starts_at) return { code: 'starts', date: t.starts_at };
+  return null;
+}
+const C_STATE = { in_review: 'sent', pending_review: 'sent', accepted: 'accepted', rejected: 'rejected' };
+const V_STATE = (s) => (['submitted', 'in_review', 'pending_review'].includes(s) ? 'sent' : s === 'rejected' ? 'rejected' : 'accepted');
+function claimOf(t) {
+  if (t.type) {
+    const c = contribs().filter((x) => x.type === t.type && (!t.place || sameRef(x.place, t.place))).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+    return c ? { kind: 'contribution', id: c.id, status: c.status, state: C_STATE[c.status] || 'sent', reject_code: c.reject_code || null, trace: c.trace || null, place: c.place } : null;
+  }
+  const vs = db().videos.filter((v) => (t.kind === 'mention3' ? placesOfVideo(v).length >= 3 : t.kind === 'league_fixed' ? v.task_id === t.id : t.place && placesOfVideo(v).some((x) => sameRef(x, t.place))));
+  const v = vs.sort((a, b) => String(b.submitted_at).localeCompare(String(a.submitted_at)))[0];
+  return v ? { kind: 'video', id: v.id, status: v.status === 'pending_review' ? 'in_review' : v.status, state: V_STATE(v.status), reject_code: v.reject_code || null } : null;
+}
+const NEED_SOURCE = ['new_place', 'new_egg'], NEED_PHOTO = ['pair', 'game_frame'], NEED_PLACE = ['found', 'fix', 'pair', 'game_frame', 'free_photo'];
+const FIX_REASONS = ['wrong_spot', 'closed', 'wrong_building', 'no_coords', 'violation'];
+const near = (a, b) => { const k = Math.PI / 180, x = (b.lon - a.lon) * k * Math.cos((a.lat + b.lat) / 2 * k), y = (b.lat - a.lat) * k; return Math.sqrt(x * x + y * y) * 6371e3; };
+const normName = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9а-яё]+/gi, ' ').trim();
 
 // ── хэши кодов (config.js → CREATOR, tools/make_invites.py): PBKDF2-SHA256 50 000, коды приглашений — HMAC от кода админа ──
 const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -530,7 +624,58 @@ const api = {
   },
 
   /** Вклад: { type:'place'|'pair'|'report'|'found', place?{world,id}|null, where?, side:'game'|'real', ref_kind, source, note } → { id, status:'pending_review' } */
-  submitContribution: (c) => (c && c.type ? wait({ id: 'C' + Date.now().toString(36).toUpperCase(), status: 'pending_review' }, 300) : fail('bad_type')),
+  // ───────── задания и вклады (08 №11–13) ─────────
+  /** Доска заданий (GET /tasks?world=): разделы А «Для всех», Б «Для партнёров», В «Лига» с наградой по режиму и состоянием карточки */
+  getTasks: ({ world = 'gta6' } = {}) => {
+    const P = db().P, dr = draftsOf();
+    const out = TASKS.filter((t) => t.world === '*' || t.world === world).map((t) => {
+      const lock = lockOf(t, P), claim = lock ? null : claimOf(t);
+      const draft = !lock && t.type && dr[t.type] && (!t.place || !dr[t.type].place || sameRef(dr[t.type].place, t.place)) && (dr[t.type].world || world) === (t.place?.world || world);
+      const state = lock ? 'locked' : draft ? 'in_progress' : claim ? claim.state : 'open';
+      const reward = t.section === 'league' ? leagueReward(t, P) : rewardOf(t.kind, P);
+      const extra = t.kind === 'review' && P.mod ? { today: P.mod.today } : {};
+      return { ...t, reward, state, lock, claim, ...extra };
+    });
+    return wait(out, 120);
+  },
+  /** Отправить вклад (POST /contributions) → { id, status:'in_review'|'accepted' }. «Узнаю это место» засчитывается сразу (3 голоса = проверено).
+   *  Ошибки: need_login, bad_type, no_place, no_point, no_name, no_source (новое место без ссылки или фото), no_photo, bad_reason, bad_url, limit (≤ 5 мест в сутки) */
+  submitContribution: (c = {}) => {
+    const P = db().P, type = c.type === 'report' ? 'fix' : c.type;
+    if (!P.email) return fail('need_login');
+    if (!['found', 'fix', 'new_place', 'new_egg', 'free_photo', 'pair', 'game_frame'].includes(type)) return fail('bad_type');
+    const pay = c.payload || {}, place = c.place || null;
+    if (NEED_PLACE.includes(type) && !place) return fail('no_place');
+    if (NEED_SOURCE.includes(type)) {
+      if (!place && !(Number.isFinite(pay.lat) && Number.isFinite(pay.lon)) && !String(pay.where || '').trim()) return fail('no_point');
+      if (!String(pay.name || '').trim()) return fail('no_name');
+      if (!String(c.source_url || '').trim() && !pay.photo) return fail('no_source');
+      if (contribs().filter((x) => NEED_SOURCE.includes(x.type) && x.created_at === today()).length >= 5) return fail('limit');
+    }
+    if (NEED_PHOTO.includes(type) && !pay.photo) return fail('no_photo');
+    if (type === 'fix' && !FIX_REASONS.includes(pay.reason)) return fail('bad_reason');
+    if (type === 'free_photo' && !/^(https?:\/\/)?[\w.-]+\.[a-z]{2,}\/\S+/i.test(String(c.source_url || ''))) return fail('bad_url');
+    const found = type === 'found';
+    const x = { id: 'C' + Date.now().toString(36).toUpperCase(), type, task_id: c.task_id || null, place, payload: pay, source_url: String(c.source_url || '').trim(),
+      status: found ? 'accepted' : 'in_review', reward: rewardOf(type === 'pair' ? 'pair' : type, P), created_at: today(), decided_at: found ? today() : null,
+      ...(found ? { trace: { kind: 'votes', n: pay.vote === 'yes' ? 1 : 0, need: 3 } } : {}) };
+    contribs().push(x); delete draftsOf()[type]; persist();
+    return wait({ id: x.id, status: x.status }, 300);
+  },
+  /** «Мои вклады» (GET /contributions): новые сверху, со следом у принятых (v_place_stats) */
+  listMyContributions: () => wait([...contribs()].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)) || String(b.id).localeCompare(String(a.id))), 80),
+  /** Черновик вклада — только на устройстве: один на вид вклада. Переживает вход почтой и перезагрузку */
+  saveDraft: (d = {}) => { if (!d.type) return fail('bad_type'); draftsOf()[d.type] = { ...d, saved_at: today() }; persist(); return wait({ ok: true }, 20); },
+  getDrafts: () => wait(Object.values(draftsOf()), 20),
+  clearDraft: (type) => { delete draftsOf()[type]; persist(); return wait({ ok: true }, 20); },
+  /** Проверка дубля до отправки (02 §6.3): то же название или точка ближе 200 м → { match: { world, id } | null }. С сервером — GET /places/near */
+  checkDuplicate: async ({ world = 'gta6', name = '', lat = null, lon = null } = {}) => {
+    const d = await loadPlaces(world), q = normName(name);
+    const byPt = Number.isFinite(lat) && Number.isFinite(lon) ? d.places.filter((p) => Number.isFinite(p.lat) && near({ lat, lon }, p) < 200).sort((a, b) => near({ lat, lon }, a) - near({ lat, lon }, b))[0] : null;
+    const byName = q.length >= 4 ? d.places.find((p) => [p.n, p.g, p.r].some((v) => { const n = normName(v); return n && (n === q || (q.length >= 5 && (' ' + n + ' ').includes(' ' + q + ' '))); })) : null;
+    const m = byPt || byName;
+    return wait({ match: m ? { world, id: m.id } : null }, 150);
+  },
 
   /** Очередь проверки (модератор): [{ id, kind:'video'|'place'|'photo', place{world,id}, platform?, title?, facts[], trap? }] — ловушки ничем не отличаются */
   getReviewQueue: () => {

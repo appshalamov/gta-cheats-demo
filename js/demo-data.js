@@ -88,6 +88,29 @@ export const DEMO = {
   ],
 };
 
+// вклады @sunset_drive (доска заданий, «Мои вклады», 08 ТЗ §3 №11–13, §4) — форма contributions 04 §1.4 / §2:
+// { id, type, place, payload, source_url, status: 'in_review'|'accepted'|'rejected', reject_code, reward, trace, created_at, decided_at }.
+// Награды — как в live (demo показывает программу целиком): дни Pro, «Найдено @ник», $10 за пару; «Кадр из игры» — без денег.
+// След (v_place_stats): stiltsville — 1 240 открытий за неделю и 3 ролика (08 §5); 312 и 4 800 — примеры 02 §6.1; 148 — пример для второй пары.
+// Пары stiltsville и portmiami — те же, что в журнале (pair, $10 + $10 = $20,00 доступно).
+function contributions() {
+  return [
+    { id: 'C1', type: 'new_place', place: pl('gta6', 'gta6-stiltsville'), payload: { name: 'Stiltsville' }, source_url: 'youtube.com/watch?v=sunsetTrail1&t=48',
+      status: 'accepted', reward: { name: 'found', pro_days: 7, author_pct: 10 }, trace: { kind: 'opens', n: 1240, period: 'week', videos: 3 }, created_at: d(1), decided_at: d(2) },
+    { id: 'C2', type: 'pair', place: pl('gta6', 'gta6-stiltsville'), payload: {}, status: 'accepted', reward: { name: 'photo', cents: 1000, per: 'pair' }, trace: { kind: 'compares', n: 312 }, created_at: d(5), decided_at: d(6) },
+    { id: 'C3', type: 'pair', place: pl('gta6', 'gta6-portmiami'), payload: {}, status: 'accepted', reward: { name: 'photo', cents: 1000, per: 'pair' }, trace: { kind: 'compares', n: 148 }, created_at: d(12), decided_at: d(13) },
+    { id: 'C4', type: 'fix', place: pl('gta5', 'gta5-bay-city-incline'), payload: { reason: 'wrong_spot', note: '' }, status: 'accepted', reward: { name: 'found', pro_days: 1 },
+      trace: { kind: 'fixed_for', n: 4800 }, created_at: d(8), decided_at: d(9) },
+    { id: 'C5', type: 'found', place: pl('gta5', 'gta5-pleasure-pier'), payload: { vote: 'yes' }, status: 'accepted', reward: { name: 'check' }, trace: { kind: 'votes', n: 3, need: 3 }, created_at: d(10), decided_at: d(10) },
+    { id: 'C6', type: 'fix', place: pl('gta6', 'gta6-little-haiti-ne60-mural'), payload: { reason: 'closed', note: '' }, status: 'rejected', reject_code: 'checked_ok', reward: { name: 'found', pro_days: 1 }, created_at: d(19), decided_at: d(20) },
+    { id: 'C7', type: 'free_photo', place: pl('gta6', 'gta6-stuart-yard'), payload: {}, source_url: 'commons.wikimedia.org/wiki/File:Stuart_Florida_rail_yard.jpg', status: 'in_review', reward: { name: 'free_photo', pro_days: 2 }, created_at: d(27) },
+    { id: 'C8', type: 'game_frame', place: pl('gta5', 'gta5-vinewood-walk-of-fame'), payload: {}, status: 'in_review', reward: { name: 'frame', pro_days: 2 }, created_at: d(28) },
+  ];
+}
+// черновик «Новая пасхалка» (состояние in_progress): сохранён на устройстве, источника ещё нет — кнопка «Дальше» не активна
+const drafts = () => ({ new_egg: { type: 'new_egg', world: 'gta6', step: 'point', name: 'Wynwood Walls',
+  what: { ru: 'Граффити у входа, как в трейлере', en: 'The graffiti at the entrance, as in the trailer' }, where: '25.8010, -80.1994', source: '', saved_at: d(29) } });
+
 // stage: 'partner' — партнёр с роликами за ноябрь; 'start' — новый человек: путь с записи в список до «Готово»
 export function demoDB(stage = 'partner') {
   const vids = videos();
@@ -108,5 +131,6 @@ export function demoDB(stage = 'partner') {
     Object.assign(P, { email: null, roles: [], level: 'new', adult_at: null, terms_at: null, partner_since: null, invited: false,
       work_pro_until: null, league_unlocked: false, league_progress: { views: 0, goal: 10000 }, accounts: [], mod: null, author: null });
   }
-  return { P, videos: vids, ledger: ledger(vids), pro_days: [], payout: null, decisions: [], month: MONTH, stage };
+  const own = stage === 'start' ? { contributions: [], drafts: {} } : { contributions: contributions(), drafts: drafts() };
+  return { P, videos: vids, ledger: ledger(vids), pro_days: [], payout: null, decisions: [], month: MONTH, stage, ...own };
 }

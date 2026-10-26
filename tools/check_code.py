@@ -209,4 +209,27 @@ if list_bad:
     for b in list_bad:
         print("  ✗", b)
     sys.exit(1)
+# 13. «Кадр из игры» — без денег (08 ТЗ §4, красная линия решения 15.10 «принимать снимки игроков, не платить за кадры игры»:
+#     права на кадры игры у издателя). Награда game_frame в api.js (rewardOf) и в demo-data.js — только имя и дни Pro, без cents;
+#     карточка доски показывает строку «Без денег». Проверено подменой: cents в награде game_frame → СТОП.
+frame_bad = []
+_dd = (ROOT / "js" / "demo-data.js").read_text("utf-8")
+_rw = re.search(r"^function rewardOf\(.*?^\}", _api, re.S | re.M)
+if not _rw:
+    frame_bad.append("api.js: нет rewardOf() — награды заданий по режиму")
+else:
+    _gf = re.search(r"case 'game_frame':[^\n]*", _rw.group(0))
+    if not _gf: frame_bad.append("api.js rewardOf(): нет ветки game_frame")
+    elif re.search(r"cents|money|\$", _gf.group(0)): frame_bad.append(f"api.js rewardOf(): у «Кадра из игры» деньги: {_gf.group(0).strip()[:90]}")
+for _name, _src in (("api.js", _api), ("demo-data.js", _dd)):
+    for _n, _line in enumerate(_src.splitlines(), 1):
+        if "game_frame" in _line and re.search(r"(reward|cents)[^\n]*cents|reward_cents", _line):
+            frame_bad.append(f"{_name}:{_n}: у «Кадра из игры» деньги: {_line.strip()[:90]}")
+if "rw_frame_note" not in _lg or not re.search(r"t\.kind === 'game_frame' \? `[^`]*rw_frame_note", _lg):
+    frame_bad.append("league.js: карточка «Кадр из игры» без строки «Без денег» (rw_frame_note)")
+if frame_bad:
+    print("СТОП: «Кадр из игры» с деньгами — красная линия:")
+    for b in frame_bad:
+        print("  ✗", b)
+    sys.exit(1)
 print("правила кода: ок")
