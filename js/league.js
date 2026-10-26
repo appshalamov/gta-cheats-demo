@@ -117,18 +117,18 @@ const S = {
     rr_v1: 'Нет кода SB- в описании', rr_v2: 'Геймплей GTA в ролике', rr_v3: 'Ролик не про это место', rr_v4: 'Чужой ролик',
     rr_p1: 'Похоже на снимок Google Maps или Street View', rr_p2: 'Кадр игры или ИИ-картинка', rr_p3: 'В кадре лица или номера машин', rr_p4: 'Не то место', rr_p5: 'Слишком темно или размыто',
     mod_how: 'Два пути: 5 принятых вкладов или приглашение модератора. Дальше — короткий экзамен на 20 примеров.', mod_how_pay: ' Модераторы получают деньги за точные проверки.',
-    mod_exam: 'Экзамен: 20 примеров, нужно 16 верных', mod_student: 'Режим ученика: ваши решения сверяются с модераторами, 20 проверок с точностью от 70%',
+    mod_exam: 'Экзамен: 20 примеров, нужно 16 верных', mod_student: 'Режим ученика: ваши решения сверяются с модераторами, {n} проверок с точностью от {a}%',
     mod_now: 'У вас {n} из 5 принятых вкладов',
     ru_h_rates: 'Доли и ставки', ru_code: 'По вашему коду', ru_code_v: '40% с каждой покупки, после холда 30 дней', ru_views: 'Просмотры TikTok, Reels и YouTube', ru_shorts: 'YouTube Shorts',
     ru_author: 'Автор места', ru_author_v: '10% сверху к роликам о нём, 12 месяцев', ru_scout: 'Скаут', ru_scout_v: '$10 за принятую пару', ru_cpa: 'Приведённый креатор', ru_cpa_v: '$15, когда он заработает $50 за 90 дней',
     ru_mod: 'Модератор', ru_mod_v: '$0,01 за решение при точности от 70%',
     ru_h_terms: 'Сроки', ru_views_t: 'Просмотры', ru_views_tv: 'половина — по 10-му дню ролика, остаток — по 30-му', ru_tasks_t: 'Задания', ru_tasks_tv: 'через 7 дней после проверки',
     ru_hold: 'Доля по коду', ru_hold_v: 'холд 30 дней', ru_pay: 'Выплата', ru_pay_v: '20-го числа, от $25', ru_first: 'Первый вывод', ru_first_v: 'с проверкой личности, 18+', ru_big: 'Больше $500', ru_big_v: 'смотрит человек',
-    ru_h_pro: 'Рабочий Pro для партнёров', ru_pro_p: '14 дней после подтверждения аккаунта площадки и +30 дней за каждый принятый ролик от 1 000 просмотров. Pro не меняет ни одной цифры заработка. Стать партнёром — бесплатно.',
+    ru_h_pro: 'Рабочий Pro для партнёров', ru_pro_p: '{a} дней после подтверждения аккаунта площадки и +{b} дней за каждый принятый ролик от {v} просмотров. Pro не меняет ни одной цифры заработка. Стать партнёром — бесплатно.',
     ru_h_np: 'Что вы получаете', ru_np1: 'Принятый вклад', ru_np1v: '«Найдено @ник» и дни Pro', ru_np2: 'Принятый ролик от 1 000 просмотров', ru_np2v: '30 дней Pro', ru_np3: 'Друг купил Pro по ссылке', ru_np3v: '30 дней Pro, до 12 в год',
     ru_h_no: 'Что запрещено', ru_no1: 'Накрутка просмотров и покупок', ru_no1v: 'пауза кода', ru_no2: 'Коды в чужих сообществах', ru_no2v: 'пауза 7 дней, повтор — исключение',
     ru_no3: 'Один ролик с нескольких аккаунтов', ru_no3v: 'отказ', ru_no4: 'Геймплей GTA в ролике с кодом', ru_no4v: 'отказ', ru_no5: 'Снимки Street View с экрана, чужие ролики', ru_no5v: 'отказ',
-    ru_h_rate: 'Как считаем ставку за просмотры', ru_rate_p: 'Ставка считается от того, сколько зрители по вашему коду покупают, за вычетом доли креатора 40%. Пересматривается раз в две недели: повышение — сразу, снижение — с предупреждением за 30 дней.',
+    ru_h_rate: 'Как считаем ставку за просмотры', ru_rate_p: 'Ставка считается от того, сколько зрители по вашему коду покупают, за вычетом доли креатора {p}%. Пересматривается раз в две недели: повышение — сразу, снижение — с предупреждением за {d} дней.',
     ru_h_ad: 'Реклама', ru_ad_p: 'Ролик с вашим кодом — реклама. Скажите об этом голосом и напишите в подписи.',
     ru_change: 'Правила меняем не чаще раза в месяц, с анонсом за 30 дней и никогда задним числом.',
     inv_h: 'Код приглашения', inv_p: 'Код от модератора или амбассадора открывает Лигу сразу. Одноразовый, действует 30 дней.', inv_ph: 'Например, LIGA-7Q2K', inv_send: 'Открыть Лигу',
@@ -159,11 +159,11 @@ const S = {
     pt_terms_h: 'Правила партнёрства', pt_terms_sub: 'Коротко, по пунктам. Полностью — в «Честных правилах»',
     tm_rate: 'Ставка за просмотры', tm_rate_v: '{r} за 1 000 просмотров TikTok, Reels и YouTube, Shorts — {rs}. Ставку считаем от того, сколько покупают зрители, поэтому она может вырасти',
     tm_count: 'Что засчитываем', tm_count_v: 'Ролик про место и упоминание места. Shorts — по своей ставке. Snapchat и ролики с кадрами игры — без оплаты просмотров, доля с покупок остаётся',
-    tm_hold: 'Холд и раунд', tm_hold_v: 'Доля с покупки — после холда 30 дней. Выплата 20-го числа, от {min}',
-    tm_lim: 'Лимиты', tm_lim_v: 'До {cap} за ролик по просмотрам, от {floor}. Новый партнёр — до $100 в месяц за просмотры до первой выплаты. Первую выплату и всё больше $500 проверяет человек',
+    tm_hold: 'Холд и раунд', tm_hold_v: 'Доля с покупки — после холда {h} дней. Выплата {day}-го числа, от {min}',
+    tm_lim: 'Лимиты', tm_lim_v: 'До {cap} за ролик по просмотрам, от {floor}. Новый партнёр — до {np} в месяц за просмотры до первой выплаты. Первую выплату и всё больше {big} проверяет человек',
     tm_no: 'Что нельзя', tm_no_v: 'Накрутка, чужие ролики, обещания заработка зрителям, кадры Rockstar как основа ролика, съёмка на частной территории',
-    tm_appeal: 'Апелляция', tm_appeal_v: 'Одна апелляция на решение, ответ до 48 часов',
-    tm_change: 'Изменения правил', tm_change_v: 'С анонсом за 30 дней. Ставка вниз — только с анонсом, вверх — сразу',
+    tm_appeal: 'Апелляция', tm_appeal_v: 'Одна апелляция на решение, ответ до {ah} часов',
+    tm_change: 'Изменения правил', tm_change_v: 'С анонсом за {nd} дней. Ставка вниз — только с анонсом, вверх — сразу',
     pt_accept: 'Принимаю условия партнёрства', pt_need: 'Отметьте, что принимаете условия',
     pt_country_h: 'Страна', pt_country_sub: 'Определили по сети — поправьте, если нужно', pt_country: 'Страна проживания',
     pt_np_h: 'Вы партнёр', pt_np_p: 'Для вашей страны за ролики и вклады — дни Pro: 30 дней за каждый принятый ролик от 1 000 просмотров',
@@ -327,18 +327,18 @@ const S = {
     rr_v1: 'No SB- code in the description', rr_v2: 'GTA gameplay in the video', rr_v3: 'Not about this place', rr_v4: 'Someone else’s video',
     rr_p1: 'Looks like a Google Maps or Street View capture', rr_p2: 'Game frame or AI image', rr_p3: 'Faces or license plates in frame', rr_p4: 'Wrong place', rr_p5: 'Too dark or blurry',
     mod_how: 'Two ways in: 5 accepted contributions or a moderator invite. Then a short exam of 20 examples.', mod_how_pay: ' Moderators get paid for accurate reviews.',
-    mod_exam: 'Exam: 20 examples, 16 correct needed', mod_student: 'Trainee mode: your decisions are compared with moderators, 20 reviews at 70%+ accuracy',
+    mod_exam: 'Exam: 20 examples, 16 correct needed', mod_student: 'Trainee mode: your decisions are compared with moderators, {n} reviews at {a}%+ accuracy',
     mod_now: 'You have {n} of 5 accepted contributions',
     ru_h_rates: 'Shares and rates', ru_code: 'With your code', ru_code_v: '40% of every purchase, after a 30-day hold', ru_views: 'TikTok, Reels and YouTube views', ru_shorts: 'YouTube Shorts',
     ru_author: 'Place author', ru_author_v: '10% on top for videos about it, 12 months', ru_scout: 'Scout', ru_scout_v: '$10 per accepted pair', ru_cpa: 'Referred creator', ru_cpa_v: '$15 once they earn $50 in 90 days',
     ru_mod: 'Moderator', ru_mod_v: '$0.01 per decision at 70%+ accuracy',
     ru_h_terms: 'Timing', ru_views_t: 'Views', ru_views_tv: 'half on the video’s day 10, the rest on day 30', ru_tasks_t: 'Tasks', ru_tasks_tv: '7 days after review',
     ru_hold: 'Code share', ru_hold_v: '30-day hold', ru_pay: 'Payout', ru_pay_v: 'on the 20th, from $25', ru_first: 'First payout', ru_first_v: 'with identity check, 18+', ru_big: 'Over $500', ru_big_v: 'checked by a person',
-    ru_h_pro: 'Working Pro for partners', ru_pro_p: '14 days after confirming a platform account and +30 days for each accepted video with 1,000+ views. Pro does not change any earnings number. Becoming a partner is free.',
+    ru_h_pro: 'Working Pro for partners', ru_pro_p: '{a} days after confirming a platform account and +{b} days for each accepted video with {v}+ views. Pro does not change any earnings number. Becoming a partner is free.',
     ru_h_np: 'What you get', ru_np1: 'Accepted contribution', ru_np1v: '“Found by @name” and Pro days', ru_np2: 'Accepted video with 1,000+ views', ru_np2v: '30 days of Pro', ru_np3: 'A friend bought Pro with your link', ru_np3v: '30 days of Pro, up to 12 a year',
     ru_h_no: 'Not allowed', ru_no1: 'Boosting views or purchases', ru_no1v: 'code paused', ru_no2: 'Codes in other people’s communities', ru_no2v: '7-day pause, then removal',
     ru_no3: 'One video from several accounts', ru_no3v: 'rejected', ru_no4: 'GTA gameplay in a video with a code', ru_no4v: 'rejected', ru_no5: 'Street View screen captures, other people’s videos', ru_no5v: 'rejected',
-    ru_h_rate: 'How the view rate is set', ru_rate_p: 'The rate comes from how much viewers buy with your code, minus the 40% creator share. It is reviewed every two weeks: raises apply at once, cuts with 30 days’ notice.',
+    ru_h_rate: 'How the view rate is set', ru_rate_p: 'The rate comes from how much viewers buy with your code, minus the {p}% creator share. It is reviewed every two weeks: raises apply at once, cuts with {d} days’ notice.',
     ru_h_ad: 'Advertising', ru_ad_p: 'A video with your code is an ad. Say so out loud and write it in the caption.',
     ru_change: 'We change the rules at most once a month, with 30 days’ notice and never retroactively.',
     inv_h: 'Invite code', inv_p: 'A code from a moderator or ambassador opens the League at once. Single use, valid for 30 days.', inv_ph: 'For example, LIGA-7Q2K', inv_send: 'Open the League',
@@ -366,11 +366,11 @@ const S = {
     pt_terms_h: 'Partner rules', pt_terms_sub: 'Short, point by point. In full — in “Fair rules”',
     tm_rate: 'View rate', tm_rate_v: '{r} per 1,000 views on TikTok, Reels and YouTube, Shorts — {rs}. The rate comes from how much viewers buy, so it can go up',
     tm_count: 'What counts', tm_count_v: 'A video about a place and a mention of a place. Shorts at their own rate. Snapchat and videos with game footage — no view pay, the purchase share stays',
-    tm_hold: 'Hold and round', tm_hold_v: 'The purchase share comes after a 30-day hold. Payouts on the 20th, from {min}',
-    tm_lim: 'Limits', tm_lim_v: 'Up to {cap} per video for views, from {floor}. New partners — up to $100 a month for views until the first payout. A person checks the first payout and anything over $500',
+    tm_hold: 'Hold and round', tm_hold_v: 'The purchase share comes after a {h}-day hold. Payouts on day {day} of the month, from {min}',
+    tm_lim: 'Limits', tm_lim_v: 'Up to {cap} per video for views, from {floor}. New partners — up to {np} a month for views until the first payout. A person checks the first payout and anything over {big}',
     tm_no: 'Not allowed', tm_no_v: 'Boosting, other people’s videos, promising viewers income, Rockstar footage as the base of a video, filming on private property',
-    tm_appeal: 'Appeal', tm_appeal_v: 'One appeal per decision, answered within 48 hours',
-    tm_change: 'Rule changes', tm_change_v: 'With 30 days’ notice. Rate cuts only with notice, raises at once',
+    tm_appeal: 'Appeal', tm_appeal_v: 'One appeal per decision, answered within {ah} hours',
+    tm_change: 'Rule changes', tm_change_v: 'With {nd} days’ notice. Rate cuts only with notice, raises at once',
     pt_accept: 'I accept the partner terms', pt_need: 'Tick that you accept the terms',
     pt_country_h: 'Country', pt_country_sub: 'Detected from your network — change it if needed', pt_country: 'Country of residence',
     pt_np_h: 'You are a partner', pt_np_p: 'In your country videos and contributions earn Pro days: 30 days for each accepted video with 1,000+ views',
@@ -556,7 +556,114 @@ const TS = {
     ce_photo: 'Could not open the photo', cf_send: 'Send', lg_h_c: 'Sign in with email', lg_sub_c: 'So your nick stays on the find. No password, no purchase',
   },
 };
-Object.assign(S.ru, TS.ru); Object.assign(S.en, TS.en);
+// ───────── строки экранов 10, 14–17 (08 ТЗ §3, §7 задачи 8–9; 02 §7.8, §7.9, §10, §11) ─────────
+const S4 = {
+  ru: {
+    ex_h: 'Экзамен модератора', ex_lead: '{t} примеров, нужно {n} верных',
+    ex_p1: 'Карточки вперемешку: ролики, новые места и фото. Часть из них — ловушки с известным ответом',
+    ex_p2: 'Решаем только три вещи: законно, то место, не чужое. «Красиво или нет» модератор не решает',
+    ex_p3: 'Смотрите каждую карточку: решение быстрее {s} секунд не засчитывается', ex_p4: 'Не получилось — повторить можно через {d} дней',
+    ex_start: 'Начать экзамен', ex_q: 'Пример {i} из {t}', ex_sending: 'Считаем результат',
+    ex_fast: 'Не засчитано: решение быстрее {s} секунд. Посмотрите карточку внимательнее',
+    ex_pass_h: 'Готово. Теперь {n} проверок в режиме ученика', ex_pass_p: '{c} из {t} верных. Решения ученика сверяем с модераторами. От {a}% совпадений — роль модератора',
+    ex_pass_pay: 'За проверки ученика денег нет, у модератора — {s} за точное решение', ex_go: 'Начать проверки',
+    ex_fail_h: '{c} из {t}. Повторить можно через {d} дней', ex_fail_p: 'Нужно {n} верных. Новая попытка — {date}', ex_fast_n: 'Не засчитано из-за спешки: {n}',
+    ex_cd_h: 'Повторить экзамен можно {date}', ex_cd_p: 'Прошлая попытка — {c} из {t}, нужно {n}. До повтора {days}',
+    ex_cd_p2: 'Места, правки и фото тем временем засчитываются как обычно', ex_tasks: 'К заданиям', ex_take: 'Сдать экзамен', ex_again: 'Сдать экзамен ещё раз',
+    mod_ready: 'Принятых вкладов: {n}. Можно сдавать экзамен', mod_now2: 'У вас {n} из {need} принятых вкладов',
+    rv_student: 'Режим ученика: {d} из {n}. Совпадений с модераторами {a}%', rv_student_pay: 'За проверки ученика денег нет',
+    rv_acc: 'Точность — по карточкам с известным ответом, последние {n}', rv_empty_h: 'Очередь пуста. Загляните через час',
+    rv_empty_p: 'Новые карточки появятся, когда авторы пришлют ролики, места и фото', rv_done_today: 'Сегодня: проверено {n}',
+    rv_paused_h: 'Проверка на паузе: точность ниже {a}%', rv_paused_p: 'Точность считаем по карточкам с известным ответом, последние {w}. Сейчас — {x}%. Сдайте экзамен ещё раз, и очередь откроется',
+    rv_paused_st: 'Совпадений с модераторами меньше {a}%. Сдайте экзамен ещё раз, и очередь откроется',
+    rr_no_code: 'Нет кода SB- в описании', rr_not_at: 'На этой секунде места нет', rr_no_disc: 'Нет пометки о рекламе в начале', rr_not_place: 'Не то место',
+    rr_reused: 'Ролик уже подавали', rr_unsafe: 'Частная территория или опасная съёмка', rr_license: 'Лицензия фото не свободная', rr_no_src: 'Нет источника', rr_dup: 'Такое место уже есть',
+    fc_disclosure_ok: 'Пометка о рекламе в начале', fc_place_at: 'Место видно на {at}', fc_license_ok: 'Свободная лицензия, автор указан', fc_same_angle: 'Тот же ракурс, что кадр игры',
+    fc_disclosure_missing: 'В начале нет пометки о рекламе', fc_place_missing: 'На {at} места не видно и не слышно', fc_streetview_missing: 'Похоже на снимок Street View с экрана',
+    fc_faces_missing: 'Лица людей крупно', fc_game_missing: 'Это кадр из игры, а не фото из жизни', fc_source_missing: 'Нет ссылки на источник',
+    fc_dup_place_missing: 'Такое место уже есть на карте', fc_private_missing: 'Снято во дворе частного дома',
+    wd_title: 'Вывод', wd_av: 'Доступно', wd_av_pre: 'Доступно, предварительно',
+    wd_first: 'Для первой выплаты подтвердите личность. Это делает {p}, мы не видим документы', wd_kyc_go: 'Подтвердить личность',
+    wd_kyc_fail: 'Личность не подтверждена. Попробуйте ещё раз: проверку проводит {p}',
+    wd_kyc_h: '{p} проверяет документы. Ответ придёт на {e}', wd_kyc_check: 'Проверить статус',
+    wd_ready: 'Доступно {s}. Выплата {d}. От {min}', wd_method: 'Способ выбираете у {p}: банк, PayPal или карта. Комиссию способа платит получатель, её покажут до подтверждения',
+    wd_queued: 'Заявка в раунде {d}: {s}', wd_failed: 'Выплата не дошла: проверьте реквизиты у {p}', wd_retry: 'Отправить снова',
+    wd_s1: 'Проверка личности у {p}, один раз', wd_s2: 'Заявка от {min}', wd_s3: 'Раунд {d}: первую выплату и всё больше {big} проверяет человек',
+    wd_s_paid: 'Выплачено {s}, {d}', wd_kyc_sent: 'Окно проверки откроется у {p}. Без сервера проверка на этом устройстве идёт сама',
+    lg_closed: 'Лига креаторов. Откроется, когда ваш ролик о месте или с его упоминанием наберёт {g} просмотров (сейчас {n}), или по коду приглашения',
+    lg_closed_tasks: 'Задания Лиги с фиксированной оплатой откроются вместе с Лигой', lg_closed_tasks_np: 'Задания Лиги откроются вместе с Лигой',
+    lg_tasks_h: 'Задания Лиги', lg_tasks_p: 'Сумма при пороге просмотров, без «до». Ролик по заданию подайте из карточки — он свяжется с заданием',
+    lg_tasks_p_np: 'Ролик по заданию подайте из карточки — он свяжется с заданием', lg_none: 'Заданий сейчас нет. Ролик о месте засчитается как обычно',
+    lg_prog: 'Ролик {id}: {a} из {b} просмотров', lg_done: 'Порог набран: {s}', lg_done_np: 'Порог набран', sv_task: 'По заданию Лиги: {t}',
+    sv_task_places: 'Для задания нужно мест в ролике: {n}. Добавьте их в «Упоминание»', sv_task_closed: 'Задание закрыто или ещё не открыто',
+    ru_h_count: 'Что засчитываем', ru_h_lim: 'Лимиты', ru_lim_v: 'До {cap} за ролик по просмотрам, от {floor}. Новый партнёр — до {np} в месяц за просмотры, пока не прошла первая выплата. Автор места — до {an} в месяц, после первой выплаты — до {ab}',
+    ru_h_appeal: 'Апелляция', ru_appeal_v: 'Одна апелляция на решение, ответ до {h} часов', ru_h_change: 'Изменения правил', ru_change_v: 'С анонсом за {d} дней. Ставка вниз — только с анонсом, вверх — сразу. Задним числом — никогда',
+    ru_code_v2: '{p}% с каждой покупки, после холда {h} дней', ru_author_v2: '{p}% сверху к роликам о нём, {m} месяцев', ru_scout_v2: '{s} за принятую пару',
+    ru_cpa_v2: '{s}, когда он заработает {a} за {d} дней', ru_mod_v2: '{s} за точное решение при точности от {a}%', ru_league: 'Задание Лиги', ru_league_v: 'фиксированная сумма при пороге просмотров',
+    ru_snap: 'Snapchat и ролики с кадрами из игры', ru_snap_v: 'без оплаты просмотров, доля с покупок остаётся',
+    ru_views_tv2: 'половина — по {a}-му дню ролика, остаток — по {b}-му', ru_tasks_tv2: 'через {d} дней после проверки', ru_pay_v2: '{day}-го числа, от {min}',
+    ru_first_v2: 'с проверкой личности у {p}, 18+', ru_big2: 'Больше {big}', ru_hold_v2: 'холд {h} дней, потом — в ближайший раунд',
+    ru_no6: 'Чужие ролики и перезаливы', ru_no6v: 'отказ', ru_no7: 'Обещания заработка зрителям', ru_no7v: 'отказ',
+    ru_no8: 'Кадры Rockstar как основа ролика', ru_no8v: 'отказ; кадры из игры как часть ролика — без оплаты просмотров', ru_no9: 'Частная территория, опасная съёмка', ru_no9v: 'отказ',
+    ru_np2v2: '{d} дней Pro', ru_np3v2: '{d} дней Pro, до 12 в год', ru_np_max: 'Дни Pro за вклады', ru_np_max_v: 'до {d} в год',
+    ad_st_mod: 'Модератор', ad_st_exam: 'Экзамен модератора', ad_cq: 'Вклады на проверке',
+    ad_cq_p: 'Без сервера вклады видно только на этом устройстве. Принятый получает «Найдено @ник» и дни Pro', ad_cq_none: 'Вкладов на проверке нет',
+    ad_accept: 'Принять', ad_reject: 'Отклонить', ad_c_accepted: 'принят', ad_c_rejected: 'отклонён',
+  },
+  en: {
+    ex_h: 'Moderator exam', ex_lead: '{t} examples, {n} correct to pass',
+    ex_p1: 'Cards are mixed: videos, new places and photos. Some of them are traps with a known answer',
+    ex_p2: 'You decide only three things: legal, the right place, not someone else’s. Moderators don’t judge beauty',
+    ex_p3: 'Look at each card: a decision faster than {s} seconds does not count', ex_p4: 'If you don’t pass, you can retry in {d} days',
+    ex_start: 'Start the exam', ex_q: 'Example {i} of {t}', ex_sending: 'Counting the result',
+    ex_fast: 'Not counted: the decision took less than {s} seconds. Take a closer look',
+    ex_pass_h: 'Done. Now {n} checks in trainee mode', ex_pass_p: '{c} of {t} correct. Trainee decisions are compared with moderators. From {a}% agreement you become a moderator',
+    ex_pass_pay: 'Trainee checks are not paid, a moderator gets {s} per accurate decision', ex_go: 'Start checking',
+    ex_fail_h: '{c} of {t}. You can retry in {d} days', ex_fail_p: '{n} correct needed. Next attempt: {date}', ex_fast_n: 'Not counted because of haste: {n}',
+    ex_cd_h: 'You can retake the exam on {date}', ex_cd_p: 'Last attempt: {c} of {t}, {n} needed. {days} left',
+    ex_cd_p2: 'Meanwhile places, fixes and photos count as usual', ex_tasks: 'To tasks', ex_take: 'Take the exam', ex_again: 'Retake the exam',
+    mod_ready: 'Accepted contributions: {n}. You can take the exam', mod_now2: 'You have {n} of {need} accepted contributions',
+    rv_student: 'Trainee mode: {d} of {n}. Agreement with moderators {a}%', rv_student_pay: 'Trainee checks are not paid',
+    rv_acc: 'Accuracy is measured on cards with a known answer, last {n}', rv_empty_h: 'The queue is empty. Check back in an hour',
+    rv_empty_p: 'New cards show up when creators send videos, places and photos', rv_done_today: 'Checked today: {n}',
+    rv_paused_h: 'Checking paused: accuracy below {a}%', rv_paused_p: 'Accuracy is measured on cards with a known answer, last {w}. Now {x}%. Retake the exam to reopen the queue',
+    rv_paused_st: 'Agreement with moderators is below {a}%. Retake the exam to reopen the queue',
+    rr_no_code: 'No SB- code in the description', rr_not_at: 'The place is not at this second', rr_no_disc: 'No ad disclosure at the start', rr_not_place: 'Not this place',
+    rr_reused: 'This video was already submitted', rr_unsafe: 'Private property or unsafe filming', rr_license: 'The photo license is not free', rr_no_src: 'No source', rr_dup: 'This place already exists',
+    fc_disclosure_ok: 'Ad disclosure at the start', fc_place_at: 'The place is visible at {at}', fc_license_ok: 'Free license, author credited', fc_same_angle: 'Same angle as the game frame',
+    fc_disclosure_missing: 'No ad disclosure at the start', fc_place_missing: 'The place is not visible or heard at {at}', fc_streetview_missing: 'Looks like a Street View screenshot',
+    fc_faces_missing: 'Faces in close-up', fc_game_missing: 'This is a game frame, not a real-life photo', fc_source_missing: 'No source link',
+    fc_dup_place_missing: 'This place is already on the map', fc_private_missing: 'Filmed in the yard of a private house',
+    wd_title: 'Withdrawal', wd_av: 'Available', wd_av_pre: 'Available, preliminary',
+    wd_first: 'Confirm your identity for the first payout. {p} does it, we don’t see your documents', wd_kyc_go: 'Confirm identity',
+    wd_kyc_fail: 'Identity not confirmed. Try again: {p} runs the check',
+    wd_kyc_h: '{p} is checking your documents. The answer will come to {e}', wd_kyc_check: 'Check status',
+    wd_ready: '{s} available. Payout on {d}. From {min}', wd_method: 'You choose the method at {p}: bank, PayPal or card. The recipient pays the method fee, shown before you confirm',
+    wd_queued: 'Request in the {d} round: {s}', wd_failed: 'The payout did not arrive: check your details at {p}', wd_retry: 'Send again',
+    wd_s1: 'Identity check at {p}, once', wd_s2: 'Request from {min}', wd_s3: 'Round on {d}: a person reviews the first payout and anything over {big}',
+    wd_s_paid: 'Paid {s}, {d}', wd_kyc_sent: 'The check window opens at {p}. Without a server the check on this device runs by itself',
+    lg_closed: 'Creator League. Opens when your video about a place or mentioning it reaches {g} views (now {n}), or with an invite code',
+    lg_closed_tasks: 'League tasks with fixed pay open together with the League', lg_closed_tasks_np: 'League tasks open together with the League',
+    lg_tasks_h: 'League tasks', lg_tasks_p: 'An amount at a view threshold, no “up to”. Submit the video from the task card, it gets linked to the task',
+    lg_tasks_p_np: 'Submit the video from the task card, it gets linked to the task', lg_none: 'No tasks right now. A video about a place counts as usual',
+    lg_prog: 'Video {id}: {a} of {b} views', lg_done: 'Threshold reached: {s}', lg_done_np: 'Threshold reached', sv_task: 'For the League task: {t}',
+    sv_task_places: 'The task needs {n} places in the video. Add them under “Mention”', sv_task_closed: 'The task is closed or not open yet',
+    ru_h_count: 'What counts', ru_h_lim: 'Limits', ru_lim_v: 'Up to {cap} per video for views, from {floor}. A new partner — up to {np} a month for views until the first payout. Place author — up to {an} a month, after the first payout up to {ab}',
+    ru_h_appeal: 'Appeal', ru_appeal_v: 'One appeal per decision, answer within {h} hours', ru_h_change: 'Rule changes', ru_change_v: 'Announced {d} days ahead. A lower rate only with notice, a higher one right away. Never retroactively',
+    ru_code_v2: '{p}% of every purchase, after a {h}-day hold', ru_author_v2: '{p}% on top for videos about it, {m} months', ru_scout_v2: '{s} per accepted pair',
+    ru_cpa_v2: '{s} once they earn {a} within {d} days', ru_mod_v2: '{s} per accurate decision at {a}%+ accuracy', ru_league: 'League task', ru_league_v: 'a fixed amount at a view threshold',
+    ru_snap: 'Snapchat and videos with game footage', ru_snap_v: 'no pay for views, the purchase share stays',
+    ru_views_tv2: 'half on day {a} of the video, the rest on day {b}', ru_tasks_tv2: '{d} days after review', ru_pay_v2: 'on day {day} of the month, from {min}',
+    ru_first_v2: 'with an identity check at {p}, 18+', ru_big2: 'Over {big}', ru_hold_v2: 'a {h}-day hold, then the next round',
+    ru_no6: 'Other people’s videos and re-uploads', ru_no6v: 'rejected', ru_no7: 'Promising earnings to viewers', ru_no7v: 'rejected',
+    ru_no8: 'Rockstar footage as the base of a video', ru_no8v: 'rejected; game footage as part of a video — no pay for views', ru_no9: 'Private property, unsafe filming', ru_no9v: 'rejected',
+    ru_np2v2: '{d} days of Pro', ru_np3v2: '{d} days of Pro, up to 12 a year', ru_np_max: 'Pro days for contributions', ru_np_max_v: 'up to {d} a year',
+    ad_st_mod: 'Moderator', ad_st_exam: 'Moderator exam', ad_cq: 'Contributions in review',
+    ad_cq_p: 'Without a server contributions are visible only on this device. An accepted one gets “Found by @nick” and Pro days', ad_cq_none: 'No contributions in review',
+    ad_accept: 'Accept', ad_reject: 'Reject', ad_c_accepted: 'accepted', ad_c_rejected: 'rejected',
+  },
+};
+Object.assign(S.ru, TS.ru, S4.ru); Object.assign(S.en, TS.en, S4.en);
 const lang = () => (getLang() === 'en' ? 'en' : 'ru');
 function tx(k, v = {}) {
   let s = S[lang()][k] ?? S.ru[k] ?? k;
@@ -723,7 +830,7 @@ async function hubMain() {
     rows = (np ? row('open:earn', 'star', tx('pro_days'), tx('pro_days_sub')) : row('open:earn', 'wallet', tx('my_earn'), tx('my_earn_sub')))
       + row('open:myvideos', 'video', tx('my_videos'), vids.length ? `${plural(vids.length, 'n_videos')}${rev ? `, ${rev} ${tx('n_on_review')}` : ''}` : '')
       + row('open:mylink', 'link', tx('my_link'), tx('code_sub', { c: P.ref_code }))
-      + (isMod() ? row('open:review', 'shield', tx('review'), tx('review_sub')) : row('open:review', 'shield', tx('review_how')))
+      + (isMod() || ['student', 'paused'].includes(P.mod?.stage) ? row('open:review', 'shield', tx('review'), tx('review_sub')) : row('open:review', 'shield', tx('review_how')))
       + work + row('add', 'plus', tx('add'))
       + row('open:rules', 'doc', tx('rules'), np ? tx('rules_sub_np') : tx('rules_sub'));
   }
@@ -775,7 +882,7 @@ export async function renderHub(el) {
 // ───────── слой и стопка экранов ─────────
 const stack = [];
 // без приглашения денежные экраны не открываются: вместо них — список ожидания в том же месте (08 §7, задача 2)
-const GATED = new Set(['league', 'earn', 'myvideos', 'mylink', 'review']);
+const GATED = new Set(['league', 'earn', 'myvideos', 'mylink', 'review', 'exam', 'payout']);
 const screenOf = (id) => (GATED.has(id) && !hasAccess() ? SCREENS.authors : SCREENS[id]);
 function layer() {
   let el = document.getElementById('cr');
@@ -834,29 +941,30 @@ function ratesHTML() {
     <div><b>${esc(tx('r_ex'))}</b><span class="cr-num">${r(R.rpm_example.cents)}</span></div></div>
     <p class="cr-p">${esc(tx('r_note'))} ${esc(tx('r_main_earn'))}</p>${med()}`;
 }
+// экран 16 «Лига», вкладка «Задания»: closed — прогресс к 10 000 и код приглашения; tasks — задания Лиги с фиксированной оплатой
+// (карточки доски заданий, раздел В). Ролик по заданию подаётся из карточки и связывается с заданием (submitVideo task_id)
 async function tasksHTML() {
-  const lg = await api().getLeague(); await placesOf(lg.tasks);
-  const open = lg.unlocked;
-  const T = lg.tasks.map((x) => {
-    if (x.kind === 'unlock') return { t: tx('t_unlock'), d: tx('t_unlock_d'), done: x.done, prog: x.done ? null : [x.progress, x.goal] };
-    if (x.kind === 'place_week') return { t: tx('t_week', { p: pName(x.place) }), d: tx('t_week_d'), img: pImg(x.place), place: x.place };
-    if (x.kind === 'fresh_find') return { t: tx('t_fresh', { p: pName(x.place) }), d: tx('t_fresh_d', { who: x.found_by, d: dfmt(x.found_at) }), img: pImg(x.place), place: x.place };
-    return { t: tx('t_month'), d: tx('t_month_d'), done: x.done, prog: x.done ? null : [x.progress, x.goal], doneTxt: x.done ? num(x.progress) : '' };
-  });
-  const cur = T.findIndex((x) => !x.done);
-  return `<ol class="cr-lad">${T.map((x, i) => `<li class="${x.done ? 'done' : i === cur ? 'cur' : ''}"><span class="n">${x.done ? I.check : i + 1}</span><div class="m">
-      ${x.img ? `<img class="cr-lad-ph" src="${esc(x.img)}" alt="" loading="lazy">` : ''}<b>${esc(x.t)}</b><span>${esc(x.d)}</span>
-      ${x.prog ? `${bar(x.prog[0] / x.prog[1] * 100)}<span class="cr-prog">${esc(tx('of', { a: num(x.prog[0]), b: num(x.prog[1]) }))}</span>` : x.done ? `<span class="cr-ok">${esc(tx('t_done'))}${x.doneTxt ? `, ${x.doneTxt}` : ''}</span>` : ''}
-      ${x.done ? '' : `<button class="cr-mini acc" data-cr="submit"${x.place ? ` data-w="${x.place.world}" data-p="${esc(x.place.id)}"` : ''}>${I.video}${esc(tx('submit_video'))}</button>`}</div></li>`).join('')}</ol>
-    ${open ? '' : `<button class="btn-ghost" data-cr="invite">${esc(tx('invite'))}</button>`}`;
+  const [lg, all, vids] = await Promise.all([api().getLeague(), api().getTasks({ world: ctx?.game?.() || 'gta6' }), api().listMyVideos().catch(() => [])]);
+  const tasks = all.filter((t) => t.section === 'league'); board = { tasks, vids, world: ctx?.game?.() || 'gta6' };
+  await placesOf(vids);
+  const np = noPay() || isMinor();
+  if (!lg.unlocked) {
+    const pr = lg.progress || { views: 0, goal: R.league_goal_views };
+    return `<div class="cr-lgc" data-st="closed"><p class="cr-lead">${esc(tx('lg_closed', { g: num(pr.goal), n: num(pr.views) }))}</p>${bar(pr.views / pr.goal * 100)}<span class="cr-prog">${esc(tx('of', { a: num(pr.views), b: num(pr.goal) }))}</span></div>
+      <div class="cr-two"><button class="btn-primary" data-cr="submit">${I.video}${esc(tx('submit_video'))}</button><button class="btn-ghost" data-cr="invite">${esc(tx('invite'))}</button></div>
+      <h2 class="cr-h">${esc(tx('lg_tasks_h'))}</h2><p class="cr-p">${esc(tx(np ? 'lg_closed_tasks_np' : 'lg_closed_tasks'))}</p><div class="cr-tasks">${tasks.map(taskCard).join('')}</div>`;
+  }
+  return `<div data-st="tasks"><h2 class="cr-h">${esc(tx('lg_tasks_h'))}</h2><p class="cr-p">${esc(tx(np ? 'lg_tasks_p_np' : 'lg_tasks_p'))}</p></div>
+    ${tasks.length ? `<div class="cr-tasks">${tasks.map(taskCard).join('')}</div>` : `<div class="cr-empty">${I.star}<b>${esc(tx('lg_none'))}</b></div>`}`;
 }
 async function leagueTab(tab) {
   if (isMinor()) return `<div class="cr-note">${I.lock}<span>${esc(tx('lock_minor'))}</span></div>${tab === 'videos' ? await videosGrid() : await tasksHTML().then((h) => h.replace(/<button class="cr-mini acc"[^>]*>[\s\S]*?<\/button>/g, ''))}`;
   if (tab === 'videos') return videosGrid();
   if (tab === 'earn') return earnBody(true);
   if (tab === 'rating') return `<div class="cr-empty">${I.chart}<b>${esc(tx('rating_empty'))}</b><p>${esc(dfmt(R.first_round))}</p></div><p class="cr-p">${esc(tx('rating_note'))}</p>`;
+  const open = !!P.league_unlocked;
   return `${await tasksHTML()}${noPay() ? `<div class="cr-note">${I.star}<span>${esc(tx('np_tasks'))}</span></div>` : ratesHTML()}
-    <div class="cr-two"><button class="btn-primary" data-cr="submit">${I.video}${esc(tx('submit_video'))}</button><button class="btn-ghost" data-cr="open:mylink">${esc(tx('my_link'))}</button></div>`;
+    ${open ? `<div class="cr-two"><button class="btn-primary" data-cr="submit">${I.video}${esc(tx('submit_video'))}</button><button class="btn-ghost" data-cr="open:mylink">${esc(tx('my_link'))}</button></div>` : `<button class="btn-ghost" data-cr="open:mylink">${esc(tx('my_link'))}</button>`}`;
 }
 async function videosGrid(filter = 'all') {
   const vids = await api().listLeagueVideos(); await placesOf(vids);
@@ -919,11 +1027,12 @@ async function earnBody(inLeague = false) {
     [tx('f_pays'), num(pays), tx('f_of', { p: pct(pays, e.funnel.trials) })], [tx('f_earned'), money2(earned), '']];
   const own = vids.filter((v) => v.views || v.earned.total_cents);
   const payout = e.payout;
-  const stE = payout?.status === 'paid' ? 'paid' : payout ? 'paying' : T.available >= R.payout_min_cents ? 'ready' : T.available > 0 ? 'below' : 'hold';
+  const stE = payout?.status === 'paid' ? 'paid' : payout?.status === 'failed' ? 'failed' : payout ? 'paying' : T.available >= R.payout_min_cents ? 'ready' : T.available > 0 ? 'below' : 'hold';
   const btn = stE === 'paid' ? `<div class="cr-note ok">${I.check}<span>${esc(tx('e_paid', { s: money2(payout.amount_cents), d: dfmt(payout.paid_at || payout.round_date) }))}</span></div>`
     : stE === 'paying' ? `<div class="cr-note ok">${I.clock}<span>${esc(tx('wd_status'))}, ${money2(payout.amount_cents)}. ${esc(tx('wd_ok_3', { d: dfmt(payout.round_date) }))}</span></div>`
-    : stE === 'ready' ? `<button class="btn-primary" data-cr="withdraw">${I.wallet}${esc(tx('withdraw', { s: money2(T.available) }))}</button>`
-    : `<div class="cr-wd">${bar(T.available / R.payout_min_cents * 100)}<span>${esc(stE === 'below' ? tx('e_below', { s: money2(T.available), min: money(R.payout_min_cents) }) : tx('e_hold'))}</span></div>`;
+    : stE === 'failed' ? `<button class="cr-verify" data-cr="open:payout">${I.alert}<span><b>${esc(tx('wd_failed', { p: R.payout_provider }))}</b></span>${I.chevron}</button>`
+    : stE === 'ready' ? `<button class="btn-primary" data-cr="open:payout">${I.wallet}${esc(tx('withdraw', { s: money2(T.available) }))}</button>`
+    : `<div class="cr-wd">${bar(T.available / R.payout_min_cents * 100)}<span>${esc(stE === 'below' ? tx('e_below', { s: money2(T.available), min: money(R.payout_min_cents) }) : tx('e_hold'))}</span></div><button class="btn-ghost" data-cr="open:payout">${I.wallet}${esc(tx('wd_title'))}</button>`;
   const frozen = (e.frozen_videos || []).map((id) => `<div class="cr-note no">${I.clock}<span>${esc(tx('e_frozen', { id }))}</span></div>`).join('');
   const rows = days.filter((o) => o.code + o.views + o.other).reverse();
   const dayParts = (o) => {
@@ -1132,82 +1241,180 @@ async function mylinkHTML() {
     <div class="cr-ledger">${acc}</div>`)}`;
 }
 
-// ───────── «Проверка» — лента карточек (смахнуть вправо / влево) ─────────
-let queue = [], qi = 0;
-const RR = { video: ['rr_v1', 'rr_v2', 'rr_v3', 'rr_v4'], place: ['rr_p4', 'rr_p2', 'rr_p1', 'rr_p5'], photo: ['rr_p1', 'rr_p2', 'rr_p3', 'rr_p4', 'rr_p5'] };
+// ───────── экраны 14 «Экзамен модератора» и 15 «Проверка» (02 §10): одна лента карточек «как в Тиндере» — смахнуть вправо «Подходит»,
+// влево «Не подходит» → причина. Решение быстрее 2 с не засчитывается: карточка возвращается с подсказкой (сервер тоже не засчитывает ms < 2000).
+// Ловушки ничем не отличаются: точность считает сервер по ним (скользящие 50), экран показывает только итог ─────────
+let queue = [], qi = 0, shownAt = 0, pendMs = 0, deckMode = 'queue', MS = null, exam = null;
+const MIN_MS = () => R?.mod_min_ms || 2000;
+const secs = () => String(MIN_MS() / 1000).replace('.', lang() === 'en' ? '.' : ',');
+const RR = { video: ['rr_no_code', 'rr_not_at', 'rr_no_disc', 'rr_not_place', 'rr_reused', 'rr_unsafe'], place: ['rr_p4', 'rr_no_src', 'rr_dup', 'rr_p2', 'rr_p1'],
+  photo: ['rr_p1', 'rr_p2', 'rr_p3', 'rr_p4', 'rr_license', 'rr_p5'] };
+const noMoney = () => noPay() || isMinor() || !isPartner();
+const deckBtns = (hide) => `<p class="cr-hint"${hide ? ' hidden' : ''}>${esc(tx('rv_hint'))}</p><p class="cr-fast" role="status" hidden>${I.clock}<span>${esc(tx('ex_fast', { s: secs() }))}</span></p>
+    <div class="cr-rvbtns"${hide ? ' hidden' : ''}><button class="cr-rb no" data-cr="rv" data-v="no" aria-label="${esc(tx('rv_no'))}">${I.close}<span>${esc(tx('rv_no'))}</span></button><button class="cr-rb ok" data-cr="rv" data-v="ok" aria-label="${esc(tx('rv_ok'))}">${I.check}<span>${esc(tx('rv_ok'))}</span></button></div>`;
+const deckBody = (top, hide) => { const inner = `${top}<div class="cr-deck" data-deck data-st="${deckState()}">${deckCards()}</div>${deckBtns(hide)}`; return `<div class="cr-body cr-rv">${inner}${modeNote(inner)}</div>`; };
 async function reviewHTML() {
-  if (!isMod()) {
-    return `${head(tx('review_how'))}${body(`<p class="cr-lead">${esc(tx('mod_how') + (noPay() ? '' : tx('mod_how_pay')))}</p>
-      <div class="cr-lad2"><div class="on"><b>${esc(tx('mod_now', { n: 3 }))}</b>${bar(60)}</div><div><b>${esc(tx('mod_exam'))}</b></div><div><b>${esc(tx('mod_student'))}</b></div></div>
-      <button class="btn-primary" data-cr="add">${I.plus}${esc(tx('add_minor'))}</button>`)}`;
+  MS = await api().getModStatus(); deckMode = 'queue';
+  const st = MS.stage;
+  if (st === 'none' || st === 'exam' || st === 'cooldown') {
+    // путь: 5 принятых вкладов или приглашение модератора → экзамен → 20 проверок ученика (02 §10.1)
+    const ready = st !== 'none', n = MS.accepted, need = MS.need;
+    const btn = ready ? `<button class="btn-primary" data-cr="open:exam">${I.shield}${esc(tx('ex_take'))}</button>` : `<button class="btn-primary" data-cr="add">${I.plus}${esc(tx('add_minor'))}</button>`;
+    return `${head(tx('review_how'))}${body(`<p class="cr-lead" data-st="${ready ? st : 'how'}">${esc(tx('mod_how') + (noMoney() ? '' : tx('mod_how_pay')))}</p>
+      <div class="cr-lad2"><div class="on"><b>${esc(ready ? tx('mod_ready', { n }) : tx('mod_now2', { n, need }))}</b>${bar(Math.min(1, n / need) * 100)}</div>
+        <div class="${ready ? 'on' : ''}"><b>${esc(tx('ex_h'))}: ${esc(tx('ex_lead', { t: R.mod_exam_total, n: R.mod_exam_need }))}</b></div><div><b>${esc(tx('mod_student', { n: R.mod_student_n, a: R.mod_min_accuracy }))}</b></div></div>
+      ${btn}<button class="btn-ghost" data-cr="open:board">${esc(tx('hub_tasks'))}</button>`)}`;
+  }
+  if (st === 'paused') {
+    const stu = MS.student && MS.student.done >= MS.student.need;
+    return `${head(tx('review'))}${body(`<div class="cr-empty" data-st="paused">${I.clock}<b>${esc(tx('rv_paused_h', { a: MS.min_accuracy }))}</b>
+      <p>${esc(stu ? tx('rv_paused_st', { a: MS.min_accuracy }) : tx('rv_paused_p', { w: R.mod_window, x: MS.accuracy }))}</p>
+      <button class="btn-primary" data-cr="open:exam">${esc(tx('ex_again'))}</button><button class="btn-ghost" data-cr="open:board">${esc(tx('hub_tasks'))}</button></div>`)}`;
   }
   queue = await api().getReviewQueue().catch(() => []); qi = 0;
   await placesOf(queue);
-  return `${head(tx('review'))}<div class="cr-body cr-rv">${reviewTop()}<div class="cr-deck" data-deck>${deckCards()}</div>
-    <p class="cr-hint">${esc(tx('rv_hint'))}</p>
-    <div class="cr-rvbtns"><button class="cr-rb no" data-cr="rv" data-v="no" aria-label="${esc(tx('rv_no'))}">${I.close}<span>${esc(tx('rv_no'))}</span></button><button class="cr-rb ok" data-cr="rv" data-v="ok" aria-label="${esc(tx('rv_ok'))}">${I.check}<span>${esc(tx('rv_ok'))}</span></button></div></div>`;
+  return `${head(tx('review'))}${deckBody(reviewTop(), !queue.length)}`;
 }
 function reviewTop() {
-  const m = P.mod?.today || { checked: 0, accuracy: 0, cents: 0 };
-  return `<div class="cr-rvtop"><b>${esc(tx('rv_today', { n: num(m.checked), a: m.accuracy }))}${noPay() ? '' : ' ' + esc(tx('rv_cents', { s: money(m.cents) }))}</b>${noPay() ? '' : med()}<span class="cr-left">${esc(tx('rv_left', { n: Math.max(0, queue.length - qi) }))}</span></div>`;
+  if (deckMode === 'exam') return `<div class="cr-rvtop" data-st="q"><b>${esc(tx('ex_q', { i: Math.min(qi + 1, queue.length), t: queue.length }))}</b>${bar(qi / Math.max(1, queue.length) * 100)}</div>`;
+  const left = `<span class="cr-left">${esc(tx('rv_left', { n: Math.max(0, queue.length - qi) }))}</span>`;
+  if (MS?.stage === 'student') {
+    const s = MS.student || { done: 0, agree: 0, need: R.mod_student_n };
+    return `<div class="cr-rvtop" data-st="student"><b>${esc(tx('rv_student', { d: s.done, n: s.need, a: s.done ? Math.round(s.agree / s.done * 100) : 0 }))}</b>${bar(s.done / s.need * 100)}${noMoney() ? '' : `<small>${esc(tx('rv_student_pay'))}</small>`}${left}</div>`;
+  }
+  const m = MS?.today || P.mod?.today || { checked: 0, accuracy: 0, cents: 0 };
+  return `<div class="cr-rvtop" data-st="mod"><b>${esc(tx('rv_today', { n: num(m.checked), a: m.accuracy }))}${noMoney() ? '' : ' ' + esc(tx('rv_cents', { s: money2(m.cents) }))}</b>${noMoney() ? '' : med()}<small>${esc(tx('rv_acc', { n: R.mod_window }))}</small>${left}</div>`;
 }
 function cardHTML(q, depth) {
   const k = { video: tx('rv_k_video'), place: tx('rv_k_place'), photo: tx('rv_k_photo') }[q.kind];
-  return `<article class="cr-card" data-id="${esc(q.id)}" style="--d:${depth}" aria-hidden="${depth ? 'true' : 'false'}">
+  return `<article class="cr-card" data-id="${esc(q.id)}"${depth ? '' : ' data-top'} style="--d:${depth}" aria-hidden="${depth ? 'true' : 'false'}">
     <div class="cr-card-ph"><img src="${esc(pImg(q.place, true))}" alt="" draggable="false">${q.kind === 'video' ? `<span class="cr-playbtn sm">${I.play}</span>` : ''}
       <span class="cr-stamp ok">${esc(tx('rv_ok'))}</span><span class="cr-stamp no">${esc(tx('rv_no'))}</span></div>
     <div class="cr-card-tx"><span class="cr-k">${esc(k)}${q.platform ? `, ${esc(PLAT[q.platform])}` : ''}</span><b>${esc(q.title ? L(q.title) : pName(q.place))}</b><small>${esc(pName(q.place))}, ${esc(pCity(q.place))}${q.author ? `, ${esc(q.author)}` : ''}</small>
-      <ul>${(q.facts || []).map((f) => `<li class="${/missing/.test(f) ? 'no' : ''}">${/missing/.test(f) ? I.alert : I.check}${esc(tx('fc_' + f))}</li>`).join('')}</ul></div></article>`;
+      <ul>${(q.facts || []).map((f) => `<li class="${/missing/.test(f) ? 'no' : ''}">${/missing/.test(f) ? I.alert : I.check}${esc(tx('fc_' + f, { at: q.at || '' }))}</li>`).join('')}</ul></div></article>`;
 }
+const deckState = () => (qi < queue.length ? 'card' : deckMode === 'exam' ? 'sending' : queue.length ? 'done' : 'empty');
 function deckCards() {
-  if (qi >= queue.length) return `<div class="cr-empty">${I.check}<b>${esc(tx('rv_done'))}</b><p>${esc(tx('rv_done_p'))}</p><button class="btn-ghost" data-cr="rv-again">${esc(tx('rv_more'))}</button></div>`;
+  const st = deckState();
+  if (st === 'sending') return `<div class="cr-empty">${I.clock}<b>${esc(tx('ex_sending'))}</b></div>`;
+  if (st === 'empty') return `<div class="cr-empty">${I.clock}<b>${esc(tx('rv_empty_h'))}</b><p>${esc(tx('rv_empty_p'))}</p></div>`;
+  if (st === 'done') return `<div class="cr-empty">${I.check}<b>${esc(tx('rv_done'))}</b><p>${esc(MS?.stage === 'student' ? tx('rv_student', { d: MS.student.done, n: MS.student.need, a: MS.student.done ? Math.round(MS.student.agree / MS.student.done * 100) : 0 }) : tx('rv_done_today', { n: num(MS?.today?.checked || 0) }))}</p><button class="btn-ghost" data-cr="rv-again">${esc(tx('rv_more'))}</button></div>`;
   return queue.slice(qi, qi + 3).map((q, i) => cardHTML(q, i)).reverse().join('');
 }
 function redrawDeck(scr) {
   const d = scr.querySelector('[data-deck]'); if (!d) return;
-  d.innerHTML = deckCards(); scr.querySelector('.cr-rvtop').outerHTML = reviewTop(); bindDeck(scr);
-  scr.querySelector('.cr-rvbtns').hidden = qi >= queue.length; scr.querySelector('.cr-hint').hidden = qi >= queue.length;
+  d.innerHTML = deckCards(); d.dataset.st = deckState(); scr.querySelector('.cr-rvtop').outerHTML = reviewTop(); bindDeck(scr);
+  const end = qi >= queue.length; scr.querySelector('.cr-rvbtns').hidden = end; scr.querySelector('.cr-hint').hidden = end;
 }
-async function decide(scr, decision, reason) {
+// слишком быстро: карточка возвращается, подсказка «не засчитано» (02 §10.2, 03 §5.3)
+function tooFast(scr) {
+  const f = scr?.querySelector('.cr-fast'); if (f) { f.hidden = false; f.classList.remove('pulse'); void f.offsetWidth; f.classList.add('pulse'); }
+  const c = scr?.querySelector('.cr-card[data-top]'); if (c) { c.style.transform = ''; c.style.setProperty('--ok', 0); c.style.setProperty('--no', 0); }
+  ctx.haptic?.();
+}
+function tryDecide(scr, decision) {
+  const q = queue[qi]; if (!q || !scr) return;
+  const ms = Date.now() - shownAt;
+  if (ms < MIN_MS()) { tooFast(scr); return; }
+  if (decision === 'ok') decide(scr, 'ok', null, ms);
+  else { const c = scr.querySelector('.cr-card[data-top]'); if (c) c.style.transform = 'translateX(-24px) rotate(-1.5deg)'; askReason(scr, ms); }
+}
+async function decide(scr, decision, reason, ms = pendMs) {
   const q = queue[qi]; if (!q) return;
-  try { const r = await api().reviewDecision(q.id, decision, reason); if (P.mod) P.mod.today = r.today; } catch { ctx.toast(tx('err')); return; }
+  if (deckMode === 'exam') {
+    exam.answers.push({ item_id: q.id, decision, reason_code: reason || null, ms: Math.round(ms) });
+  } else {
+    let r; try { r = await api().reviewDecision(q.id, decision, reason, Math.round(ms)); } catch { ctx.toast(tx('err')); return; }
+    if (!r.counted) { tooFast(scr); return; }
+    const was = MS.stage; MS = { ...MS, stage: r.stage, today: r.today, accuracy: r.accuracy, student: r.student }; if (P.mod) P.mod.today = r.today;
+    if (r.stage !== was) { P = await api().getProfile(); renderHub(); qi++; setTimeout(() => rerender(), 260); return; }
+  }
+  const f = scr.querySelector('.cr-fast'); if (f) f.hidden = true;
   const top = scr.querySelector(`.cr-card[data-id="${CSS.escape(q.id)}"]`);
   qi++;
   if (top) { top.classList.add(decision === 'ok' ? 'fly-r' : 'fly-l'); setTimeout(() => redrawDeck(scr), 260); } else redrawDeck(scr);
+  if (deckMode === 'exam' && qi >= queue.length) setTimeout(() => finishExam(), 300);
 }
-function askReason(scr) {
-  const q = queue[qi]; if (!q) return;
+function askReason(scr, ms) {
+  const q = queue[qi]; if (!q) return; pendMs = ms;
   const card = scr.querySelector(`.cr-card[data-id="${CSS.escape(q.id)}"]`);
-  sheet(`<div class="cr-sh"><h2>${esc(tx('rv_why'))}</h2><div class="cr-reasons">${RR[q.kind].map((r) => `<button class="row" data-cr="rv-reason" data-v="${r}"><span class="row-l">${esc(tx(r))}</span></button>`).join('')}</div>
+  sheet(`<div class="cr-sh" data-st="reason"><h2>${esc(tx('rv_why'))}</h2><div class="cr-reasons">${RR[q.kind].map((r) => `<button class="row" data-cr="rv-reason" data-v="${r}"><span class="row-l">${esc(tx(r))}</span></button>`).join('')}</div>
     <button class="btn-ghost" data-cr="sheet-close">${esc(tx('back'))}</button></div>`, () => { if (card && !card.classList.contains('fly-l')) card.style.transform = ''; });
 }
 function bindDeck(scr) {
-  const card = scr.querySelector('.cr-card[style*="--d:0"]'); if (!card) return;
+  shownAt = Date.now();
+  const card = scr.querySelector('.cr-card[data-top]'); if (!card) return;
   let x0 = 0, y0 = 0, dx = 0, on = false, id = null;
   const set = (x) => { card.style.transform = `translateX(${x}px) rotate(${x / 18}deg)`; card.style.setProperty('--ok', Math.max(0, Math.min(1, x / 110))); card.style.setProperty('--no', Math.max(0, Math.min(1, -x / 110))); };
-  card.addEventListener('pointerdown', (e) => { on = true; id = e.pointerId; x0 = e.clientX; y0 = e.clientY; dx = 0; card.setPointerCapture?.(id); card.classList.add('drag'); });
+  card.addEventListener('pointerdown', (e) => { on = true; id = e.pointerId; x0 = e.clientX; y0 = e.clientY; dx = 0; try { card.setPointerCapture?.(id); } catch { } card.classList.add('drag'); });
   card.addEventListener('pointermove', (e) => { if (!on) return; dx = e.clientX - x0; if (Math.abs(e.clientY - y0) > Math.abs(dx) * 1.5 && Math.abs(dx) < 10) return; set(dx); });
   const end = () => {
     if (!on) return; on = false; card.classList.remove('drag');
-    if (dx > 100) { ctx.haptic?.(); decide(scr, 'ok'); }
-    else if (dx < -100) { ctx.haptic?.(); card.style.transform = 'translateX(-24px) rotate(-1.5deg)'; askReason(scr); }
+    if (dx > 100) { ctx.haptic?.(); tryDecide(scr, 'ok'); }
+    else if (dx < -100) { ctx.haptic?.(); tryDecide(scr, 'no'); }
     else { card.style.transform = ''; card.style.setProperty('--ok', 0); card.style.setProperty('--no', 0); }
   };
   card.addEventListener('pointerup', end); card.addEventListener('pointercancel', end);
 }
+// экзамен: intro → q (20 карточек) → pass | fail; не сдал — cooldown 7 дней (02 §10.1)
+async function examHTML(a) {
+  MS = await api().getModStatus();
+  if (!a.view) a.view = MS.stage === 'cooldown' ? 'cooldown' : MS.stage === 'mod' || MS.stage === 'student' ? 'pass' : 'intro';
+  const h = head(tx('ex_h')), v = a.view, np = noMoney();
+  if (v === 'q') {
+    deckMode = 'exam'; queue = exam.items; qi = exam.answers.length;
+    return `${h}${deckBody(reviewTop(), qi >= queue.length)}`;
+  }
+  if (v === 'intro') {
+    const L4 = [['ex_p1', 'shield'], ['ex_p2', 'check'], ['ex_p3', 'clock'], ['ex_p4', 'info']];
+    return `${h}${body(`<p class="cr-q" data-st="intro">${esc(tx('ex_lead', { t: R.mod_exam_total, n: R.mod_exam_need }))}</p>
+      <ul class="cr-wl-l cr-ex-l">${L4.map(([k, i]) => `<li>${ic(i)}<span>${esc(tx(k, { s: secs(), d: R.mod_exam_cooldown_days }))}</span></li>`).join('')}</ul>
+      <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="ex-start">${esc(tx('ex_start'))}</button>`)}`;
+  }
+  const r = a.result || { correct: MS.exam?.correct || 0, total: MS.exam?.total || R.mod_exam_total, not_counted: 0, cooldown_until: MS.cooldown_until };
+  const fast = r.not_counted ? `<p>${esc(tx('ex_fast_n', { n: r.not_counted }))}</p>` : '';
+  if (v === 'pass') {
+    return `${h}${body(`<div class="cr-empty" data-st="pass">${I.check}<b>${esc(tx('ex_pass_h', { n: R.mod_student_n }))}</b><p>${esc(tx('ex_pass_p', { c: r.correct, t: r.total, a: R.mod_min_accuracy }))}</p>
+      ${np ? '' : `<p>${esc(tx('ex_pass_pay', { s: money2(R.mod_decision_cents) }))}</p>`}${fast}<button class="btn-primary" data-cr="ex-go">${esc(tx('ex_go'))}</button></div>`)}`;
+  }
+  const until = r.cooldown_until || MS.cooldown_until, left = until ? daysTo(until) : R.mod_exam_cooldown_days;
+  if (v === 'fail') {
+    return `${h}${body(`<div class="cr-empty" data-st="fail">${I.alert}<b>${esc(tx('ex_fail_h', { c: r.correct, t: r.total, d: R.mod_exam_cooldown_days }))}</b><p>${esc(tx('ex_fail_p', { n: R.mod_exam_need, date: dfmt(until) }))}</p>${fast}
+      <p>${esc(tx('ex_cd_p2'))}</p><button class="btn-primary" data-cr="open:board">${esc(tx('ex_tasks'))}</button></div>`)}`;
+  }
+  return `${h}${body(`<div class="cr-empty" data-st="cooldown">${I.clock}<b>${esc(tx('ex_cd_h', { date: dfmt(until) }))}</b><p>${esc(tx('ex_cd_p', { c: r.correct, t: r.total, n: R.mod_exam_need, days: plural(left, 'n_days_x') }))}</p>
+    <p>${esc(tx('ex_cd_p2'))}</p><button class="btn-primary" data-cr="open:board">${esc(tx('ex_tasks'))}</button></div>`)}`;
+}
+async function finishExam() {
+  const top = stack[stack.length - 1]; if (!top || top.id !== 'exam' || !exam) return;
+  try { const r = await api().submitExam({ id: exam.id, answers: exam.answers }); top.args.result = r; top.args.view = r.passed ? 'pass' : 'fail'; }
+  catch (x) { top.args.view = x.code === 'cooldown' ? 'cooldown' : 'intro'; }
+  exam = null; P = await api().getProfile(); renderHub(); deckMode = 'queue'; rerender();
+}
 
-// ───────── «Честные правила» ─────────
+// ───────── экран 17 «Честные правила» (02 §7.9): all — по пунктам, все цифры из rules; nopay (РФ, РБ, младше 18, пробный без партнёрства) — без денег ─────────
 function rulesHTML() {
-  const sec = (t, rows) => `<h2 class="cr-h">${esc(tx(t))}</h2><div class="cr-ledger kv">${rows.map(([a, b]) => `<div><b>${esc(tx(a))}</b><span class="v">${esc(b.startsWith('=') ? b.slice(1) : tx(b))}</span></div>`).join('')}</div>`;
-  const rl = (k) => '=' + tx('r_line', { r: money(R.rpm[k]), cap: money(R.rpm_cap_cents), min: money(R.rpm_min_cents) });
-  if (noPay() || isMinor() || trialOnly()) return `${head(tx('rules'))}${body(`${sec('ru_h_np', [['ru_np1', 'ru_np1v'], ['ru_np2', 'ru_np2v'], ['ru_np3', 'ru_np3v']])}
-    ${sec('ru_h_no', [['ru_no1', 'ru_no1v'], ['ru_no2', 'ru_no2v'], ['ru_no3', 'ru_no3v'], ['ru_no4', 'ru_no4v'], ['ru_no5', 'ru_no5v']])}<p class="cr-p">${esc(tx('ru_change'))}</p>`, '', true)}`;
-  return `${head(tx('rules'))}${body(`${med()}${sec('ru_h_rates', [['ru_code', 'ru_code_v'], ['ru_views', rl('tiktok')], ['ru_shorts', rl('shorts')], ['ru_author', 'ru_author_v'], ['ru_scout', 'ru_scout_v'], ['ru_cpa', 'ru_cpa_v'], ['ru_mod', 'ru_mod_v']])}
-    ${sec('ru_h_terms', [['ru_views_t', 'ru_views_tv'], ['ru_tasks_t', 'ru_tasks_tv'], ['ru_hold', 'ru_hold_v'], ['ru_pay', 'ru_pay_v'], ['ru_first', 'ru_first_v'], ['ru_big', 'ru_big_v']])}
-    <h2 class="cr-h">${esc(tx('ru_h_pro'))}</h2><p class="cr-p">${esc(tx('ru_pro_p'))}</p>
-    ${sec('ru_h_no', [['ru_no1', 'ru_no1v'], ['ru_no2', 'ru_no2v'], ['ru_no3', 'ru_no3v'], ['ru_no4', 'ru_no4v'], ['ru_no5', 'ru_no5v']])}
-    <h2 class="cr-h">${esc(tx('ru_h_rate'))}</h2><p class="cr-p">${esc(tx('ru_rate_p'))}</p>
-    <h2 class="cr-h">${esc(tx('ru_h_ad'))}</h2><p class="cr-p">${esc(tx('ru_ad_p'))}</p><p class="cr-p">${esc(tx('ru_change'))}</p>`, '', true)}`;
+  const kv = (rows) => `<div class="cr-ledger kv">${rows.map(([a, b]) => `<div><b>${esc(a)}</b><span class="v">${esc(b)}</span></div>`).join('')}</div>`;
+  const sec = (t, rows) => `<h2 class="cr-h">${esc(tx(t))}</h2>${kv(rows)}`;
+  const par = (t, p) => `<h2 class="cr-h">${esc(tx(t))}</h2><p class="cr-p">${esc(p)}</p>`;
+  const m = money, rl = (k) => tx('r_line', { r: m(R.rpm[k]), cap: m(R.rpm_cap_cents), min: m(R.rpm_min_cents) });
+  const no = [['ru_no1', 'ru_no1v'], ['ru_no6', 'ru_no6v'], ['ru_no7', 'ru_no7v'], ['ru_no8', 'ru_no8v'], ['ru_no9', 'ru_no9v'], ['ru_no2', 'ru_no2v']].map(([a, b]) => [tx(a), tx(b)]);
+  const tail = par('ru_h_appeal', tx('ru_appeal_v', { h: R.appeal_hours })) + par('ru_h_change', tx('ru_change_v', { d: R.rules_notice_days }));
+  if (noPay() || isMinor() || trialOnly()) {
+    return `${head(tx('rules'))}${body(`<div data-st="nopay">${sec('ru_h_np', [[tx('ru_np1'), tx('ru_np1v')], [tx('ru_np2'), tx('ru_np2v2', { d: R.partner_pro_per_video_days })],
+      [tx('ru_np3'), tx('ru_np3v2', { d: R.gift_days })], [tx('ru_np_max'), tx('ru_np_max_v', { d: R.pro_days_year_cap })]])}</div>${sec('ru_h_no', no)}${tail}`, '', true)}`;
+  }
+  return `${head(tx('rules'))}${body(`<div data-st="all">${med()}</div>
+    ${sec('ru_h_rates', [[tx('ru_code'), tx('ru_code_v2', { p: R.share_pct, h: R.hold_days })], [tx('ru_views'), rl('tiktok')], [tx('ru_shorts'), rl('shorts')], [tx('ru_snap'), tx('ru_snap_v')],
+      [tx('ru_author'), tx('ru_author_v2', { p: R.author_fee_pct, m: R.author_fee_months })], [tx('ru_scout'), tx('ru_scout_v2', { s: m(R.scout_pair_cents) })],
+      [tx('ru_cpa'), tx('ru_cpa_v2', { s: m(R.cpa_cents), a: m(R.cpa_after_cents), d: R.cpa_days })], [tx('ru_mod'), tx('ru_mod_v2', { s: money2(R.mod_decision_cents), a: R.mod_min_accuracy })],
+      [tx('ru_league'), tx('ru_league_v')]])}
+    ${par('ru_h_count', tx('tm_count_v'))}
+    ${sec('ru_h_terms', [[tx('ru_views_t'), tx('ru_views_tv2', { a: R.rpm_advance_day, b: R.rpm_rest_day })], [tx('ru_tasks_t'), tx('ru_tasks_tv2', { d: R.task_after_days })],
+      [tx('ru_hold'), tx('ru_hold_v2', { h: R.hold_days })], [tx('ru_pay'), tx('ru_pay_v2', { day: R.payout_day, min: m(R.payout_min_cents) })],
+      [tx('ru_first'), tx('ru_first_v2', { p: R.payout_provider })], [tx('ru_big2', { big: m(R.big_payout_cents) }), tx('ru_big_v')]])}
+    ${par('ru_h_lim', tx('ru_lim_v', { cap: m(R.rpm_cap_cents), floor: m(R.rpm_min_cents), np: m(R.new_partner_cap_cents), an: m(R.author_cap_new_cents), ab: m(R.author_cap_cents) }))}
+    ${par('ru_h_pro', tx('ru_pro_p', { a: R.partner_pro_days, b: R.partner_pro_per_video_days, v: num(R.partner_pro_min_views) }))}${sec('ru_h_no', no)}${par('ru_h_rate', tx('ru_rate_p', { p: R.share_pct, d: R.rules_notice_days }))}${par('ru_h_ad', tx('ru_ad_p'))}${tail}`, '', true)}`;
 }
 
 // ───────── экран 11 «Доска заданий» (02 §6.2, 08 §4): разделы А «Для всех», Б «Для партнёров», В «Лига»;
@@ -1258,7 +1465,11 @@ function taskCard(t) {
   else if (st === 'in_progress') { stl = `${tag('wait', tx('st_draft'))}<small>${esc(tx('st_draft_p'))}</small>`; btn = tx('st_continue'); }
   else if (st === 'sent') stl = `${tag('wait', tx('st_sent'))}<small>${esc(v ? nb(vdesc(v)) : tx('st_sent_p'))}</small>`;
   else if (st === 'rejected') { stl = `${tag('no', tx('st_no'))}<small class="no">${esc(v ? rjText(v) : rjcText(c.reject_code))}</small>`; btn = tx('st_fix'); }
-  else if (st === 'accepted') {
+  else if (st === 'accepted' && t.kind === 'league_fixed' && v) {
+    // ролик по заданию Лиги: прогресс к порогу просмотров, после порога — фиксированная сумма (02 §6.2 В, ledger task)
+    const thr = t.threshold_views || 0, ok = v.views >= thr, fx = t.reward?.fixed_cents;
+    stl = `${tag('ok', tx('st_ok'))}<p class="cr-trace">${I.chart}<span>${esc(nb(ok ? (fx ? tx('lg_done', { s: money(fx) }) : tx('lg_done_np')) : tx('lg_prog', { id: v.id, a: num(v.views), b: num(thr) })))}</span></p>${ok ? '' : bar(v.views / Math.max(1, thr) * 100)}`;
+  } else if (st === 'accepted') {
     const tr = v ? vdesc(v) : traceText(c.trace);
     stl = `${tag('ok', tx('st_ok'))}${tr ? `<p class="cr-trace">${v ? I.chart : I.eye}<span>${esc(nb(tr))}</span></p>` : ''}`;
     if (REPEAT[t.kind]) btn = tx(REPEAT[t.kind]);
@@ -1291,7 +1502,7 @@ async function taskGo(id) {
     case 'review': return push('review', {});
     case 'place_week': case 'fresh_find': return shootSheet(t.place.world, t.place.id);
     case 'mention3': form = { mode: 'mention', places: [] }; return submitSheet();
-    case 'league_fixed': form = { task: t.id }; return submitSheet();
+    case 'league_fixed': form = { task: t.id, taskTitle: L(t.title), taskN: t.places_n || 1, mode: (t.places_n || 1) > 1 ? 'mention' : 'about', places: [] }; return submitSheet();
     default: return cfOpen(t.kind === 'need_pair' ? 'pair' : t.kind, { place: t.place, task: t.id, world: t.place?.world || board.world, from: fixFrom, fresh: t.state === 'accepted' });
   }
 }
@@ -1519,7 +1730,7 @@ function fmtLine(url) {
 }
 async function submitSheet(pref) {
   if (pref) { form.place = pref; if (form.mode === 'mention' && !(form.places || []).some((x) => x.id === pref.id)) (form.places = form.places || []).push({ ...pref, at: '' }); }
-  if (!form.place && !(form.places || []).length) { const lg = await api().getLeague().catch(() => null); const w = lg?.tasks.find((x) => x.place)?.place; if (w) form.place = w; }
+  if (!form.task && !form.place && !(form.places || []).length) { const lg = await api().getLeague().catch(() => null); const w = lg?.tasks.find((x) => x.place)?.place; if (w) form.place = w; }
   if (!hasAccess()) { ctx.closeSheet(); push('authors', {}); return; }   // без приглашения роликов не подают
   if (isGuest() || !isPartner()) { loginSheet(() => submitSheet()); return; }
   form.mode = form.mode || 'about'; form.places = form.places || []; form.busy = false; form.dup = null;
@@ -1548,7 +1759,7 @@ function svRender() {
   sheet(`<div class="cr-sh" data-st="${busy ? 'submitting' : form.dup ? 'duplicate' : form.gp ? 'gameplay_on' : form.mode === 'mention' ? 'places' : 'form'}"><h2>${esc(tx('sv_h'))}</h2>
     <label class="cr-in"><span>${esc(tx('sv_url'))}</span><input id="cr-url" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(tx('sv_url_ph'))}" value="${esc(form.url || '')}"${busy ? ' disabled' : ''}></label>
     <p class="cr-fmt" id="cr-fmt"${fl ? '' : ' hidden'}>${esc(fl)}</p>
-    ${what}${about}${mention}${gp}
+    ${form.task ? `<div class="cr-note ok">${I.star}<span>${esc(tx('sv_task', { t: form.taskTitle || '' }))}</span></div>` : ''}${what}${about}${mention}${gp}
     ${field(tx('sv_vcode'), code, form.v ? code : '', tx('sv_vcode_note'))}
     <label class="cr-check"><input id="cr-disc" type="checkbox"${form.disc ? ' checked' : ''}${busy ? ' disabled' : ''}><span>${esc(tx('sv_disc'))}</span></label>
     ${dup}<p class="cr-err" id="cr-err" hidden></p>
@@ -1559,13 +1770,14 @@ async function svSend() {
   keepSv();
   const mention = form.mode === 'mention';
   if (!platOf(form.url)) { err(tx('sv_bad_url')); return; }
+  if (form.task && (mention ? form.places.length : 1) < (form.taskN || 1)) { err(tx('sv_task_places', { n: form.taskN })); return; }
   if (mention ? !form.places.length : !form.place) { err(tx('sv_no_place')); return; }
   if (mention && form.places.some((x) => !AT_RE.test(x.at || ''))) { err(tx('sv_bad_at')); return; }
   if (!form.disc) { err(tx('sv_disc_need')); return; }
   const places = mention ? form.places.map((x) => ({ world: x.world, id: x.id, role: 'mention', at: x.at })) : [{ world: form.place.world, id: form.place.id, role: 'about' }];
   form.busy = true; form.dup = null; svRender();
   try {
-    const r = await api().submitVideo({ url: form.url, places, has_gameplay: !!form.gp, disclosure: true, v: form.v });
+    const r = await api().submitVideo({ url: form.url, places, has_gameplay: !!form.gp, disclosure: true, v: form.v, ...(form.task ? { task_id: form.task } : {}) });
     const p = places[0], l = link(P.ref_code, p.world, p.id, r.link_v), np = noPay();
     form = {};
     sheet(`<div class="cr-sh" data-st="sent"><h2>${esc(tx('sv_ok'))}</h2><p class="sub">${esc(pName(p))}, ${esc(pCity(p))}${places.length > 1 ? ` +${places.length - 1}` : ''}</p>${steps(0, r.verify_code)}
@@ -1577,7 +1789,7 @@ async function svSend() {
     form.busy = false;
     if (e.code === 'duplicate') { form.dup = e.video_id; svRender(); return; }
     svRender();
-    err(tx({ no_place: 'sv_no_place', bad_url: 'sv_bad_url', bad_at: 'sv_bad_at', too_many: 'sv_max', need_disclosure: 'sv_disc_need' }[e.code] || 'err'));
+    err(e.code === 'task_places' ? tx('sv_task_places', { n: e.need || form.taskN }) : tx({ no_place: 'sv_no_place', bad_url: 'sv_bad_url', bad_at: 'sv_bad_at', too_many: 'sv_max', need_disclosure: 'sv_disc_need', task_closed: 'sv_task_closed' }[e.code] || 'err'));
   }
 }
 
@@ -1713,15 +1925,53 @@ async function afterLogin() {
   const n = loginNext; loginNext = null; loginFor = null;
   if (n) n(); else ctx.closeSheet();
 }
-async function withdrawSheet() {
-  const e = await api().getEarnings(), av = e.totals.available;
-  if (av < R.payout_min_cents) {
-    sheet(`<div class="cr-sh"><h2>${esc(tx('wd_below_h', { min: money(R.payout_min_cents) }))}</h2><p class="cr-p">${esc(tx('wd_below_p', { s: money(av) }))}</p>${med()}<button class="btn-ghost" data-cr="sheet-close">${esc(tx('ok'))}</button></div>`);
-    return;
-  }
-  sheet(`<div class="cr-sh"><h2>${esc(tx('wd_h', { s: money(av) }))}</h2><p class="sub">${esc(tx('wd_sub', { d: dfmt(e.round_date), min: money(R.payout_min_cents) }))}</p>${med()}
-    <div class="cr-steps"><div class="on">${I.check}<span>${esc(tx('wd_1', { s: money(av) }))}</span></div><div>${I.clock}<span>${esc(tx('wd_2', { e: P.email }))}</span></div><div>${I.clock}<span>${esc(tx('wd_3', { d: dfmt(e.round_date) }))}</span></div></div>
-    <p class="cr-p">${esc(tx('wd_fee'))}</p><button class="btn-primary" data-cr="wd-send">${esc(tx('wd_send'))}</button></div>`);
+// ───────── экран 10 «Вывод» (02 §7.8): first (проверка личности у Whop), kyc_pending, below, ready, queued, paid, failed;
+// beta_off — выплат пока нет: «Выплаты начнутся, когда программа откроется для всех» (08 §2.4). Одна разметка на все состояния:
+// сумма, строка статуса, полоса до минимума (below, beta_off), три шага, способ выплаты, одна главная кнопка ─────────
+const IN_ROUND = ['queued', 'approved', 'sent'];
+function payoutState(e) {
+  const p = e.payout, av = e.totals.available, kyc = P.kyc || 'none';
+  if (!R.payouts_open) return 'beta_off';
+  if (p?.status === 'failed') return 'failed';
+  if (p && IN_ROUND.includes(p.status)) return 'queued';
+  if (p?.status === 'paid' && av < R.payout_min_cents) return 'paid';
+  if (av < R.payout_min_cents) return 'below';
+  if (kyc === 'pending') return 'kyc_pending';
+  return kyc === 'verified' ? 'ready' : 'first';
+}
+async function payoutHTML() {
+  if (!moneyOK()) return `${head(tx('pro_days'))}${body(await earnBody())}`;   // РФ, РБ, младше 18 — дни Pro, о выплатах ни слова
+  const [e, p] = await Promise.all([api().getEarnings(), api().getProfile()]); P = p;
+  const st = payoutState(e), av = e.totals.available, pv = R.payout_provider, min = money(R.payout_min_cents), d = dfmt(e.round_date), pay = e.payout;
+  const big = st === 'queued' ? [tx('in_payout'), pay.amount_cents] : st === 'paid' ? [tx('paid'), pay.amount_cents] : [tx(st === 'beta_off' ? 'wd_av_pre' : 'wd_av'), av];
+  const NOTE = {
+    beta_off: ['', I.clock, tx('beta_pay')], below: ['', I.clock, tx('wd_below_h', { min })],
+    first: ['', I.shield, P.kyc === 'failed' ? tx('wd_kyc_fail', { p: pv }) : tx('wd_first', { p: pv })], kyc_pending: ['', I.clock, tx('wd_kyc_h', { p: pv, e: P.email || '' })],
+    ready: ['ok', I.check, tx('wd_ready', { s: money2(av), d, min })], queued: ['ok', I.clock, tx('wd_queued', { d: dfmt(pay?.round_date || e.round_date), s: money2(pay?.amount_cents || 0) })],
+    paid: ['ok', I.check, tx('wd_s_paid', { s: money2(pay?.amount_cents || 0), d: dfmt(pay?.paid_at || pay?.round_date || e.round_date) })], failed: ['no', I.alert, tx('wd_failed', { p: pv })],
+  }[st];
+  const kycOK = P.kyc === 'verified', sent = st === 'queued' || st === 'paid';
+  const S = [[kycOK, tx('wd_s1', { p: pv })], [sent, tx('wd_s2', { min })], [st === 'paid', tx('wd_s3', { d, big: money(R.big_payout_cents) })]];
+  const BTN = {
+    beta_off: ['submit', I.video + esc(tx('submit_video'))], below: ['submit', I.video + esc(tx('submit_video'))], paid: ['submit', I.video + esc(tx('submit_video'))],
+    first: ['wd-kyc', I.shield + esc(tx('wd_kyc_go'))], kyc_pending: ['wd-check', esc(tx('wd_kyc_check'))], ready: ['wd-send', I.wallet + esc(tx('withdraw', { s: money2(av) }))],
+    queued: ['back', esc(tx('done'))], failed: ['wd-send', esc(tx('wd_retry'))],
+  }[st];
+  const barRow = st === 'below' || st === 'beta_off' ? `<div class="cr-wd">${bar(av / R.payout_min_cents * 100)}<span>${esc(tx('e_below', { s: money2(av), min }))}</span></div>` : '';
+  return `${head(tx('wd_title'))}${body(`<div class="cr-sbig" data-st="${st}"><span>${esc(big[0])}</span><b>${money2(big[1])}</b></div>
+    <div class="cr-note${NOTE[0] ? ' ' + NOTE[0] : ''}">${NOTE[1]}<span>${esc(NOTE[2])}</span></div>${barRow}
+    <div class="cr-steps">${S.map(([on, t]) => `<div class="${on ? 'on' : ''}">${on ? I.check : I.clock}<span>${esc(t)}</span></div>`).join('')}</div>
+    <p class="cr-p">${esc(tx('wd_method', { p: pv }))}</p><p class="cr-err" id="cr-err" hidden></p>
+    <button class="btn-primary" data-cr="${BTN[0]}">${BTN[1]}</button><button class="btn-ghost" data-cr="open:rules">${esc(tx('rules'))}</button>`)}`;
+}
+// проверка личности идёт у Whop: экран сам смотрит статус раз в 3 с, пока состояние kyc_pending
+function bindPayout(scr) {
+  if (!scr.querySelector('[data-st="kyc_pending"]')) return;
+  const t = setInterval(async () => {
+    if (!scr.isConnected) { clearInterval(t); return; }
+    const p = await api().getProfile().catch(() => null);
+    if (p && p.kyc !== 'pending') { clearInterval(t); P = p; const top = stack[stack.length - 1]; if (top && top.el === scr) rerender(); }
+  }, 3000);
 }
 function inviteSheet() {
   sheet(`<div class="cr-sh"><h2>${esc(tx('inv_h'))}</h2><p class="sub">${esc(tx('inv_p'))}</p>
@@ -1782,7 +2032,8 @@ function partnerHTML(a = {}) {
   if (st === 'minor') return `${h}${body(`<div class="cr-empty">${I.star}<b>${esc(tx('pt_minor_h'))}</b><p>${esc(tx('pt_minor_p'))}</p>
     <button class="btn-primary" data-cr="add">${I.plus}${esc(tx('pt_add'))}</button><button class="btn-ghost" data-cr="close">${esc(tx('done'))}</button></div>`)}`;
   if (st === 'terms') {
-    const m = money, v = { r: m(R.rpm.tiktok), rs: m(R.rpm.shorts), min: m(R.payout_min_cents), cap: m(R.rpm_cap_cents), floor: m(R.rpm_min_cents) };
+    const m = money, v = { r: m(R.rpm.tiktok), rs: m(R.rpm.shorts), min: m(R.payout_min_cents), cap: m(R.rpm_cap_cents), floor: m(R.rpm_min_cents), h: R.hold_days, day: R.payout_day,
+      np: m(R.new_partner_cap_cents), big: m(R.big_payout_cents), ah: R.appeal_hours, nd: R.rules_notice_days };
     const T = [['tm_rate', 'tm_rate_v'], ['tm_count', 'tm_count_v'], ['tm_hold', 'tm_hold_v'], ['tm_lim', 'tm_lim_v'], ['tm_no', 'tm_no_v'], ['tm_appeal', 'tm_appeal_v'], ['tm_change', 'tm_change_v']];
     return `${h}${body(`${stepLbl(2)}<h2 class="cr-q">${esc(tx('pt_terms_h'))}</h2><p class="cr-lead">${esc(tx('pt_terms_sub'))}</p>
       <ol class="cr-terms">${T.map(([a1, b1]) => `<li><b>${esc(tx(a1))}</b><span>${esc(tx(b1, v))}</span></li>`).join('')}</ol>
@@ -1869,13 +2120,15 @@ async function adminHTML() {
     return `${head(tx('ad_h'))}${body(`<label class="cr-in"><span>${esc(tx('ad_code'))}</span><input id="cr-adm" type="password" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
       <p class="cr-err" id="cr-err" hidden></p><button class="btn-primary" data-cr="ad-in">${esc(tx('ad_in'))}</button>`)}`;
   }
-  const [inv, wl, req] = await Promise.all([api().listInvites().catch(() => []), api().getWaitlistStats().catch(() => null), api().listAccountRequests().catch(() => [])]);
+  const [inv, wl, req, cq] = await Promise.all([api().listInvites().catch(() => []), api().getWaitlistStats().catch(() => null), api().listAccountRequests().catch(() => []),
+    api().listContributionRequests().catch(() => [])]);
+  await placesOf(cq);
   const seg = (cr, opts, cur) => `<div class="cr-seg">${opts.map(([v, l]) => `<button data-cr="${cr}" data-v="${v}" aria-selected="${cur === v}">${esc(tx(l))}</button>`).join('')}</div>`;
   const until = inv.find((x) => !x.used)?.until || '2026-12-31';
   return `${head(tx('ad_h'))}${body(`<h2 class="cr-h">${esc(tx('ad_mode'))}</h2>
     <p class="cr-lbl">${esc(tx('ad_demo'))}</p>${seg('ad-demo', [['0', 'ad_off'], ['1', 'ad_on']], st.demo ? '1' : '0')}
     <p class="cr-p">${esc(tx('ad_demo_p'))}</p>
-    ${st.demo ? `<p class="cr-lbl">${esc(tx('ad_stage'))}</p>${seg('ad-stage', [['partner', 'ad_st_partner'], ['start', 'ad_st_start']], st.stage)}<button class="btn-ghost" data-cr="ad-stage" data-v="${esc(st.stage)}">${esc(tx('ad_reset'))}</button>` : ''}
+    ${st.demo ? `<p class="cr-lbl">${esc(tx('ad_stage'))}</p>${seg('ad-stage', [['partner', 'ad_st_partner'], ['start', 'ad_st_start']], st.stage)}${seg('ad-stage', [['mod', 'ad_st_mod'], ['exam', 'ad_st_exam']], st.stage)}<button class="btn-ghost" data-cr="ad-stage" data-v="${esc(st.stage)}">${esc(tx('ad_reset'))}</button>` : ''}
     <h2 class="cr-h">${esc(tx('ad_inv'))}</h2><p class="cr-p">${esc(tx('ad_inv_p', { d: dfmt(until) }))}</p>
     <div class="cr-two"><button class="btn-primary" data-cr="ad-make">${I.plus}${esc(tx('ad_make'))}</button>${inv.length ? `<button class="btn-ghost" data-cr="copy" data-v="${esc(inv.filter((x) => !x.used).map((x) => x.code).join('\n'))}">${esc(tx('ad_copy_all'))}</button>` : ''}</div>
     <p class="cr-err" id="cr-err" hidden></p>
@@ -1888,6 +2141,10 @@ async function adminHTML() {
     <h2 class="cr-h">${esc(tx('ad_req'))}</h2><p class="cr-p">${esc(tx('ad_req_p'))}</p>
     ${req.length ? `<div class="cr-reqs">${req.map((r) => `<div><span class="m"><b>@${esc(String(r.nick).replace(/^@/, ''))}, ${esc(PLAT[r.platform] || r.platform)}</b><small>${esc(r.url)}, ${esc(tx('ml_code').toLowerCase())} ${esc(r.verify_code)}</small></span>
       ${r.status === 'pending' ? `<span class="b"><button class="cr-mini acc" data-cr="ad-mark" data-id="${esc(r.id)}" data-v="verified">${esc(tx('ad_yes'))}</button><button class="cr-mini" data-cr="ad-mark" data-id="${esc(r.id)}" data-v="failed">${esc(tx('ad_no'))}</button></span>` : `<span class="cr-tag ${r.status === 'verified' ? 'ok' : 'no'}">${esc(tx('ad_st_' + r.status))}</span>`}</div>`).join('')}</div>` : `<p class="cr-p">${esc(tx('ad_req_none'))}</p>`}
+    <h2 class="cr-h">${esc(tx('ad_cq'))}</h2><p class="cr-p">${esc(tx('ad_cq_p'))}</p>
+    ${cq.length ? `<div class="cr-reqs">${cq.map((c) => `<div><span class="m"><b>${esc(tx('ct_' + c.type))}: ${esc(cbName(c))}</b><small>${c.nick ? `@${esc(c.nick)}, ` : ''}${esc(dfmt(c.created_at))}${c.source_url ? `, ${esc(c.source_url)}` : ''}</small></span>
+      <span class="b"><button class="cr-mini acc" data-cr="ad-cq" data-id="${esc(c.id)}" data-v="accepted">${esc(tx('ad_accept'))}</button><button class="cr-mini" data-cr="ad-cq" data-id="${esc(c.id)}" data-v="rejected">${esc(tx('ad_reject'))}</button></span></div>`).join('')}</div>`
+      : `<p class="cr-p">${esc(tx('ad_cq_none'))}</p>`}
     <button class="btn-ghost" data-cr="ad-out">${esc(tx('ad_out'))}</button>`)}`;
 }
 
@@ -1907,7 +2164,9 @@ const SCREENS = {
   myvideos: { html: async (a) => `${head(tx('my_videos'))}${body(await myVideosHTML(a.filter || 'all'))}` },
   mylink: { html: mylinkHTML },
   rules: { html: async () => rulesHTML() },
-  review: { html: reviewHTML, bind: (s) => bindDeck(s) },
+  review: { html: reviewHTML, bind: (s) => { if (s.querySelector('[data-deck]')) bindDeck(s); } },
+  exam: { html: examHTML, bind: (s) => { if (s.querySelector('[data-deck]')) bindDeck(s); } },
+  payout: { html: payoutHTML, bind: bindPayout },
   feed: { html: async (a) => `<div class="cr-vscr">${await feedHTML(a)}</div>`, bind: bindFeed },
   // без приглашения: вместо денежных экранов — список ожидания (08 §2, задача 2)
   authors: { html: async () => `${head(tx('for_authors'))}${body(`${waitlistHTML()}<p class="cr-p">${esc(tx('gate_p'))}</p>`, '', true)}` },
@@ -2025,11 +2284,26 @@ async function onClick(e) {
       else { loginNext = null; await renderHub(); sheet(`<div class="cr-sh"><h2>${esc(tx('lg_minor_h'))}</h2><p class="sub">${esc(tx('lg_minor_sub'))}</p><button class="btn-primary" data-cr="sheet-close">${esc(tx('ok'))}</button></div>`); }
       break;
     }
-    case 'withdraw': withdrawSheet(); break;
-    case 'wd-send': {
-      try { const r = await api().requestPayout(); sheet(`<div class="cr-sh"><h2>${esc(tx('wd_ok_h'))}</h2><p class="sub">${money(r.amount_cents)}</p>${med()}<div class="cr-steps"><div class="on">${I.check}<span>${esc(tx('wd_ok_1'))}</span></div><div class="on">${I.check}<span>${esc(tx('wd_ok_2'))}</span></div><div>${I.clock}<span>${esc(tx('wd_ok_3', { d: dfmt(r.round_date) }))}</span></div></div><button class="btn-ghost" data-cr="sheet-close">${esc(tx('done'))}</button></div>`); rerender(); } catch (x) { ctx.toast(tx(x.code === 'beta_off' ? 'beta_pay' : 'err')); }
+    case 'withdraw': push('payout', {}); break;
+    // экран 10 «Вывод»: проверка личности у Whop, заявка, повтор после failed
+    case 'wd-kyc': {
+      try { await api().startKyc(); P = await api().getProfile(); ctx.toast(tx('wd_kyc_sent', { p: R.payout_provider })); await rerender(); } catch (x) { err(tx(x.code === 'beta_off' ? 'beta_pay' : 'err')); }
       break;
     }
+    case 'wd-check': P = await api().getProfile(); await rerender(); break;
+    case 'wd-send': {
+      try { await api().requestPayout(); P = await api().getProfile(); ctx.haptic?.(); await rerender(); renderHub(); }
+      catch (x) { if (x.code === 'kyc_required' || x.code === 'below_min' || x.code === 'in_round') await rerender(); else err(tx(x.code === 'beta_off' ? 'beta_pay' : 'err')); }
+      break;
+    }
+    // экран 14 «Экзамен»: начать, после сдачи — очередь ученика
+    case 'ex-start': {
+      const top = stack[stack.length - 1]; if (!top) break;
+      try { const x = await api().startExam(); await placesOf(x.items); exam = { id: x.id, items: x.items, answers: [] }; top.args.view = 'q'; await rerender(); }
+      catch (x) { if (x.code === 'cooldown') { top.args.view = 'cooldown'; await rerender(); } else err(tx('err')); }
+      break;
+    }
+    case 'ex-go': push('review', {}, true); break;
     case 'invite': inviteSheet(); break;
     case 'inv-send': {
       const er = $('#cr-err');
@@ -2037,9 +2311,9 @@ async function onClick(e) {
       catch (x) { er.hidden = false; er.textContent = tx(x.code === 'expired' ? 'inv_old' : 'inv_bad'); }
       break;
     }
-    case 'rv': { const s = stack[stack.length - 1]?.el; if (v === 'ok') decide(s, 'ok'); else askReason(s); break; }
+    case 'rv': tryDecide(stack[stack.length - 1]?.el, v); break;
     case 'rv-reason': { ctx.closeSheet(); decide(stack[stack.length - 1]?.el, 'no', v); break; }
-    case 'rv-again': { const s = stack[stack.length - 1]; await rerender(); bindDeck(s.el); break; }
+    case 'rv-again': await rerender(); break;
     case 'sheet-close': ctx.closeSheet(); break;
     // список ожидания и приглашение
     case 'wl-join': await load(); wlForm = { platforms: [], email: P?.email || '' }; wlSheet(1); break;
@@ -2108,6 +2382,7 @@ async function onClick(e) {
     case 'ad-make': { try { await api().createInvites(10); await rerender(); } catch (x) { err(tx(x.code === 'no_invites_left' ? 'ad_inv_left' : 'err')); } break; }
     case 'ad-mark': { await api().markAccount(el.dataset.id, v); P = await api().getProfile(); ctx?.onProfile?.(P); await rerender(); renderHub(); break; }
     case 'ad-out': await api().adminSignOut(); await rerender(); renderHub(); break;
+    case 'ad-cq': { try { await api().decideContribution(el.dataset.id, v, 'other'); ctx.toast(tx(v === 'accepted' ? 'ad_c_accepted' : 'ad_c_rejected')); } catch { ctx.toast(tx('err')); } await rerender(); renderHub(); break; }
   }
 }
 
@@ -2132,7 +2407,7 @@ export async function shootPlace(world, placeId) { await load(); return shootShe
 export async function fixPlace(world, placeId) { await load(); return cfOpen('fix', { place: { world, id: placeId }, world }); }
 /** Новое место долгим тапом по карте (сессия карты): window.SB.addPlaceAt('gta6', lat, lon) — форма вклада с точкой */
 export async function addPlaceAt(world, lat, lon) { await load(); return cfOpen('new_place', { world, lat: +lat, lon: +lon }); }
-/** Любой экран креатора: league | earn | myvideos | mylink | review | rules | vstats ({ id }) | board ({ world }) | contribs */
+/** Любой экран креатора: league ({ tab }) | earn | payout | myvideos | mylink | review | exam | rules | vstats ({ id }) | board ({ world }) | contribs */
 export async function openCreator(id = 'league', args = {}) { await load(); return push(id, args); }
 /** «Стать партнёром» снаружи (пейвол nopay): вход почтой и 18+; уже партнёр — Лига */
 export async function becomePartner() { await load(); if (isPartner()) return push('league', {}); loginSheet(); }

@@ -486,3 +486,20 @@
 .cr-cam video, .cr-cam .ghost { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .cr-cam .ghost { pointer-events: none; }
 .cr-range input { height: 44px; padding: 0; border: 0; background: none; accent-color: var(--accent); -webkit-appearance: auto; appearance: auto; }
+
+/* ── экраны 10, 14–17 (08 ТЗ §3, задачи 8–9): экзамен, очередь «Проверка», «Вывод», Лига ── */
+/* «Не засчитано: быстрее 2 с» — строка над кнопками, без стекла и рамки */
+.cr-fast { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 10px; font-size: 13.5px; line-height: 18px; color: var(--text); }
+.cr-fast[hidden] { display: none; }
+.cr-fast svg { width: 18px; height: 18px; flex: none; color: var(--danger); }
+.cr-fast.pulse { animation: cr-fast-in var(--d-base, .24s) var(--e-out, ease-out); }
+@keyframes cr-fast-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .cr-fast.pulse { animation: none; } }
+.cr-rvtop small { display: block; margin-top: 4px; font-size: 12.5px; line-height: 16px; color: var(--text-2); }
+.cr-rvtop .cr-bar { margin: 8px 0 2px; }
+.cr-ex-l { margin: 8px 0 18px; }
+.cr-ex-l li svg { color: var(--text-2); }
+/* Лига закрыта: прогресс к 10 000 просмотров */
+.cr-lgc { padding: 2px 2px 4px; }
+.cr-lgc .cr-lead { margin-bottom: 4px; }
+.cr-task .cr-bar { margin: 8px 0 0; }

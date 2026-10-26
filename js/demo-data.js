@@ -71,7 +71,9 @@ function ledger(vids) {
 export const DEMO = {
   month: MONTH,
   first_round: '2026-11-20',
-  moderator: { nick: 'palm_route', today: { checked: 40, accuracy: 92, cents: 40 }, stage: 'mod', exam: { correct: 18, total: 20 } },
+  // модератор @palm_route (08 §5): «Сегодня: проверено 40, точность 92%. Начислено $0,40»; экзамен 18 из 20.
+  // Точность — по ловушкам, скользящие 50: 23 верных из 25 = 92%
+  moderator: { nick: 'palm_route', today: { checked: 40, accuracy: 92, cents: 40 }, stage: 'mod', exam: { correct: 18, total: 20, at: '2026-10-22' }, window: { correct: 23, total: 25 } },
   place_stats: [{ world: 'gta6', id: 'gta6-stiltsville', opens_week: 1240, videos: 3 }],
   whitelist: { joined: 312, verified: 47, goal_joined: 500, goal_verified: 100 },
   waitlist_no: 1284,
@@ -111,20 +113,41 @@ function contributions() {
 const drafts = () => ({ new_egg: { type: 'new_egg', world: 'gta6', step: 'point', name: 'Wynwood Walls',
   what: { ru: 'Граффити у входа, как в трейлере', en: 'The graffiti at the entrance, as in the trailer' }, where: '25.8010, -80.1994', source: '', saved_at: d(29) } });
 
-// stage: 'partner' — партнёр с роликами за ноябрь; 'start' — новый человек: путь с записи в список до «Готово»
+// модератор @palm_route (этапы demo 'mod' и 'exam'): 5 принятых вкладов — допуск к экзамену; проверки за сегодня — $0,40 в журнале
+function palmContribs() {
+  const c = (id, type, world, pid, trace, at) => ({ id, type, place: pl(world, pid), payload: {}, status: 'accepted',
+    reward: type === 'found' ? { name: 'check' } : { name: 'found', pro_days: type === 'new_place' ? 7 : 1 }, trace, created_at: d(at), decided_at: d(at + 1) });
+  return [c('P1', 'new_place', 'gta6', 'gta6-coconut-grove', { kind: 'opens', n: 310, period: 'week' }, 3), c('P2', 'fix', 'gta6', 'gta6-cardozo', { kind: 'fixed_for', n: 1200 }, 6),
+    c('P3', 'found', 'gta6', 'gta6-tides', { kind: 'votes', n: 3, need: 3 }, 8), c('P4', 'fix', 'gta5', 'gta5-legion-square', { kind: 'fixed_for', n: 640 }, 11),
+    c('P5', 'found', 'gta5', 'gta5-pleasure-pier', { kind: 'votes', n: 3, need: 3 }, 14)];
+}
+function palmDB(stage) {
+  const M = DEMO.moderator, mod = stage === 'mod';
+  const P = { nick: M.nick, ref_code: 'PALM', email: 'palm_route@mail.com', country: 'US', payouts: true, roles: ['player', 'creator', 'author', ...(mod ? ['mod'] : [])], level: 'creator',
+    adult_at: '2026-10-20', terms_at: '2026-10-20', partner_since: '2026-10-20', invited: true, waitlist: null, demo: true, kyc: 'none',
+    pro_until: null, trial_until: null, work_pro_until: '2026-11-17', league_unlocked: false, league_progress: { views: 2340, goal: 10000 },
+    accounts: [{ id: 'A1', platform: 'tiktok', status: 'verified', handle: '@palm_route', url: 'tiktok.com/@palm_route', verify_code: 'SB-P4RM', verified_at: '2026-10-20' }],
+    mod: mod ? { stage: 'mod', today: { ...M.today }, exam: { ...M.exam }, window: { ...M.window }, done_ids: [] } : null, author: null };
+  const ledger = mod ? [{ id: 'M1', date: d(26), reason: 'queue_batch', amount_cents: M.today.cents, status: 'maturing', ref: 'review:' + d(26) }] : [];
+  return { P, videos: [], ledger, pro_days: [], payout: null, decisions: [], month: MONTH, stage, contributions: palmContribs(), drafts: {} };
+}
+
+// stage: 'partner' — партнёр с роликами за ноябрь; 'start' — новый человек: путь с записи в список до «Готово»;
+// 'mod' — модератор @palm_route (очередь «Проверка»); 'exam' — @palm_route с 5 принятыми вкладами перед экзаменом
 export function demoDB(stage = 'partner') {
+  if (stage === 'mod' || stage === 'exam') return palmDB(stage);
   const vids = videos();
   const P = {
     nick: 'sunset_drive', ref_code: 'SUNSET', email: 'sunset_drive@mail.com', country: 'US', payouts: true,
     roles: ['player', 'creator', 'mod', 'author', 'scout'], level: 'creator', adult_at: DEMO.partner_since, terms_at: DEMO.partner_since,
-    partner_since: DEMO.partner_since, invited: true, waitlist: null, demo: true,
+    partner_since: DEMO.partner_since, invited: true, waitlist: null, demo: true, kyc: 'none',
     pro_until: null, trial_until: null, work_pro_until: '2027-02-07',   // 9 ноября + 30 дней за каждый из 3 принятых роликов от 1 000 просмотров
     league_unlocked: true, league_progress: { views: 412300, goal: 10000 },
     accounts: [
       { id: 'A1', platform: 'tiktok', status: 'verified', handle: '@sunset_drive', url: 'tiktok.com/@sunset_drive', verify_code: DEMO.verify_code, verified_at: DEMO.partner_since },
       { id: 'A2', platform: 'youtube', status: 'verified', handle: '@sunset_drive', url: 'youtube.com/@sunset_drive', verify_code: DEMO.verify_code, verified_at: DEMO.partner_since },
     ],
-    mod: { today: { ...DEMO.moderator.today }, stage: 'mod', exam: { ...DEMO.moderator.exam } },
+    mod: { today: { ...DEMO.moderator.today }, stage: 'mod', exam: { ...DEMO.moderator.exam }, window: { ...DEMO.moderator.window }, done_ids: [] },
     author: { places: DEMO.place_stats.map((x) => ({ ...x })) },
   };
   if (stage === 'start') {

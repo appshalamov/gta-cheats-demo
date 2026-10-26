@@ -10,12 +10,18 @@
 //   'mock' — примеры состояний для стендов (?sbmock=<имя>), ТОЛЬКО на localhost / 127.0.0.1 или при включённом demo
 //            (06 В-1: в боевой сборке ?sbmock не работает). Состояния: league, newbie, empty, player, guest, minor, nopay, trial,
 //            trialend, partner, partnerend, link, renew, pro; для экранов 7–9 — statuses (8 статусов ролика 02 §7.4),
-//            paying (выплата в раунде), paid (выплачено).
+//            paying (выплата в раунде), paid (выплачено); экраны 14–15 — exam, cooldown, student, paused, qempty;
+//            экран 10 — wd_first, wd_kyc, wd_ready, wd_failed, wd_below (+ paying, paid).
 //   потом 'server' — та же форма методов, данные из Supabase (feature/server заменит реализацию, не имена).
 //
 // Статусы ролика (02 §7.4): submitted → in_review → awaiting_threshold → accruing → closed; ветки rejected (reject_code),
 //                     unavailable, frozen. Ролик: places[{world,id,role:'about'|'mention',at:'м:сс'}], has_gameplay, url, fmt
 // Статусы начисления: maturing → available → paid / reversed
+// Модератор (02 §10, 04 §1.4 mod_stats): P.mod { stage:'exam'|'cooldown'|'student'|'mod'|'paused', today{checked,accuracy,cents},
+//   window{correct,total} (ловушки, скользящие 50), exam{correct,total,at}, cooldown_until, student{done,agree,need}, done_ids[] }.
+//   Нет P.mod — 'none' (меньше 5 принятых вкладов) или 'exam' (5 вкладов или приглашение модератора). Решение < 2 с не засчитывается.
+// Вывод (02 §7.8): P.kyc 'none'|'pending'|'verified'|'failed' (проверка личности у Whop); выплата { status:'queued'|'approved'|'sent'|'paid'|'failed' }.
+//   rules.payouts_open = false в beta: экран «Вывод» — beta_off («Выплаты начнутся, когда программа откроется для всех»).
 // Причины начисления: share (40% с покупки по коду), cpa ($15 за приведённого креатора), task (задание), pair (пара Скаута),
 //                     queue_batch (проверки модератора), rpm (оплата просмотров), author_fee (10% автору места), friend_pro (дни Pro)
 // Профиль: roles, level, adult_at, terms_at, partner_since, ref_code, pro_until, pro_kind, work_pro_until, trial_until,
@@ -45,6 +51,11 @@ const RULES = {
   scout_pair_cents: 1000, mod_decision_cents: 1, mod_min_accuracy: 70, task_after_days: 7,
   league_goal_views: 10000, partner_pro_days: 14, partner_pro_per_video_days: 30, partner_pro_min_views: 1000,
   gift_days: 30,
+  // лимиты, раунд, апелляция, модерация (02 §7.7–§7.9, §10; 03 §5): экраны «Честные правила», экзамен и очередь берут цифры отсюда
+  new_partner_cap_cents: 10000, author_cap_new_cents: 10000, author_cap_cents: 50000, big_payout_cents: 50000, payout_provider: 'Whop',
+  appeal_hours: 48, review_hours: 48, rules_notice_days: 30, rpm_advance_day: 10, rpm_rest_day: 30, max_places: 5, video_code_keep_days: 7,
+  mod_need_contribs: 5, mod_exam_total: 20, mod_exam_need: 16, mod_exam_cooldown_days: 7, mod_min_ms: 2000, mod_student_n: 20, mod_trap_pct: 10,
+  mod_window: 50, mod_invites_month: 3, pro_days_year_cap: 60,
 };
 const PLACES = {   // id мест из data/map — подписи и фото экраны берут из places.js
   a: ['gta6', 'gta6-bayside-marketplace-skyviews'], b: ['gta6', 'gta6-arsht-center'], c: ['gta5', 'gta5-pleasure-pier'],
@@ -53,7 +64,8 @@ const PLACES = {   // id мест из data/map — подписи и фото �
 };
 const pl = (k) => ({ world: PLACES[k][0], id: PLACES[k][1] });
 
-const STATES = ['league', 'newbie', 'empty', 'player', 'guest', 'minor', 'nopay', 'trial', 'trialend', 'partner', 'partnerend', 'link', 'renew', 'pro', 'statuses', 'paying', 'paid'];
+const STATES = ['league', 'newbie', 'empty', 'player', 'guest', 'minor', 'nopay', 'trial', 'trialend', 'partner', 'partnerend', 'link', 'renew', 'pro', 'statuses', 'paying', 'paid',
+  'exam', 'cooldown', 'student', 'paused', 'qempty', 'wd_first', 'wd_kyc', 'wd_ready', 'wd_failed', 'wd_below'];
 function mockPick() {
   if (!devGate()) { try { sessionStorage.removeItem('sb.mock'); } catch { } return null; }   // боевая сборка: ?sbmock не действует
   let s = null;
@@ -138,7 +150,7 @@ function build(state) {
   if (state === 'league') {
     Object.assign(P, { roles: ['player', 'creator', 'mod', 'author'], level: 'creator', league_unlocked: true, work_pro_until: '2026-12-12',
       league_progress: { views: 120000, goal: RULES.league_goal_views }, accounts: accts,
-      mod: { today: { checked: 40, accuracy: 92, cents: 40 }, stage: 'mod' } });
+      mod: { today: { checked: 40, accuracy: 92, cents: 40 }, stage: 'mod', window: { correct: 23, total: 25 }, exam: { correct: 18, total: 20, at: day(3) }, done_ids: [] } });
     videos = videosFull();
     ledger = ledgerOf(videos, [
       { date: day(4), reason: 'share', amount_cents: PRICE.month, status: 'maturing', ref: 'profile', plan: 'month' },
@@ -182,7 +194,7 @@ function build(state) {
   } else if (state === 'statuses' || state === 'paying' || state === 'paid') {
     // стенд экранов 7–9: восемь статусов ролика (тексты 02 §7.4 — 48 200 просмотров → $5,78; итог 210 400 → $25,25, 9 покупок),
     // выплата в раунде (paying) и выплаченная (paid)
-    Object.assign(P, { roles: ['player', 'creator'], level: 'creator', work_pro_until: '2026-12-12', accounts: accts });
+    Object.assign(P, { roles: ['player', 'creator'], level: 'creator', work_pro_until: '2026-12-12', accounts: accts, kyc: 'verified' });
     if (state === 'statuses') {
       const v = (id, st, k, views, o = {}) => ({ id, platform: 'tiktok', place: pl(k), title: '', status: st, submitted_at: day(o.d || 6), url: `tiktok.com/@sunset_drive/video/74${id}`,
         views, clicks: Math.round(views / 900), trials: Math.round(views / 2800), pays: (o.buys || []).length, buys: o.buys || [], pay_days: (o.buys || []).map((_, i) => 8 + i * 2),
@@ -198,9 +210,25 @@ function build(state) {
       ledger = ledgerOf(videos, [{ date: day(15), reason: 'pair', amount_cents: 1000, status: 'available', ref: 'pair:gta6-arsht-metromover' }]);
       const av = ledger.filter((x) => x.status === 'available');
       const amount = av.reduce((a, x) => a + x.amount_cents, 0);
-      if (state === 'paying') payout = { status: 'queued', amount_cents: amount, round_date: FIRST_ROUND };
+      if (state === 'paying') payout = { status: 'queued', amount_cents: amount, round_date: FIRST_ROUND };   // в раунде (queued → approved → sent)
       else { av.forEach((x) => { x.status = 'paid'; }); payout = { status: 'paid', amount_cents: amount, round_date: FIRST_ROUND, paid_at: FIRST_ROUND }; }
     }
+  } else if (['exam', 'cooldown', 'student', 'paused', 'qempty'].includes(state)) {
+    // стенды экранов 14–15: допущен к экзамену (5 принятых вкладов), пауза после провала, ученик 7 из 20, пауза по точности, пустая очередь
+    Object.assign(P, { roles: ['player', 'creator', 'author'], level: 'creator', accounts: accts.slice(0, 1) });
+    if (state === 'cooldown') P.mod = { stage: 'cooldown', today: { checked: 0, accuracy: 0, cents: 0 }, window: { correct: 0, total: 0 }, exam: { correct: 15, total: 20, at: inD(-2) }, cooldown_until: inD(5), done_ids: [] };
+    if (state === 'student') P.mod = { stage: 'student', today: { checked: 0, accuracy: 0, cents: 0 }, window: { correct: 0, total: 0 }, exam: { correct: 18, total: 20, at: inD(-1) }, student: { done: 7, agree: 6, need: RULES.mod_student_n }, done_ids: [] };
+    if (state === 'paused') P.mod = { stage: 'paused', today: { checked: 12, accuracy: 60, cents: 8 }, window: { correct: 6, total: 10 }, exam: { correct: 17, total: 20, at: inD(-9) }, done_ids: [] };
+    if (state === 'qempty') { P.roles.push('mod'); P.mod = { stage: 'mod', today: { checked: 40, accuracy: 92, cents: 40 }, window: { correct: 23, total: 25 }, exam: { correct: 18, total: 20, at: inD(-9) }, done_ids: QUEUE.map((q) => q.id) }; }
+    return { P, videos, ledger, pro_days, payout, decisions: [], contributions: acceptedFive(), drafts: {} };
+  } else if (/^wd_/.test(state)) {
+    // стенды экрана 10 «Вывод»: доступно $31,20 (02 §7.8) или $12,40 (below); проверка личности none / pending / verified; выплата не дошла
+    Object.assign(P, { roles: ['player', 'creator'], level: 'creator', work_pro_until: '2026-12-12', accounts: accts, kyc: { wd_first: 'none', wd_kyc: 'pending', wd_below: 'none' }[state] || 'verified' });
+    videos = videosFull();
+    ledger = ledgerOf(videos, []);
+    const want = state === 'wd_below' ? 1240 : 3120, have = sumBy(ledger.filter((x) => x.status === 'available'), (x) => x.amount_cents);
+    if (want > have) ledger.push({ id: 'LW', date: day(22), reason: 'pair', amount_cents: want - have, status: 'available', ref: 'pair:gta6-arsht-metromover' });
+    if (state === 'wd_failed') payout = { status: 'failed', amount_cents: 3120, round_date: FIRST_ROUND, fail_code: 'details' };
   } else if (state === 'renew') {   // пропуск релиза кончается через 5 дней
     Object.assign(P, { roles: ['player'], adult_at: null, pro_until: inD(5), pro_kind: 'pass' });
   } else if (state === 'pro') {   // купил год
@@ -214,11 +242,12 @@ const BKEY = 'sb.beta.v1', DKEY = 'sb.demo.db';
 function freshBeta() {
   return { P: { nick: null, ref_code: null, email: null, country: null, payouts: true, roles: [], level: 'new', adult_at: null, terms_at: null,
     partner_since: null, invited: false, invite: null, waitlist: null, pro_until: null, trial_until: null, work_pro_until: null, league_unlocked: false,
-    league_progress: { views: 0, goal: RULES.league_goal_views }, mod: null, accounts: [] }, videos: [], ledger: [], pro_days: [], payout: null, decisions: [], contributions: [], drafts: {} };
+    league_progress: { views: 0, goal: RULES.league_goal_views }, mod: null, kyc: 'none', accounts: [] }, videos: [], ledger: [], pro_days: [], payout: null, decisions: [], contributions: [], drafts: {} };
 }
 function loadStore(key) { try { const v = JSON.parse(ls.get(key) || 'null'); return v && v.P ? v : null; } catch { return null; } }
 let DB = null;
-const demoStage = () => (ls.get('sb.demo.stage') === 'start' ? 'start' : 'partner');
+const DEMO_STAGES = ['partner', 'start', 'mod', 'exam'];   // партнёр с роликами, путь с начала, модератор @palm_route, его экзамен
+const demoStage = () => (DEMO_STAGES.includes(ls.get('sb.demo.stage')) ? ls.get('sb.demo.stage') : 'partner');
 const db = () => (DB = DB || (SOURCE === 'mock' ? build(mockState()) : SOURCE === 'demo' ? (loadStore(DKEY) || demoDB(demoStage())) : (loadStore(BKEY) || freshBeta())));
 // изменения профиля и роликов переживают перезагрузку (beta — до сервера, demo — до «Сбросить демо» у админа)
 const persist = () => { if (SOURCE === 'beta') ls.set(BKEY, JSON.stringify(db())); else if (SOURCE === 'demo') ls.set(DKEY, JSON.stringify(db())); };
@@ -407,6 +436,64 @@ const fmtOf = (platform) => (platform === 'youtube' ? 'h' : 'v');
 const placesOfVideo = (v) => (v.places && v.places.length ? v.places : v.place ? [{ ...v.place, role: 'about' }] : []).map((x) => ({ world: x.world, id: x.id, role: x.role || x.as || 'about', ...(x.at ? { at: x.at } : {}), status: x.status || 'ok' }));
 const handleOf = (url) => '@' + (String(url).replace(/[?#].*$/, '').replace(/\/+$/, '').split('/').pop() || '').replace(/^@/, '');
 
+// ── модерация (02 §10, 03 §5.3): банк экзамена (20 карточек вперемешку: ролики, места, фото) и очередь (10% — ловушки).
+// Правильный ответ и пометка ловушки — только здесь (на сервере — review_items.trap_answer), экран их не получает: ловушки ничем не отличаются.
+// facts — что модератор видит на карточке; *_missing — нарушение (красный значок). Место — только с фото из жизни (кадр игры крупно не ставим).
+const Q = (id, kind, world, pid, facts, answer, o = {}) => ({ id, kind, place: { world, id: pid }, facts, answer, ...o });
+const V = (ru, en) => ({ ru, en });
+const EXAM = [
+  Q('E01', 'video', 'gta6', 'gta6-wynwood-walls', ['code_found', 'disclosure_ok', 'place_at'], 'ok', { platform: 'tiktok', title: V('Стены Винвуда в жизни', 'Wynwood Walls in real life'), at: '0:12' }),
+  Q('E02', 'video', 'gta6', 'gta6-portmiami', ['code_missing', 'disclosure_ok'], 'no', { platform: 'shorts', title: V('Порт Майами с воды', 'PortMiami from the water') }),
+  Q('E03', 'photo', 'gta6', 'gta6-cardozo', ['street', 'no_people', 'license_ok'], 'ok'),
+  Q('E04', 'place', 'gta6', 'gta6-coconut-grove', ['source_link', 'side_real'], 'ok'),
+  Q('E05', 'photo', 'gta5', 'gta5-vinewood-sign', ['streetview_missing'], 'no'),
+  Q('E06', 'video', 'gta5', 'gta5-pleasure-pier', ['code_found', 'disclosure_missing'], 'no', { platform: 'reels', title: V('Пирс на закате', 'The pier at sunset') }),
+  Q('E07', 'photo', 'gta6', 'gta6-espanola-way', ['street', 'same_angle', 'no_people'], 'ok'),
+  Q('E08', 'place', 'gta5', 'gta5-kortz-center', ['source_missing'], 'no'),
+  Q('E09', 'video', 'gta5', 'gta5-galileo-observatory', ['code_found', 'disclosure_ok', 'place_at'], 'ok', { platform: 'youtube', title: V('Обсерватория из игры', 'The observatory from the game'), at: '1:04' }),
+  Q('E10', 'photo', 'gta5', 'gta5-legion-square', ['faces_missing'], 'no'),
+  Q('E11', 'video', 'gta6', 'gta6-old-seven-mile-bridge', ['code_found', 'disclosure_ok', 'place_missing'], 'no', { platform: 'tiktok', title: V('Старый мост в Кис', 'The old bridge in the Keys'), at: '0:40' }),
+  Q('E12', 'photo', 'gta6', 'gta6-tides', ['license_ok', 'street'], 'ok'),
+  Q('E13', 'place', 'gta6', 'gta6-brickell-key', ['source_link', 'side_real'], 'ok'),
+  Q('E14', 'photo', 'gta5', 'gta5-maze-bank-tower', ['game_missing'], 'no'),
+  Q('E15', 'video', 'gta6', 'gta6-bayfront-park', ['code_found', 'disclosure_ok', 'place_named'], 'ok', { platform: 'shorts', title: V('Парк у залива', 'The bayfront park') }),
+  Q('E16', 'place', 'gta5', 'gta5-ten-cent-theater', ['dup_place_missing'], 'no'),
+  Q('E17', 'photo', 'gta6', 'gta6-colony-hotel', ['street', 'no_people', 'same_angle'], 'ok'),
+  Q('E18', 'video', 'gta5', 'gta5-del-perro-heights', ['code_found', 'private_missing'], 'no', { platform: 'tiktok', title: V('Двор у башни', 'The courtyard by the tower') }),
+  Q('E19', 'photo', 'gta5', 'gta5-vespucci-canals', ['license_ok', 'no_people'], 'ok'),
+  Q('E20', 'video', 'gta6', 'gta6-hotel-victor', ['code_found', 'disclosure_ok', 'place_at'], 'ok', { platform: 'youtube', title: V('Отель на Оушен-драйв', 'The hotel on Ocean Drive'), at: '0:33' }),
+];
+const QUEUE = [
+  Q('q1', 'video', 'gta6', 'gta6-shark-valley-everglades', ['code_found', 'place_named'], 'ok', { platform: 'tiktok', title: V('Shark Valley: как в игре', 'Shark Valley, just like the game'), author: '@keys_hunter' }),
+  Q('q2', 'photo', 'gta6', 'gta6-arsht-center', ['street', 'no_people'], 'ok'),
+  Q('q3', 'place', 'gta5', 'gta5-ferris-whale', ['source_link', 'side_real'], 'ok'),
+  Q('q4', 'video', 'gta5', 'gta5-del-perro-heights', ['code_found'], 'ok', { platform: 'shorts', title: V('Del Perro сверху', 'Del Perro from above'), author: '@keys_hunter' }),
+  Q('q5', 'photo', 'gta5', 'gta5-clock-tower-building', ['streetview_missing'], 'no', { trap: true }),
+  Q('q6', 'video', 'gta6', 'gta6-bayside-marketplace-skyviews', ['code_missing'], 'no', { platform: 'reels', title: V('Колесо обозрения ночью', 'The wheel at night'), author: '@night_owl' }),
+  Q('q7', 'photo', 'gta6', 'gta6-beacon-hotel', ['street', 'same_angle'], 'ok'),
+  Q('q8', 'place', 'gta6', 'gta6-design-district', ['source_link'], 'ok'),
+  Q('q9', 'video', 'gta5', 'gta5-vespucci-beach', ['code_found', 'disclosure_ok', 'place_at'], 'ok', { platform: 'tiktok', title: V('Пляж Веспуччи утром', 'Vespucci Beach in the morning'), author: '@night_owl', at: '0:18' }),
+  Q('q10', 'photo', 'gta5', 'gta5-hedera-hotel', ['license_ok', 'street'], 'ok'),
+];
+const card = (q) => { const { answer, trap, ...pub } = q; return pub; };   // наружу — без ответа и без пометки ловушки
+// 5 принятых вкладов — допуск к экзамену (стенды и demo-этап «exam»)
+function acceptedFive() {
+  const c = (id, type, world, pid, n) => ({ id, type, place: { world, id: pid }, payload: {}, status: 'accepted', reward: { name: type === 'found' ? 'check' : 'found', pro_days: type === 'found' ? 0 : 1 },
+    trace: type === 'found' ? { kind: 'votes', n: 3, need: 3 } : { kind: 'fixed_for', n }, created_at: day(n % 20 + 2), decided_at: day(n % 20 + 3) });
+  return [c('M1', 'fix', 'gta6', 'gta6-cardozo', 1200), c('M2', 'found', 'gta6', 'gta6-tides', 3), c('M3', 'fix', 'gta5', 'gta5-legion-square', 640), c('M4', 'found', 'gta5', 'gta5-pleasure-pier', 7), c('M5', 'fix', 'gta6', 'gta6-colony-hotel', 380)];
+}
+const accOf = (m) => (m.window?.total ? Math.round(m.window.correct / m.window.total * 100) : m.today?.accuracy || 0);
+function modOf(P) {
+  if (P.mod) {
+    if (P.mod.stage === 'cooldown' && P.mod.cooldown_until && today() >= P.mod.cooldown_until) P.mod.stage = 'exam';
+    return P.mod;
+  }
+  const n = contribs().filter((c) => c.status === 'accepted').length;
+  return { stage: n >= RULES.mod_need_contribs || P.mod_invite ? 'exam' : 'none', accepted: n };
+}
+const KYC_WAIT = 4000;   // demo: проверка личности «проходит» сама через 4 с, как подтверждение канала
+function kycTick(P) { if (SOURCE === 'demo' && P.kyc === 'pending' && Date.now() - (P.kyc_at || 0) > KYC_WAIT) { P.kyc = 'verified'; persist(); } }
+
 const api = {
   isMock: true,   // сервера нет: данные на устройстве, в demo — набор, на стенде — ?sbmock
   mockState,
@@ -416,9 +503,10 @@ const api = {
   mockChosen: !!MOCK,
 
   /** Профиль: { nick, ref_code, email, country, payouts, roles[], level, adult_at, pro_until, pro_kind:'year'|'pass'|'month'|'work', work_pro_until, trial_until (ISO), gift{from,days,place}|null, league_unlocked, league_progress{views,goal}, mod{today{checked,accuracy,cents},stage}, accounts[{platform,status}] } */
-  getProfile: () => wait({ ...db().P, demo: MODE === 'demo' }, 60),
+  getProfile: () => { kycTick(db().P); return wait({ ...db().P, demo: MODE === 'demo' }, 60); },
   /** Правила и цифры (rules.json на сервере): ставки, холды, порог вывода, дата первого раунда, медиана (null до раунда) */
-  getRules: () => wait({ ...RULES, mode: MODE, open_at: OPEN_AT, ...(SOURCE === 'demo' ? { first_round: DEMO.first_round } : {}) }, 40),
+  // payouts_open: выплаты идут (live; demo и стенды показывают путь целиком). В beta — false: экран «Вывод» в состоянии beta_off (08 §2.4)
+  getRules: () => wait({ ...RULES, mode: MODE, open_at: OPEN_AT, payouts_open: MODE !== 'beta' || SOURCE === 'mock', ...(SOURCE === 'demo' ? { first_round: DEMO.first_round } : {}) }, 40),
 
   /** Вход почтой: код на почту */
   // В закрытом доступе без сервера письмо с кодом не уходит: вход — по принятому приглашению (08 §6), ответ { sent:false, signed_in:true }.
@@ -537,7 +625,7 @@ const api = {
    *  (старая форма { url, world, place_id } — одно место «про место»). → { id, status:'submitted', verify_code, link_v, account_verified }.
    *  Ошибки: bad_url (не ссылка на ролик), duplicate (тот же platform + id ролика уже подан; поле video_id), no_place, bad_at (таймкод
    *  упоминания не м:сс), too_many (больше 5 мест), need_disclosure (нет отметки о раскрытии рекламы) */
-  submitVideo: ({ url, places, world, place_id, has_gameplay = false, disclosure = true, v: want } = {}) => {
+  submitVideo: ({ url, places, world, place_id, has_gameplay = false, disclosure = true, v: want, task_id = null } = {}) => {
     const u = String(url || '').trim(), pv = videoIdOf(u);
     if (!pv) return fail('bad_url');
     const dup = db().videos.find((x) => { const o = videoIdOf(x.url || ''); return o && o.fam === pv.fam && o.id === pv.id; });
@@ -547,17 +635,21 @@ const api = {
     if (list.length > 5) return fail('too_many');
     if (list.some((x) => x.role === 'mention' && !/^\d{1,2}:[0-5]\d$/.test(x.at))) return fail('bad_at');
     if (!disclosure) return fail('need_disclosure');
+    // ролик по заданию Лиги (02 §6.2 В): связывается с заданием при подаче — карточка задания идёт по статусу ролика (task_claims)
+    const task = task_id ? TASKS.find((t) => t.id === task_id && t.kind === 'league_fixed') : null;
+    if (task_id && (!task || lockOf(task, db().P))) return fail('task_closed');
+    if (task && list.length < (task.places_n || 1)) return Promise.reject(Object.assign(new Error('task_places'), { code: 'task_places', need: task.places_n }));
     const d = db();
     let id = want && /^[A-Z0-9]{4}$/.test(want) && !d.videos.some((x) => x.id === want) ? want : null;
     while (!id || d.videos.some((x) => x.id === id)) id = Array.from({ length: 4 }, () => ALPHA[Math.floor(Math.random() * 32)]).join('');
     const vid = { id, platform: pv.platform, fmt: fmtOf(pv.platform), place: { world: list[0].world, id: list[0].id }, places: list.map((x) => ({ ...x, status: 'ok' })),
-      title: '', status: 'submitted', submitted_at: today(), url: u.replace(/^https?:\/\//, ''), has_gameplay: !!has_gameplay,
+      title: '', status: 'submitted', submitted_at: today(), url: u.replace(/^https?:\/\//, ''), has_gameplay: !!has_gameplay, ...(task ? { task_id: task.id } : {}),
       views: 0, clicks: 0, trials: 0, pays: 0, buys: [], pay_days: [], by_day: [], embed: null };
     d.videos.unshift(vid);
     if (d.reserved) Object.keys(d.reserved).forEach((k) => { if (d.reserved[k] === id) delete d.reserved[k]; });
     persist();
     const verified = (d.P.accounts || []).some((a) => a.status === 'verified');
-    return wait({ id, status: 'submitted', verify_code: 'SB-' + id, link_v: id, account_verified: verified }, 350);
+    return wait({ id, status: 'submitted', verify_code: 'SB-' + id, link_v: id, account_verified: verified, task_id: task ? task.id : null }, 350);
   },
   /** Статистика своего ролика (только автор, 02 §9 п. 6): { id, status, views_by_day[{date,views}], views, clicks, trials, pays, rate_cents,
    *  rpm{calc_cents, cents, rule:'ok'|'min'|'cap'|'wait'|'gameplay'|'no_rpm'}, buys{year,pass,month}, earned{share_cents,rpm_cents,rpm_available_cents} } */
@@ -613,14 +705,27 @@ const api = {
     const frozen_videos = videos.filter((v) => v.status === 'frozen').map((v) => v.id);
     return wait({ month, totals, round_date: SOURCE === 'demo' ? DEMO.first_round : FIRST_ROUND, median_cents: RULES.median_cents, payout, ledger, funnel, frozen_videos, pro_days, pro_days_total: sumBy(pro_days, (x) => x.days) });
   },
-  /** Вывод доступного (от $25) → { status:'pending_review', amount_cents, round_date } */
+  /** Вывод доступного (от $25, 02 §7.8) → { status:'queued', amount_cents, round_date }; ошибки not_allowed, beta_off, below_min, kyc_required, in_round.
+   *  Статусы выплаты: queued → approved → sent → paid | failed («Выплата не дошла: проверьте реквизиты у Whop» — заявку можно подать снова) */
   requestPayout: () => {
     const d = db(), av = sumBy(d.ledger.filter((x) => x.status === 'available'), (x) => x.amount_cents);
-    if (!d.P.adult_at || !d.P.payouts) return fail('not_allowed');
+    if (!d.P.adult_at || !d.P.payouts || d.P.minor) return fail('not_allowed');
+    if (MODE === 'beta' && SOURCE !== 'mock') return fail('beta_off');   // выплаты начнутся, когда программа откроется для всех (08 §2.4)
+    if (d.payout && ['queued', 'approved', 'sent'].includes(d.payout.status)) return fail('in_round');
     if (av < RULES.payout_min_cents) return fail('below_min');
-    if (SOURCE !== 'mock' && MODE !== 'live') return fail('beta_off');   // выплаты начнутся, когда программа откроется для всех (08 §2.4)
-    d.payout = { status: 'pending_review', amount_cents: av, round_date: FIRST_ROUND };
-    return wait(d.payout, 300);
+    if (d.P.kyc !== 'verified') return fail('kyc_required');
+    d.payout = { status: 'queued', amount_cents: av, round_date: SOURCE === 'demo' ? DEMO.first_round : FIRST_ROUND };
+    persist(); return wait(d.payout, 300);
+  },
+  /** Проверка личности для первой выплаты (02 §7.8): документы смотрит Whop, мы — нет → { kyc:'pending', url } (url — окно Whop; без сервера null).
+   *  POST /payouts/kyc; статус приходит вебхуком Whop: pending → verified | failed */
+  startKyc: () => {
+    const P = db().P;
+    if (!P.adult_at || P.payouts === false || P.minor) return fail('not_allowed');
+    if (MODE === 'beta' && SOURCE !== 'mock') return fail('beta_off');
+    if (P.kyc === 'verified') return wait({ kyc: 'verified', url: null }, 60);
+    P.kyc = 'pending'; P.kyc_at = Date.now(); persist();
+    return wait({ kyc: 'pending', url: null }, 250);
   },
 
   /** Вклад: { type:'place'|'pair'|'report'|'found', place?{world,id}|null, where?, side:'game'|'real', ref_kind, source, note } → { id, status:'pending_review' } */
@@ -677,24 +782,81 @@ const api = {
     return wait({ match: m ? { world, id: m.id } : null }, 150);
   },
 
-  /** Очередь проверки (модератор): [{ id, kind:'video'|'place'|'photo', place{world,id}, platform?, title?, facts[], trap? }] — ловушки ничем не отличаются */
-  getReviewQueue: () => {
-    if (!db().P.roles.includes('mod')) return fail('not_mod');
-    return wait([
-      { id: 'q1', kind: 'video', platform: 'tiktok', place: pl('g'), title: { ru: 'Shark Valley: как в игре', en: 'Shark Valley, just like the game' }, author: '@palm_route', facts: ['code_found', 'place_named'] },
-      { id: 'q2', kind: 'photo', place: pl('b'), facts: ['street', 'no_people'] },
-      { id: 'q3', kind: 'place', place: pl('h'), facts: ['source_link', 'side_real'] },
-      { id: 'q4', kind: 'video', platform: 'shorts', place: pl('i'), title: { ru: 'Del Perro сверху', en: 'Del Perro from above' }, author: '@keys_hunter', facts: ['code_found'] },
-      { id: 'q5', kind: 'photo', place: pl('e'), facts: ['street'] },
-      { id: 'q6', kind: 'video', platform: 'reels', place: pl('a'), title: { ru: 'Колесо обозрения ночью', en: 'The wheel at night' }, author: '@night_owl', facts: ['code_missing'] },
-    ]);
+  // ───────── модерация (02 §10; экраны 14 «Экзамен» и 15 «Проверка»). С сервером — GET /review, POST /review/:id, /mod/exam ─────────
+  /** Путь модератора → { stage:'none'|'exam'|'cooldown'|'student'|'mod'|'paused', accepted, need, exam{correct,total,at}|null, cooldown_until,
+   *  student{done,agree,need}|null, today{checked,accuracy,cents}, accuracy (по ловушкам, скользящие 50), min_accuracy } */
+  getModStatus: () => {
+    const P = db().P, m = modOf(P), n = contribs().filter((c) => c.status === 'accepted').length;
+    return wait({ stage: m.stage, accepted: n, need: RULES.mod_need_contribs, exam: m.exam || null, cooldown_until: m.cooldown_until || null, student: m.student || null,
+      today: m.today || { checked: 0, accuracy: 0, cents: 0 }, accuracy: accOf(m), min_accuracy: RULES.mod_min_accuracy }, 60);
   },
-  /** Решение по карточке: decision 'ok'|'no', reason_code при 'no' → { ok, today{checked,accuracy,cents} } */
-  reviewDecision: (id, decision, reason_code) => {
-    const m = db().P.mod; if (!m) return fail('not_mod');
+  /** Экзамен (02 §10.1): 20 карточек вперемешку, нужно 16 верных → { id, total, need, min_ms, items[] } (без ответов);
+   *  ошибки not_eligible (меньше 5 принятых вкладов и нет приглашения), cooldown (+ until), already_mod */
+  startExam: () => {
+    const P = db().P, m = modOf(P);
+    if (m.stage === 'mod' || m.stage === 'student') return fail('already_mod');
+    if (m.stage === 'cooldown') return Promise.reject(Object.assign(new Error('cooldown'), { code: 'cooldown', until: m.cooldown_until }));
+    if (m.stage === 'none') return fail('not_eligible');
+    return wait({ id: 'EX-' + Date.now().toString(36), total: RULES.mod_exam_total, need: RULES.mod_exam_need, min_ms: RULES.mod_min_ms, items: EXAM.slice(0, RULES.mod_exam_total).map(card) }, 150);
+  },
+  /** Итог экзамена: answers [{ item_id, decision:'ok'|'no', reason_code?, ms }] → { correct, total, need, passed, not_counted, stage, cooldown_until }.
+   *  Решение быстрее 2 с (ms < min_ms) не засчитывается — считается неверным. Сдал — 20 проверок ученика; не сдал — повтор через 7 дней */
+  submitExam: ({ answers = [] } = {}) => {
+    const P = db().P, m = modOf(P);
+    if (!['exam', 'paused'].includes(m.stage)) return fail(m.stage === 'cooldown' ? 'cooldown' : 'not_eligible');
+    const key = new Map(EXAM.map((q) => [q.id, q.answer])), seen = new Set();
+    let correct = 0, fast = 0;
+    for (const a of answers) {
+      if (!key.has(a.item_id) || seen.has(a.item_id)) continue; seen.add(a.item_id);
+      if (!(+a.ms >= RULES.mod_min_ms)) { fast++; continue; }
+      if (a.decision === key.get(a.item_id)) correct++;
+    }
+    const total = RULES.mod_exam_total, passed = correct >= RULES.mod_exam_need, exam = { correct, total, at: today() };
+    const keep = { today: P.mod?.today || { checked: 0, accuracy: 0, cents: 0 }, done_ids: P.mod?.done_ids || [] };
+    P.mod = passed ? { ...keep, stage: 'student', exam, window: { correct: 0, total: 0 }, student: { done: 0, agree: 0, need: RULES.mod_student_n } }
+      : { ...keep, stage: 'cooldown', exam, window: P.mod?.window || { correct: 0, total: 0 }, cooldown_until: addDays(today(), RULES.mod_exam_cooldown_days) };
+    P.roles = P.roles.filter((r) => r !== 'mod');
+    persist();
+    return wait({ correct, total, need: RULES.mod_exam_need, passed, not_counted: fast, stage: P.mod.stage, cooldown_until: P.mod.cooldown_until || null }, 300);
+  },
+  /** Очередь «Проверка» (ученик и модератор): [{ id, kind:'video'|'place'|'photo', place{world,id}, platform?, title?, author?, at?, facts[] }].
+   *  Одна карточка за раз; ловушки (10%) ничем не отличаются; свои вклады не показываются. Пусто — []; пауза — ошибка paused */
+  getReviewQueue: () => {
+    const P = db().P, m = modOf(P);
+    if (m.stage === 'paused') return fail('paused');
+    if (!['mod', 'student'].includes(m.stage)) return fail('not_mod');
+    const done = new Set(m.done_ids || []);
+    return wait(QUEUE.filter((q) => !done.has(q.id)).map(card), 120);
+  },
+  /** Решение: decision 'ok'|'no' (+ reason_code при 'no'), ms — сколько смотрел карточку → { counted, stage, today, accuracy, student }.
+   *  ms < 2000 — не засчитывается (counted:false, карточка остаётся). Точность — по ловушкам (скользящие 50); ниже 70% — пауза и повтор экзамена.
+   *  Ученик: 20 решений сверяются с итогом, денег нет; от 70% совпадений — роль mod, иначе пауза */
+  reviewDecision: (id, decision, reason_code, ms = RULES.mod_min_ms) => {
+    const P = db().P, m = P.mod, q = QUEUE.find((x) => x.id === id);
+    if (!m || !['mod', 'student'].includes(m.stage)) return fail(m?.stage === 'paused' ? 'paused' : 'not_mod');
+    if (!q) return fail('not_found');
     if (decision === 'no' && !reason_code) return fail('reason_required');
-    m.today.checked += 1; m.today.cents += 1; db().decisions.push({ id, decision, reason_code });
-    return wait({ ok: true, today: m.today }, 80);
+    const out = () => wait({ counted, stage: m.stage, today: { ...m.today }, accuracy: accOf(m), student: m.student ? { ...m.student } : null }, 80);
+    let counted = +ms >= RULES.mod_min_ms;
+    if (!counted) return out();
+    m.done_ids = [...(m.done_ids || []), id];
+    db().decisions.push({ id, decision, reason_code: reason_code || null, ms: Math.round(+ms) });
+    const right = decision === q.answer;
+    if (m.stage === 'student') {
+      m.student.done += 1; if (right) m.student.agree += 1;
+      if (m.student.done >= m.student.need) {
+        const ok = m.student.agree / m.student.need * 100 >= RULES.mod_min_accuracy;
+        m.stage = ok ? 'mod' : 'paused'; if (ok && !P.roles.includes('mod')) P.roles.push('mod');
+      }
+    } else {
+      m.today.checked += 1;
+      if (q.trap) { m.window = m.window || { correct: 0, total: 0 }; m.window.total += 1; if (right) m.window.correct += 1;
+        if (m.window.total > RULES.mod_window) { m.window.correct = Math.round(m.window.correct * RULES.mod_window / m.window.total); m.window.total = RULES.mod_window; } }
+      if (!q.trap || right) m.today.cents += RULES.mod_decision_cents;   // $0,01 за решение; ловушка — только за верное
+      m.today.accuracy = accOf(m);
+      if (m.window?.total >= 10 && m.today.accuracy < RULES.mod_min_accuracy) { m.stage = 'paused'; P.roles = P.roles.filter((r) => r !== 'mod'); }
+    }
+    persist(); return out();
   },
   // ───────── экран «Для админов» (08 №18, только веб). С сервером — роль admin в GET /me и методы /ops ─────────
   /** Вход по коду админа → { ok }; ошибка bad_code. Код остаётся только на этом устройстве (нужен, чтобы выводить коды приглашений) */
@@ -705,12 +867,13 @@ const api = {
     ls.set('sb.admin', c); adminOK = true; return wait({ ok: true }, 100);
   },
   adminSignOut: () => { ls.set('sb.admin', null); adminOK = false; return wait({ ok: true }, 50); },
-  /** { admin, demo, stage:'partner'|'start' } */
+  /** { admin, demo, stage:'partner'|'start'|'mod'|'exam' } */
   adminState: async () => wait({ admin: await isAdmin(), demo: DEMO_ON, stage: demoStage() }, 30),
-  /** Режим demo вкл/выкл (только админ). stage: 'partner' — партнёр с роликами, 'start' — путь с начала. После — перезагрузка */
+  /** Режим demo вкл/выкл (только админ). stage: 'partner' — партнёр с роликами, 'start' — путь с начала, 'mod' — модератор @palm_route,
+   *  'exam' — @palm_route перед экзаменом (5 принятых вкладов). После — перезагрузка */
   adminSetDemo: async (on, stage = 'partner') => {
     if (!(await isAdmin())) return fail('not_admin');
-    ls.set('sb.demo', on ? '1' : null); ls.set('sb.demo.stage', stage === 'start' ? 'start' : null); ls.set(DKEY, null);
+    ls.set('sb.demo', on ? '1' : null); ls.set('sb.demo.stage', DEMO_STAGES.includes(stage) && stage !== 'partner' ? stage : null); ls.set(DKEY, null);
     return wait({ demo: !!on, stage }, 50);
   },
   /** «Создать 10»: следующие коды SB-XXXXXX из партий config.js (действующих, не прошедших) → [{ code, i, until, created_at }] */
@@ -744,6 +907,19 @@ const api = {
     const P = db().P, mine = (P.accounts || []).filter((a) => a.status === 'pending' || a.status === 'failed').map((a) => ({ ...a, nick: P.nick || String(a.handle || '').replace(/^@/, ''), own: true }));
     const extra = SOURCE === 'beta' ? [] : DEMO.requests.map((r) => ({ ...r, status: (db().reqs || {})[r.id] || r.status }));
     return wait([...mine, ...extra], 60);
+  },
+  /** Вклады на проверке (заглушка §6, видно админу на том же устройстве): без сервера в beta их иначе некому принять → [{ id, type, place, payload, source_url, created_at, nick }] */
+  listContributionRequests: async () => {
+    if (!(await isAdmin())) return fail('not_admin');
+    return wait(contribs().filter((c) => c.status === 'in_review' || c.status === 'pending_review').map((c) => ({ ...c, nick: db().P.nick || '' })), 60);
+  },
+  /** Решение админа по вкладу: 'accepted' | 'rejected' (+ reject_code из причин «Моих вкладов») */
+  decideContribution: async (id, status, reject_code = 'other') => {
+    if (!(await isAdmin())) return fail('not_admin');
+    if (!['accepted', 'rejected'].includes(status)) return fail('bad_status');
+    const c = contribs().find((x) => x.id === id); if (!c) return fail('not_found');
+    c.status = status; c.decided_at = today(); if (status === 'rejected') c.reject_code = reject_code; else delete c.reject_code;
+    persist(); return wait({ id, status }, 120);
   },
   /** Ручная отметка «канал подтверждён» / «код не нашли»: status 'verified' | 'failed' */
   markAccount: async (id, status) => {
