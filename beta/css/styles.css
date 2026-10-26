@@ -962,3 +962,7 @@ body[data-sheet="half"] .map-fabs, body[data-sheet="full"] .map-fabs { opacity: 
 .map-fab.map-world svg { width: 24px; height: 24px; flex: none; }
 .map-fab.map-world small { font-size: 12px; font-weight: 700; line-height: 1.1; white-space: nowrap; }
 .map-fab.map-world[hidden] { display: none; }
+
+/* кнопки креаторского раздела под действиями места (только где подключён window.SB) */
+.mp-acts.mp-acts-cr { flex-wrap: wrap; margin-top: -6px; }
+.mp-acts-cr .mp-cta { flex: 1 1 100%; }
