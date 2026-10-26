@@ -488,6 +488,8 @@ const api = {
       { id: 'KH32', platform: 'snapchat', title: { ru: 'С тротуара', en: 'From the sidewalk' }, views: 9800, author: '@keys_hunter', embed: null },
     ].map((v) => ({ ...v, place: { world, id: placeId }, mine: false }));
     if (placeId && /empty/.test(placeId)) return wait([]);
+    // чужие ролики — только примеры demo и стендов, и только у мест каталога; в beta (и у точек gtadb) — лишь свои ролики
+    if (SOURCE === 'beta' || /^db-/.test(String(placeId))) return wait(mine.filter((v) => v.place.id === placeId));
     const own = mine.filter((v) => v.place.id === placeId);
     return wait([others[0], ...own, ...others.slice(1)]);
   },

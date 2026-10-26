@@ -469,7 +469,17 @@ const placeCache = {};       // world → Map(id → place)
 async function place(ref) {
   if (!ref) return null;
   if (!placeCache[ref.world]) { const d = await loadPlaces(ref.world); placeCache[ref.world] = new Map(d.places.map((p) => [p.id, p])); }
+  if (/^db-/.test(ref.id) && !placeCache[ref.world].has(ref.id)) await dbPoint(ref);
   return placeCache[ref.world].get(ref.id) || null;
+}
+// точка сообщества gtadb (id db-<L-id>, карточка карты): мест в places.js нет — название и адрес из data/map/gtadb_<игра>.json.
+// Фото не берём: фото из жизни там часто кадр Street View, кадр игры — © Rockstar (крупно не ставим) → «Снять про это» = no_pair
+const gtadbCache = {};
+async function dbPoint(ref) {
+  const j = await (gtadbCache[ref.world] = gtadbCache[ref.world] || fetch(`data/map/gtadb_${ref.world}.json`).then((r) => r.json()).catch(() => null));
+  const q = j?.points?.find((x) => 'db-' + x[0] === ref.id); if (!q) return;
+  const [n, ...rest] = String(q[3] || q[1] || '').split(',');
+  placeCache[ref.world].set(ref.id, { id: ref.id, kind: 'place', game: ref.world, n: n.trim(), a: rest.join(',').trim(), lat: q[4], lon: q[5], db: true });
 }
 async function placesOf(list) { await Promise.all(list.map((x) => x && x.place && place(x.place))); }
 const pSync = (ref) => (ref && placeCache[ref.world]?.get(ref.id)) || null;
@@ -1233,7 +1243,7 @@ function shootRender() {
   const done = (s.saved ? `<div class="cr-note ok">${I.check}<span><b>${esc(tx('sh_saved'))}</b>. ${esc(tx('sh_saved_p'))}</span></div>` : '')
     + (s.copied ? `<div class="cr-note ok">${I.check}<span><b>${esc(tx('sh_copied'))}</b>. ${esc(tx('sh_copied_p'))}</span></div>` : '');
   const tips = [tx('sh_t1'), tx('sh_t2'), tx(np ? 'sh_t3_np' : 'sh_t3')];
-  sheet(`<div class="cr-sh" data-st="${esc(s.view)}"><h2>${esc(tx('sh_h'))}</h2><p class="sub">${esc(pName(ref))}, ${esc(pCity(ref))}</p>
+  sheet(`<div class="cr-sh" data-st="${esc(s.view)}"><h2>${esc(tx('sh_h'))}</h2><p class="sub">${esc([pName(ref), pCity(ref)].filter(Boolean).join(', '))}</p>
     ${field(tx('sh_link'), l, '', tx('sh_link_note', { v: s.v }))}
     ${card}
     <div class="cr-steps cr-tips">${tips.map((t, i) => `<div>${[I.pin, I.voice, I.camera][i]}<span>${esc(t)}</span></div>`).join('')}</div>
