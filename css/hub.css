@@ -6,17 +6,31 @@
 .hub-hdr { position: absolute; left: 0; right: 0; top: 0; z-index: 4; padding: calc(var(--safe-t) + 10px) 16px 8px; pointer-events: none;
   transition: background-color var(--d-fast), box-shadow var(--d-fast), padding var(--d-fast); }
 .hub-hdr > * { pointer-events: auto; }
-/* знак с надписью (03 идентика): высота заглавных ≈ 15,5 pt; над фото — светлая надпись в обеих темах */
-.hub-brand { display: flex; align-items: center; height: 34px; width: 156px; overflow: hidden; transition: width var(--d-base) var(--e-out); }
-.hub-brand img { display: block; height: var(--lockup-h, 34px); width: auto; max-width: none; }
-.hub-brand .lk-light { display: none; }
+/* Знак (03 идентика, монограмма SB с 26.10): файлы — только icons/brand-*.svg, новый логотип ставится заменой файлов без правки кода.
+   Над фото — надпись на стекле шапки, заглавные ≈ 15,2 pt (высота надписи 34: заглавная = 0,447 высоты), слева; тёмная тема — тёмное стекло
+   и lockup-dark, светлая — светлое стекло и lockup-light. Сжатая шапка — только монограмма 24 pt (mark / mark-light). Без тени и свечения. */
+.hub-brand { display: flex; align-items: center; height: 44px; padding: 0 14px 0 10px; border-radius: 22px; background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge);
+  box-shadow: var(--glass-thin-hi); backdrop-filter: var(--glass-thin-filter); -webkit-backdrop-filter: var(--glass-thin-filter); }
+.hub-brand img { display: block; width: auto; max-width: none; }
+.hub-brand .lk { height: 34px; }
+.hub-brand .mk { height: 24.7px; } /* видимая высота монограммы 24 (поле в файле — 3 %) */
+.hub-brand .lk-light, .hub-brand .mk { display: none; }
+:root[data-theme="light"] .hub-brand { background: var(--glass-regular-bg); border-color: var(--glass-regular-edge); box-shadow: var(--glass-regular-hi);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
+:root[data-theme="light"] .hub-brand .lk-dark { display: none; }
+:root[data-theme="light"] .hub-brand .lk-light { display: block; }
 .hub-hdr .plat-btn { width: 44px; height: 44px; padding: 10px; color: var(--on-photo); background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge); box-shadow: var(--glass-thin-hi);
   backdrop-filter: var(--glass-thin-filter); -webkit-backdrop-filter: var(--glass-thin-filter); }
 .hub-hdr.is-solid { padding-top: calc(var(--safe-t) + 6px); padding-bottom: 6px; background: var(--glass-regular-bg); box-shadow: 0 1px 0 var(--glass-regular-edge);
   backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
-.hub-hdr.is-solid .hub-brand { width: 26px; } /* сжатая шапка — только знак */
-:root[data-theme="light"] .hub-hdr.is-solid .lk-dark { display: none; }
-:root[data-theme="light"] .hub-hdr.is-solid .lk-light { display: block; }
+/* сжатая шапка — только монограмма, без своей подложки (шапка уже на стекле) */
+.hub-hdr.is-solid .hub-brand { padding: 0; background: none; border-color: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.hub-hdr.is-solid .hub-brand .lk { display: none; }
+.hub-hdr.is-solid .hub-brand .mk-dark { display: block; }
+:root[data-theme="light"] .hub-hdr.is-solid .hub-brand .mk-dark { display: none; }
+:root[data-theme="light"] .hub-hdr.is-solid .hub-brand .mk-light { display: block; }
+:root[data-theme="light"] .hub-hdr .plat-btn { color: var(--text); background: var(--glass-regular-bg); border-color: var(--glass-regular-edge); box-shadow: var(--glass-regular-hi);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
 :root[data-theme="light"] .hub-hdr.is-solid .plat-btn { color: var(--text); background: var(--card); border-color: var(--line); box-shadow: none; }
 
 /* «Коды категории»: круглая «назад», заголовок, платформа */

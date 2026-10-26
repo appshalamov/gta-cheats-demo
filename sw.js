@@ -8,7 +8,7 @@ const SHELL = [
   'vendor/maplibre/maplibre-gl.js', 'vendor/maplibre/maplibre-gl.css',
   'data/gta5.json', 'data/gta6.json',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon.svg',
-  'icons/lockup-dark.svg', 'icons/lockup-light.svg', 'fonts/onest.woff2',
+  'icons/brand-lockup-dark.svg', 'icons/brand-lockup-light.svg', 'icons/brand-mark.svg', 'icons/brand-mark-light.svg', 'fonts/onest.woff2',
 ];
 
 // Картинки эпох (img/ui/<скин>/) — свой кэш «сразу из кэша, в фоне обновить», привязан к VERSION: с новой версией старый
