@@ -145,6 +145,8 @@ const W = {
   game:   { en: 'In game', ru: 'В игре', es: 'En el juego', pt: 'No jogo', fr: 'En jeu', de: 'Im Spiel', it: 'Nel gioco', tr: 'Oyunda', uk: 'У грі', pl: 'W grze', zh: '游戏中', ja: 'ゲーム内', ko: '게임 속' },
   real:   { en: 'Real life', ru: 'В жизни', es: 'En la vida real', pt: 'Na vida real', fr: 'En vrai', de: 'In echt', it: 'Dal vivo', tr: 'Gerçekte', uk: 'У житті', pl: 'W realu', zh: '现实中', ja: '実際', ko: '실제' },
   route:  { en: 'Open in Maps', ru: 'Открыть в Картах', es: 'Abrir en Mapas', pt: 'Abrir no Mapas', fr: 'Ouvrir dans Plans', de: 'In Karten öffnen', it: 'Apri in Mappe', tr: 'Haritalarda aç', uk: 'Відкрити в Картах', pl: 'Otwórz w Mapach', zh: '在地图中打开', ja: 'マップで開く', ko: '지도에서 열기' },
+  fixp:   { en: 'Suggest a fix', ru: 'Поправить', es: 'Sugerir corrección', pt: 'Sugerir correção', fr: 'Proposer une correction', de: 'Korrektur vorschlagen', it: 'Suggerisci correzione', tr: 'Düzeltme öner', uk: 'Виправити', pl: 'Zaproponuj poprawkę', zh: '建议修改', ja: '修正を提案', ko: '수정 제안' },
+  addc:   { en: 'Add', ru: 'Добавить', es: 'Añadir', pt: 'Adicionar', fr: 'Ajouter', de: 'Hinzufügen', it: 'Aggiungi', tr: 'Ekle', uk: 'Додати', pl: 'Dodaj', zh: '添加', ja: '追加', ko: '추가' },
   shoot:  { en: 'Film a video about this place', ru: 'Снять ролик об этом месте', es: 'Grabar un vídeo de este lugar', pt: 'Gravar um vídeo deste lugar', fr: 'Filmer une vidéo de ce lieu', de: 'Video über diesen Ort drehen', it: 'Gira un video su questo luogo', tr: 'Bu yer hakkında video çek', uk: 'Зняти ролик про це місце', pl: 'Nagraj film o tym miejscu', zh: '拍摄这个地点的视频', ja: 'この場所の動画を撮る', ko: '이 장소 영상 찍기' },
   pvids:  { en: 'Videos about this place', ru: 'Ролики об этом месте', es: 'Vídeos de este lugar', pt: 'Vídeos deste lugar', fr: 'Vidéos de ce lieu', de: 'Videos über diesen Ort', it: 'Video su questo luogo', tr: 'Bu yer hakkında videolar', uk: 'Ролики про це місце', pl: 'Filmy o tym miejscu', zh: '关于这个地点的视频', ja: 'この場所の動画', ko: '이 장소 영상' },
   look:   { en: 'Look around 360°', ru: 'Осмотреться 360°', es: 'Ver en 360°', pt: 'Ver em 360°', fr: 'Voir à 360°', de: '360°-Ansicht', it: 'Vista a 360°', tr: '360° bak', uk: 'Огляд 360°', pl: 'Widok 360°', zh: '360° 街景', ja: '360°で見る', ko: '360° 둘러보기' },
@@ -240,6 +242,8 @@ const w = (k) => (W[k] && (W[k][uiLang()] || W[k].en)) || k;
 // ───── значки (SVG, stroke = currentColor) ─────
 const sv = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const IC = {
+  plus: sv('<path d="M12 5v14M5 12h14"/>'),
+  edit: sv('<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/>'),
   game: sv('<path d="M6 9h4M8 7v4M15 10h.01M18 8h.01"/><path d="M7.5 4h9A5.5 5.5 0 0 1 22 9.5v3.8a3.7 3.7 0 0 1-6.6 2.3L14 14h-4l-1.4 1.6A3.7 3.7 0 0 1 2 13.3V9.5A5.5 5.5 0 0 1 7.5 4z"/>'),
   camera: sv('<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>'),
   pin: sv('<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>'),
@@ -413,7 +417,7 @@ function creatorActs(key) {
   const sb = window.SB || {};
   const b = (fn, mp, ic, label) => (typeof sb[fn] === 'function'
     ? `<button class="mp-cta mp-cta-cr" data-mp="${mp}" data-g="${esc(g)}" data-id="${esc(id)}">${ic}<span>${esc(w(label))}</span></button>` : '');
-  const html = b('shootPlace', 'shoot', IC.camera, 'shoot') + b('openPlaceVideos', 'pvids', IC.play, 'pvids');
+  const html = b('shootPlace', 'shoot', IC.camera, 'shoot') + b('openPlaceVideos', 'pvids', IC.play, 'pvids') + b('fixPlace', 'fixp', IC.edit, 'fixp');
   return html ? `<div class="mp-acts mp-acts-cr">${html}</div>` : '';
 }
 // «Поделиться местом»: ссылка на страницу-превью s/<игра>/<id>.html (в мессенджерах — карточка с кадром и названием,
@@ -1009,6 +1013,27 @@ function resetDocScroll() { if (window.scrollX || window.scrollY) window.scrollT
 addEventListener('scroll', resetDocScroll, { passive: true });
 
 // ───── лента карточек внизу карты ─────
+// В стиле OpenFreeMap есть заливки-узоры (wood-pattern и др.), которых нет в его спрайте: MapLibre пишет ошибку
+// «could not be loaded». Пустая картинка 1×1 под недостающее имя — узор просто не рисуется, ошибки нет.
+function blankImage(m) {
+  return (e) => { if (e?.id && !m.hasImage(e.id)) m.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) }); };
+}
+// Долгий тап по реальной карте → SB.addPlaceAt(игра, lat, lon) (вход в креаторский раздел, только где он подключён).
+// На карте игры координаты игровые — там не предлагаем.
+function longPress(m) {
+  let t = 0, start = null;
+  const stop = () => { clearTimeout(t); t = 0; start = null; };
+  const fire = (ll) => { if (mode !== 'real' || typeof window.SB?.addPlaceAt !== 'function') return; ctx?.haptic(); window.SB.addPlaceAt(game, +ll.lat.toFixed(6), +ll.lng.toFixed(6)); };
+  m.on('touchstart', (e) => {
+    stop();
+    if (e.originalEvent.touches?.length !== 1) return;
+    start = e.point; const ll = e.lngLat;
+    t = setTimeout(() => { t = 0; fire(ll); }, 550);
+  });
+  m.on('touchmove', (e) => { if (start && (Math.abs(e.point.x - start.x) > 8 || Math.abs(e.point.y - start.y) > 8)) stop(); });
+  for (const ev of ['touchend', 'touchcancel', 'movestart', 'zoomstart']) m.on(ev, stop);
+  m.on('contextmenu', (e) => fire(e.lngLat));   // правая кнопка мыши на компьютере
+}
 function ensureChrome() {
   const view = document.getElementById('view-map');
   if (!document.getElementById('map-cards')) {
@@ -1021,6 +1046,12 @@ function ensureChrome() {
   }
   // «Игра ⇄ Жизнь» под большим пальцем (Игорь 16.10: «очень важная штука»; концепт этапа 2, решение 1 — уголок 64×64 у пальца):
   // кнопка показывает, КУДА переключит; верхняя капсула остаётся — она показывает, где вы сейчас
+  // «+» — вход в креаторский раздел (вёрстка: SB.openCreator('board', {world})); только где раздел подключён
+  if (fabs && typeof window.SB?.openCreator === 'function' && !fabs.querySelector('[data-mp="add-board"]')) {
+    const b = document.createElement('button'); b.className = 'map-fab map-add'; b.dataset.mp = 'add-board';
+    b.setAttribute('aria-label', w('addc')); b.title = w('addc'); b.innerHTML = IC.plus;
+    fabs.prepend(b);
+  }
   if (BETA && fabs && !fabs.querySelector('.map-world')) {
     const b = document.createElement('button'); b.className = 'map-fab map-world'; b.dataset.mp = 'mode-flip';
     fabs.append(b);
@@ -1732,6 +1763,8 @@ document.addEventListener('click', (e) => {
   else if (a === 'share') { ctx?.haptic(); sharePlace(el.dataset.t, el.dataset.k, el); }
   else if (a === 'shoot') { ctx?.haptic(); window.SB?.shootPlace?.(el.dataset.g, el.dataset.id); }
   else if (a === 'pvids') { ctx?.haptic(); window.SB?.openPlaceVideos?.(el.dataset.g, el.dataset.id); }
+  else if (a === 'fixp') { ctx?.haptic(); window.SB?.fixPlace?.(el.dataset.g, el.dataset.id); }
+  else if (a === 'add-board') { ctx?.haptic(); window.SB?.openCreator?.('board', { world: mode, game }); }
   else if (a === 'legend') { ctx?.haptic(); ctx.openSheet(legendSheet(), 'sheet-map'); }
   else if (a === 'gl-reveal') { if (el.classList.contains('spoil')) { ctx?.haptic(); el.classList.remove('spoil'); el.querySelector('.gl-pic-t')?.remove(); glSeen.add(el.dataset.id); saveSet('secret.gl.seen', glSeen); } }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
@@ -1791,6 +1824,8 @@ async function create(preferGame) {
     map.on('moveend', prefetchNear);
     map.on('click', onTap);
     for (const ev of ['touchstart', 'mousedown', 'dblclick', 'zoomstart', 'dragstart']) map.on(ev, cancelTap);
+    map.on('styleimagemissing', blankImage(map));
+    longPress(map);
     renderChips();
   } catch (err) {
     box.classList.remove('loading');
@@ -2080,6 +2115,7 @@ function ghostEl() {
   return el;
 }
 function ghostLayers() {
+  if (!ghost.__blank) { ghost.on('styleimagemissing', blankImage(ghost)); ghost.__blank = true; }
   if (!ghost.getSource('gsel')) ghost.addSource('gsel', { type: 'geojson', data: fc([]) });
   if (!ghost.getLayer('gsel')) ghost.addLayer({ id: 'gsel', type: 'circle', source: 'gsel',
     paint: { 'circle-radius': 13, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' } });
