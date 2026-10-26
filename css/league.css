@@ -110,7 +110,7 @@
 .cr-seg button { flex: 1; min-height: 44px; border-radius: 19px; font: var(--t-label); color: var(--text-2); display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
 .cr-seg button[aria-selected="true"] { background: var(--text); color: var(--bg); }
 .cr-seg button em { font-style: normal; font-size: 12px; opacity: .7; }
-.cr-seg4 button { font-size: 12.5px; padding: 0 2px; }
+.cr-seg4 button { font-size: 12.5px; padding: 3px 2px; flex-direction: column; gap: 0; line-height: 15px; }   /* подпись над числом: «Проверка 0» не съезжает в соседнюю вкладку */
 .cr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 .cr-th { position: relative; aspect-ratio: 9 / 16; border-radius: 10px; overflow: hidden; background: var(--card); color: #fff; text-align: left; }
 .cr-th[hidden] { display: none; }
@@ -400,3 +400,49 @@
 .cr-reqs .m small { font-size: 12.5px; color: var(--text-2); word-break: break-all; }
 .cr-reqs .b { display: flex; gap: 8px; }
 .cr-reqs .cr-mini { margin: 0; }
+
+/* ── экран 5 «Снять про это»: превью картинки 1080×1920, подсказки, картинка для долгого нажатия ── */
+.cr-shot { display: flex; gap: 14px; align-items: center; padding: 10px; margin: 10px 0; border-radius: 18px; background: color-mix(in srgb, var(--text) 5%, transparent); }
+.cr-shot img { width: 108px; height: 192px; flex: none; border-radius: 12px; object-fit: cover; background: var(--card); }
+.cr-shot.wait img { animation: cr-pulse 1.2s ease-in-out infinite; }
+.cr-shot .m { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.cr-shot .m b { font: var(--t-headline); }
+.cr-shot .m small { font-size: 13px; line-height: 18px; color: var(--text-2); }
+@keyframes cr-pulse { 50% { opacity: .55; } }
+.cr-tips > div svg { color: var(--accent); }
+.cr-sh > .btn-primary { margin-top: 12px; }
+.cr-shot-big { display: block; width: auto; max-width: 100%; height: auto; max-height: 56vh; margin: 6px auto 14px; border-radius: 16px;
+  -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto; }   /* долгое нажатие на iPhone → «Сохранить в Фото» */
+
+/* ── экран 6 «Подача ролика»: формат по ссылке, упоминания с таймкодом, кадры из игры, отправка ── */
+.cr-fmt { margin: -2px 2px 10px; font-size: 13.5px; font-weight: 600; color: var(--accent); }
+.cr-fmt[hidden] { display: none; }
+.cr-mpl { display: grid; gap: 8px; margin: 4px 0; }
+.cr-mrow { display: flex; align-items: center; gap: 10px; padding: 6px 4px 6px 6px; border-radius: 16px; background: color-mix(in srgb, var(--text) 5%, transparent); }
+.cr-mrow > img { width: 44px; height: 44px; flex: none; border-radius: 10px; object-fit: cover; background: var(--card); }
+.cr-mrow .m { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cr-mrow .m b { font-size: 14.5px; font-weight: 600; line-height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cr-mrow .m small { font-size: 12.5px; color: var(--text-2); }
+.cr-at { flex: none; }
+.cr-at input { width: 78px; height: 44px; padding: 0 8px; border-radius: 12px; text-align: center; font: 600 16px/20px var(--font-num); font-variant-numeric: tabular-nums;
+  color: var(--text); background: var(--bg); border: 1px solid var(--line); -webkit-user-select: text; user-select: text; }
+.cr-at input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.cr-mrow .cr-ib { flex: none; }
+.cr-tog { display: flex; align-items: center; gap: 12px; min-height: 52px; margin: 8px 0 0; padding: 0 2px; font-size: 15px; font-weight: 500; }
+.cr-tog > span { flex: 1; }
+.cr-spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid currentColor; border-right-color: transparent; animation: cr-rot .8s linear infinite; }
+@keyframes cr-rot { to { transform: rotate(1turn); } }
+
+/* ── экран 7 карточка ролика и экран 8 «Статистика ролика» ── */
+.cr-sh .cr-tag { margin: 0 0 4px; }
+.cr-vst span { font-weight: 500; }
+.cr-vhead { display: flex; gap: 12px; align-items: center; margin: 2px 0 12px; }
+.cr-vhead > img { width: 64px; height: 64px; flex: none; border-radius: 14px; object-fit: cover; background: var(--card); }
+.cr-vhead .m { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cr-vhead .m b { font: var(--t-headline); }
+.cr-vhead .m small { font-size: 13px; line-height: 18px; color: var(--text-2); }
+.cr-calc { padding: 14px; border-radius: 16px; border: 1px solid var(--line); }
+.cr-calc b { display: block; font: 700 17px/24px var(--font-num); font-variant-numeric: tabular-nums; }
+.cr-calc small { display: block; margin-top: 4px; font-size: 13px; line-height: 18px; color: var(--text-2); }
+@media (prefers-reduced-motion: reduce) { .cr-shot.wait img, .cr-spin { animation: none; } }

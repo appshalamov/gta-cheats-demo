@@ -28,7 +28,7 @@ const S = {
     hub_guest: 'Войти почтой', hub_player: 'Стать партнёром', hub_partner_note: 'Бесплатно, без подписки. 18+ и вход почтой',
     partner: 'Партнёрство бесплатное, с 18 лет, покупка не нужна. Условия одинаковые для всех партнёров. Для съёмки — рабочий Pro: 14 дней после подтверждения аккаунта и +30 дней за каждый принятый ролик',
     trial_t: 'Пробный доступ', trial_p: 'Все коды и поиск открыты без входа и без карты оплаты. Карта и места из жизни — в Pro',
-    buys_h: 'Покупки по вашей ссылке', buy_pass: 'Пропуск по вашей ссылке — {p}', buy_year: 'Год — {p}', buy_month: 'Месяц — {p} за каждую оплату', n_buys: '{n} покупка|{n} покупки|{n} покупок', n_pays: '{n} оплата|{n} оплаты|{n} оплат',
+    buys_h: 'Покупки по вашей ссылке', buy_pass: '3 месяца — {p}', buy_year: 'Год — {p}', buy_month: 'Месяц — {p} за каждую оплату', n_buys: '{n} покупка|{n} покупки|{n} покупок', n_pays: '{n} оплата|{n} оплаты|{n} оплат',
     buys_note: 'Доступно через 30 дней после покупки. При возврате доля откатывается из будущих начислений', work_pro: 'Рабочий Pro до {d}. +30 дней за каждый принятый ролик от 1 000 просмотров', work_pro_end: 'Рабочий Pro закончился {d}. +30 дней за каждый принятый ролик от 1 000 просмотров',
     how1: 'Снимите место из игры в жизни', how2: 'Подайте ролик со своей ссылкой', how3: 'Получайте 40% с покупок по коду',
     how3_np: 'Получайте дни Pro за принятые ролики',
@@ -63,15 +63,16 @@ const S = {
     st_maturing: 'начисляется', st_available: 'доступно', st_paid: 'выплачено', st_reversed: 'отменено',
     d_share: '{n} покупка по коду|{n} покупки по коду|{n} покупок по коду', d_rpm: 'просмотры', d_task: 'задание принято', d_cpa: 'приведённый креатор', d_author: 'доля автора места', d_queue: 'проверки',
     hold_note: 'Доля по коду и $15 за креатора — после холда 30 дней. Задания — через 7 дней после проверки. Вывод — 20-го числа, от $25.',
-    mock_note: 'Пример данных. Настоящие цифры придут с сервера.', earn_empty: 'Начислений пока нет', earn_empty_p: 'Здесь появятся доля по коду, просмотры роликов и задания. Начните с ссылки на место.',
+    mock_note: 'Пример данных. Настоящие цифры придут с сервера.', earn_empty: 'Здесь появятся деньги за ваши ролики', earn_empty_p: 'Подайте первый — проверим до 48 часов',
     pd_total: '{n} дней Pro', pd_sub_minor: 'До 18 лет за вклады начисляем дни Pro', pd_sub_np: 'За принятые вклады, ролики и подарки друзьям',
     pd_friend: 'Друг купил Pro по вашей ссылке', pd_contrib: 'Принятые вклады', pd_video: 'Принятый ролик от 1 000 просмотров', pd_note: 'Подарки друзьям — не больше 12 в год.',
-    vs_submitted: 'Отправлен', vs_pending_review: 'На проверке', vs_awaiting_threshold: 'Ждёт порога', vs_accruing: 'Начисляется', vs_rejected: 'Отклонено', vs_unavailable: 'Недоступно',
-    vf_all: 'Все', vf_review: 'На проверке', vf_acc: 'Начисляется', vf_no: 'Отклонено',
-    rj_no_code: 'В описании нет кода {code}, поэтому мы не можем подтвердить, что ролик ваш. Добавьте код и отправьте снова',
-    rj_gameplay: 'В ролике геймплей GTA. В роликах с кодом — только места в жизни и экран приложения',
-    rj_not_place: 'Ролик не про место из приложения', rj_reused: 'Этот ролик уже подан с другого аккаунта',
-    vu_note: 'Ролик удалён на площадке или закрыт. Начисленное до удаления остаётся, новых начислений нет',
+    vs_submitted: 'Подан', vs_in_review: 'На проверке', vs_pending_review: 'На проверке', vs_awaiting_threshold: 'Ждёт порога', vs_accruing: 'Начисляется', vs_rejected: 'Не принят', vs_unavailable: 'Удалён или скрыт', vs_closed: 'Итог', vs_frozen: 'Проверяем просмотры',
+    vf_all: 'Все', vf_review: 'Проверка', vf_acc: 'Начисляется', vf_no: 'Не принят',
+    rj_no_code: 'В описании нет кода {code}. Добавьте его и подайте снова',
+    rj_gameplay: 'Есть кадры из игры: без оплаты просмотров, остальное засчитано',
+    rj_not_place: 'Это не то место. Выберите другое или подайте ролик без него', rj_reused: 'Этот ролик уже подавали',
+    rj_place_not_at_timecode: 'На этой секунде места не видно и не слышно. Укажите секунду, где оно есть', rj_unsafe: 'Ролик снят на частной территории или небезопасно',
+    vu_note: 'Ролик удалён или скрыт. Начисления остановлены',
     steps_review: 'На проверке', steps_review_d: 'ищем код {code} в описании; первый ролик каждого автора смотрит человек',
     steps_wait: 'Ждёт порога', steps_wait_d: 'от 1 000 просмотров', steps_acc: 'Начисляется', steps_acc_d: 'аванс — половина по снимку 10-го дня, остаток — по 30-му',
     send_again: 'Отправить снова', videos_empty: 'Роликов пока нет', videos_empty_p: 'Снимите место из игры в жизни и подайте ролик со своей ссылкой.',
@@ -86,8 +87,8 @@ const S = {
     ty_report: 'Сообщить об ошибке', ty_report_d: 'Не то место, неверный адрес, нарушение',
     sv_h: 'Подать ролик', sv_url: 'Ссылка на ролик', sv_url_ph: 'tiktok.com/@ник/video/…', sv_place: 'Место', sv_pick: 'Выбрать', sv_change: 'Сменить', sv_code: 'Ваш код',
     sv_note: 'После отправки дадим код SB- для описания: так мы подтвердим, что ролик ваш. Его можно удалить через 7 дней после проверки',
-    sv_send: 'Отправить на проверку', sv_bad_url: 'Нужна ссылка на ролик TikTok, YouTube, Instagram или Snapchat', sv_no_place: 'Выберите место',
-    sv_ok: 'Ролик отправлен', sv_ok_code: 'Добавьте в описание ролика код', sv_ok_link: 'Ваша ссылка для этого ролика',
+    sv_send: 'Подать', sv_bad_url: 'Это не ссылка на ролик TikTok, YouTube, Instagram или Snapchat', sv_no_place: 'Выберите место',
+    sv_ok: 'Ролик подан', sv_ok_code: 'Добавьте в описание ролика код', sv_ok_link: 'Ваша ссылка для этого ролика',
     sv_ok_link_note: 'Отдельно от общей ссылки: по ней считаем переходы и покупки с этого ролика',
     pick_h: 'Выберите место', pick_ph: 'Название или адрес', pick_none: 'Ничего не нашли. Попробуйте другое слово.',
     pf_h: 'Место или пасхалка', pf_side: 'Где видно', pf_kind: 'Что это', pf_where: 'Где', pf_where_ph: 'Адрес или ориентир', pf_src: 'Источник', pf_src_ph: 'Ссылка или откуда вы знаете',
@@ -188,6 +189,45 @@ const S = {
     ad_wl_p: 'Боевые выплаты — когда 500 записавшихся, из них 100 с подтверждённым каналом, ответ юриста, касса и Whop',
     ad_req: 'Подтверждение каналов', ad_req_p: 'Найдите код в описании профиля и отметьте', ad_req_none: 'Заявок нет',
     ad_yes: 'Подтвердить', ad_no: 'Не нашли', ad_st_verified: 'подтверждён', ad_st_failed: 'код не нашли', ad_out: 'Выйти',
+    // экран 5 «Снять про это» (02 §7.2)
+    sh_h: 'Снять про это', sh_card: 'Картинка для конца ролика', sh_card_pair: '1080 × 1920: пара «игра и жизнь», ваш ник, код и ссылка',
+    sh_card_photo: '1080 × 1920: фото места из жизни, ваш ник, код и ссылка', sh_making: 'Готовим картинку',
+    sh_link: 'Ссылка для описания ролика', sh_link_note: 'Номер ролика {v} уже в ссылке: переходы и покупки считаем именно по этому ролику',
+    sh_t1: 'Покажите место в начале', sh_t2: 'Скажите голосом и напишите в начале: «Реклама, партнёр Secret Base»',
+    sh_t3: 'Без записи экрана игры — тогда ролик получает оплату просмотров', sh_t3_np: 'Без записи экрана игры — тогда ролик засчитаем полностью',
+    sh_save: 'Скачать картинку', sh_copy: 'Скопировать ссылку', sh_copied: 'Ссылка скопирована', sh_copied_p: 'Вставьте её в описание ролика и закрепите комментарием',
+    sh_submit: 'Ролик готов — подать', sh_saved: 'Картинка сохранена', sh_saved_p: 'Поставьте её на последние 2–3 секунды ролика',
+    sh_hold_h: 'Сохраните картинку', sh_hold_p: 'Нажмите на картинку и подержите, затем «Сохранить в Фото». На компьютере — правой кнопкой «Сохранить картинку»',
+    sh_nopair_h: 'Картинки для этого места нет', sh_nopair_p: 'У места пока нет фото из жизни, а кадр игры крупно мы не используем. Ссылка работает — снимите место сами',
+    card_cmp: 'Игра и жизнь — в Secret Base', card_code: 'код {c}', card_photo: 'Фото: {c}',
+    // экран 6 «Подача ролика» (02 §7.3, решение №17)
+    sv_fmt: '{p}: {r} за 1 000 просмотров', sv_fmt_snap: 'Snapchat: принимаем без оплаты просмотров', sv_fmt_np: 'Площадка: {p}',
+    sv_what: 'Что в ролике', sv_about: 'Про место', sv_mention: 'Упоминание', sv_about_d: 'Ролик целиком об одном месте',
+    sv_mention_d: 'До 5 мест, у каждого — секунда, где оно видно или слышно', sv_at: 'Секунда', sv_add_place: 'Добавить место', sv_del: 'Убрать место',
+    sv_bad_at: 'Укажите секунду в виде мм:сс, например 0:21', sv_max: 'В одном ролике — до 5 мест',
+    sv_gp: 'В ролике есть кадры из игры', sv_gp_on: 'Без оплаты просмотров. 40% с покупок и порог Лиги остаются', sv_gp_on_np: 'Без дней Pro за просмотры. Порог Лиги остаётся',
+    sv_vcode: 'Код ролика в описании', sv_vcode_note: 'Можно удалить через 7 дней после проверки',
+    sv_disc: 'В начале ролика есть раскрытие рекламы', sv_disc_need: 'Отметьте, что в начале ролика есть пометка о рекламе', sv_sending: 'Отправляем',
+    sv_dup_h: 'Этот ролик уже подан', sv_dup_p: 'Ролик с этой ссылкой уже есть в «Моих роликах»: {id}', sv_dup_open: 'Открыть ролик',
+    sv_unv: 'Подтвердите аккаунт площадки, чтобы получать оплату', sv_unv_np: 'Подтвердите аккаунт площадки, чтобы получать дни Pro',
+    // экран 7 «Мои ролики» и карточка ролика (02 §7.4)
+    vd_submitted: 'Подан. Проверяем код в описании', vd_in_review: 'На проверке, обычно до 48 часов', vd_rejected: 'Не принят: {r}',
+    vd_awaiting_threshold: 'Принят. Оплата просмотров начнётся с 1 000 просмотров. Сейчас {n}', vd_awaiting_np: 'Принят. Дни Pro — с 1 000 просмотров. Сейчас {n}',
+    vd_accruing: 'Начисляется: {v}, {s}', vd_accruing_np: 'Засчитан: {v}', vd_closed: 'Итог: {v}, {s} за просмотры, {b} по ссылке', vd_closed_np: 'Итог: {v}',
+    vd_unavailable: 'Ролик удалён или скрыт. Начисления остановлены', vd_frozen: 'Проверяем просмотры. Начисления приостановлены',
+    vs_wait_n: 'Ждёт порога: {a} из {b}', vc_fix: 'Исправить и подать снова', vc_stats: 'Статистика ролика', vc_feed: 'Смотреть в ленте',
+    vc_places: 'Места в ролике', role_about: 'про место', role_mention: 'упоминание, {t}', vc_gp: 'Есть кадры из игры: без оплаты просмотров',
+    // экран 8 «Статистика ролика» (02 §9 п. 6)
+    vt_total: 'Начислено с ролика', vt_calc_h: 'Оплата просмотров', vt_calc: '{v} × {r} / 1 000 = {s}',
+    vt_min: 'Меньше {min} за ролик — начисляем минимум {min}', vt_cap: 'Предел — {cap} за ролик', vt_wait: 'Оплата начнётся с 1 000 просмотров. Сейчас {a} из {b}',
+    vt_gp: 'Есть кадры из игры: без оплаты просмотров. Доля 40% с покупок остаётся', vt_snap: 'Snapchat: без оплаты просмотров. Доля 40% с покупок остаётся',
+    vt_calc_note: 'Половина — авансом по снимку 10-го дня, остаток — по 30-му', vt_buys_h: 'Покупки по ссылке ролика', vt_buys_none: 'Покупок по ссылке ролика пока нет',
+    vt_per: 'Переходов на 1 000 просмотров: {n}', vt_low: 'Переходов меньше 1 на 1 000 просмотров. Скажите ссылку голосом и закрепите комментарий',
+    vt_frozen: 'Начисления по ролику приостановлены: проверяем просмотры. Ответим до 48 часов',
+    // экран 9 «Мой заработок» — состояния (02 §9)
+    e_hold: 'Пока всё в холде: доля с покупок — 30 дней, просмотры — по 10-му и 30-му дню ролика',
+    e_below: 'Доступно {s}. Выплата начнётся с {min} — остаток перейдёт на следующий раунд', e_paid: 'Выплачено {s}, {d}',
+    e_frozen: 'Начисления по ролику {id} приостановлены: проверяем просмотры. Ответим до 48 часов', e_pd: 'Дни Pro: {n}',
   },
   en: {
     for_authors: 'For creators', league: 'Creator League', title: 'Earn by filming videos about places',
@@ -198,7 +238,7 @@ const S = {
     hub_guest: 'Sign in with email', hub_player: 'Become a partner', hub_partner_note: 'Free, no subscription. 18+ and email sign-in',
     partner: 'Partnership is free, 18+, no purchase needed. The terms are the same for all partners. For filming, a working Pro: 14 days after confirming your account and +30 days for each accepted video',
     trial_t: 'Trial access', trial_p: 'All codes and search are open without sign-in or a card. The map and real-life places are in Pro',
-    buys_h: 'Purchases with your link', buy_pass: 'Release pass with your link — {p}', buy_year: 'Year — {p}', buy_month: 'Month — {p} for each payment', n_buys: '{n} purchase|{n} purchases', n_pays: '{n} payment|{n} payments',
+    buys_h: 'Purchases with your link', buy_pass: '3 months — {p}', buy_year: 'Year — {p}', buy_month: 'Month — {p} for each payment', n_buys: '{n} purchase|{n} purchases', n_pays: '{n} payment|{n} payments',
     buys_note: 'Available 30 days after purchase. On a refund the share is taken back from future earnings', work_pro: 'Working Pro until {d}. +30 days for each accepted video with 1,000+ views', work_pro_end: 'Working Pro ended on {d}. +30 days for each accepted video with 1,000+ views',
     how1: 'Film a game place in real life', how2: 'Submit the video with your link', how3: 'Get 40% of purchases with your code',
     how3_np: 'Get Pro days for accepted videos',
@@ -233,15 +273,16 @@ const S = {
     st_maturing: 'accruing', st_available: 'available', st_paid: 'paid', st_reversed: 'reversed',
     d_share: '{n} purchase with code|{n} purchases with code|{n} purchases with code', d_rpm: 'views', d_task: 'task accepted', d_cpa: 'referred creator', d_author: 'place author share', d_queue: 'reviews',
     hold_note: 'Code share and $15 per creator come after a 30-day hold. Tasks are available 7 days after review. Payouts on the 20th, from $25.',
-    mock_note: 'Sample data. Real numbers will come from the server.', earn_empty: 'No earnings yet', earn_empty_p: 'Code share, video views and tasks will show up here. Start with a link to a place.',
+    mock_note: 'Sample data. Real numbers will come from the server.', earn_empty: 'Money for your videos will show up here', earn_empty_p: 'Submit your first one — we review within 48 hours',
     pd_total: '{n} Pro days', pd_sub_minor: 'Under 18, contributions earn Pro days', pd_sub_np: 'For accepted contributions, videos and friend gifts',
     pd_friend: 'A friend bought Pro with your link', pd_contrib: 'Accepted contributions', pd_video: 'Accepted video with 1,000+ views', pd_note: 'Friend gifts are limited to 12 a year.',
-    vs_submitted: 'Sent', vs_pending_review: 'In review', vs_awaiting_threshold: 'Waiting for views', vs_accruing: 'Accruing', vs_rejected: 'Rejected', vs_unavailable: 'Unavailable',
-    vf_all: 'All', vf_review: 'In review', vf_acc: 'Accruing', vf_no: 'Rejected',
-    rj_no_code: 'The description has no {code} code, so we cannot confirm the video is yours. Add the code and send it again',
-    rj_gameplay: 'The video has GTA gameplay. Videos with a code show only real places and the app screen',
-    rj_not_place: 'The video is not about a place from the app', rj_reused: 'This video was already submitted from another account',
-    vu_note: 'The video was deleted or made private. What was earned before stays, nothing new accrues',
+    vs_submitted: 'Submitted', vs_in_review: 'In review', vs_pending_review: 'In review', vs_awaiting_threshold: 'Waiting for views', vs_accruing: 'Accruing', vs_rejected: 'Not accepted', vs_unavailable: 'Deleted or hidden', vs_closed: 'Final', vs_frozen: 'Checking views',
+    vf_all: 'All', vf_review: 'Review', vf_acc: 'Accruing', vf_no: 'Not accepted',
+    rj_no_code: 'The description has no {code} code. Add it and submit again',
+    rj_gameplay: 'The video has game footage: no view pay, everything else counts',
+    rj_not_place: 'This is not the place. Pick another one or submit the video without it', rj_reused: 'This video was already submitted',
+    rj_place_not_at_timecode: 'The place is not seen or heard at this second. Give the second where it is', rj_unsafe: 'The video was filmed on private property or unsafely',
+    vu_note: 'The video was deleted or hidden. Earnings stopped',
     steps_review: 'In review', steps_review_d: 'we look for {code} in the description; a person checks each creator’s first video',
     steps_wait: 'Waiting for views', steps_wait_d: 'from 1,000 views', steps_acc: 'Accruing', steps_acc_d: 'half in advance on the day 10 snapshot, the rest on day 30',
     send_again: 'Send again', videos_empty: 'No videos yet', videos_empty_p: 'Film a game place in real life and submit the video with your link.',
@@ -256,8 +297,8 @@ const S = {
     ty_report: 'Report a mistake', ty_report_d: 'Wrong place, wrong address, a violation',
     sv_h: 'Submit a video', sv_url: 'Video link', sv_url_ph: 'tiktok.com/@name/video/…', sv_place: 'Place', sv_pick: 'Choose', sv_change: 'Change', sv_code: 'Your code',
     sv_note: 'After sending we give you an SB- code for the description to confirm the video is yours. You can remove it 7 days after review',
-    sv_send: 'Send for review', sv_bad_url: 'We need a TikTok, YouTube, Instagram or Snapchat video link', sv_no_place: 'Choose a place',
-    sv_ok: 'Video sent', sv_ok_code: 'Add this code to the video description', sv_ok_link: 'Your link for this video',
+    sv_send: 'Submit', sv_bad_url: 'This is not a TikTok, YouTube, Instagram or Snapchat video link', sv_no_place: 'Choose a place',
+    sv_ok: 'Video submitted', sv_ok_code: 'Add this code to the video description', sv_ok_link: 'Your link for this video',
     sv_ok_link_note: 'Separate from your general link: visits and purchases from this video are counted by it',
     pick_h: 'Choose a place', pick_ph: 'Name or address', pick_none: 'Nothing found. Try another word.',
     pf_h: 'Place or easter egg', pf_side: 'Where it shows', pf_kind: 'What it is', pf_where: 'Where', pf_where_ph: 'Address or landmark', pf_src: 'Source', pf_src_ph: 'A link or how you know',
@@ -352,6 +393,40 @@ const S = {
     ad_wl_p: 'Live payouts start at 500 joined with 100 confirmed channels, the lawyer’s answer, checkout and Whop',
     ad_req: 'Channel checks', ad_req_p: 'Find the code in the profile description and mark it', ad_req_none: 'No requests',
     ad_yes: 'Confirm', ad_no: 'Not found', ad_st_verified: 'confirmed', ad_st_failed: 'code not found', ad_out: 'Sign out',
+    sh_h: 'Film this', sh_card: 'Picture for the end of the video', sh_card_pair: '1080 × 1920: the game and life pair, your name, code and link',
+    sh_card_photo: '1080 × 1920: a real-life photo of the place, your name, code and link', sh_making: 'Preparing the picture',
+    sh_link: 'Link for the video description', sh_link_note: 'The video number {v} is already in the link: visits and purchases count for this video',
+    sh_t1: 'Show the place at the start', sh_t2: 'At the start, say and write: “Ad, Secret Base partner”',
+    sh_t3: 'No game screen recording — then the video gets paid for views', sh_t3_np: 'No game screen recording — then the video counts in full',
+    sh_save: 'Download picture', sh_copy: 'Copy link', sh_copied: 'Link copied', sh_copied_p: 'Paste it into the video description and pin it in a comment',
+    sh_submit: 'Video ready — submit', sh_saved: 'Picture saved', sh_saved_p: 'Put it on the last 2–3 seconds of the video',
+    sh_hold_h: 'Save the picture', sh_hold_p: 'Press and hold the picture, then “Save to Photos”. On a computer, right-click and “Save image”',
+    sh_nopair_h: 'No picture for this place', sh_nopair_p: 'The place has no real-life photo yet, and we do not use game frames large. The link works — film the place yourself',
+    card_cmp: 'Game vs real life — in Secret Base', card_code: 'code {c}', card_photo: 'Photo: {c}',
+    sv_fmt: '{p}: {r} per 1,000 views', sv_fmt_snap: 'Snapchat: accepted without view pay', sv_fmt_np: 'Platform: {p}',
+    sv_what: 'What is in the video', sv_about: 'About a place', sv_mention: 'Mentions', sv_about_d: 'The whole video is about one place',
+    sv_mention_d: 'Up to 5 places, each with the second where it is seen or heard', sv_at: 'Second', sv_add_place: 'Add a place', sv_del: 'Remove place',
+    sv_bad_at: 'Give the second as mm:ss, for example 0:21', sv_max: 'Up to 5 places in one video',
+    sv_gp: 'The video has game footage', sv_gp_on: 'No view pay. The 40% purchase share and the League threshold stay', sv_gp_on_np: 'No Pro days for views. The League threshold stays',
+    sv_vcode: 'Video code in the description', sv_vcode_note: 'You can remove it 7 days after review',
+    sv_disc: 'The start of the video has an ad disclosure', sv_disc_need: 'Tick that the start of the video has an ad disclosure', sv_sending: 'Sending',
+    sv_dup_h: 'This video is already submitted', sv_dup_p: 'A video with this link is already in “My videos”: {id}', sv_dup_open: 'Open the video',
+    sv_unv: 'Confirm your platform account to get paid', sv_unv_np: 'Confirm your platform account to get Pro days',
+    vd_submitted: 'Submitted. Checking the code in the description', vd_in_review: 'In review, usually within 48 hours', vd_rejected: 'Not accepted: {r}',
+    vd_awaiting_threshold: 'Accepted. View pay starts at 1,000 views. Now {n}', vd_awaiting_np: 'Accepted. Pro days start at 1,000 views. Now {n}',
+    vd_accruing: 'Accruing: {v}, {s}', vd_accruing_np: 'Counted: {v}', vd_closed: 'Final: {v}, {s} for views, {b} with the link', vd_closed_np: 'Final: {v}',
+    vd_unavailable: 'The video was deleted or hidden. Earnings stopped', vd_frozen: 'Checking views. Earnings are paused',
+    vs_wait_n: 'Waiting: {a} of {b}', vc_fix: 'Fix and submit again', vc_stats: 'Video stats', vc_feed: 'Watch in the feed',
+    vc_places: 'Places in the video', role_about: 'about the place', role_mention: 'mention, {t}', vc_gp: 'Has game footage: no view pay',
+    vt_total: 'Earned from the video', vt_calc_h: 'View pay', vt_calc: '{v} × {r} / 1,000 = {s}',
+    vt_min: 'Under {min} per video — we pay the minimum {min}', vt_cap: 'The cap is {cap} per video', vt_wait: 'Pay starts at 1,000 views. Now {a} of {b}',
+    vt_gp: 'Has game footage: no view pay. The 40% purchase share stays', vt_snap: 'Snapchat: no view pay. The 40% purchase share stays',
+    vt_calc_note: 'Half in advance on the day 10 snapshot, the rest on day 30', vt_buys_h: 'Purchases with the video link', vt_buys_none: 'No purchases with the video link yet',
+    vt_per: 'Visits per 1,000 views: {n}', vt_low: 'Under 1 visit per 1,000 views. Say the link out loud and pin a comment',
+    vt_frozen: 'Earnings for the video are paused: we are checking views. We answer within 48 hours',
+    e_hold: 'Everything is on hold for now: the purchase share for 30 days, views until the video’s day 10 and day 30',
+    e_below: '{s} available. Payouts start from {min} — the rest moves to the next round', e_paid: 'Paid {s} on {d}',
+    e_frozen: 'Earnings for video {id} are paused: we are checking views. We answer within 48 hours', e_pd: 'Pro days: {n}',
   },
 };
 const lang = () => (getLang() === 'en' ? 'en' : 'ru');
@@ -371,6 +446,12 @@ function money(c) {
   if (!c) return '$0';
   const s = c % 100 ? (c / 100).toFixed(2) : String(c / 100);
   return '$' + (lang() === 'en' ? Number(s).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0 }) : s.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+}
+// суммы заработка — всегда с центами ($20,00), кроме нуля ($0): цифры 08 §5 «до цента»
+function money2(c) {
+  if (!c) return '$0';
+  const s = (Math.abs(c) / 100).toFixed(2), neg = c < 0 ? '−' : '';
+  return neg + '$' + (lang() === 'en' ? Number(s).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : s.replace('.', ',').replace(/\B(?=(\d{3})+,)/g, ' '));
 }
 const MON = { ru: ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'],
   en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] };
@@ -447,7 +528,11 @@ function row(go, icon, label, sub = '', attrs = '') {
 }
 const bar = (p) => `<span class="cr-bar"><i style="width:${Math.max(2, Math.min(100, p)).toFixed(1)}%"></i></span>`;
 const tag = (k, t) => `<span class="cr-tag ${k}">${esc(t)}</span>`;
-const stTag = (s) => tag({ accruing: 'ok', rejected: 'no', unavailable: 'no', pending_review: 'wait', submitted: 'wait', awaiting_threshold: 'wait' }[s] || '', tx('vs_' + s));
+// статусы ролика 02 §7.4 (8 штук); старое имя pending_review = in_review
+const vst = (s) => (s === 'pending_review' ? 'in_review' : s);
+const THRESHOLD = 1000;   // порог оплаты просмотров (02 §7.4)
+const VST = { accruing: 'ok', closed: 'ok', rejected: 'no', unavailable: 'no', frozen: 'wait', in_review: 'wait', submitted: 'wait', awaiting_threshold: 'wait' };
+const stTag = (s, v) => tag(VST[vst(s)] || '', vst(s) === 'awaiting_threshold' && v ? tx('vs_wait_n', { a: num(v.views), b: num(THRESHOLD) }) : tx('vs_' + vst(s)));
 function field(label, value, copy = '', note = '') {
   return `<div class="cr-field"><span>${esc(label)}</span><b>${esc(value)}</b>${copy ? `<button class="cr-mini" data-cr="copy" data-v="${esc(copy)}">${I.copy}${esc(tx('copy'))}</button>` : ''}${note ? `<small>${esc(note)}</small>` : ''}</div>`;
 }
@@ -495,7 +580,7 @@ async function hubMain() {
   else if (minor) rows = row('add', 'plus', tx('add_minor')) + row('open:earn', 'star', tx('pro_days'), tx('pro_days_sub')) + row('open:rules', 'doc', tx('rules'), tx('rules_sub_np'));
   else if (!partner) rows = row('login', 'link', tx('hub_player'), tx('partner')) + row('open:mylink', 'gift', tx('my_link_p'), tx('gift_sub')) + row('add', 'plus', tx('add_minor')) + row('open:rules', 'doc', tx('rules'), tx('rules_sub'));
   else {
-    const vids = await api().listMyVideos(), rev = vids.filter((v) => ['submitted', 'pending_review'].includes(v.status)).length;
+    const vids = await api().listMyVideos(), rev = vids.filter((v) => ['submitted', 'in_review', 'pending_review'].includes(v.status)).length;
     rows = (np ? row('open:earn', 'star', tx('pro_days'), tx('pro_days_sub')) : row('open:earn', 'wallet', tx('my_earn'), tx('my_earn_sub')))
       + row('open:myvideos', 'video', tx('my_videos'), vids.length ? `${plural(vids.length, 'n_videos')}${rev ? `, ${rev} ${tx('n_on_review')}` : ''}` : '')
       + row('open:mylink', 'link', tx('my_link'), tx('code_sub', { c: P.ref_code }))
@@ -641,11 +726,11 @@ const LTABS = ['tasks', 'videos', 'earn', 'rating'];
 // ───────── «Мой заработок» ─────────
 const GRP = { share: 'code', rpm: 'views', task: 'other', pair: 'other', cpa: 'other', author_fee: 'other', queue_batch: 'other' };
 const monthName = (m) => (lang() === 'en' ? MON.en : ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'])[+String(m).slice(5, 7) - 1] || '';
-function dayBars(days, keys, ymax, label, fmt) {
-  const W = 343, H = 172, Lp = 40, Rp = 4, T = 10, B = 24, n = days.length, pw = (W - Lp - Rp) / n, bw = Math.max(2, pw - 2.4), y = (v) => T + (H - T - B) * (1 - v / ymax);
+function dayBars(days, keys, ymax, label, fmt, Lp = 40) {
+  const W = 343, H = 172, Rp = 4, T = 10, B = 24, n = days.length, pw = (W - Lp - Rp) / n, bw = Math.max(2, pw - 2.4), y = (v) => T + (H - T - B) * (1 - v / ymax);
   const ticks = [0, ymax / 2, ymax];
   const grid = ticks.map((t) => `<line x1="${Lp}" x2="${W - Rp}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}" class="g"/><text x="${Lp - 6}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end" class="ax">${fmt(t)}</text>`).join('');
-  const xl = [0, 7, 14, 21, n - 1].filter((i, k, a) => i < n && a.indexOf(i) === k).map((i) => `<text x="${(Lp + (i + 0.5) * pw).toFixed(1)}" y="${H - 6}" text-anchor="middle" class="ax">${+days[i].date.slice(8)}</text>`).join('');
+  const xl = [0, 7, 14, 21, n - 1].filter((i, k, a) => i < n && a.indexOf(i) === k && (i === n - 1 || i <= n - 4)).map((i) => `<text x="${(Lp + (i + 0.5) * pw).toFixed(1)}" y="${H - 6}" text-anchor="middle" class="ax">${+days[i].date.slice(8)}</text>`).join('');
   const bars = days.map((o, i) => {
     let acc = 0;
     const segs = keys.map((k) => { const v = o[k] || 0; if (!v) return ''; const y1 = y(acc + v), y0 = y(acc); acc += v; return `<rect x="${(Lp + i * pw + 1.2).toFixed(1)}" y="${y1.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1.5, y0 - y1 - 1).toFixed(1)}" rx="1.6" class="s-${k}"/>`; }).join('');
@@ -666,14 +751,15 @@ async function earnBody(inLeague = false) {
   if (!moneyOK()) return proDaysBody();
   const [e, vids] = await Promise.all([api().getEarnings(), api().listMyVideos()]);
   await placesOf(vids);
-  if (!e.ledger.length) return `<div class="cr-empty">${I.wallet}<b>${esc(tx('earn_empty'))}</b><p>${esc(tx('earn_empty_p'))}</p>${med()}<button class="btn-primary" data-cr="open:mylink">${esc(tx('my_link'))}</button></div>`;
+  // состояния экрана 9 (02 §9): empty, hold, below, paying, paid, minor / nopay (дни Pro), beta (предварительные суммы — med() и подпись)
+  if (!e.ledger.length) return `<div class="cr-empty" data-st="empty">${I.wallet}<b>${esc(tx('earn_empty'))}</b><p>${esc(tx('earn_empty_p'))}</p>${med()}<button class="btn-primary" data-cr="submit">${I.video}${esc(tx('submit_video'))}</button></div>`;
   const T = e.totals, game = ctx?.game?.() || 'gta6';
   const days = monthDays(e.month).map((date) => { const o = { date, code: 0, views: 0, other: 0, items: [] }; e.ledger.filter((x) => x.date === date).forEach((x) => { o[GRP[x.reason] || 'other'] += x.amount_cents; o.items.push(x); }); return o; });
   const ymax = niceMax(Math.max(...days.map((o) => o.code + o.views + o.other)));
   const dayText = (o) => {
     const s = o.code + o.views + o.other;
     if (!s) return `<b>${esc(dfmt(o.date))}</b>: ${esc(tx('no_acc'))}`;
-    return `<b>${esc(dfmt(o.date))}, ${money(s)}</b>: ${[o.code ? `${tx('leg_code').toLowerCase()} ${money(o.code)}` : '', o.views ? `${tx('leg_views').toLowerCase()} ${money(o.views)}` : '', o.other ? `${tx('leg_other').toLowerCase()} ${money(o.other)}` : ''].filter(Boolean).map(esc).join(', ')}`;
+    return `<b>${esc(dfmt(o.date))}, ${money2(s)}</b>: ${[o.code ? `${tx('leg_code').toLowerCase()} ${money2(o.code)}` : '', o.views ? `${tx('leg_views').toLowerCase()} ${money2(o.views)}` : '', o.other ? `${tx('leg_other').toLowerCase()} ${money2(o.other)}` : ''].filter(Boolean).map(esc).join(', ')}`;
   };
   const by = (r) => e.ledger.filter((x) => x.reason === r), sum = (a) => a.reduce((s, x) => s + x.amount_cents, 0);
   const stOf = (a) => { const st = [...new Set(a.map((x) => x.status))]; return st.map((s) => tx('st_' + s)).join(', '); };
@@ -681,15 +767,20 @@ async function earnBody(inLeague = false) {
     ['cpa', 'other', tx('rs_cpa'), tx('rs_cpa_d')], ['task', 'other', tx('rs_task'), tx('rs_task_d')], ['pair', 'other', tx('rs_pair'), tx('rs_pair_d')], ['author_fee', 'other', tx('rs_author'), tx('rs_author_d')], ['queue_batch', 'other', tx('rs_queue'), tx('rs_queue_d')]]
     .map(([r, k, t, d]) => ({ r, k, t, d, c: sum(by(r)), st: stOf(by(r)) })).filter((x) => x.c);
   const totalAll = SRC.reduce((a, x) => a + x.c, 0) || 1;
-  const buys = ['pass', 'year', 'month'].map((k) => { const l = by('share').filter((x) => x.plan === k); return { k, n: l.length, c: l[0]?.amount_cents || 0 }; }).filter((x) => x.n);
+  const buys = ['year', 'pass', 'month'].map((k) => { const l = by('share').filter((x) => x.plan === k); return { k, n: l.length, c: l[0]?.amount_cents || 0 }; }).filter((x) => x.n);
   const pays = e.funnel.pays, earned = T.total;
+  // путь зрителя за месяц: просмотры → переходы → пробный → покупки (02 §9 п. 5; demo 653 140 → 922 → 322 → 28)
   const fun = [[tx('f_views'), num(e.funnel.views), ''], [tx('f_clicks'), num(e.funnel.clicks), tx('f_of', { p: pct(e.funnel.clicks, e.funnel.views) })],
-    [tx('f_pays'), num(pays), tx('f_of', { p: pct(pays, e.funnel.clicks) })], [tx('f_earned'), money(earned), '']];
+    [tx('f_trials'), num(e.funnel.trials), tx('f_of', { p: pct(e.funnel.trials, e.funnel.clicks) })],
+    [tx('f_pays'), num(pays), tx('f_of', { p: pct(pays, e.funnel.trials) })], [tx('f_earned'), money2(earned), '']];
   const own = vids.filter((v) => v.views || v.earned.total_cents);
   const payout = e.payout;
-  const btn = payout ? `<div class="cr-note ok">${I.clock}<span>${esc(tx('wd_status'))}, ${money(payout.amount_cents)}. ${esc(tx('wd_ok_3', { d: dfmt(payout.round_date) }))}</span></div>`
-    : T.available >= R.payout_min_cents ? `<button class="btn-primary" data-cr="withdraw">${I.wallet}${esc(tx('withdraw', { s: money(T.available) }))}</button>`
-    : `<div class="cr-wd">${bar(T.available / R.payout_min_cents * 100)}<span>${esc(tx('withdraw_min', { min: money(R.payout_min_cents), s: money(T.available) }))}</span></div>`;
+  const stE = payout?.status === 'paid' ? 'paid' : payout ? 'paying' : T.available >= R.payout_min_cents ? 'ready' : T.available > 0 ? 'below' : 'hold';
+  const btn = stE === 'paid' ? `<div class="cr-note ok">${I.check}<span>${esc(tx('e_paid', { s: money2(payout.amount_cents), d: dfmt(payout.paid_at || payout.round_date) }))}</span></div>`
+    : stE === 'paying' ? `<div class="cr-note ok">${I.clock}<span>${esc(tx('wd_status'))}, ${money2(payout.amount_cents)}. ${esc(tx('wd_ok_3', { d: dfmt(payout.round_date) }))}</span></div>`
+    : stE === 'ready' ? `<button class="btn-primary" data-cr="withdraw">${I.wallet}${esc(tx('withdraw', { s: money2(T.available) }))}</button>`
+    : `<div class="cr-wd">${bar(T.available / R.payout_min_cents * 100)}<span>${esc(stE === 'below' ? tx('e_below', { s: money2(T.available), min: money(R.payout_min_cents) }) : tx('e_hold'))}</span></div>`;
+  const frozen = (e.frozen_videos || []).map((id) => `<div class="cr-note no">${I.clock}<span>${esc(tx('e_frozen', { id }))}</span></div>`).join('');
   const rows = days.filter((o) => o.code + o.views + o.other).reverse();
   const dayParts = (o) => {
     const c = (r) => o.items.filter((x) => x.reason === r).length, parts = [];
@@ -697,29 +788,29 @@ async function earnBody(inLeague = false) {
     if (c('rpm')) parts.push(tx('d_rpm')); if (c('task')) parts.push(tx('d_task')); if (c('pair')) parts.push(tx('d_pair')); if (c('cpa')) parts.push(tx('d_cpa')); if (c('author_fee')) parts.push(tx('d_author')); if (c('queue_batch')) parts.push(tx('d_queue'));
     const s = parts.join(', '); return s.charAt(0).toUpperCase() + s.slice(1);
   };
-  return `<div class="cr-money">${picture(HERO[game]?.banners[1] || HERO[game]?.banners[0], 'cr-money-ph')}<div class="cr-money-in glass-plate">
-      <b class="cr-money-v">${money(T.total)}</b><span class="cr-money-s">${esc(tx(mode() === 'beta' ? 'for_month_pre' : 'for_month', { m: monthName(e.month) }))}</span>
+  return `<div class="cr-money" data-st="${stE}">${picture(HERO[game]?.banners[1] || HERO[game]?.banners[0], 'cr-money-ph')}<div class="cr-money-in glass-plate">
+      <b class="cr-money-v">${money2(T.total)}</b><span class="cr-money-s">${esc(tx(mode() === 'beta' ? 'for_month_pre' : 'for_month', { m: monthName(e.month) }))}</span>
       ${med('on-photo')}
       <span class="cr-money-r">${I.clock}${esc(tx('round_in', { d: dfmt(e.round_date), n: plural(daysTo(e.round_date), 'n_days_x') }))}</span></div></div>
-    <div class="cr-tri"><div><span>${esc(tx('accruing'))}</span><b>${money(T.maturing)}</b></div><div class="hi"><span>${esc(payout ? tx('in_payout') : tx('available'))}</span><b>${money(T.available)}</b></div><div><span>${esc(tx('paid'))}</span><b>${money(T.paid)}</b></div></div>
-    ${btn}
+    <div class="cr-tri"><div><span>${esc(tx('accruing'))}</span><b>${money2(T.maturing)}</b></div><div class="hi"><span>${esc(stE === 'paying' ? tx('in_payout') : tx('available'))}</span><b>${money2(T.available)}</b></div><div><span>${esc(tx('paid'))}</span><b>${money2(T.paid)}</b></div></div>
+    ${btn}${frozen}
     <h2 class="cr-h">${esc(tx('by_day'))}</h2>
     <div class="cr-box" data-days="${esc(JSON.stringify(days.map(dayText)))}">
       <div class="cr-leg"><span><i class="s-code"></i>${esc(tx('leg_code'))}</span><span><i class="s-views"></i>${esc(tx('leg_views'))}</span><span><i class="s-other"></i>${esc(tx('leg_other'))}</span></div>
       ${dayBars(days, ['code', 'views', 'other'], ymax, tx('by_day'), (t) => '$' + Math.round(t / 100))}
       <p class="cr-read">${esc(tx('tap_bar'))}</p></div>
     <h2 class="cr-h">${esc(tx('sources'))}</h2>
-    <div class="cr-srcs">${SRC.map((x) => `<div class="cr-src"><div class="h"><b>${esc(x.t)}</b><span>${money(x.c)}</span></div><span class="cr-sb"><i class="s-${x.k}" style="width:${Math.max(1.5, x.c / totalAll * 100).toFixed(1)}%"></i></span><small>${esc(x.d)}. <em>${esc(x.st)}</em></small></div>`).join('')}</div>
+    <div class="cr-srcs">${SRC.map((x) => `<div class="cr-src"><div class="h"><b>${esc(x.t)}</b><span>${money2(x.c)}</span></div><span class="cr-sb"><i class="s-${x.k}" style="width:${Math.max(1.5, x.c / totalAll * 100).toFixed(1)}%"></i></span><small>${esc(x.d)}. <em>${esc(x.st)}</em></small></div>`).join('')}</div>
     <p class="cr-p">${esc(tx('r_main_earn'))}</p>
-    ${buys.length ? `<h2 class="cr-h">${esc(tx('buys_h'))}</h2><div class="cr-ledger">${buys.map((x) => `<div><b>${esc(tx('buy_' + x.k, { p: money(x.c) }))}<small>${esc(plural(x.n, x.k === 'month' ? 'n_pays' : 'n_buys'))}</small></b><span class="v">${money(x.n * x.c)}</span></div>`).join('')}</div>
+    ${buys.length ? `<h2 class="cr-h">${esc(tx('buys_h'))}</h2><div class="cr-ledger">${buys.map((x) => `<div><b>${esc(tx('buy_' + x.k, { p: money2(x.c) }))}<small>${esc(plural(x.n, x.k === 'month' ? 'n_pays' : 'n_buys'))}</small></b><span class="v">${money2(x.n * x.c)}</span></div>`).join('')}</div>
     <p class="cr-p">${esc(tx('buys_note'))}</p>${workLine()}` : ''}
     <h2 class="cr-h">${esc(tx('funnel'))}</h2>
     <div class="cr-fun">${fun.map(([a, b, c], i) => `<div><span class="cr-k">${i + 1}</span><span class="t">${esc(a)}${c ? `<small>${esc(c)}</small>` : ''}</span><b>${b}</b></div>`).join('')}</div>
-    ${own.length ? `<h2 class="cr-h">${esc(tx('per_video'))}</h2><div class="cr-vrows">${own.map((v) => `<button class="cr-vrow" data-cr="feed-mine" data-id="${esc(v.id)}">
+    ${own.length ? `<h2 class="cr-h">${esc(tx('per_video'))}</h2><div class="cr-vrows">${own.map((v) => `<button class="cr-vrow" data-cr="vstats" data-id="${esc(v.id)}">
       <img src="${esc(pImg(v.place))}" alt="" loading="lazy"><span class="m"><b>${esc(L(v.title))}</b><small>${esc(PLAT[v.platform])}, ${esc(pName(v.place))}</small>
-      <span class="cr-chain">${[['c_views', v.views], ['c_clicks', v.clicks], ['c_pays', v.pays]].map(([k, n]) => `<span>${num(n)}<i>${esc(plural(n, k).slice(num(n).length + 1))}</i></span>`).join('')}<span class="acc">${money(v.earned.total_cents)}<i>${esc(tx('c_earned'))}</i></span></span></span></button>`).join('')}</div>${med()}` : ''}
+      <span class="cr-chain">${[['c_views', v.views], ['c_clicks', v.clicks], ['c_pays', v.pays]].map(([k, n]) => `<span>${num(n)}<i>${esc(plural(n, k).slice(num(n).length + 1))}</i></span>`).join('')}<span class="acc">${money2(v.earned.total_cents)}<i>${esc(tx('c_earned'))}</i></span></span></span></button>`).join('')}</div>${med()}` : ''}
     <h2 class="cr-h">${esc(tx('days_list'))}</h2>
-    <div class="cr-ledger cr-days">${rows.map((o, i) => `<div${i >= 5 ? ' hidden' : ''}><span class="d">${esc(dfmt(o.date))}</span><b>${esc(dayParts(o))}</b><span class="v">${money(o.code + o.views + o.other)}</span></div>`).join('')}</div>
+    <div class="cr-ledger cr-days">${rows.map((o, i) => `<div${i >= 5 ? ' hidden' : ''}><span class="d">${esc(dfmt(o.date))}</span><b>${esc(dayParts(o))}</b><span class="v">${money2(o.code + o.views + o.other)}</span></div>`).join('')}</div>
     ${rows.length > 5 ? `<button class="btn-ghost" data-cr="alldays" data-n="${rows.length}">${esc(tx('all_days', { n: rows.length }))}</button>` : ''}
     <p class="cr-p">${esc(tx('hold_note'))}</p>${inLeague ? '' : `<button class="btn-ghost" data-cr="open:rules">${esc(tx('rules'))}</button>`}`;
 }
@@ -736,29 +827,49 @@ function bindChart(root) {
   });
 }
 
-// ───────── «Мои ролики» ─────────
-const RJ = { no_code: 'rj_no_code', gameplay: 'rj_gameplay', not_place: 'rj_not_place', reused: 'rj_reused', no_disclosure: 'rj_no_disclosure' };
+// ───────── экран 7 «Мои ролики» и карточка ролика: 8 статусов 02 §7.4 ─────────
+const RJ = { no_code: 'rj_no_code', gameplay: 'rj_gameplay', not_place: 'rj_not_place', reused: 'rj_reused', no_disclosure: 'rj_no_disclosure', place_not_at_timecode: 'rj_place_not_at_timecode', unsafe: 'rj_unsafe' };
+const rjText = (v) => tx(RJ[v.reject_code] || 'rj_not_place', { code: 'SB-' + v.id });
+// строка статуса — тексты 02 §7.4: «Начисляется: 48 200 просмотров, $5,78», «Итог: 210 400 просмотров, $25,25 за просмотры, 9 покупок по ссылке»
+function vdesc(v) {
+  const st = vst(v.status), np = !moneyOK(), views = plural(v.views, 'c_views');
+  const rpm = v.earned?.rpm_cents || 0;
+  if (st === 'rejected') return tx('vd_rejected', { r: rjText(v) });
+  if (st === 'awaiting_threshold') return tx(np ? 'vd_awaiting_np' : 'vd_awaiting_threshold', { n: num(v.views) });
+  if (st === 'accruing') return np ? tx('vd_accruing_np', { v: views }) : tx('vd_accruing', { v: views, s: money2(rpm) });
+  if (st === 'closed') return np ? tx('vd_closed_np', { v: views }) : tx('vd_closed', { v: views, s: money2(rpm), b: plural(v.pays, 'c_pays') });
+  return tx('vd_' + st);
+}
+const VF = { all: () => true, review: (v) => ['submitted', 'in_review'].includes(vst(v.status)), acc: (v) => ['awaiting_threshold', 'accruing', 'frozen', 'closed'].includes(vst(v.status)), no: (v) => ['rejected', 'unavailable'].includes(vst(v.status)) };
 async function myVideosHTML(filter = 'all') {
   const vids = await api().listMyVideos(); await placesOf(vids);
   if (!vids.length) return `<div class="cr-empty">${I.video}<b>${esc(tx('videos_empty'))}</b><p>${esc(tx('videos_empty_p'))}</p><button class="btn-primary" data-cr="submit">${I.video}${esc(tx('submit_video'))}</button></div>`;
-  const F = { all: () => true, review: (v) => ['submitted', 'pending_review', 'awaiting_threshold'].includes(v.status), acc: (v) => v.status === 'accruing', no: (v) => ['rejected', 'unavailable'].includes(v.status) };
-  const cnt = (k) => vids.filter(F[k]).length;
+  const cnt = (k) => vids.filter(VF[k]).length;
   return `<div class="cr-seg cr-seg4" role="tablist">${[['all', 'vf_all'], ['review', 'vf_review'], ['acc', 'vf_acc'], ['no', 'vf_no']].map(([k, l]) => `<button role="tab" data-cr="mvf" data-v="${k}" aria-selected="${k === filter}">${esc(tx(l))}<em>${cnt(k)}</em></button>`).join('')}</div>
-    <div class="cr-list">${vids.filter(F[filter]).map((v) => `<button class="cr-li" data-cr="video" data-id="${esc(v.id)}"><img src="${esc(pImg(v.place))}" alt="" loading="lazy">
-      <span class="m"><b>${esc(L(v.title) || pName(v.place))}</b><small>${esc(PLAT[v.platform])}, ${esc(pName(v.place))}</small>${stTag(v.status)}
-      ${v.status === 'rejected' ? `<small class="no">${esc(tx(RJ[v.reject_code] || 'rj_not_place', { code: 'SB-' + v.id }))}</small>` : v.views ? `<small>${esc(tx('views_n', { n: num(v.views) }))}${moneyOK() && v.earned.total_cents ? `, ${money(v.earned.total_cents)}` : ''}</small>` : ''}</span>${I.chevron}</button>`).join('')}</div>
+    <div class="cr-list">${vids.filter(VF[filter]).map((v) => `<button class="cr-li" data-cr="video" data-id="${esc(v.id)}" data-st="${esc(vst(v.status))}"><img src="${esc(pImg(v.place))}" alt="" loading="lazy">
+      <span class="m"><b>${esc(L(v.title) || pName(v.place))}</b><small>${esc(PLAT[v.platform])}${L(v.title) ? `, ${esc(pName(v.place))}` : ''}${v.places.length > 1 ? ` +${v.places.length - 1}` : ''}</small>${stTag(v.status, v)}
+      ${vst(v.status) === 'rejected' ? `<small class="no">${esc(rjText(v))}</small>` : v.views ? `<small>${esc(tx('views_n', { n: num(v.views) }))}${moneyOK() && v.earned.total_cents ? `, ${money2(v.earned.total_cents)}` : ''}</small>` : ''}</span>${I.chevron}</button>`).join('')}</div>
     ${moneyOK() ? med() : ''}<button class="btn-primary" data-cr="submit">${I.video}${esc(tx('submit_video'))}</button>`;
 }
+// карточка ролика — шторка: статус, места с ролями и таймкодами, код и ссылка ролика, что делать дальше
 async function videoSheet(id) {
   const v = (await api().listMyVideos()).find((x) => x.id === id); if (!v) return;
-  await place(v.place);
-  if (v.status === 'accruing') { feedMine(id); return; }
-  const code = 'SB-' + v.id, n = { submitted: 0, pending_review: 1, awaiting_threshold: 2 }[v.status] ?? 0;
-  let h = `<div class="cr-sh"><h2>${esc(tx('vs_' + v.status))}</h2><p class="sub">${esc(PLAT[v.platform])}, ${esc(pName(v.place))}, ${esc(dfmt(v.submitted_at))}</p>`;
-  if (v.status === 'rejected') h += `<div class="cr-note no">${I.alert}<span>${esc(tx(RJ[v.reject_code] || 'rj_not_place', { code }))}</span></div><button class="btn-primary" data-cr="submit" data-w="${v.place.world}" data-p="${esc(v.place.id)}">${esc(tx('send_again'))}</button><button class="btn-ghost" data-cr="open:rules">${esc(tx('rules'))}</button>`;
-  else if (v.status === 'unavailable') h += `<div class="cr-note no">${I.info}<span>${esc(tx('vu_note'))}</span></div><button class="btn-ghost" data-cr="sheet-close">${esc(tx('ok'))}</button>`;
-  else h += `${steps(n, code)}${field(tx('sv_ok_code'), code, code)}${field(tx('vstat_link'), link(P.ref_code, v.place.world, v.place.id, v.id), 'https://' + link(P.ref_code, v.place.world, v.place.id, v.id))}${v.views ? `<p class="cr-p">${esc(tx('views_n', { n: num(v.views) }))}</p>` : ''}<button class="btn-ghost" data-cr="sheet-close">${esc(tx('done'))}</button>`;
-  sheet(h + '</div>');
+  await placesOf(v.places.map((x) => ({ place: x })));
+  const st = vst(v.status), code = 'SB-' + v.id, l = link(P.ref_code, v.place.world, v.place.id, v.id);
+  const cls = { accruing: 'ok', closed: 'ok', rejected: 'no', unavailable: 'no', frozen: 'no' }[st] || '';
+  const icon = { accruing: I.chart, closed: I.check, rejected: I.alert, unavailable: I.info, frozen: I.clock }[st] || I.clock;
+  const prog = { submitted: 0, in_review: 1, awaiting_threshold: 2 }[st];
+  const places = `<h3 class="cr-h">${esc(tx('vc_places'))}</h3><div class="cr-ledger">${v.places.map((x) => `<div><b>${esc(pName(x))}<small>${esc(x.role === 'mention' ? tx('role_mention', { t: x.at || '' }) : tx('role_about'))}</small></b><span class="v"></span></div>`).join('')}</div>`;
+  let btn = '';
+  if (st === 'rejected') btn = `<button class="btn-primary" data-cr="submit" data-w="${esc(v.place.world)}" data-p="${esc(v.place.id)}">${esc(tx('vc_fix'))}</button><button class="btn-ghost" data-cr="open:rules">${esc(tx('rules'))}</button>`;
+  else if (['accruing', 'closed', 'awaiting_threshold', 'frozen'].includes(st)) btn = `<button class="btn-primary" data-cr="vstats" data-id="${esc(v.id)}">${I.chart}${esc(tx('vc_stats'))}</button>${['accruing', 'closed'].includes(st) ? `<button class="btn-ghost" data-cr="feed-mine" data-id="${esc(v.id)}">${esc(tx('vc_feed'))}</button>` : ''}`;
+  else btn = `<button class="btn-ghost" data-cr="sheet-close">${esc(tx(st === 'unavailable' ? 'ok' : 'done'))}</button>`;
+  sheet(`<div class="cr-sh" data-st="${esc(st)}"><h2>${esc(L(v.title) || pName(v.place))}</h2><p class="sub">${esc(PLAT[v.platform])}, ${esc(dfmt(v.submitted_at))}</p>${stTag(v.status, v)}
+    <div class="cr-note cr-vst ${cls}">${icon}<span>${esc(nb(vdesc(v)))}</span></div>
+    ${v.has_gameplay && st !== 'rejected' ? `<div class="cr-note">${I.info}<span>${esc(tx('vc_gp'))}</span></div>` : ''}
+    ${prog != null ? steps(prog, code) : ''}${places}
+    ${field(tx('sv_ok_code'), code, code)}${field(tx('vstat_link'), l, 'https://' + l)}
+    ${btn}</div>`);
 }
 
 // ───────── «Ролики об этом месте» — вертикальная лента ─────────
@@ -767,14 +878,14 @@ async function feedHTML(args) {
   let list = [];
   if (args.source === 'place') list = await api().listPlaceVideos(args.world, args.id);
   else if (args.source === 'league') list = await api().listLeagueVideos();
-  else list = (await api().listMyVideos()).filter((v) => v.status === 'accruing').map((v) => ({ ...v, mine: true, author: '@' + P.nick }));
+  else list = (await api().listMyVideos()).filter((v) => v.status === 'accruing' || v.status === 'closed').map((v) => ({ ...v, mine: true, author: '@' + P.nick }));
   if (args.mineOnly) list = list.filter((v) => v.mine);
   await placesOf(list.length ? list : [{ place: { world: args.world, id: args.id } }]);
   feedList = list;
   const tabs = args.source === 'place' && moneyOK() ? `<div class="cr-vtabs" role="tablist"><button role="tab" data-cr="feed-tab" data-v="place" aria-selected="${!args.mineOnly}">${esc(tx('feed_place'))}</button><button role="tab" data-cr="feed-tab" data-v="mine" aria-selected="${!!args.mineOnly}">${esc(tx('feed_mine'))}</button></div>` : '';
   if (!list.length) {
     const ref = { world: args.world, id: args.id };
-    return `${head(tx('feed_place'))}${body(`<p class="cr-p">${pName(ref) ? esc(pName(ref)) + ', ' : ''}${esc(pCity(ref))}</p><div class="cr-empty">${I.video}<b>${esc(tx('feed_empty'))}</b><p>${esc(tx('feed_empty_p'))}</p><button class="btn-primary" data-cr="submit" data-w="${esc(args.world)}" data-p="${esc(args.id)}">${I.camera}${esc(tx('shoot'))}</button></div>`)}`;
+    return `${head(tx('feed_place'))}${body(`<p class="cr-p">${pName(ref) ? esc(pName(ref)) + ', ' : ''}${esc(pCity(ref))}</p><div class="cr-empty">${I.video}<b>${esc(tx('feed_empty'))}</b><p>${esc(tx('feed_empty_p'))}</p><button class="btn-primary" data-cr="${isMinor() ? 'submit' : 'shoot'}" data-w="${esc(args.world)}" data-p="${esc(args.id)}">${I.camera}${esc(tx('shoot'))}</button></div>`)}`;
   }
   const myStats = {};
   if (moneyOK()) (await api().listMyVideos()).forEach((v) => { myStats[v.id] = v; });
@@ -786,7 +897,7 @@ async function feedHTML(args) {
       <div class="cr-side">
         <button class="cr-act${ctx?.isFav?.(placeKey({ kind: 'place', game: v.place.world, id: v.place.id })) ? ' on' : ''}" data-cr="vsave" data-w="${v.place.world}" data-p="${esc(v.place.id)}">${I.heart}<span>${esc(tx('save'))}</span></button>
         <button class="cr-act" data-cr="vshare" data-i="${i}">${I.share}<span>${esc(tx('share'))}</span></button>
-        ${!isMinor() ? `<button class="cr-act" data-cr="submit" data-w="${v.place.world}" data-p="${esc(v.place.id)}">${I.camera}<span>${esc(tx('shoot'))}</span></button>` : ''}
+        ${!isMinor() ? `<button class="cr-act" data-cr="shoot" data-w="${v.place.world}" data-p="${esc(v.place.id)}">${I.camera}<span>${esc(tx('shoot'))}</span></button>` : ''}
         ${my ? `<button class="cr-act on" data-cr="vstats" data-id="${esc(v.id)}">${I.chart}<span>${esc(tx('stats'))}</span></button>` : ''}
       </div>
       <div class="cr-info">
@@ -829,24 +940,35 @@ function play(stage, v) {
   if (!stage.querySelector('.cr-sample')) stage.insertAdjacentHTML('beforeend', `<span class="cr-sample cr-solid">${esc(tx('example_play'))}</span>`);
   playTimer = setInterval(() => { p = (p + 0.6) % 100; if (barEl) barEl.style.transform = `scaleX(${p / 100})`; }, 60);
 }
-async function statsSheet(id) {
-  const [s, v] = await Promise.all([api().getVideoStats(id), api().listMyVideos().then((a) => a.find((x) => x.id === id))]);
-  await place(v.place);
+// ───────── экран 8 «Статистика ролика» (02 §9 п. 6): график просмотров, путь зрителя, покупки, расчёт строкой ─────────
+const nb = (t) => String(t).replace(/(\d) (\d)/g, '$1 $2');   // число не рвётся на строки: «412 300»
+async function vstatsHTML(a) {
+  const [s, v] = await Promise.all([api().getVideoStats(a.id), api().listMyVideos().then((x) => x.find((y) => y.id === a.id))]);
+  await placesOf(v.places.map((x) => ({ place: x })));
+  const st = vst(s.status), mOK = moneyOK(), l = link(P.ref_code, v.place.world, v.place.id, v.id);
   const days = s.views_by_day.map((o) => ({ date: o.date, views: o.views }));
   const ymax = niceMax(Math.max(1, ...days.map((o) => o.views)));
   const read = days.map((o) => `<b>${esc(dfmt(o.date))}</b>: ${esc(tx('views_n', { n: num(o.views) }))}`);
-  const l = link(P.ref_code, v.place.world, v.place.id, v.id);
-  const h = `<div class="cr-sh"><h2>${esc(tx('vstat_h'))}</h2><p class="sub">${esc(PLAT[v.platform])}, ${esc(pName(v.place))}, ${esc(tx('s_since', { d: dfmt(v.submitted_at) }))}</p>
-    <div class="cr-sbig"><span>${esc(tx('earn_video'))}</span><b>${money(s.earned.share_cents + s.earned.rpm_cents)}</b></div>${med()}
-    <div class="cr-ledger"><div><b>${esc(tx('s_share'))}<small>${esc(plural(s.pays, 'd_share'))}, ${esc(tx('ru_hold_v'))}</small></b><span class="v">${money(s.earned.share_cents)}</span></div>
-      <div><b>${esc(tx('s_rpm'))}<small>${esc(tx('views_n', { n: num(s.views) }))}${s.earned.rpm_cents ? '' : ', ' + esc(tx('s_rpm_low'))}</small></b><span class="v">${money(s.earned.rpm_cents)}</span></div></div>
-    ${days.length ? `<h3 class="cr-h">${esc(tx('vstat_by_day'))}</h3><div class="cr-box" data-days="${esc(JSON.stringify(read))}">${dayBars(days, ['views'], ymax, tx('vstat_by_day'), (t) => (t >= 1000 ? Math.round(t / 1000) + (lang() === 'en' ? 'k' : ' тыс') : String(t)))}<p class="cr-read">${esc(tx('vstat_tap'))}</p></div>` : ''}
-    <h3 class="cr-h">${esc(tx('funnel'))}</h3>
-    <div class="cr-fun">${[[tx('f_views'), num(s.views), ''], [tx('f_clicks'), num(s.clicks), tx('f_of', { p: pct(s.clicks, s.views) })], [tx('f_trials'), num(s.trials), tx('f_of', { p: pct(s.trials, s.clicks) })], [tx('f_pays'), num(s.pays), tx('f_of', { p: pct(s.pays, s.trials) })]].map(([a, b, c], i) => `<div><span class="cr-k">${i + 1}</span><span class="t">${esc(a)}${c ? `<small>${esc(c)}</small>` : ''}</span><b>${b}</b></div>`).join('')}</div>
-    ${field(tx('vstat_link'), l, 'https://' + l, tx('vstat_link_note'))}
-    <button class="btn-ghost" data-cr="sheet-close">${esc(tx('close'))}</button></div>`;
-  sheet(h);
-  bindChart($('#sheet-body'));
+  // расчёт оплаты просмотров строкой — числа этого ролика: «48 200 × $0,12 / 1 000 = $5,78»
+  const line = tx('vt_calc', { v: num(s.views), r: money(s.rate_cents), s: money2(s.rpm.calc_cents) });
+  const calc = { ok: [line, tx('vt_calc_note')], min: [line, tx('vt_min', { min: money(R.rpm_min_cents) })], cap: [line, tx('vt_cap', { cap: money(R.rpm_cap_cents) })],
+    wait: [tx('vt_wait', { a: num(s.views), b: num(THRESHOLD) }), ''], gameplay: [tx('vt_gp'), ''], no_rpm: [tx('vt_snap'), ''] }[s.rpm.rule] || [line, ''];
+  const per = s.views ? (s.clicks / s.views * 1000).toFixed(1).replace('.', lang() === 'en' ? '.' : ',') : '0';
+  const buys = ['year', 'pass', 'month'].filter((k) => s.buys[k]).map((k) => `<div><b>${esc(tx('buy_' + k, { p: money2(s.share_cents_each[k]) }))}<small>${esc(plural(s.buys[k], k === 'month' ? 'n_pays' : 'n_buys'))}</small></b><span class="v">${money2(s.buys[k] * s.share_cents_each[k])}</span></div>`).join('');
+  const fun = [[tx('f_views'), num(s.views), ''], [tx('f_clicks'), num(s.clicks), tx('f_of', { p: pct(s.clicks, s.views) })], [tx('f_trials'), num(s.trials), tx('f_of', { p: pct(s.trials, s.clicks) })], [tx('f_pays'), num(s.pays), tx('f_of', { p: pct(s.pays, s.trials) })]];
+  return `<div class="cr-vhead" data-st="${esc(st)}"><img src="${esc(pImg(v.place))}" alt=""><span class="m"><b>${esc(L(v.title) || pName(v.place))}</b><small>${esc(PLAT[v.platform])}, ${esc(pName(v.place))}${v.places.length > 1 ? ` +${v.places.length - 1}` : ''}, ${esc(tx('s_since', { d: dfmt(v.submitted_at) }))}</small>${stTag(v.status, v)}</span></div>
+    ${st === 'frozen' ? `<div class="cr-note no">${I.clock}<span>${esc(tx('vt_frozen'))}</span></div>` : ''}
+    ${mOK ? `<div class="cr-sbig"><span>${esc(tx('vt_total'))}</span><b>${money2(s.earned.share_cents + s.earned.rpm_cents)}</b></div>${med()}
+    <div class="cr-ledger"><div><b>${esc(tx('s_share'))}<small>${esc(plural(s.pays, 'd_share'))}, ${esc(tx('ru_hold_v'))}</small></b><span class="v">${money2(s.earned.share_cents)}</span></div>
+      <div><b>${esc(tx('s_rpm'))}<small>${esc(tx('views_n', { n: num(s.views) }))}</small></b><span class="v">${money2(s.earned.rpm_cents)}</span></div></div>
+    <h2 class="cr-h">${esc(tx('vt_calc_h'))}</h2><div class="cr-calc"><b>${esc(nb(calc[0]))}</b>${calc[1] ? `<small>${esc(calc[1])}</small>` : ''}</div>` : ''}
+    ${days.length ? `<h2 class="cr-h">${esc(tx('vstat_by_day'))}</h2><div class="cr-box" data-days="${esc(JSON.stringify(read))}">${dayBars(days, ['views'], ymax, tx('vstat_by_day'), (t) => (t >= 1000 ? Math.round(t / 1000) + (lang() === 'en' ? 'k' : ' тыс') : String(t)), 56)}<p class="cr-read">${esc(tx('vstat_tap'))}</p></div>` : ''}
+    <h2 class="cr-h">${esc(tx('funnel'))}</h2>
+    <div class="cr-fun">${fun.map(([x, y, z], i) => `<div><span class="cr-k">${i + 1}</span><span class="t">${esc(x)}${z ? `<small>${esc(z)}</small>` : ''}</span><b>${y}</b></div>`).join('')}</div>
+    ${s.views ? `<p class="cr-p">${esc(tx('vt_per', { n: per }))}</p>` : ''}
+    ${s.views >= THRESHOLD && s.clicks / s.views * 1000 < 1 ? `<div class="cr-note">${I.info}<span>${esc(tx('vt_low'))}</span></div>` : ''}
+    ${mOK ? `<h2 class="cr-h">${esc(tx('vt_buys_h'))}</h2>${buys ? `<div class="cr-ledger">${buys}</div>` : `<p class="cr-p">${esc(tx('vt_buys_none'))}</p>`}` : ''}
+    ${field(tx('vstat_link'), l, 'https://' + l, tx('vstat_link_note'))}`;
 }
 
 // ───────── «Моя ссылка и код» ─────────
@@ -956,35 +1078,178 @@ function addSheet() {
     ${g === 'gta6' ? it('locked', 'egg', tx('ty_found'), tx('ty_found_d6'), 'data-v="soon_found"', true) : it('pform', 'egg', tx('ty_found'), tx('ty_found_d5'), 'data-v="found"')}
     ${it('report', 'alert', tx('ty_report'), tx('ty_report_d'))}</div></div>`);
 }
+// ───────── экран 6 «Подача ролика» (02 §7.3, решение №17): form, places (упоминания с таймкодами), gameplay_on, submitting, duplicate, sent ─────────
+const AT_RE = /^\d{1,2}:[0-5]\d$/;
+const platOf = (u) => {
+  const x = String(u || '').toLowerCase();
+  if (!/(tiktok\.com|youtube\.com|youtu\.be|instagram\.com|snapchat\.com)\//.test(x)) return null;
+  return /tiktok/.test(x) ? 'tiktok' : /shorts\//.test(x) ? 'shorts' : /youtu/.test(x) ? 'youtube' : /instagram/.test(x) ? 'reels' : 'snapchat';
+};
+// формат по ссылке: «YouTube Shorts: $0,05 за 1 000 просмотров»; страна без выплат — только площадка
+function fmtLine(url) {
+  const k = platOf(url); if (!k) return '';
+  if (noPay()) return tx('sv_fmt_np', { p: PLAT[k] });
+  return k === 'snapchat' ? tx('sv_fmt_snap') : tx('sv_fmt', { p: PLAT[k], r: money(R.rpm[k] ?? R.rpm.tiktok) });
+}
 async function submitSheet(pref) {
-  if (pref) form.place = pref;
-  if (!form.place) { const lg = await api().getLeague().catch(() => null); const w = lg?.tasks.find((x) => x.place)?.place; if (w) form.place = w; }
+  if (pref) { form.place = pref; if (form.mode === 'mention' && !(form.places || []).some((x) => x.id === pref.id)) (form.places = form.places || []).push({ ...pref, at: '' }); }
+  if (!form.place && !(form.places || []).length) { const lg = await api().getLeague().catch(() => null); const w = lg?.tasks.find((x) => x.place)?.place; if (w) form.place = w; }
   if (!hasAccess()) { ctx.closeSheet(); push('authors', {}); return; }   // без приглашения роликов не подают
   if (isGuest() || !isPartner()) { loginSheet(() => submitSheet()); return; }
-  if (form.place) await place(form.place);
-  const p = form.place;
-  sheet(`<div class="cr-sh"><h2>${esc(tx('sv_h'))}</h2>
-    <label class="cr-in"><span>${esc(tx('sv_url'))}</span><input id="cr-url" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(tx('sv_url_ph'))}" value="${esc(form.url || '')}"></label>
-    <div class="cr-field"><span>${esc(tx('sv_place'))}</span><b>${p ? `${esc(pName(p))}, ${esc(pCity(p))}` : '—'}</b><button class="cr-mini" data-cr="pick" data-next="submit">${esc(p ? tx('sv_change') : tx('sv_pick'))}</button></div>
-    ${field(tx('sv_code'), P.ref_code)}
-    <div class="cr-note">${I.info}<span>${esc(tx('sv_note'))}</span></div>
-    <p class="cr-err" id="cr-err" hidden></p>
-    <button class="btn-primary" data-cr="sv-send">${I.send}${esc(tx('sv_send'))}</button></div>`);
+  form.mode = form.mode || 'about'; form.places = form.places || []; form.busy = false; form.dup = null;
+  await placesOf([form.place, ...form.places].filter(Boolean).map((x) => ({ place: x })));
+  // номер ролика выдан заранее (02 §7.2): код SB-… для описания виден до подачи
+  if (!form.v) { const r = await api().reserveVideo({ world: form.place?.world, place_id: form.place?.id }).catch(() => null); if (r) form.v = r.v; }
+  svRender();
+}
+function keepSv() {
+  const u = $('#cr-url'); if (u) form.url = u.value.trim();
+  const d = $('#cr-disc'); if (d) form.disc = d.checked;
+  $$('[data-at]').forEach((i) => { const x = form.places[+i.dataset.at]; if (x) x.at = i.value.trim(); });
+}
+function svRender() {
+  const p = form.place, busy = !!form.busy, code = 'SB-' + (form.v || ''), fl = fmtLine(form.url), np = noPay();
+  const what = `<p class="cr-lbl">${esc(tx('sv_what'))}</p><div class="cr-seg" role="radiogroup">${[['about', 'sv_about'], ['mention', 'sv_mention']].map(([k, l]) => `<button role="radio" data-cr="sv-mode" data-v="${k}" aria-selected="${form.mode === k}" aria-checked="${form.mode === k}">${esc(tx(l))}</button>`).join('')}</div>
+    <p class="cr-p">${esc(tx(form.mode === 'about' ? 'sv_about_d' : 'sv_mention_d'))}</p>`;
+  const about = form.mode === 'about' ? `<div class="cr-field"><span>${esc(tx('sv_place'))}</span><b>${p ? `${esc(pName(p))}, ${esc(pCity(p))}` : '—'}</b><button class="cr-mini" data-cr="pick" data-next="submit">${esc(p ? tx('sv_change') : tx('sv_pick'))}</button></div>` : '';
+  const mention = form.mode === 'mention' ? `<div class="cr-mpl">${form.places.map((x, i) => `<div class="cr-mrow"><img src="${esc(pImg(x))}" alt=""><span class="m"><b>${esc(pName(x))}</b><small>${esc(pCity(x))}</small></span>
+      <label class="cr-at"><span class="vh">${esc(tx('sv_at'))}</span><input data-at="${i}" type="text" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="${lang() === 'en' ? 'mm:ss' : 'мм:сс'}" value="${esc(x.at || '')}"></label>
+      <button class="cr-ib" data-cr="sv-del" data-i="${i}" aria-label="${esc(tx('sv_del'))}">${I.close}</button></div>`).join('')}</div>
+    ${form.places.length < 5 ? `<button class="btn-ghost" data-cr="pick" data-next="mention">${I.plus}${esc(tx('sv_add_place'))}</button>` : `<p class="cr-p">${esc(tx('sv_max'))}</p>`}` : '';
+  const gp = `<div class="cr-tog"><span>${esc(tx('sv_gp'))}</span><button class="switch${form.gp ? ' on' : ''}" role="switch" aria-checked="${!!form.gp}" data-cr="sv-gp" aria-label="${esc(tx('sv_gp'))}"><i></i></button></div>
+    ${form.gp ? `<div class="cr-note">${I.info}<span>${esc(tx(np ? 'sv_gp_on_np' : 'sv_gp_on'))}</span></div>` : ''}`;
+  const dup = form.dup ? `<div class="cr-note no">${I.alert}<span><b>${esc(tx('sv_dup_h'))}</b>. ${esc(tx('sv_dup_p', { id: 'SB-' + form.dup }))}</span></div><button class="btn-ghost" data-cr="video" data-id="${esc(form.dup)}">${esc(tx('sv_dup_open'))}</button>` : '';
+  sheet(`<div class="cr-sh" data-st="${busy ? 'submitting' : form.dup ? 'duplicate' : form.gp ? 'gameplay_on' : form.mode === 'mention' ? 'places' : 'form'}"><h2>${esc(tx('sv_h'))}</h2>
+    <label class="cr-in"><span>${esc(tx('sv_url'))}</span><input id="cr-url" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(tx('sv_url_ph'))}" value="${esc(form.url || '')}"${busy ? ' disabled' : ''}></label>
+    <p class="cr-fmt" id="cr-fmt"${fl ? '' : ' hidden'}>${esc(fl)}</p>
+    ${what}${about}${mention}${gp}
+    ${field(tx('sv_vcode'), code, form.v ? code : '', tx('sv_vcode_note'))}
+    <label class="cr-check"><input id="cr-disc" type="checkbox"${form.disc ? ' checked' : ''}${busy ? ' disabled' : ''}><span>${esc(tx('sv_disc'))}</span></label>
+    ${dup}<p class="cr-err" id="cr-err" hidden></p>
+    <button class="btn-primary" data-cr="sv-send"${busy ? ' disabled aria-busy="true"' : ''}>${busy ? `<span class="cr-spin" aria-hidden="true"></span>${esc(tx('sv_sending'))}` : `${I.send}${esc(tx('sv_send'))}`}</button></div>`);
+  $('#cr-url')?.addEventListener('input', (e) => { form.url = e.target.value.trim(); const f = $('#cr-fmt'), t = fmtLine(form.url); if (f) { f.textContent = t; f.hidden = !t; } });
 }
 async function svSend() {
-  form.url = $('#cr-url')?.value.trim();
-  const err = $('#cr-err');
+  keepSv();
+  const mention = form.mode === 'mention';
+  if (!platOf(form.url)) { err(tx('sv_bad_url')); return; }
+  if (mention ? !form.places.length : !form.place) { err(tx('sv_no_place')); return; }
+  if (mention && form.places.some((x) => !AT_RE.test(x.at || ''))) { err(tx('sv_bad_at')); return; }
+  if (!form.disc) { err(tx('sv_disc_need')); return; }
+  const places = mention ? form.places.map((x) => ({ world: x.world, id: x.id, role: 'mention', at: x.at })) : [{ world: form.place.world, id: form.place.id, role: 'about' }];
+  form.busy = true; form.dup = null; svRender();
   try {
-    const r = await api().submitVideo({ url: form.url, world: form.place?.world, place_id: form.place?.id });
-    const p = form.place, l = link(P.ref_code, p.world, p.id, r.link_v);
+    const r = await api().submitVideo({ url: form.url, places, has_gameplay: !!form.gp, disclosure: true, v: form.v });
+    const p = places[0], l = link(P.ref_code, p.world, p.id, r.link_v), np = noPay();
     form = {};
-    sheet(`<div class="cr-sh"><h2>${esc(tx('sv_ok'))}</h2><p class="sub">${esc(pName(p))}, ${esc(pCity(p))}</p>${steps(0, r.verify_code)}
+    sheet(`<div class="cr-sh" data-st="sent"><h2>${esc(tx('sv_ok'))}</h2><p class="sub">${esc(pName(p))}, ${esc(pCity(p))}${places.length > 1 ? ` +${places.length - 1}` : ''}</p>${steps(0, r.verify_code)}
       ${field(tx('sv_ok_code'), r.verify_code, r.verify_code)}${field(tx('sv_ok_link'), l, 'https://' + l, tx('sv_ok_link_note'))}
+      ${r.account_verified ? '' : `<div class="cr-note">${I.shield}<span>${esc(tx(np ? 'sv_unv_np' : 'sv_unv'))}</span></div>`}
       <button class="btn-primary" data-cr="open:myvideos">${esc(tx('my_videos'))}</button></div>`);
     renderHub(); if (stack.length) rerender();
   } catch (e) {
-    if (err) { err.hidden = false; err.textContent = tx(e.code === 'no_place' ? 'sv_no_place' : e.code === 'bad_url' ? 'sv_bad_url' : 'err'); }
+    form.busy = false;
+    if (e.code === 'duplicate') { form.dup = e.video_id; svRender(); return; }
+    svRender();
+    err(tx({ no_place: 'sv_no_place', bad_url: 'sv_bad_url', bad_at: 'sv_bad_at', too_many: 'sv_max', need_disclosure: 'sv_disc_need' }[e.code] || 'err'));
   }
+}
+
+// ───────── экран 5 «Снять про это» (02 §7.2): ссылка с номером ролика, картинка 1080×1920 для конца ролика, три подсказки ─────────
+// Картинка — только наша пара «игра | жизнь» (s/og, как превью ссылок) или фото места из жизни; кадр игры крупно не ставим:
+// у места без фото из жизни картинки нет (no_pair). Сохранение на iPhone — Web Share с одним файлом, иначе картинка для долгого нажатия.
+const ROOTP = /\/(beta|design)\//.test(location.pathname) ? '../' : '';   // s/og лежит в корне сайта, /beta/ и /design/ ходят на уровень выше
+let ogP = null;
+const ogMap = () => (ogP ||= fetch(ROOTP + 's/og/p.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
+const loadImg = (src) => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
+const CARD = { bg: '#1c1b20', text: '#ffffff', muted: '#b9b4c2', acc: { gta6: '#ff8aa0', gta5: '#f4ad3d' } };   // картинка всегда тёмная, акцент — скин игры
+let shoot = null;   // { ref, v, kind:'pair'|'photo'|null, src, credit, view:'ready'|'no_pair'|'copied'|'downloaded', copied, saved, file, url }
+async function cardSource(ref) {
+  const p = await place(ref);
+  if (!p?.pr) return { kind: null };
+  if (p.pg) { const j = await ogMap(), h = j[`${ref.world}/${ref.id}`]; if (h) return { kind: 'pair', src: `${ROOTP}s/og/${ref.world}/${ref.id}.${h}.jpg` }; }
+  return { kind: 'photo', src: imgUrl(p.pr.file), credit: p.pr.credit || '' };
+}
+function wrapText(g, text, max, lines = 2) {
+  const words = String(text).split(' '), out = [];
+  let cur = '';
+  for (const w of words) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width <= max || !cur) cur = t; else { out.push(cur); cur = w; } }
+  if (cur) out.push(cur);
+  if (out.length > lines) { out.length = lines; let t = out[lines - 1]; while (t && g.measureText(t + '…').width > max) t = t.slice(0, -1); out[lines - 1] = t.trim() + '…'; }
+  return out;
+}
+async function drawCard(ref, v, k) {
+  const W = 1080, H = 1920, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d'), F = '"Onest", system-ui, sans-serif', font = (w, px) => `${w} ${px}px ${F}`, X = 84, MAX = W - 2 * X;
+  try { await Promise.all(['700 78px', '600 46px', '500 40px'].map((f) => document.fonts.load(`${f} "Onest"`))); } catch { }
+  const [img, icon] = await Promise.all([loadImg(k.src), loadImg('icons/icon-192.png').catch(() => null)]);
+  g.fillStyle = CARD.bg; g.fillRect(0, 0, W, H);
+  if (icon) g.drawImage(icon, X, 112, 80, 80);
+  g.fillStyle = CARD.text; g.font = font(600, 46); g.textBaseline = 'alphabetic'; g.fillText(APP.shortName, X + (icon ? 104 : 0), 168);
+  g.font = font(700, 78); let y = 330;
+  for (const t of wrapText(g, pName(ref), MAX)) { g.fillText(t, X, y); y += 88; }
+  g.fillStyle = CARD.muted; g.font = font(500, 40); g.fillText(pCity(ref), X, y - 20);
+  let y0 = Math.max(560, y + 40), yT;
+  if (k.kind === 'pair') { g.drawImage(img, 0, y0, W, Math.round(W * img.height / img.width)); yT = y0 + Math.round(W * img.height / img.width) + 110; }
+  else {
+    // CC BY-SA и непонятные лицензии — фото целиком, без обрезки (как tools/og_render.py licence()); CC0, PD, CC BY — по ширине
+    const h = 700, whole = !/CC0|PUBLIC DOMAIN|CC BY (?!-?SA)/i.test(k.credit) || /BY-SA|GFDL/i.test(k.credit);
+    if (whole) { const s = Math.min(W / img.width, h / img.height), dw = img.width * s, dh = img.height * s; g.drawImage(img, (W - dw) / 2, y0 + (h - dh) / 2, dw, dh); }
+    else { const s = Math.max(W / img.width, h / img.height), sw = W / s, sh = h / s; g.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, 0, y0, W, h); }
+    g.fillStyle = CARD.muted; g.font = font(500, 26); g.fillText(wrapText(g, tx('card_photo', { c: k.credit }), MAX, 1)[0], X, y0 + h + 44);
+    yT = y0 + h + 140;
+  }
+  g.fillStyle = CARD.muted; g.font = font(500, 40); g.fillText(tx('card_cmp'), X, yT);
+  const l = link(P.ref_code);
+  let px = 70; g.font = font(700, px); while (g.measureText(l).width > MAX && px > 40) { px -= 2; g.font = font(700, px); }
+  g.fillStyle = CARD.acc[ref.world] || CARD.acc.gta6; g.fillText(l, X, yT + 96);
+  g.fillStyle = CARD.text; g.font = font(600, 44); g.fillText(`@${P.nick}, ${tx('card_code', { c: P.ref_code })}`, X, yT + 170);
+  const blob = await new Promise((ok) => cv.toBlob(ok, 'image/jpeg', 0.92));
+  const name = `secretbase-${P.ref_code}-${slugOf(ref.id, ref.world)}.jpg`;
+  return { blob, url: URL.createObjectURL(blob), file: new File([blob], name, { type: 'image/jpeg' }) };
+}
+async function shootSheet(world, id) {
+  await load();
+  if (!hasAccess()) { ctx.closeSheet(); push('authors', {}); return; }
+  if (isGuest() || !isPartner()) { loginSheet(() => shootSheet(world, id)); return; }
+  const ref = { world, id }; await place(ref);
+  const [r, k] = await Promise.all([api().reserveVideo({ world, place_id: id }), cardSource(ref)]);
+  if (shoot?.url) URL.revokeObjectURL(shoot.url);
+  shoot = { ref, v: r.v, ...k, view: k.kind ? 'ready' : 'no_pair', copied: false, saved: false, file: null, url: '' };
+  shootRender();
+  if (!k.kind) return;
+  const mine = shoot;
+  drawCard(ref, r.v, k).then((c) => {
+    if (shoot !== mine) { URL.revokeObjectURL(c.url); return; }
+    Object.assign(shoot, c);
+    const im = $('#cr-shot-pv'); if (im) { im.src = c.url; im.closest('.cr-shot')?.classList.remove('wait'); im.closest('.cr-shot')?.querySelector('.wt')?.remove(); }
+    const b = $('[data-cr="sh-save"]'); if (b) b.disabled = false;
+  }).catch(() => { });
+}
+function shootRender() {
+  const s = shoot, ref = s.ref, l = link(P.ref_code, ref.world, ref.id, s.v), np = noPay();
+  const card = s.kind ? `<div class="cr-shot${s.url ? '' : ' wait'}"><img id="cr-shot-pv" alt="" width="108" height="192"${s.url ? ` src="${s.url}"` : ''}><span class="m"><b>${esc(tx('sh_card'))}</b><small>${esc(tx(s.kind === 'pair' ? 'sh_card_pair' : 'sh_card_photo'))}</small>${s.url ? '' : `<small class="wt">${esc(tx('sh_making'))}</small>`}</span></div>`
+    : `<div class="cr-note">${I.info}<span><b>${esc(tx('sh_nopair_h'))}</b>. ${esc(tx('sh_nopair_p'))}</span></div>`;
+  const done = (s.saved ? `<div class="cr-note ok">${I.check}<span><b>${esc(tx('sh_saved'))}</b>. ${esc(tx('sh_saved_p'))}</span></div>` : '')
+    + (s.copied ? `<div class="cr-note ok">${I.check}<span><b>${esc(tx('sh_copied'))}</b>. ${esc(tx('sh_copied_p'))}</span></div>` : '');
+  const tips = [tx('sh_t1'), tx('sh_t2'), tx(np ? 'sh_t3_np' : 'sh_t3')];
+  sheet(`<div class="cr-sh" data-st="${esc(s.view)}"><h2>${esc(tx('sh_h'))}</h2><p class="sub">${esc(pName(ref))}, ${esc(pCity(ref))}</p>
+    ${field(tx('sh_link'), l, '', tx('sh_link_note', { v: s.v }))}
+    ${card}
+    <div class="cr-steps cr-tips">${tips.map((t, i) => `<div>${[I.pin, I.voice, I.camera][i]}<span>${esc(t)}</span></div>`).join('')}</div>
+    ${done}
+    ${s.kind ? `<button class="btn-primary" data-cr="sh-save"${s.url ? '' : ' disabled'}>${I.share}${esc(tx('sh_save'))}</button>` : ''}
+    <button class="${s.kind ? 'btn-ghost' : 'btn-primary'}" data-cr="sh-copy">${s.copied ? I.check : I.copy}${esc(tx(s.copied ? 'copied' : 'sh_copy'))}</button>
+    <button class="btn-ghost" data-cr="sh-submit">${I.video}${esc(tx('sh_submit'))}</button></div>`);
+}
+// сохранить картинку: Web Share только с файлом — без ссылки и текста (check_code.py правило 2), иначе — картинка на весь экран для долгого нажатия
+async function saveCard() {
+  const s = shoot; if (!s?.file) return;
+  if (navigator.canShare?.({ files: [s.file] })) {
+    try { await navigator.share({ files: [s.file] }); s.saved = true; s.view = 'downloaded'; shootRender(); return; } catch (e) { if (e?.name === 'AbortError') return; }
+  }
+  sheet(`<div class="cr-sh" data-st="hold"><h2>${esc(tx('sh_hold_h'))}</h2><p class="sub">${esc(tx('sh_hold_p'))}</p>
+    <img class="cr-shot-big" src="${s.url}" alt="${esc(tx('sh_card'))}" width="1080" height="1920"><button class="btn-primary" data-cr="sh-held">${esc(tx('done'))}</button></div>`);
 }
 async function pickSheet(next) {
   const g = form.place?.world || ctx?.game?.() || 'gta6';
@@ -1253,10 +1518,11 @@ const SCREENS = {
   partner: { html: async (a) => partnerHTML(a) },
   verify: { html: verifyHTML, bind: bindVerify },
   done: { html: doneHTML },
+  vstats: { html: async (a) => `${head(tx('vstat_h'))}${body(await vstatsHTML(a))}`, bind: (s) => bindChart(s) },
   admin: { html: adminHTML },
 };
 function feedMine(id) {
-  api().listMyVideos().then((a) => { const acc = a.filter((v) => v.status === 'accruing'); const i = Math.max(0, acc.findIndex((v) => v.id === id)); ctx.closeSheet(); push('feed', { source: 'mine', start: i }); });
+  api().listMyVideos().then((a) => { const acc = a.filter((v) => v.status === 'accruing' || v.status === 'closed'); const i = Math.max(0, acc.findIndex((v) => v.id === id)); ctx.closeSheet(); push('feed', { source: 'mine', start: i }); });
 }
 
 // ───────── события ─────────
@@ -1287,7 +1553,7 @@ async function onClick(e) {
       try { await navigator.clipboard.writeText(u); ctx.toast(tx('copied')); } catch { } break;
     }
     case 'vplace': close(); ctx.openOnMap(placeKey({ kind: 'place', game: el.dataset.w, id: el.dataset.p })); break;
-    case 'vstats': statsSheet(el.dataset.id); break;
+    case 'vstats': ctx.closeSheet(); push('vstats', { id: el.dataset.id }); break;
     case 'video': videoSheet(el.dataset.id); break;
     case 'copy': try { await navigator.clipboard.writeText(v); ctx.toast(tx('copied')); } catch { ctx.toast(v); } break;
     case 'share-link': { const u = 'https://' + link(P.ref_code); try { if (navigator.share) await navigator.share({ url: u, title: APP.shortName }); else { await navigator.clipboard.writeText(u); ctx.toast(tx('copied')); } } catch { } break; }
@@ -1295,8 +1561,32 @@ async function onClick(e) {
     case 'add': await load(); addSheet(); break;
     case 'submit': await load(); submitSheet(el.dataset.p ? { world: el.dataset.w, id: el.dataset.p } : null); break;
     case 'sv-send': svSend(); break;
-    case 'pick': form.url = $('#cr-url')?.value.trim() ?? form.url; keepPlaceFields(); form.note = $('#cr-note')?.value.trim() ?? form.note; pickSheet(el.dataset.next); break;
-    case 'picked': form.place = { world: el.dataset.w, id: el.dataset.p }; await place(form.place); ({ submit: () => submitSheet(), pform: () => placeForm(), report: reportSheet })[el.dataset.next]?.(); break;
+    case 'pick': keepSv(); keepPlaceFields(); form.note = $('#cr-note')?.value.trim() ?? form.note; pickSheet(el.dataset.next); break;
+    case 'picked': {
+      const ref = { world: el.dataset.w, id: el.dataset.p }; await place(ref);
+      if (el.dataset.next === 'mention') { form.places = form.places || []; if (!form.places.some((x) => x.id === ref.id) && form.places.length < 5) form.places.push({ ...ref, at: '' }); submitSheet(); break; }
+      form.place = ref; ({ submit: () => submitSheet(), pform: () => placeForm(), report: reportSheet })[el.dataset.next]?.(); break;
+    }
+    // подача ролика: «Про место» / «Упоминание», кадры из игры, убрать место
+    case 'sv-mode': {
+      keepSv(); form.mode = v; form.dup = null;
+      if (v === 'mention' && !form.places?.length && form.place) form.places = [{ ...form.place, at: '' }];
+      if (v === 'about' && !form.place && form.places?.length) form.place = { world: form.places[0].world, id: form.places[0].id };
+      svRender(); break;
+    }
+    case 'sv-gp': keepSv(); form.gp = !form.gp; svRender(); break;
+    case 'sv-del': keepSv(); form.places.splice(+el.dataset.i, 1); svRender(); break;
+    // «Снять про это»
+    case 'shoot': shootSheet(el.dataset.w, el.dataset.p); break;
+    case 'sh-save': saveCard(); break;
+    case 'sh-held': if (shoot) { shoot.saved = true; shoot.view = 'downloaded'; shootRender(); } break;
+    case 'sh-copy': {
+      if (!shoot) break;
+      const u = 'https://' + link(P.ref_code, shoot.ref.world, shoot.ref.id, shoot.v);
+      try { await navigator.clipboard.writeText(u); shoot.copied = true; shoot.view = 'copied'; shootRender(); ctx.haptic?.(); } catch { ctx.toast(u); }
+      break;
+    }
+    case 'sh-submit': if (shoot) { form = { place: shoot.ref, v: shoot.v, mode: 'about' }; submitSheet(); } break;
     case 'pform': form = { place: form.place }; placeForm(v); break;
     case 'pf-set': keepPlaceFields(); form[el.dataset.k] = v; placeForm(); break;
     case 'pf-send': pfSend('place'); break;
@@ -1392,7 +1682,7 @@ async function onClick(e) {
     }
     case 'vf-other': { const top = stack[stack.length - 1]; top.args = { ...top.args, pick: true, id: null }; vfForm = { platform: 'tiktok', url: '' }; await rerender(); break; }
     case 'vf-next': push('done', {}, true); break;
-    case 'dn-shoot': openPlaceVideos(el.dataset.w, el.dataset.p); break;   // заглушка: экран «Снять про это» делает следующая часть
+    case 'dn-shoot': shootSheet(el.dataset.w, el.dataset.p); break;
     // «Для админов»
     case 'ad-in': {
       try { await api().adminSignIn($('#cr-adm').value); await rerender(); renderHub(); } catch (x) { err(tx(x.code === 'no_crypto' ? 'ad_nocrypto' : 'ad_bad')); }
@@ -1418,7 +1708,9 @@ export function init(c) {
 }
 /** Лента «Ролики об этом месте» — вызывает карточка места (сессия карты): window.SB.openPlaceVideos('gta6', 'gta6-…') */
 export async function openPlaceVideos(world, placeId) { await load(); ctx?.closeSheet?.(); return push('feed', { source: 'place', world, id: placeId }); }
-/** Любой экран креатора: league | earn | myvideos | mylink | review | rules */
+/** «Снять про это» — вызывает карточка места (сессия карты): window.SB.shootPlace('gta6', 'gta6-stiltsville'). Не партнёр — вход и «Стать партнёром» */
+export async function shootPlace(world, placeId) { await load(); return shootSheet(world, placeId); }
+/** Любой экран креатора: league | earn | myvideos | mylink | review | rules | vstats ({ id }) */
 export async function openCreator(id = 'league', args = {}) { await load(); return push(id, args); }
 /** «Стать партнёром» снаружи (пейвол nopay): вход почтой и 18+; уже партнёр — Лига */
 export async function becomePartner() { await load(); if (isPartner()) return push('league', {}); loginSheet(); }

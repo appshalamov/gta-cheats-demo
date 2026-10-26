@@ -4,7 +4,7 @@
 1. Положение шторки (#sheet) меняет только js/app.js (openSheet / setSnap / restSheet / closeSheet).
    15.10.2026 ползунок в map.js писал sheet.style.transform = '' — у шторки с тремя положениями это скачок
    на весь экран (Игорь: «веду вправо-влево — карточка открывается во весь экран»).
-2. «Поделиться» — только ссылка: navigator.share без files. 15.10.2026 приложение прикладывало картинку к ссылке —
+2. «Поделиться» — только ссылка: navigator.share без files (исключение — saveCard() «Скачать картинку»: только файл). 15.10.2026 приложение прикладывало картинку к ссылке —
    Telegram отправил фото без ссылки (Игорь: «должна отправляться ссылка с предпросмотром»). Превью ссылки — og:image
    страницы s/<игра>/<id>.html (tools/build_share.py).
 3. У страниц «поделиться» превью og:image — своя картинка «игра | жизнь» из s/og (иначе в мессенджере просто кадр).
@@ -24,12 +24,20 @@ for f in sorted((ROOT / "js").glob("*.js")):
         if re.search(r"getElementById\(['\"]sheet['\"]\)|querySelector\(['\"]#sheet['\"]\)", line) and "transform" in line:
             bad.append(f"{f.name}:{n}: {line.strip()[:100]}")
 share_bad = []
+# Исключение (26.10.2026, 08 ТЗ задача 4): «Скачать картинку» в «Снять про это» сохраняет картинку 1080×1920 на iPhone через
+# Web Share — ТОЛЬКО файл, без ссылки и текста, и только в saveCard() в js/league.js. Ссылку с файлом по-прежнему нельзя.
+_lg_src = (ROOT / "js" / "league.js").read_text("utf-8") if (ROOT / "js" / "league.js").exists() else ""
+_save = re.search(r"^async function saveCard\(\) \{.*?^\}", _lg_src, re.S | re.M)
 for f in sorted((ROOT / "js").glob("*.js")):
     if f.name.startswith("._"):
         continue
     for n, line in enumerate(f.read_text("utf-8").splitlines(), 1):
         if "navigator.share" in line and re.search(r"\bfiles\s*:", line):
-            share_bad.append(f"{f.name}:{n}: {line.strip()[:100]}")
+            only_file = f.name == "league.js" and _save and line in _save.group(0) and not re.search(r"\b(url|text|title)\s*:", line)
+            if not only_file:
+                share_bad.append(f"{f.name}:{n}: {line.strip()[:100]}")
+if _save and re.search(r"\b(url|text|title)\s*:", _save.group(0)):
+    share_bad.append("league.js saveCard(): к картинке приложены ссылка или текст — сохраняем только файл")
 # 4. У каждой кнопки «Поделиться» есть ключ места — иначе уходит ссылка на само приложение (15.10.2026: точки gtadb
 #    на пирсе Санта-Моники делились без ссылки на место). Вызовы actions(...) в разметке — с ключом `<вид>:${game}:…`.
 for f in sorted((ROOT / "js").glob("*.js")):
