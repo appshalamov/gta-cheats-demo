@@ -6,7 +6,7 @@ import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO } fr
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
 import { I, platformIcon, comboHTML, btn } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
-import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, searchPlaces, titleOf, realOf, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
+import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
 // ───────── хранилище ─────────
 const KEY = 'cheats.v1';
@@ -335,10 +335,10 @@ function placeCard(o, opt = {}) {
     <span class="pc-grad"></span>
     <span class="pc-tags">${o.kind === 'egg' ? `<i class="tag-egg">${t('map_egg')}</i>` : `<i class="conf conf-${o.cf}">${t('conf_' + o.cf)}</i>`}${opt.game ? `<i class="tag-game">${GAMES.find((g) => g.id === o.game)?.title || ''}</i>` : ''}</span>
     <button class="pc-fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="${esc(t('save'))}">${fav ? I.heartFill : I.heart}</button>
-    <span class="pc-txt"><b>${esc(titleOf(o))}</b><small>${o.kind === 'egg' ? esc(realOf(o)) : `${I.pin}${esc(realOf(o))}`}</small></span>
+    <span class="pc-txt"><b>${esc(realName(o))}</b>${o.kind === 'egg' ? (realSub(o) ? `<small>${esc(realSub(o))}</small>` : '') : `<small>${I.pin}${esc(cityOf(o) || realSub(o))}</small>`}</span>
   </div>`;
 }
-// строка места (Поиск, Избранное): фото, название в игре, реальное место, точность — строкой, без рамки-карточки
+// строка места (Поиск, Избранное): фото, настоящее место (решение №15, без игрового названия), адрес, точность — строкой, без рамки-карточки
 function placeRow(o, opt = {}) {
   const key = placeKey(o), fav = store.favPlaces.includes(key), img = thumbOf(o, o.kind === 'egg' ? 'game' : 'real');
   const city = cityOf(o), q = opt.q || '';
@@ -346,7 +346,7 @@ function placeRow(o, opt = {}) {
   const gt = opt.game ? GAMES.find((g) => g.id === o.game)?.title : '';
   return `<div class="prow" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
     <span class="pr-th">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${o.kind === 'egg' ? I.egg : I[catIcon(o.c)]}</span>`}</span>
-    <span class="pr-t"><b>${q ? hl(titleOf(o), q) : esc(titleOf(o))}</b><small>${q ? hl(realOf(o), q) : esc(realOf(o))}</small>
+    <span class="pr-t"><b>${q ? hl(realName(o), q) : esc(realName(o))}</b><small>${q ? hl(realSub(o), q) : esc(realSub(o))}</small>
       <span class="pr-meta"><i class="dot conf-${o.cf}"></i>${gt ? `${esc(gt)}, ` : ''}${meta}</span></span>
     <button class="fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="${esc(t('save'))}">${fav ? I.heartFill : I.heart}</button>
   </div>`;
@@ -1083,7 +1083,7 @@ async function pwThing(pw) {
   const o = await findByKey(k).catch(() => null); if (!o || !pw.classList.contains('open')) return;
   const img = thumbOf(o, 'real');
   const el = pw.querySelector('.pw-thing'); if (!el) return;
-  el.innerHTML = `${img ? `<img src="${esc(img)}" alt="" decoding="async">` : `<span class="pt-ph">${I.pin}</span>`}<span class="pt-t"><b>${esc(realOf(o) || titleOf(o))}</b><small>${t('pw_thing')}</small></span>`;
+  el.innerHTML = `${img ? `<img src="${esc(img)}" alt="" decoding="async">` : `<span class="pt-ph">${I.pin}</span>`}<span class="pt-t"><b>${esc(realName(o))}</b><small>${t('pw_thing')}</small></span>`;
   el.hidden = false;
 }
 let pwSt = 'pro';
