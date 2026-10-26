@@ -191,4 +191,22 @@ _sbm = [f"{f.name}:{n}" for f in sorted((ROOT / "js").glob("*.js")) if not f.nam
 if _sbm:
     print(f"СТОП: ?sbmock читают вне js/api.js (мимо devGate): {_sbm[:5]}")
     sys.exit(1)
+# 12. Строка кода в списках («Коды категории», Поиск, Избранное) показывает ВСЮ комбинацию выбранной платформы без шторки
+#     (26.10.2026, Игорь: «необходимость нажимать прямо на кнопку, чтобы увидеть код… хочу меньше кнопок делать, когда я играю»;
+#     на шаге 2 редизайна строку сделали «иконка + название + эффект»). cardHTML рисует код через rowCode(): PS/Xbox — comboHTML
+#     без обрезки (.slice), ПК — клавиши, телефон — номер. Функциональный тест — cheat_list_combo в «Тестирование 21.10/deep.py».
+def _fn(src, name):
+    m = re.search(r"^function " + name + r"\(.*?^\}", src, re.S | re.M)
+    return m.group(0) if m else ""
+_card, _row = _fn(_app, "cardHTML"), _fn(_app, "rowCode")
+list_bad = []
+if "rowCode(" not in _card: list_bad.append("cardHTML не вызывает rowCode() — в строке списка нет кода")
+if "comboHTML(" not in _row: list_bad.append("rowCode() не рисует комбинацию кнопок (comboHTML) для PS/Xbox")
+if re.search(r"comboHTML\([^)]*\.slice\(", _row): list_bad.append("rowCode() обрезает комбинацию (.slice) — в списке нужна вся")
+if "k.phone" not in _row or "k.pc" not in _row: list_bad.append("rowCode() не показывает номер телефона или код ПК")
+if list_bad:
+    print("СТОП: в списках кодов не видна комбинация без шторки:")
+    for b in list_bad:
+        print("  ✗", b)
+    sys.exit(1)
 print("правила кода: ок")

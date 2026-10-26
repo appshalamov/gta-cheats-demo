@@ -261,14 +261,32 @@ function codeBlock(c, platform, big = false) {
   return none;
 }
 
+// Строка кода в списках («Коды категории», Поиск, Избранное) — как в референсе Cheats Pro и в проде: название, строка номера
+// телефона, ВСЯ комбинация выбранной платформы значками (переносится на 2–3 ряда), сердце. Что делает — только в шторке кода.
+// 26.10.2026, Игорь: «хочу меньше кнопок делать, когда я играю. И лучше показывать им вот эти кнопки» — комбинация видна без
+// открытия шторки. Предохранитель — тест cheat_list_combo в «Тестирование 21.10/deep.py».
+// После пробного (codelock): той же длины подставные кнопки под размытием, настоящего кода в разметке нет (как в шторке).
+const FAKE_KEYS = ['↑', '→', '↓', '←'];
+function rowKeys(str, cls) {
+  return `<span class="${cls}">${[...str].map((ch) => ch === '-' ? '<i class="dash">-</i>' : `<span class="ch">${esc(ch)}</span>`).join('')}</span>`;
+}
+function rowCode(c, p, locked) {
+  const k = c.codes || {};
+  const phone = locked ? (k.phone || '').replace(/\d/g, '0') : k.phone;
+  const pline = (v) => (v ? `<span class="row-ph">${t('phone_code')}: <b>${esc(v)}</b></span>` : '');
+  const combo = (p === 'playstation' || p === 'xbox') && k[p]?.length ? k[p] : null;
+  if (combo) return pline(phone) + comboHTML(locked ? combo.map((_, i) => FAKE_KEYS[i % 4]) : combo, p);
+  if (p === 'pc' && k.pc) return pline(phone) + rowKeys(locked ? k.pc.replace(/[a-z0-9]/gi, 'X') : k.pc, 'row-pc');
+  if (k.phone) return (p !== 'phone' ? `<span class="row-sub">${t('phone_only')}</span>` : '') + `<span class="row-num">${esc(phone)}</span>`;
+  return `<span class="row-none">${I.sparkle}<span>${t('no_code_yet')}</span></span>`;
+}
 function cardHTML(c, opt = {}) {
   const fav = store.favs.includes(c.id);
   const locked = isLocked();
-  // строка кода (решение 8): своя иконка категории, название, эффект одной строкой; без кадров игры
+  const fc = opt.badge && c.status === 'forecast' ? `<em class="card-fc">${t('forecast')}</em>` : '';
   return `<article class="card${locked ? ' is-locked' : ''}" data-action="open" data-id="${c.id}">
-    <span class="card-ic">${cheatIc(c)}</span>
-    <span class="card-m"><span class="card-top"><h3 class="card-title">${opt.q ? hl(L(c.name), opt.q) : esc(L(c.name))}</h3></span><span class="card-desc">${opt.badge && c.status === 'forecast' ? `<em class="card-fc">${t('forecast')}</em> ` : ''}${esc(L(c.desc))}</span></span>
-    ${locked ? `<span class="card-lock" title="${esc(t('locked'))}">${I.lock}</span>` : ''}
+    <span class="card-m"><span class="card-top"><h3 class="card-title">${opt.q ? hl(L(c.name), opt.q) : esc(L(c.name))}</h3>${fc}</span>
+      <span class="card-code"${locked ? ' aria-hidden="true"' : ''}>${rowCode(c, store.platform, locked)}</span>${locked ? `<span class="card-lock">${I.lock}<b>${t('cl_lock')}</b></span>` : ''}</span>
     <button class="fav${fav ? ' on' : ''}" data-action="fav" data-id="${c.id}" aria-label="${esc(t('save'))}">${fav ? I.heartFill : I.heart}</button>
   </article>`;
 }
