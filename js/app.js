@@ -185,6 +185,30 @@ window.__checkDocOverflow = checkDocOverflow;
   [0, 16, 50, 100, 200].forEach((ms) => setTimeout(() => window.scrollTo(0, 0), ms));
 }));
 
+// Клавиатура iPhone (Игорь 28.10.2026: «поле, куда надо ввести текст, — под клавиатурой»). Страницу мы держим на месте
+// (выше: scrollTo(0,0) при фокусе), поэтому iOS не может сама поднять поле — поднимаем сами: высота клавиатуры из
+// visualViewport → переменная --kb; шторка стоит над клавиатурой, экраны креаторов получают отступ снизу, поле — в центр.
+function kbInset() {
+  const vv = window.visualViewport; if (!vv) return;
+  const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+  const open = kb > 80;   // меньше — панель подсказок/полоса, не клавиатура
+  document.documentElement.style.setProperty('--kb', (open ? kb : 0) + 'px');
+  document.body.classList.toggle('kb-open', open);
+  const a = document.activeElement;
+  if (open && a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) setTimeout(() => {   // в центр видимой части — прокруткой своего блока, не страницы
+    const box = a.closest('.sheet-body, .cr-body'); if (!box) return;
+    const r = a.getBoundingClientRect(), vis = window.innerHeight - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--kb')) || 0);
+    if (r.bottom > vis - 16 || r.top < 0) box.scrollTop += r.top - vis / 2 + r.height / 2;
+  }, 420);   // после подъёма шторки (.38 с)
+}
+// body тоже не должен прокручиваться: при фокусе на поле браузер «довозит» его прокруткой body (overflow:hidden это
+// не запрещает), и весь экран уезжает вверх под шторкой. Держим body на месте, как и окно.
+document.body.addEventListener('scroll', () => { if (document.body.scrollTop || document.body.scrollLeft) document.body.scrollTo(0, 0); }, { passive: true });
+window.visualViewport?.addEventListener('resize', kbInset);
+window.visualViewport?.addEventListener('scroll', kbInset);
+addEventListener('focusout', () => setTimeout(kbInset, 250));
+window.__kbInset = kbInset;   // для проверки
+
 // Предохранитель: панель вкладок обязана стоять в пределах экрана (в standalone — полный экран,
 // в браузере — окно). Если вылезла из-за будущей правки CSS — каркас ужимается до окна.
 function guardTabbar() {

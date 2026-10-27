@@ -1056,3 +1056,8 @@ body[data-sheet="half"] .map-fabs, body[data-sheet="full"] .map-fabs { opacity: 
 /* кнопки креаторского раздела под действиями места (только где подключён window.SB) */
 .mp-acts.mp-acts-cr { flex-wrap: wrap; margin-top: -6px; }
 .mp-acts-cr .mp-cta { flex: 1 1 100%; }
+
+/* Клавиатура iPhone: шторка над клавиатурой (--kb ставит app.js из visualViewport), 28.10.2026 */
+.sheet { bottom: var(--kb, 0px); max-height: calc(var(--app-h, 100dvh) - var(--kb, 0px) - var(--safe-t) - 24px); transition-property: transform, bottom; }
+.kb-open .sheet-body { padding-bottom: 16px; }
+.kb-open #sheet-layer.snap .sheet { bottom: var(--kb, 0px); }

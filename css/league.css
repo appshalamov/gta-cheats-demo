@@ -503,3 +503,6 @@
 .cr-lgc { padding: 2px 2px 4px; }
 .cr-lgc .cr-lead { margin-bottom: 4px; }
 .cr-task .cr-bar { margin: 8px 0 0; }
+
+/* Клавиатура iPhone: поля экранов креаторов не прячутся под клавиатуру (28.10.2026) */
+.kb-open .cr-body { padding-bottom: calc(var(--kb, 0px) + 24px); }

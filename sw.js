@@ -1,7 +1,7 @@
 // Офлайн-кэш. Оболочка — из кэша (быстро), данные data/*.json — сначала из сети,
 // чтобы новые коды (например, GTA 6 после релиза) появлялись без обновления приложения.
 // При изменении файлов оболочки поднимите VERSION.
-const VERSION = 'v80';
+const VERSION = 'v81';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/tokens.css', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css', 'css/map-glass.css', 'css/skin.css', 'css/league.css',
   'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/places.js', 'js/skin.js', 'js/league.js', 'js/api.js', 'js/demo-data.js',
