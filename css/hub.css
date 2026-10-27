@@ -78,6 +78,8 @@
 .hero-dots { position: absolute; z-index: 1; right: 20px; bottom: 52px; display: flex; gap: 5px; pointer-events: none; }
 .hero-dots i { width: 6px; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--on-photo) 45%, transparent); transition: width var(--d-base) var(--e-out), background-color var(--d-fast); }
 .hero-dots i.on { width: 18px; background: var(--on-photo); }
+/* подпись кадра игры (веб; в iOS-сборке со своими картинками её нет — OWN_ART) */
+.hero-credit { position: absolute; z-index: 1; right: 20px; bottom: 30px; font-size: 10px; font-weight: 500; line-height: 1; opacity: .62; pointer-events: none; text-shadow: 0 1px 6px rgba(0,0,0,.5); }
 .hub-search { position: relative; z-index: 2; display: flex; align-items: center; gap: 10px; width: calc(100% - 32px); height: 50px; margin: -25px 16px 0; padding: 0 16px; border-radius: 25px;
   font-size: 15px; color: var(--text-glass-2); text-align: left;
   background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);

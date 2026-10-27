@@ -1,7 +1,7 @@
 // Офлайн-кэш. Оболочка — из кэша (быстро), данные data/*.json — сначала из сети,
 // чтобы новые коды (например, GTA 6 после релиза) появлялись без обновления приложения.
 // При изменении файлов оболочки поднимите VERSION.
-const VERSION = 'v78';
+const VERSION = 'v79';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/tokens.css', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css', 'css/map-glass.css', 'css/skin.css', 'css/league.css',
   'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/places.js', 'js/skin.js', 'js/league.js', 'js/api.js', 'js/demo-data.js',
@@ -18,6 +18,7 @@ const SHELL = [
 // смена игры и Главная без сети открываются с фото. Формат — AVIF (его берёт <picture> на iOS и в Chrome);
 // WebP — запас для браузеров без AVIF, кэшируется при обращении. Обложки категорий, карточки игр, предметы сюда не кладём.
 const UI = 'ui-' + VERSION, UI_MAX = 120;
+// В iOS-сборке со своими картинками (config.js OWN_ART) пути здесь — img/ui/<скин>/own/….
 const UI_CRIT = ['img/ui/gta6/gta6-banner-01.avif', 'img/ui/gta6/gta6-load-02.avif', 'img/ui/gta5/gta5-banner-01.avif', 'img/ui/gta5/gta5-load-01.avif'];
 // докачать недостающие; уже лежащие не качаем заново (обновятся в фоне при показе). Сбой сети установку не валит.
 const uiPrecache = () => caches.open(UI).then((c) => Promise.all(UI_CRIT.map((u) => c.match(u).then((hit) => hit || c.add(new Request(u, { cache: 'reload' }))))))

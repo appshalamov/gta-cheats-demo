@@ -2,7 +2,7 @@
 // Архитектура как у Cheats Pro: онбординг (игра → платформа) → пейвол →
 // 4 вкладки (Главная / Поиск / Избранное / Настройки) → шторка чита.
 
-import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO } from './config.js';
+import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN_ART } from './config.js';
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
 import { I, platformIcon, comboHTML, btn } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
@@ -377,6 +377,7 @@ function heroHTML() {
     <div class="worlds" id="hero-worlds">${liveGames().map(worldTab).join('')}</div>
     <div class="hero-city"><h2${(h ? L(h.city) : g.title).length > 8 ? ' class="long"' : ''}>${esc(h ? L(h.city) : g.title)}</h2><p id="hero-meta">${esc(heroMeta())}</p></div>
     ${h && h.banners.length > 1 ? `<div class="hero-dots">${h.banners.map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>` : ''}
+    ${h && !OWN_ART ? `<span class="hero-credit">${esc(t('frame_credit'))}</span>` : ''}
   </div>
   <button class="hub-search" data-action="tab" data-tab="search">${I.search}<span>${esc(t('search_ph'))}</span></button>
   <div class="hub-trial" id="hub-trial"></div>`;
@@ -975,7 +976,7 @@ function openHowto() {
   openSheet(`<h2 class="pick-t">${t('st_howto')}</h2>${g.platforms.map((p) => `<div class="howto"><div class="plat-h">${platformIcon(p)}<span>${L(PLATFORMS[p])}</span></div><p>${esc(howto(p))}</p></div>`).join('')}<p class="d-note">${t('howto_warn')}</p>`, 'sheet-pick');
 }
 function openAbout() {
-  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p><p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp in ${__vp.inner} vh ${__vp.vh} dvh ${__vp.dvh} scr ${__vp.screen} sb ${__vp.safeB}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}${__vp.overflow ? ' OVERFLOW' : ''}` : ''}</div>`, 'sheet-pick');
+  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p>${OWN_ART ? '' : `<p class="about">${esc(t('frames_credit'))}</p>`}<p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp in ${__vp.inner} vh ${__vp.vh} dvh ${__vp.dvh} scr ${__vp.screen} sb ${__vp.safeB}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}${__vp.overflow ? ' OVERFLOW' : ''}` : ''}</div>`, 'sheet-pick');
 }
 
 // ───────── код после пробного (codelock, концепт v11; 31 §4.2) ─────────

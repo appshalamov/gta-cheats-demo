@@ -55,9 +55,13 @@ export const GAMES = [
 // Фото эпохи на Главной (04 дизайн-система/tokens.json → skins.<id>.photos): порядок листания, фокус обрезки 50% 0%.
 // Файлы — img/ui/<скин>/<имя>.avif и .webp. Обложки категорий и карточки игр не используются.
 // load — «вид» во весь экран (860×1864, фокус по центру): пейвол и онбординг «Игра» (бриф §7).
+// В вебе — кадры игр (Rockstar Games, решение Игоря 27.10; источники — 05 картинки/кадры-игр.md), подпись на баннере и в «О приложении».
+// Флаг сборки «свои картинки»: iOS (App Store, правило 5.2.1) — true, берём свои генерации из img/ui/<скин>/own/ с теми же именами.
+export const OWN_ART = false;
+const ui = (sk, n) => `img/ui/${sk}/${OWN_ART ? 'own/' : ''}${n}`;
 export const HERO = {
-  gta6: { city: { ru: 'Майами', en: 'Miami' }, banners: ['img/ui/gta6/gta6-banner-01', 'img/ui/gta6/gta6-banner-02', 'img/ui/gta6/gta6-banner-03'], load: 'img/ui/gta6/gta6-load-02' },
-  gta5: { city: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, banners: ['img/ui/gta5/gta5-banner-01', 'img/ui/gta5/gta5-banner-02', 'img/ui/gta5/gta5-banner-03'], load: 'img/ui/gta5/gta5-load-01' },
+  gta6: { city: { ru: 'Майами', en: 'Miami' }, banners: [ui('gta6', 'gta6-banner-01'), ui('gta6', 'gta6-banner-02'), ui('gta6', 'gta6-banner-03')], load: ui('gta6', 'gta6-load-02') },
+  gta5: { city: { ru: 'Лос-Анджелес', en: 'Los Angeles' }, banners: [ui('gta5', 'gta5-banner-01'), ui('gta5', 'gta5-banner-02'), ui('gta5', 'gta5-banner-03')], load: ui('gta5', 'gta5-load-01') },
 };
 
 // Тарифы — только платные (Ресерч 31 §1, §4.4–4.6; решение Игоря №14; 28 §6.0 «Файл 31 принят»).
