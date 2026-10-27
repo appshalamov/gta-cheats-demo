@@ -190,7 +190,11 @@ window.__checkDocOverflow = checkDocOverflow;
 // visualViewport → переменная --kb; шторка стоит над клавиатурой, экраны креаторов получают отступ снизу, поле — в центр.
 function kbInset() {
   const vv = window.visualViewport; if (!vv) return;
-  const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+  // от высоты НАШЕГО каркаса (body = --app-h), а не innerHeight: в установленном приложении (standalone) каркас — 100vh
+  // на весь экран, а innerHeight с клавиатурой может уменьшаться вместе с visualViewport — тогда разница была 0
+  // и шторка оставалась под клавиатурой (Игорь 28.10: «в браузере работает, в установленном — нет»)
+  const frame = document.body.clientHeight || window.innerHeight;
+  const kb = Math.max(0, Math.round(frame - vv.height - Math.max(0, vv.offsetTop)));
   const open = kb > 80;   // меньше — панель подсказок/полоса, не клавиатура
   document.documentElement.style.setProperty('--kb', (open ? kb : 0) + 'px');
   document.body.classList.toggle('kb-open', open);
@@ -207,6 +211,11 @@ document.body.addEventListener('scroll', () => { if (document.body.scrollTop || 
 window.visualViewport?.addEventListener('resize', kbInset);
 window.visualViewport?.addEventListener('scroll', kbInset);
 addEventListener('focusout', () => setTimeout(kbInset, 250));
+// в установленном приложении iOS не всегда присылает resize от visualViewport — пока клавиатура выезжает, меряем сами
+addEventListener('focusin', (e) => {
+  if (!/^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName)) return;
+  [60, 200, 350, 500, 700, 1000, 1400].forEach((ms) => setTimeout(kbInset, ms));
+});
 window.__kbInset = kbInset;   // для проверки
 
 // Предохранитель: панель вкладок обязана стоять в пределах экрана (в standalone — полный экран,
