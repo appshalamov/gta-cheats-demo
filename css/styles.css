@@ -1052,12 +1052,6 @@ body[data-sheet="half"] .map-fabs, body[data-sheet="full"] .map-fabs { opacity: 
 .lg-fills span { margin-right: 10px; }
 .lg-row svg, .lg-fills svg { width: 28px !important; height: 28px !important; flex: none; display: block; }
 
-/* «Игра ⇄ Жизнь» под большим пальцем (16.10): квадрат у нижнего края кнопок карты, подпись — куда переключит */
-.map-fabs .map-fab.map-world { width: 60px; height: 60px; border-radius: 18px; padding: 8px 4px 6px; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 2px; align-self: flex-end; }
-.map-fab.map-world svg { width: 24px; height: 24px; flex: none; }
-.map-fab.map-world small { font-size: 12px; font-weight: 700; line-height: 1.1; white-space: nowrap; }
-.map-fab.map-world[hidden] { display: none; }
 
 /* кнопки креаторского раздела под действиями места (только где подключён window.SB) */
 .mp-acts.mp-acts-cr { flex-wrap: wrap; margin-top: -6px; }

@@ -584,8 +584,16 @@ const api = {
 
   /** Код приглашения. SB- + 6 знаков — закрытый доступ (08 §2.2) → { ok, kind:'beta' }; ошибки not_found, used, expired.
    *  Другие коды — приглашение в Лигу → { ok, unlocked } (одноразовый, 30 дней); ошибки bad_code, expired */
-  redeemInvite: async (code) => {
+  // ОТКРЫТЫЙ ВХОД (Игорь 27.10.2026: «любой инвайт-код, что бы я ни вписал, — пускало в раздел креаторов»): пока программа
+  // закрыта и сервера нет, проверка кода выключена флагом CREATOR.open_invites (config.js). Выключить флаг — вернётся проверка
+  // по хэшам (SB-…: not_found / used / expired; код Лиги: bad_code / expired).
+  redeemInvite: async (code, kind = '') => {
     const c = normCode(code);
+    if (CREATOR.open_invites) {
+      const P = db().P;
+      if (kind === 'beta' || /^SB-/.test(c) || !P.invited) { P.invited = true; P.invite = P.invite || { at: today(), until: null, via: 'open' }; persist(); return wait({ ok: true, kind: 'beta' }, 200); }
+      P.league_unlocked = true; persist(); return wait({ ok: true, unlocked: true }, 250);
+    }
     if (/^SB-/.test(c)) {
       const r = await checkInvite(c);
       if (r.status !== 'ok') return fail(r.status);

@@ -2328,7 +2328,7 @@ async function onClick(e) {
     }
     case 'inv-beta': await load(); inviteBetaSheet(); setTimeout(() => $('#cr-binv')?.focus(), 350); break;
     case 'inv-b-send': {
-      try { await api().redeemInvite($('#cr-binv').value); P = await api().getProfile(); ctx.toast(tx('inv_b_ok')); renderHub(); ctx.closeSheet(); if (stack.length) close(); setTimeout(() => loginSheet(), stack.length ? 320 : 0); }
+      try { await api().redeemInvite($('#cr-binv').value, 'beta'); P = await api().getProfile(); ctx.toast(tx('inv_b_ok')); renderHub(); ctx.closeSheet(); if (stack.length) close(); setTimeout(() => loginSheet(), stack.length ? 320 : 0); }
       catch (x) { err(tx({ used: 'inv_used', expired: 'inv_exp' }[x.code] || 'inv_nf')); }
       break;
     }

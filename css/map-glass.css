@@ -45,6 +45,13 @@
 #map-games .mg-mode button.on { display: none; }
 #map-games .mg-mode button.mg-soon { opacity: .6; }
 #map-games .mg-mode button:active { transform: scale(var(--press-scale)); }
+/* Игорь 27.10.2026: переключатель один и заметный — «чуть побольше, чтобы на ней больше акцент был». Капсула с акцентной
+   заливкой: значок и слово в строку, 56 в высоту; показывает, КУДА переключит. Место то же — у большого пальца. */
+#map-games .mg-mode { width: auto; min-width: 64px; height: 56px; border-radius: 28px; background: var(--accent); border-color: transparent;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 45%, transparent), var(--sh-float); }
+#map-games .mg-mode button { flex-direction: row; gap: 8px; padding: 0 20px; border-radius: 28px; color: var(--accent-ink, #1b1206); }
+#map-games .mg-mode button svg { width: 22px; height: 22px; color: currentColor; }
+#map-games .mg-mode button b { font-size: 16px; font-weight: 800; white-space: nowrap; }
 
 /* ───── чипы слоёв: видимая капсула 40 на стекле, зона нажатия 44 ───── */
 .map-chips { top: calc(var(--safe-t) + 66px); gap: 6px; }

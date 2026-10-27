@@ -1046,29 +1046,12 @@ function ensureChrome() {
     const b = document.createElement('button'); b.className = 'map-fab'; b.dataset.mp = 'help'; b.setAttribute('aria-label', 'help'); b.innerHTML = IC.help;
     fabs.prepend(b);
   }
-  // «Игра ⇄ Жизнь» под большим пальцем (Игорь 16.10: «очень важная штука»; концепт этапа 2, решение 1 — уголок 64×64 у пальца):
-  // кнопка показывает, КУДА переключит; верхняя капсула остаётся — она показывает, где вы сейчас
   // «+» — вход в креаторский раздел (вёрстка: SB.openCreator('board', {world})); только где раздел подключён
   if (fabs && typeof window.SB?.openCreator === 'function' && !fabs.querySelector('[data-mp="add-board"]')) {
     const b = document.createElement('button'); b.className = 'map-fab map-add'; b.dataset.mp = 'add-board';
     b.setAttribute('aria-label', w('addc')); b.title = w('addc'); b.innerHTML = IC.plus;
     fabs.prepend(b);
   }
-  if (BETA && fabs && !fabs.querySelector('.map-world')) {
-    const b = document.createElement('button'); b.className = 'map-fab map-world'; b.dataset.mp = 'mode-flip';
-    fabs.append(b);
-  }
-}
-function renderWorldFab() {
-  const b = document.querySelector('.map-world');
-  if (!b) return;
-  const to = otherMode();
-  b.hidden = !to;
-  if (!to) return;
-  const label = to === 'game' ? w('inGame') + (approx() ? ' ≈' : '') : w('life');
-  b.dataset.to = to;
-  b.setAttribute('aria-label', (to === 'game' ? w('modeGame') : w('modeReal')) + ': ' + label);
-  b.innerHTML = `${to === 'game' ? IC.game : IC.pin}<small>${esc(label)}</small>`;
 }
 function renderCards() {
   const box = document.getElementById('map-cards');
@@ -1612,6 +1595,7 @@ let tapTimer = null;
 const TAP_WAIT = 250;
 function onTap(e) {
   clearTimeout(tapTimer);
+  if (document.getElementById('map')?.classList.contains('loading')) return;   // карта ещё грузится — точки под пальцем не выбираем
   const point = e.point;
   tapTimer = setTimeout(() => { tapTimer = null; pickAt({ point }); }, TAP_WAIT);
 }
@@ -1701,10 +1685,34 @@ function renderChips() {
     (GAME_MAP[game]
       ? `<button class="${mode === 'game' ? 'on' : ''}" data-mp="mode" data-v="game" aria-pressed="${mode === 'game'}" title="${esc(w('modeGame'))}: ${esc(tr(G.gameCity))}">${IC.game}<b>${esc(w('inGame'))}${approx() ? ' ≈' : ''}</b></button></div>`
       : `<button class="mg-soon" disabled title="${esc(w('soon6'))}" aria-label="${esc(w('inGame'))}: ${esc(w('soon6'))}">${IC.game}<b>19.11</b></button></div>`);
-  renderWorldFab();
   const lg = document.getElementById('map-legend');
   if (lg) { const on = mode === 'game' && approx(); lg.classList.toggle('map-approx', on); lg.innerHTML = on ? `<span>${esc(w('approxMap'))}</span>` : ''; }
 }
+
+// ───── «Появилось под пальцем» (Игорь 26.10.2026: «карта грузится, я нажимаю на кнопку — и сразу открывается элемент
+// в карте. Это как?»). На медленной сети экран карты ~10–20 с пустой, потом лента мест, чипы и плашка второй игры
+// появляются разом — касание, начатое по пустому месту, попадает в только что выросшую кнопку (тест: тап по ленте →
+// переключилась игра). Правило: кнопка, появившаяся меньше чем за ARRIVE_MS до касания (или во время него), касание
+// не принимает. Отметка «родилась» — у каждого добавленного узла экрана карты и шторки (MutationObserver).
+const ARRIVE_MS = 450;
+let downAt = -1e9;
+addEventListener('pointerdown', (e) => { downAt = e.timeStamp; }, true);
+const bornObs = new MutationObserver((list) => {
+  const t = performance.now();
+  for (const m of list) for (const n of m.addedNodes) if (n.nodeType === 1) n.__bornAt = t;
+});
+for (const id of ['view-map', 'sheet']) { const el = document.getElementById(id); if (el) bornObs.observe(el, { childList: true, subtree: true }); }
+export const arrivedUnderFinger = (target) => {
+  for (let n = target; n && n !== document.body; n = n.parentElement) {
+    if (n.__bornAt !== undefined) return downAt - n.__bornAt < ARRIVE_MS;
+  }
+  return false;
+};
+addEventListener('click', (e) => {
+  if (!e.isTrusted || !e.target.closest?.('#view-map, #sheet')) return;
+  if (!e.target.closest('[data-mp], [data-action], button, a')) return;
+  if (arrivedUnderFinger(e.target)) { e.preventDefault(); e.stopImmediatePropagation(); }
+}, true);
 
 // свои клики (data-mp) — шторка, лента, просмотрщик
 document.addEventListener('click', (e) => {
@@ -1771,7 +1779,6 @@ document.addEventListener('click', (e) => {
   else if (a === 'gl-reveal') { if (el.classList.contains('spoil')) { ctx?.haptic(); el.classList.remove('spoil'); el.querySelector('.gl-pic-t')?.remove(); glSeen.add(el.dataset.id); saveSet('secret.gl.seen', glSeen); } }
   else if (a === 'help') { ctx?.haptic(); ctx.openSheet(helpSheet(), 'sheet-map'); }
   else if (a === 'mode') { ctx?.haptic(); switchMode(el.dataset.v); }
-  else if (a === 'mode-flip') { const to = otherMode(); if (to) { ctx?.haptic(); switchMode(to); } }
   else if (a === 'cat') {
     ctx?.haptic(); activeCat = activeCat === el.dataset.v ? null : el.dataset.v;
     if (activeCat && !show.gtadb) { show.gtadb = true; loadGtadb(game).then(() => { refreshData(); applyShow(); applyCat(); renderCards(); }); }
@@ -1816,7 +1823,11 @@ async function create(preferGame) {
       attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false, touchPitch: false, fadeDuration: 150,
       transformRequest: (url) => { const u = tileUrl(url); return u ? { url: u } : { url }; },
     });
-    map.on('error', (e) => { if (e?.sourceId === 'gtamap') return; console.error(e?.error || e); });   // плиток игры за краем карты нет — это не ошибка
+    map.on('error', (e) => {   // плиток игры за краем карты нет — это не ошибка; отменённые запросы при смене вида — тоже
+      const er = e?.error || e;
+      if (e?.sourceId === 'gtamap' || er?.name === 'AbortError') return;
+      console.error('map:', e?.sourceId || '', er?.status || '', er?.url || '', er?.message || er);
+    });
     map.touchZoomRotate.disableRotation();
     window.__gtaMap = map; // для проверки из консоли (?vptest и т. п.)
     map.on('style.load', addLayers);
@@ -2117,7 +2128,9 @@ function ghostEl() {
   return el;
 }
 function ghostLayers() {
-  if (!ghost.__blank) { ghost.on('styleimagemissing', blankImage(ghost)); ghost.__blank = true; }
+  if (!ghost.__blank) {   // запасная карта: без своего обработчика MapLibre пишет каждую отменённую плитку в консоль как «Error»
+    ghost.on('styleimagemissing', blankImage(ghost)); ghost.on('error', () => { }); ghost.__blank = true;
+  }
   if (!ghost.getSource('gsel')) ghost.addSource('gsel', { type: 'geojson', data: fc([]) });
   if (!ghost.getLayer('gsel')) ghost.addLayer({ id: 'gsel', type: 'circle', source: 'gsel',
     paint: { 'circle-radius': 13, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' } });
