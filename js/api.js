@@ -545,7 +545,16 @@ const api = {
   /** Подтверждение канала (02 §7.1 п. 5): { platform:'tiktok'|'youtube'|'instagram', url } → { id, status:'pending', verify_code, handle }.
    *  Сервер ищет код в описании профиля (YouTube — Data API, TikTok и Instagram — оператор). Без сервера — отметка на экране «Для админов»;
    *  в demo — подтверждается сам через несколько секунд. Ошибки: bad_platform, bad_url */
+  // Игорь 28.10.2026: «убери проверку Инстаграма, чтобы пустила в кабинет» — флаг CREATOR.open_verify (config.js): любая
+  // ссылка (или пустое поле) на любой площадке сразу «подтверждена». false — вернётся проверка ссылки и кода в описании.
   verifyAccount: ({ platform, url } = {}) => {
+    if (CREATOR.open_verify) {
+      platform = PLAT_RE[platform] ? platform : 'instagram';
+      const P = db().P; P.accounts = (P.accounts || []).filter((a) => a.platform !== platform);
+      const acc = { id: 'A' + Date.now().toString(36).toUpperCase(), platform, url: String(url || '').trim().replace(/^https?:\/\//, ''), handle: handleOf(url || ''), verify_code: verifyCodeFor(), status: 'pending', at: today() };
+      P.accounts.push(acc); setAccount(acc, 'verified'); persist();
+      return wait(acc, 200);
+    }
     if (!PLAT_RE[platform]) return fail('bad_platform');
     if (!PLAT_RE[platform].test(String(url || ''))) return fail('bad_url');
     const P = db().P; P.accounts = (P.accounts || []).filter((a) => !(a.platform === platform && a.status !== 'verified'));

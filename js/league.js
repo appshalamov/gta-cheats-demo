@@ -2355,7 +2355,11 @@ async function onClick(e) {
     case 'vf-pl': vfForm = { platform: v, url: $('#cr-vurl')?.value.trim() || '' }; await rerender(); break;
     case 'vf-send': {
       vfForm.url = $('#cr-vurl').value.trim();
-      try { const acc = await api().verifyAccount({ platform: vfForm.platform, url: vfForm.url }); const top = stack[stack.length - 1]; top.args = { ...top.args, pick: false, id: acc.id, view: 'code' }; await rerender(); renderHub(); }
+      try {
+        const acc = await api().verifyAccount({ platform: vfForm.platform, url: vfForm.url });
+        if (acc.status === 'verified') { P = await api().getProfile(); ctx?.onProfile?.(P); renderHub(); push('done', {}, true); break; }   // без проверки (CREATOR.open_verify) — сразу в кабинет
+        const top = stack[stack.length - 1]; top.args = { ...top.args, pick: false, id: acc.id, view: 'code' }; await rerender(); renderHub();
+      }
       catch { err(tx('vf_bad', { p: PLAT[vfForm.platform] })); }
       break;
     }
