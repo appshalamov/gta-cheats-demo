@@ -836,6 +836,18 @@ const api = {
     persist();
     return wait({ correct, total, need: RULES.mod_exam_need, passed, not_counted: fast, stage: P.mod.stage, cooldown_until: P.mod.cooldown_until || null }, 300);
   },
+  /** MVP (02.11.2026): «Проверка мест» одним экраном — без экзамена и 20 проверок ученика. Партнёр сразу проверяет;
+   *  точность по-прежнему считают ловушки (ниже 70% — пауза). С сервером — роль mod выдаёт сервер по тем же правилам → getModStatus */
+  mvpReviewOn: () => {
+    const P = db().P;
+    if (!P.roles.includes('creator')) return fail('not_partner');
+    if (!P.mod || ['none', 'exam', 'cooldown', 'student'].includes(P.mod.stage)) {
+      P.mod = { stage: 'mod', today: P.mod?.today || { checked: 0, accuracy: 0, cents: 0 }, window: P.mod?.window || { correct: 0, total: 0 }, done_ids: P.mod?.done_ids || [] };
+      if (!P.roles.includes('mod')) P.roles.push('mod');
+      persist();
+    }
+    return api.getModStatus();
+  },
   /** Очередь «Проверка» (ученик и модератор): [{ id, kind:'video'|'place'|'photo', place{world,id}, platform?, title?, author?, at?, facts[] }].
    *  Одна карточка за раз; ловушки (10%) ничем не отличаются; свои вклады не показываются. Пусто — []; пауза — ошибка paused */
   getReviewQueue: () => {

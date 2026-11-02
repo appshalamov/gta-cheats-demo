@@ -2,7 +2,7 @@
 // Архитектура как у Cheats Pro: онбординг (игра → платформа) → пейвол →
 // 4 вкладки (Главная / Поиск / Избранное / Настройки) → шторка чита.
 
-import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN_ART } from './config.js';
+import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN_ART, MVP } from './config.js';
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
 import { I, platformIcon, comboHTML, btn } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
@@ -32,18 +32,24 @@ let crHub = '';   // последняя разметка хаба — Настр
 const crCtx = () => ({ openSheet, closeSheet, toast, haptic, openOnMap, game: () => store.game, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k), onProfile: setProfile });
 let crLoaded = false;   // модуль грузится при первом заходе в Настройки или по вызову экрана креатора — не на старте
 function renderCrHub() {
+  if (MVP) return;
   if (!crLoaded && ui.tab !== 'settings') return;
   crLoaded = true;
   crMod().then((m) => { m.init(crCtx()); return m.renderHub(); }).then((h) => { crHub = h || ''; }).catch(() => { });
 }
 // вход для сессии карты: кнопка «Ролики об этом месте» в карточке места вызывает window.SB.openPlaceVideos(игра, id места)
 window.SB = window.SB || {};
-window.SB.openPlaceVideos = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.openPlaceVideos(world, placeId); }); };
+// MVP: вкладка «Авторам» (js/earn.js) — ролики авторов и проверка мест; «Снять ролик» в карточке места подаёт ролик об этом месте
+const earnMod = () => import('./earn.js');
+const earnCtx = () => ({ openSheet, closeSheet, toast, haptic, game: () => store.game, goTab: (tab) => { ui.tab = tab; renderAll(); }, onProfile: setProfile });
+function renderEarn() { if (ui.tab === 'earn') earnMod().then((m) => { m.init(earnCtx()); return m.render(); }).catch(() => { }); }
+if (MVP) window.SB.shootPlace = (world, placeId) => earnMod().then((m) => { m.init(earnCtx()); return m.submitFor(world, placeId); });
+if (!MVP) window.SB.openPlaceVideos = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.openPlaceVideos(world, placeId); }); };
 window.SB.openCreator = (id, args) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.openCreator(id, args); }); };
-window.SB.shootPlace = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.shootPlace(world, placeId); }); };   // «Снять про это» из карточки места
+if (!MVP) window.SB.shootPlace = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.shootPlace(world, placeId); }); };   // «Снять про это» из карточки места
 // для сессии карты: «Поправить» в карточке места и новое место долгим тапом (форма вклада, 08 №12)
-window.SB.fixPlace = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.fixPlace(world, placeId); }); };
-window.SB.addPlaceAt = (world, lat, lon) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.addPlaceAt(world, lat, lon); }); };
+if (!MVP) window.SB.fixPlace = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.fixPlace(world, placeId); }); };
+if (!MVP) window.SB.addPlaceAt = (world, lat, lon) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.addPlaceAt(world, lat, lon); }); };
 window.SB.becomePartner = () => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.becomePartner(); }); };
 const mapCtx = () => ({ mapsApp: () => store.mapsApp || 'google', openSheet, closeSheet, setSnap, sheetSnap: () => snap, sheetPx: snapPx, restSheet, haptic, toast, I, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k) });
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -465,16 +471,16 @@ async function renderHub() {
   if (my !== hubSeq) return;
   renderHero();
   box.innerHTML = `
-    ${forecastBanner()}
+    ${MVP ? '' : forecastBanner()}
     ${hubSection(t('hub_cheats'), L(PLATFORMS[store.platform]), `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
         <span class="ct-ic">${I[c.icon]}</span><span class="ct-t"><b>${L(c)}</b><small>${tn(list.filter((x) => x.category === c.id).length, 'n_codes')}</small></span></button>`).join('')}</div>`)}
     ${popular.length ? hubSection(t('hub_popular'), '', '', `<div class="hscroll">${popular.map(miniCheat).join('')}</div>`) : ''}
     ${places.length ? hubSection(t('hub_places'), t('hub_places_sub'), `<button class="hub-more" data-action="tab" data-tab="map">${t('open_map')}${I.chevron}</button>`,
       `<div class="hscroll">${places.map((o) => placeCard(o)).join('')}</div>`) : ''}
-    ${eggs.length ? hubSection(t('hub_eggs'), t('hub_eggs_sub'), `<button class="hub-more" data-action="search-browse" data-type="eggs">${t('see_all')}${I.chevron}</button>`,
+    ${eggs.length && !MVP ? hubSection(t('hub_eggs'), t('hub_eggs_sub'), `<button class="hub-more" data-action="search-browse" data-type="eggs">${t('see_all')}${I.chevron}</button>`,
       `<div class="hscroll">${eggs.map((o) => placeCard(o)).join('')}</div>`) : ''}
-    ${favCount ? hubSection(t('hub_favs'), '', `<button class="hub-more" data-action="tab" data-tab="fav">${t('see_all')}${I.chevron}</button>`,
+    ${favCount && !MVP ? hubSection(t('hub_favs'), '', `<button class="hub-more" data-action="tab" data-tab="fav">${t('see_all')}${I.chevron}</button>`,
       `<div class="hscroll">${favPreview.slice(0, 10).map((x) => (x.kind ? placeCard(x, { game: x.game !== store.game }) : miniCheat(x))).join('')}</div>`) : ''}
     <div class="hub-foot">${t('hub_foot')}</div>`;
 }
@@ -566,6 +572,7 @@ function renderSearchFilters(counts = {}) {
   if (sf.type === 'places' || sf.type === 'eggs') {
     row2 += '<span class="fsep"></span>' + chip('sf-conf', '', t('any_conf'), !sf.conf) + CONF.map((k) => chip('sf-conf', k, `<i class="dot conf-${k}"></i>${t('conf_' + k)}`, sf.conf === k)).join('');
   }
+  if (MVP) { $('#search-filters').innerHTML = `<div class="frow">${types.map(([k, l]) => chip('sf-type', k, `${l}${counts[k] != null ? ` <em>${counts[k]}</em>` : ''}`, sf.type === k)).join('')}</div>`; return; }
   $('#search-filters').innerHTML = `
     <div class="frow">${types.map(([k, l]) => chip('sf-type', k, `${l}${counts[k] != null ? ` <em>${counts[k]}</em>` : ''}`, sf.type === k)).join('')}</div>
     <div class="frow">${row2}</div>${row3 ? `<div class="frow">${row3}</div>` : ''}`;
@@ -639,7 +646,7 @@ async function renderFavs() {
   if (my !== favSeq) return;
   const places = all.filter((x) => x.kind), cheatsF = all.filter((x) => !x.kind);
   const f = ui.favFilter || 'all';
-  $('#fav-filters').innerHTML = all.length ? `<div class="frow">${[['all', t('f_all'), all.length], ['cheats', t('f_cheats'), cheatsF.length], ['places', t('f_places'), places.length]]
+  $('#fav-filters').innerHTML = all.length && !MVP ? `<div class="frow">${[['all', t('f_all'), all.length], ['cheats', t('f_cheats'), cheatsF.length], ['places', t('f_places'), places.length]]
     .map(([k, l, n]) => chip('fav-filter', k, `${l} <em>${n}</em>`, f === k)).join('')}</div>` : '';
   if (!all.length) {
     $('#fav-list').innerHTML = `<div class="empty-big"><span class="eb-ic">${I.heart}</span><h3>${t('fav_empty_t')}</h3><p>${t('fav_empty')}</p>
@@ -679,7 +686,33 @@ function proCardHTML() {
 // в каких картах открывать место (Игорь 15.10.2026: «Google по умолчанию, в настройках — Apple, потом любые другие»).
 // Новая карта — строка здесь и ветка в mapsLink (map.js); наружу — только карты (правило «не уводить из приложения»).
 const MAPS_APPS = [['google', 'Google'], ['apple', 'Apple']];
+// MVP: Pro, игра и платформа, вид (тема, язык, карты), помощь («Как пользоваться», «Как вводить коды», «О приложении», «Поделиться»)
+function renderSettingsMVP() {
+  const g = game();
+  const th = { dark: t('th_dark'), light: t('th_light'), auto: t('th_auto') };
+  const seg = (action, list, cur) => `<span class="mini-seg">${list.map(([k, n]) => `<button class="${cur === k ? 'on' : ''}" data-action="${action}" data-v="${k}">${n}</button>`).join('')}</span>`;
+  $('#settings-body').innerHTML = `
+    ${proCardHTML()}
+    <div class="group">
+      ${row('pick-game', I.gamepad, t('st_game'), esc(g.title))}
+      ${row('pick-platform', platformIcon(store.platform), t('st_platform'), L(PLATFORMS[store.platform]))}
+    </div>
+    <div class="group">
+      <div class="row row-static"><span class="row-ic">${I.moon}</span><span class="row-l">${t('st_theme')}</span>${seg('theme', ['dark', 'light', 'auto'].map((k) => [k, th[k]]), store.theme)}</div>
+      <div class="row row-static"><span class="row-ic">${I.globe}</span><span class="row-l">${t('st_lang')}</span>${seg('lang', [['ru', 'RU'], ['en', 'EN']], getLang())}</div>
+      <div class="row row-static"><span class="row-ic">${I.map}</span><span class="row-l">${t('st_maps')}</span>${seg('maps-app', MAPS_APPS, store.mapsApp || 'google')}</div>
+    </div>
+    <div class="group">
+      ${row('tour', I.info, t('st_tour'))}
+      ${row('howto', I.gamepad, t('st_howto'))}
+      ${row('share-app', I.share, t('st_share_app'))}
+      ${row('about', I.doc, t('st_about'))}
+    </div>
+    <div class="group">${row('reset', I.reset, t('st_reset'), '', false)}</div>
+    <p class="ver">${t('hub_foot')}<br>${esc(APP.shortName)}, v${esc(APP.version)}</p>`;
+}
 function renderSettings() {
+  if (MVP) return renderSettingsMVP();
   const g = game();
   const th = { dark: t('th_dark'), light: t('th_light'), auto: t('th_auto') };
   $('#settings-body').innerHTML = `
@@ -723,7 +756,7 @@ function renderAll() {
   $('#plat-btn').innerHTML = platformIcon(store.platform);
   $('#plat-btn2').innerHTML = platformIcon(store.platform);
   const tabs = [...document.querySelectorAll('.tab')];
-  const tabOf = ui.tab === 'cheats' ? 'home' : ui.tab; // «Все читы» — экран внутри Главной
+  const tabOf = ui.tab === 'cheats' || (MVP && ui.tab === 'search') ? 'home' : ui.tab; // «Все читы» (и в MVP «Поиск») — экраны внутри Главной
   tabs.forEach((b) => b.classList.toggle('on', b.dataset.tab === tabOf));
   const ti = tabs.findIndex((b) => b.dataset.tab === tabOf);
   $('#tabbar').style.setProperty('--i', Math.max(0, ti));
@@ -736,10 +769,11 @@ function renderAll() {
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === 'view-' + ui.tab));
   const titles = { search: t('tab_search'), fav: t('tab_fav'), settings: t('tab_settings') };
   $('#search-title').textContent = titles.search; $('#fav-title').textContent = titles.fav; $('#settings-title').textContent = titles.settings;
+  if ($('#earn-title')) $('#earn-title').textContent = t('tab_earn');
   $('#search-input').placeholder = t('search_ph');
   document.querySelectorAll('.tab-l').forEach((s) => { s.textContent = t('tab_' + s.dataset.k); });
   document.querySelectorAll('[data-t]').forEach((s) => { s.textContent = t(s.dataset.t); });
-  renderHome(); renderSearch(); renderFavs(); renderSettings();
+  renderHome(); renderSearch(); renderFavs(); renderSettings(); renderEarn();
 }
 
 // ───────── шторки ─────────
@@ -1166,7 +1200,104 @@ function welcomeHTML() {
     <button class="btn-primary ob-cta" data-action="ob-start">${t('next')}</button>
     <p class="ob-fine">${t('w_note')}</p>`;
 }
+// ── MVP: знакомство «Как пользоваться» — 4 экрана листанием (коды, карта и ползунок, избранное, вкладка «Авторам») и «Пропустить»,
+// без денег и сумм (страж 7 в tools/check_code.py: FTC 16 CFR 437, Ресерч 31 §4.3),
+// потом «Ваша игра и платформа» одним экраном. Из Настроек — только 4 экрана (tourOnly), выбор игры не трогаем.
+const TOUR = ['tr1', 'tr2', 'tr3', 'tr4'];
+let tourOnly = false;
+function tourVis(i) {
+  if (i === 0) {
+    const c = (data.gta5?.cheats || []).find((x) => x.codes?.playstation?.length >= 6) || (data[store.game]?.cheats || []).find((x) => x.codes?.playstation?.length);
+    return c ? `<div class="tv-code"><b>${esc(L(c.name))}</b>${comboHTML(c.codes.playstation.slice(0, 10), 'playstation')}<span class="tv-say">${I.voice}${esc(t('play'))}</span></div>` : '';
+  }
+  if (i === 1) return `<div class="tv-cmp" id="tv-cmp" style="--x:55%"><span class="tv-ph r"></span><span class="tv-ph g"></span><span class="tv-hd" aria-hidden="true"><i>${I.swap}</i></span>
+    <em class="l">${esc(t('map_in_game'))}</em><em class="r">${esc(t('map_in_real'))}</em></div>`;
+  if (i === 2) {
+    const c = (data[store.game]?.cheats || [])[0];
+    return `<div class="tv-fav">${c ? `<div class="tv-row"><span><b>${esc(L(c.name))}</b><small>${esc(t('f_cheats'))}</small></span><i>${I.heartFill}</i></div>` : ''}
+      <div class="tv-row"><span><b>Ocean Drive</b><small>${esc(t('f_places'))}</small></span><i>${I.heartFill}</i></div></div>`;
+  }
+  return `<div class="tv-cr"><div class="tv-row">${I.camera}<span><b>${esc(t('tv_e1'))}</b><small>${esc(t('tv_e1s'))}</small></span></div>
+    <div class="tv-row">${I.check}<span><b>${esc(t('tv_e2'))}</b><small>${esc(t('tv_e2s'))}</small></span></div></div>`;
+}
+function tourHTML() {
+  return `<div class="tour">
+    <button class="tour-skip" data-action="tour-skip">${esc(t(tourOnly ? 'close' : 'skip'))}</button>
+    <div class="tour-track" id="tour-track">${TOUR.map((k, i) => `<section class="tour-slide" aria-label="${i + 1} / ${TOUR.length}"><div class="tour-vis">${tourVis(i)}</div>
+      <h1>${esc(t(k + '_t'))}</h1><p>${esc(t(k + '_p'))}</p></section>`).join('')}</div>
+    <div class="tour-dots" aria-hidden="true">${TOUR.map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>
+    <button class="btn-primary tour-next" data-action="tour-next">${esc(t('next'))}</button>
+  </div>`;
+}
+const tourIdx = () => { const tr = $('#tour-track'); return tr ? Math.round(tr.scrollLeft / Math.max(1, tr.clientWidth)) : 0; };
+function bindTour() {
+  const tr = $('#tour-track'); if (!tr) return;
+  let raf = 0;
+  tr.addEventListener('scroll', () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0; const i = tourIdx(), last = i === TOUR.length - 1;
+      document.querySelectorAll('.tour-dots i').forEach((d, k) => d.classList.toggle('on', k === i));
+      const nb = $('.tour-next'); if (nb) nb.textContent = last ? t(tourOnly ? 'done_tour' : 'next') : t('next');
+    });
+  }, { passive: true });
+  // живой ползунок на экране «Карта»: настоящее место из данных (кадр игры и фото из жизни); без сети — подложка эпохи
+  const cmp = $('#tv-cmp');
+  loadPlaces('gta5').then((d) => {
+    const o = (d?.places || []).find((x) => thumbOf(x, 'game') && thumbOf(x, 'real') && x.cf === 'confirmed') || (d?.places || []).find((x) => thumbOf(x, 'game') && thumbOf(x, 'real'));
+    if (!o || !cmp) return;
+    cmp.querySelector('.tv-ph.g').style.backgroundImage = `url("${thumbOf(o, 'game')}")`;
+    cmp.querySelector('.tv-ph.r').style.backgroundImage = `url("${thumbOf(o, 'real')}")`;
+    cmp.classList.add('has-ph');
+  }).catch(() => { });
+  if (!cmp) return;
+  const setX = (e) => { const r = cmp.getBoundingClientRect(); cmp.style.setProperty('--x', Math.max(4, Math.min(96, (e.clientX - r.left) / r.width * 100)) + '%'); };
+  // ползунок, а не листание: горизонтальный жест на картинке двигает ручку (touch-action: none в css/mvp.css)
+  cmp.addEventListener('pointerdown', (e) => { cmp.setPointerCapture(e.pointerId); cmp.classList.add('drag'); setX(e); e.stopPropagation(); });
+  cmp.addEventListener('pointermove', (e) => { if (cmp.classList.contains('drag')) setX(e); });
+  const end = () => cmp.classList.remove('drag');
+  cmp.addEventListener('pointerup', end); cmp.addEventListener('pointercancel', end);
+}
+function setupHTML() {
+  const g = ui.obGame || store.game;
+  return `<button class="ob-back" data-action="ob-back" aria-label="${esc(t('back'))}">${I.back}</button>
+    <div class="ob-panel su">
+      <h1>${t('setup_t')}</h1><p class="ob-lead">${t('setup_p')}</p>
+      <div class="mini-seg su-games" role="group">${liveGames().map((x) => `<button class="${x.id === g ? 'on' : ''}" data-action="su-game" data-v="${x.id}" aria-pressed="${x.id === g}">${esc(x.title)}</button>`).join('')}</div>
+      <div class="opts">${platListHTML(g, ui.obPlatform, 'su-plat')}${optHTML('', 'ob-watch', 'watch', I.map, esc(t('ob_watch')), esc(t('ob_watch_s')))}</div>
+      <button class="btn-primary ob-cta" data-action="ob-next">${t('start')}</button>
+    </div>`;
+}
+function renderTourOb(dir = 0) {
+  const ob = $('#onboarding'), step = ui.obStep;
+  const g = ui.obGame || store.game, sk = step === 'setup' ? g : 'gta6';
+  applySkin(sk);
+  const img = HERO[sk]?.load;
+  if (!ob.querySelector('.ob-photo')) ob.innerHTML = '<div class="ob-photo"></div><div class="ob-ui"></div>';
+  const ph = ob.querySelector('.ob-photo');
+  if (img && ph.dataset.src !== img) { ph.dataset.src = img; ph.classList.remove('is-banner'); ph.innerHTML = pic(img, '', 860, 1864); }
+  ob.classList.toggle('is-tour', step === 'tour');
+  const ui_ = ob.querySelector('.ob-ui');
+  if (step === 'tour') { ui_.innerHTML = tourHTML(); bindTour(); return; }
+  ui_.innerHTML = setupHTML();
+  const p = ui_.querySelector('.ob-panel'); if (p && dir) p.classList.add(dir > 0 ? 'ob-in-right' : 'ob-in-left');
+}
+function openTour() {
+  tourOnly = true; ui.obStep = 'tour';
+  document.body.classList.add('in-ob'); renderTourOb();
+}
+function closeTour() {
+  tourOnly = false; document.body.classList.remove('in-ob'); $('#onboarding').classList.remove('is-tour'); applySkin();
+}
+function tourNext() {
+  const i = tourIdx(), tr = $('#tour-track');
+  if (i < TOUR.length - 1) { tr.scrollTo({ left: (i + 1) * tr.clientWidth, behavior: 'smooth' }); return; }
+  store.toured = true; save();
+  if (tourOnly) closeTour(); else obGo('setup', 1);
+}
+
 function renderOnboarding(dir = 0) {
+  if (MVP) return renderTourOb(dir);
   const ob = $('#onboarding');
   const step = ui.obStep;
   const g = ui.obGame || store.game;
@@ -1190,7 +1321,7 @@ function renderOnboarding(dir = 0) {
     </div>`;
 }
 function showOnboarding() {
-  ui.obStep = 'welcome'; ui.obGame = store.game; ui.obPlatform = obDefaultPlatform(store.game); obBusy = false;
+  ui.obStep = MVP ? 'tour' : 'welcome'; tourOnly = false; ui.obGame = store.game; ui.obPlatform = obDefaultPlatform(store.game); obBusy = false;
   document.body.classList.add('in-ob');
   renderOnboarding();
 }
@@ -1208,6 +1339,7 @@ function obPickThen(el, fn) {
   setTimeout(() => { obBusy = false; fn(); }, 260);
 }
 async function finishOnboarding(tab = 'home') {
+  if (MVP) { store.toured = true; $('#onboarding').classList.remove('is-tour'); }
   store.game = ui.obGame; store.platform = ui.obPlatform; store.onboarded = true; save();
   try { await loadGame(store.game); } catch { /* нет сети при первом запуске — данные подгрузятся позже, не держим на онбординге */ }
   document.body.classList.remove('in-ob');
@@ -1377,7 +1509,7 @@ document.addEventListener('click', async (e) => {
     case 'plan': plan = v; haptic(); openPaywall(pwSt); $('#paywall .pw-close').classList.add('show'); break;
     case 'buy': demoBuy(); haptic(); closePaywall(); toast(t('pro_unlocked')); onAccess(); renderAll(); break;
     case 'pw-close': closePaywall(); break;
-    case 'pw-partner': closePaywall(); window.SB.becomePartner(); break;
+    case 'pw-partner': closePaywall(); if (MVP) { ui.tab = 'earn'; renderAll(); } else window.SB.becomePartner(); break;
     case 'pw-thing': { const k = giftKey(); closePaywall(); if (k) openOnMap(k); break; }
     case 'cl-save': {   // «Сохранить» у кода с замком — без Pro
       haptic(); const i = store.favs.indexOf(id), on = i < 0; if (on) store.favs.push(id); else store.favs.splice(i, 1);
@@ -1387,12 +1519,23 @@ document.addEventListener('click', async (e) => {
     case 'ob-watch': haptic(); obPickThen(el, () => finishOnboarding('map')); break;
     case 'ob-game': haptic(); obPickThen(el, () => { ui.obGame = v; obGo('platform', 1); }); break;
     case 'ob-platform': haptic(); obPickThen(el, () => { ui.obPlatform = v; finishOnboarding(); }); break;
-    case 'ob-back': haptic(); if (!obBusy) obGo(ui.obStep === 'platform' ? 'game' : 'welcome', -1); break;
+    case 'ob-back': haptic(); if (!obBusy) obGo(MVP ? 'tour' : ui.obStep === 'platform' ? 'game' : 'welcome', -1); break;
+    case 'tour': haptic(); openTour(); break;
+    case 'tour-skip': haptic(); store.toured = true; save(); if (tourOnly) closeTour(); else obGo('setup', 1); break;
+    case 'tour-next': haptic(); tourNext(); break;
+    case 'su-game': {
+      if (v === ui.obGame) break;
+      haptic(); ui.obGame = v;
+      if (!GAMES.find((x) => x.id === v).platforms.includes(ui.obPlatform)) ui.obPlatform = obDefaultPlatform(v);
+      renderTourOb(); break;
+    }
+    case 'su-plat': haptic(); ui.obPlatform = v; document.querySelectorAll('#onboarding [data-action="su-plat"]').forEach((o) => o.classList.toggle('on', o === el)); break;
     case 'ob-start': haptic(); obGo('game', 1); break;
     case 'ob-next':
       haptic();
       if (obBusy) break;
       if (ui.obStep === 'game') obGo('platform');
+      else if (ui.obStep === 'tour') tourNext();
       else finishOnboarding();
       break;
     case 'install': deferredPrompt?.prompt(); deferredPrompt = null; $('#install').classList.remove('show'); break;

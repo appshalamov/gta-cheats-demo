@@ -1,10 +1,10 @@
 // Офлайн-кэш. Оболочка — из кэша (быстро), данные data/*.json — сначала из сети,
 // чтобы новые коды (например, GTA 6 после релиза) появлялись без обновления приложения.
 // При изменении файлов оболочки поднимите VERSION.
-const VERSION = 'v83';
+const VERSION = 'v85';
 const SHELL = [
-  './', 'index.html', 'manifest.webmanifest', 'css/tokens.css', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css', 'css/map-glass.css', 'css/skin.css', 'css/league.css',
-  'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/places.js', 'js/skin.js', 'js/league.js', 'js/api.js', 'js/demo-data.js',
+  './', 'index.html', 'manifest.webmanifest', 'css/tokens.css', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css', 'css/map-glass.css', 'css/skin.css', 'css/league.css', 'css/mvp.css',
+  'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/places.js', 'js/skin.js', 'js/league.js', 'js/api.js', 'js/demo-data.js', 'js/earn.js',
   'vendor/maplibre/maplibre-gl.js', 'vendor/maplibre/maplibre-gl.css',
   'data/gta5.json', 'data/gta6.json',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon.svg',
@@ -29,7 +29,7 @@ self.addEventListener('install', (e) => {
   e.waitUntil(Promise.all([caches.open(VERSION).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))), uiPrecache()])
     .then(() => self.skipWaiting()));
 });
-// Прод, /beta/, /design/ и /v3/ живут на одном домене и делят хранилище кэшей: удаляем только старые версии своего
+// Прод, /beta/, /design/, /v3/ и /mvp/ живут на одном домене и делят хранилище кэшей: удаляем только старые версии своего
 // семейства (v73 → v74, beta-v73 → beta-v74), чужие не трогаем. До 21.10.2026 каждая версия стирала кэши остальных —
 // открыл прод, и бета или /design/ без сети не открывались (тест 21.10).
 const family = (k) => k.replace(/\d+$/, '');

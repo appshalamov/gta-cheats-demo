@@ -38,6 +38,7 @@
   <link rel="stylesheet" href="css/map-glass.css">
   <link rel="stylesheet" href="css/skin.css">
   <link rel="stylesheet" href="css/league.css">
+  <link rel="stylesheet" href="css/mvp.css">
   <link rel="modulepreload" href="js/skin.js">
 </head>
 <body>
@@ -80,7 +81,7 @@
     </section>
 
     <section class="view" id="view-search">
-      <header class="hdr"><h1 id="search-title">Поиск</h1></header>
+      <header class="hdr hdr-back"><button class="back-btn" data-action="back-home" aria-label="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button><h1 id="search-title">Поиск</h1></header>
       <div class="search-box">
         <svg class="search-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <input id="search-input" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder=" ">
@@ -96,6 +97,12 @@
       <div class="scroll" id="fav-list"></div>
     </section>
 
+    <!-- Авторам (MVP 02.11.2026): ролики авторов и проверка мест — js/earn.js -->
+    <section class="view" id="view-earn">
+      <header class="hdr"><h1 id="earn-title">Авторам</h1></header>
+      <div class="scroll" id="earn-body"></div>
+    </section>
+
     <section class="view" id="view-settings">
       <header class="hdr"><h1 id="settings-title">Настройки</h1></header>
       <div class="scroll" id="settings-body"></div>
@@ -107,10 +114,6 @@
         <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
         <svg class="ic-f" viewBox="0 0 24 24"><path fill="currentColor" d="M11.3 2.4a1.1 1.1 0 0 1 1.4 0l8.6 7.2c.4.3.7.8.7 1.3V20a2 2 0 0 1-2 2h-4.5a.5.5 0 0 1-.5-.5V16a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5.5a.5.5 0 0 1-.5.5H4a2 2 0 0 1-2-2v-9.1c0-.5.3-1 .7-1.3z"/></svg>
       </span><span class="tab-l" data-k="home">Главная</span></button>
-      <button class="tab" data-action="tab" data-tab="search"><span class="tab-ic">
-        <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <svg class="ic-f" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.6" fill="currentColor" fill-opacity=".22"/><path d="m20 20-3.6-3.6"/></svg>
-      </span><span class="tab-l" data-k="search">Поиск</span></button>
       <button class="tab" data-action="tab" data-tab="map"><span class="tab-ic">
         <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3.6 6.2a1 1 0 0 0-.6.9V19.5a.5.5 0 0 0 .7.5L9 18l6 2 5.4-2.2a1 1 0 0 0 .6-.9V4.5a.5.5 0 0 0-.7-.5L15 6z"/><path d="M9 4v14M15 6v14"/></svg>
         <svg class="ic-f" viewBox="0 0 24 24"><path fill="currentColor" d="M8.2 3.3v14.2l-4.6 1.9a.9.9 0 0 1-1.2-.8V7.2c0-.6.4-1.1.9-1.3zM9.8 3.4l4.4 1.5v14.3l-4.4-1.5zM21.6 4.6v11.4c0 .6-.4 1.1-.9 1.3l-4.9 2v-14.3l4.6-1.9a.9.9 0 0 1 1.2.8z"/></svg>
@@ -120,6 +123,10 @@
         <svg class="ic-f" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.2c-.2 0-.4 0-.5-.1-.3-.2-7.9-4.9-9.6-9.8C.6 7.4 3.2 3.5 7.3 3.5c1.9 0 3.6.9 4.7 2.3 1.1-1.4 2.8-2.3 4.7-2.3 4.1 0 6.7 3.9 5.4 7.8-1.7 4.9-9.3 9.6-9.6 9.8-.1.1-.3.1-.5.1z"/></svg>
         <b class="tab-badge" id="fav-badge"></b>
       </span><span class="tab-l" data-k="fav">Избранное</span></button>
+      <button class="tab" data-action="tab" data-tab="earn"><span class="tab-ic">
+        <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/></svg>
+        <svg class="ic-f" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5 5h14a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3zm7 3.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8zM6 9a1 1 0 0 0-1 1v4a1 1 0 1 0 2 0v-4a1 1 0 0 0-1-1zm12 0a1 1 0 0 0-1 1v4a1 1 0 1 0 2 0v-4a1 1 0 0 0-1-1z"/></svg>
+      </span><span class="tab-l" data-k="earn">Авторам</span></button>
       <button class="tab" data-action="tab" data-tab="settings"><span class="tab-ic">
         <svg class="ic-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
         <svg class="ic-f" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h9M19 7h1M4 17h3M13 17h7"/><circle cx="16" cy="7" r="2.6" fill="currentColor"/><circle cx="10" cy="17" r="2.6" fill="currentColor"/></svg>

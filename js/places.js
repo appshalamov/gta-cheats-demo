@@ -2,6 +2,7 @@
 // Сама карта (js/map.js) грузит те же файлы отдельно; здесь только чтение и поиск.
 
 import { L, getLang } from './i18n.js';
+import { SITE_ROOT } from './config.js';
 
 const cache = {};
 export const MAP_GAMES = ['gta6', 'gta5'];
@@ -71,7 +72,7 @@ export function cityOf(o) {
 export const textOf = (o) => (o.kind === 'egg' ? L(o.d) : L(o.s));
 // Копии сайта в подпапках (/beta/, /design/) берут картинки карты из общей img/map корня — как rebase в map.js.
 // До 21.10.2026 миниатюры Главной, Поиска и Избранного в бете шли в /beta/img/map/… и давали 404 (тест 21.10).
-const IMG_BASE = /\/(beta|design)\//.test(location.pathname) ? '../' : '';
+const IMG_BASE = SITE_ROOT;
 export const imgUrl = (u) => (IMG_BASE && typeof u === 'string' && u.startsWith('img/map/') ? IMG_BASE + u : u);
 export function thumbOf(o, prefer = 'real') {
   const a = prefer === 'game' ? [o.pg, o.pr] : [o.pr, o.pg];

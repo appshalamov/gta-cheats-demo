@@ -7,7 +7,7 @@
 // Страна без выплат (РФ, РБ) и младше 18 — только дни Pro, о выплатах ни слова. Пробный доступ — вход в «Для авторов» скрыт.
 
 import './api.js';
-import { APP, HERO } from './config.js';
+import { APP, HERO, SITE_ROOT } from './config.js';
 import { getLang, L } from './i18n.js';
 import { I } from './icons.js';
 import { loadPlaces, realOf, thumbOf, placeKey, searchPlaces, featured, imgUrl } from './places.js';
@@ -1796,7 +1796,7 @@ async function svSend() {
 // ───────── экран 5 «Снять про это» (02 §7.2): ссылка с номером ролика, картинка 1080×1920 для конца ролика, три подсказки ─────────
 // Картинка — только наша пара «игра | жизнь» (s/og, как превью ссылок) или фото места из жизни; кадр игры крупно не ставим:
 // у места без фото из жизни картинки нет (no_pair). Сохранение на iPhone — Web Share с одним файлом, иначе картинка для долгого нажатия.
-const ROOTP = /\/(beta|design)\//.test(location.pathname) ? '../' : '';   // s/og лежит в корне сайта, /beta/ и /design/ ходят на уровень выше
+const ROOTP = SITE_ROOT;   // s/og лежит в корне сайта, копии в подпапках (config.js SUBDIRS) ходят на уровень выше
 let ogP = null;
 const ogMap = () => (ogP ||= fetch(ROOTP + 's/og/p.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
 const loadImg = (src) => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });

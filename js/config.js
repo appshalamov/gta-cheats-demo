@@ -58,6 +58,14 @@ export const GAMES = [
 // В вебе — кадры игр (Rockstar Games, решение Игоря 27.10; источники — 05 картинки/кадры-игр.md), подпись на баннере и в «О приложении».
 // Флаг сборки «свои картинки»: iOS (App Store, правило 5.2.1) — true, берём свои генерации из img/ui/<скин>/own/ с теми же именами.
 export const OWN_ART = false;
+// MVP (02.11.2026, Игорь: «упростить до MVP»): вкладка «Заработок» вместо «Поиска», знакомство «Как пользоваться»,
+// карта без слоёв и легенды, Настройки без хаба креаторов. Экраны Лиги, заданий и вкладов — в коде, вход только ?admin.
+export const MVP = true;
+// Копии приложения в подпапках сайта (/beta/, /design/, /v3/, /mvp/) берут общее из корня: картинки карты img/map, превью s/og
+// и страницы «поделиться» s/. Единственный список подпапок — здесь (до 02.11.2026 он был в четырёх файлах, и каждая новая
+// подпапка давала 404: «поделиться» из /mvp/ вёл на mvp/s/…). Страж — tools/check_code.py, правило 8.
+export const SUBDIRS = ['beta', 'design', 'v3', 'mvp'];
+export const SITE_ROOT = new RegExp(`/(${SUBDIRS.join('|')})/[^/]*$`).test(location.pathname) ? '../' : '';
 const ui = (sk, n) => `img/ui/${sk}/${OWN_ART ? 'own/' : ''}${n}`;
 export const HERO = {
   gta6: { city: { ru: 'Майами', en: 'Miami' }, banners: [ui('gta6', 'gta6-banner-01'), ui('gta6', 'gta6-banner-02'), ui('gta6', 'gta6-banner-03')], load: ui('gta6', 'gta6-load-02') },

@@ -88,6 +88,14 @@ const T = {
     share_text: 'Код', open_app: 'Все коды — в Secret Base',
     install_t: 'Установите на экран «Домой»', install_ios: 'Нажмите «Поделиться», затем «На экран Домой»',
     install_btn: 'Установить', later: 'Позже',
+    // MVP 02.11.2026: вкладка «Авторам» вместо «Поиска» (поиск — строка на Главной), знакомство «Как пользоваться»
+    tab_earn: 'Авторам', st_tour: 'Как пользоваться', skip: 'Пропустить', done_tour: 'Понятно',
+    tr1_t: 'Коды с кнопками вашей приставки', tr1_p: 'Нажмите код — увидите кнопки по порядку. «Озвучить» прочитает их вслух, пока вы вводите.',
+    tr2_t: 'Место из игры в жизни', tr2_p: 'Откройте «Карту», нажмите на место и сдвиньте ползунок: кадр игры и та же улица сегодня.',
+    tr3_t: 'Всё нужное под рукой', tr3_p: 'Нажмите сердце у кода или места — они появятся в «Избранном».',
+    tr4_t: 'Для авторов роликов', tr4_p: 'Снимаете ролики о местах из GTA? Во вкладке «Авторам» — условия программы, подача роликов и проверка мест.',
+    tv_e1: 'Ролик о месте', tv_e1s: 'Пришлите ссылку на свой ролик', tv_e2: 'Проверка места', tv_e2s: 'Ответьте, совпадает ли кадр игры с фото',
+    setup_t: 'Ваша игра и платформа', setup_p: 'Покажем коды с кнопками именно для неё. Поменять можно в Настройках.',
   },
   en: {
     hub_cheats: 'Codes', hub_popular: 'Popular', hub_places: 'Places', hub_places_sub: 'One place, in the game and in real life', hub_eggs: 'Easter eggs',
@@ -170,6 +178,13 @@ const T = {
     share_text: 'Code', open_app: 'All codes in Secret Base',
     install_t: 'Add to Home Screen', install_ios: 'Tap Share, then Add to Home Screen',
     install_btn: 'Install', later: 'Later',
+    tab_earn: 'Creators', st_tour: 'How to use', skip: 'Skip', done_tour: 'Got it',
+    tr1_t: "Codes with your console's buttons", tr1_p: 'Tap a code to see the buttons in order. Read aloud says them while you type.',
+    tr2_t: 'Game places in real life', tr2_p: 'Open Map, tap a place and move the slider: the game shot and the same street today.',
+    tr3_t: 'Keep what you need', tr3_p: 'Tap the heart on a code or a place and it goes to Favorites.',
+    tr4_t: 'For video creators', tr4_p: 'Film videos about GTA places? The Creators tab has the program terms, video submission and place checks.',
+    tv_e1: 'A video about a place', tv_e1s: 'Send a link to your video', tv_e2: 'Checking a place', tv_e2s: 'Say if the game shot matches the photo',
+    setup_t: 'Your game and platform', setup_p: 'We show codes with buttons for it. You can change it in Settings.',
   },
 };
 

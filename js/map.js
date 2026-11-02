@@ -7,6 +7,7 @@
 // Свои клики обрабатываем здесь через атрибут data-mp (app.js их не трогает).
 
 import { t, L as tr, getLang } from './i18n.js';
+import { MVP, SITE_ROOT } from './config.js';
 
 const COLORS = { confirmed: '#22c3d9', likely: '#f5b942', speculative: '#9a8cab', egg: '#f472b6', gtadb: '#8b93a1' };
 const GAMES = {
@@ -319,7 +320,7 @@ function loadLib() {
     s.onerror = () => { s.remove(); css.remove(); fail(new Error('maplibre')); }; document.head.appendChild(s);
   }));
 }
-const IMG_BASE = /\/beta\//.test(location.pathname) ? '../' : '';
+const IMG_BASE = SITE_ROOT;   // варианты в подпапках берут картинки карты из общей папки (config.js SUBDIRS)
 const rebase = (o) => (typeof o === 'string' ? (IMG_BASE && o.startsWith('img/map/') ? IMG_BASE + o : o) : Array.isArray(o) ? o.map(rebase)
   : o && typeof o === 'object' ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, rebase(v)])) : o);
 async function loadGame(g) {
@@ -426,11 +427,11 @@ function creatorActs(key) {
 // на странице — превью и «Открыть в Secret Base»). Страницы собирает tools/build_share.py; ссылка всегда на прод.
 // метки превью грузим заранее (при первой карточке): на iOS «Поделиться» должно сработать сразу по нажатию, без ожидания сети
 let ogTagsP = null, ogTagsV = null;
-const ogTags = () => (ogTagsP ||= fetch(`${location.pathname.includes('/beta/') ? '../' : ''}s/og/p.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})).then((j) => (ogTagsV = j)));
+const ogTags = () => (ogTagsP ||= fetch(`${IMG_BASE}s/og/p.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})).then((j) => (ogTagsV = j)));
 async function sharePlace(text, key, el) {
-  // страницы s/ лежат только в корне сайта: из копий в подпапках (/beta/, /design/, /v3/) ссылка тоже в корень
+  // страницы s/ лежат только в корне сайта: из копий в подпапках (config.js SUBDIRS) ссылка тоже в корень
   // (до 21.10.2026 срезалась только beta/ — с /design/ и /v3/ уходила ссылка на 404)
-  const base = location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '').replace(/(beta|design|v3)\/$/, '');
+  const base = new URL(SITE_ROOT || './', location.href.split('#')[0].split('?')[0]).href;
   const k = key ? key.split(':') : null;
   // точки сообщества gtadb (db:<игра>:L123) — страницы s/<игра>/db-L123.html (Игорь 15.10.2026: на пирсе «американские
   // горки» — ссылки нет; у точек gtadb ключа не было и уходила ссылка на само приложение)
@@ -564,7 +565,7 @@ function placeSheet(p, i) {
     ${txt(p.fun) ? `<div class="mp-blk">${IC.spark}<div><b>${esc(w('fun'))}</b><p>${esc(txt(p.fun))}</p></div></div>` : ''}
     ${media.length ? `<div class="mp-yt">${media.map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
     ${nearbyRow(p, i)}
-    ${(p.src || []).length ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u) => `<span>${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span>`).join('')}</div>` : ''}
+    ${(p.src || []).length && !MVP ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u) => `<span>${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span>`).join('')}</div>` : ''}
     <p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(cred(x.credit))).join(' · ')}</p>`;
 }
 // ближайшие места (до 5 км) — следующий шаг прогулки в одно касание
@@ -1042,12 +1043,12 @@ function ensureChrome() {
     const c = document.createElement('div'); c.id = 'map-cards'; c.className = 'map-cards'; view.appendChild(c);
   }
   const fabs = view.querySelector('.map-fabs');
-  if (fabs && !fabs.querySelector('[data-mp="help"]')) {
+  if (fabs && !MVP && !fabs.querySelector('[data-mp="help"]')) {
     const b = document.createElement('button'); b.className = 'map-fab'; b.dataset.mp = 'help'; b.setAttribute('aria-label', 'help'); b.innerHTML = IC.help;
     fabs.prepend(b);
   }
   // «+» — вход в креаторский раздел (вёрстка: SB.openCreator('board', {world})); только где раздел подключён
-  if (fabs && typeof window.SB?.openCreator === 'function' && !fabs.querySelector('[data-mp="add-board"]')) {
+  if (fabs && !MVP && typeof window.SB?.openCreator === 'function' && !fabs.querySelector('[data-mp="add-board"]')) {
     const b = document.createElement('button'); b.className = 'map-fab map-add'; b.dataset.mp = 'add-board';
     b.setAttribute('aria-label', w('addc')); b.title = w('addc'); b.innerHTML = IC.plus;
     fabs.prepend(b);
@@ -1662,7 +1663,10 @@ function renderChips() {
   const n = { places: d.places.length, eggs: d.eggs.length, gtadb: gtadb[game]?.points.length ?? '' };
   const collN = glData ? glData.filter((p) => GL[p.k]?.g !== 'eggs').length : '';
   const collOn = glCollKeys().some((k) => glOn.has(k));
-  document.getElementById('map-chips').innerHTML = (LEGEND2 ? `<button class="mchip mchip-lg" data-mp="legend">${esc(w('legend'))}</button>` : '')
+  if (MVP) document.getElementById('map-chips').innerHTML = [
+    ['places', t('map_places'), COLORS.confirmed], ['eggs', t('map_eggs'), COLORS.egg], ['gtadb', t('map_all'), COLORS.gtadb],
+  ].map(([k, label, c]) => `<button class="mchip${show[k] ? ' on' : ''}" data-action="map-layer" data-v="${k}" style="--c:${c}"><i></i>${label}${n[k] !== '' ? ` <em>${n[k]}</em>` : ''}</button>`).join('');
+  else document.getElementById('map-chips').innerHTML = (LEGEND2 ? `<button class="mchip mchip-lg" data-mp="legend">${esc(w('legend'))}</button>` : '')
     + (LEGEND2 && glShown() ? `<button class="mchip${collOn ? ' on' : ''}" data-mp="gl-coll" style="--c:#ffd84d"><i></i>${esc(w('glColl'))}${collN !== '' ? ` <em>${collN}</em>` : ''}</button>` : '') + (glShown() ? `<button class="mchip mchip-gl" data-mp="gl-panel">⚙️ ${esc(w('glTitle'))} <em>${glOn.size}</em></button>` : '') + [
     ['places', t('map_places'), COLORS.confirmed], ['eggs', t('map_eggs'), COLORS.egg], ['gtadb', t('map_all'), COLORS.gtadb],
   ].map(([k, label, c]) => `<button class="mchip${show[k] ? ' on' : ''}" data-action="map-layer" data-v="${k}" style="--c:${c}"><i></i>${label}${n[k] !== '' ? ` <em>${n[k]}</em>` : ''}</button>`).join('')

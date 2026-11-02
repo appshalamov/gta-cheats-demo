@@ -90,7 +90,7 @@ def _vals(pref):
 for name, txt in [("пейвол (app.js)", _pw or "")] + [(f"i18n {k}", v) for k, v in _vals("pw_")]:
     m = MONEY.search(txt)
     if m: guard.append(f"{name}: «{m.group(0)}» — на пейволе ни слова о заработке")
-for name, txt in [("онбординг (app.js)", _ob or "")] + [(f"i18n {k}", v) for k, v in _vals("w_") + _vals("ob_")]:
+for name, txt in [("онбординг (app.js)", _ob or "")] + [(f"i18n {k}", v) for k, v in _vals("w_") + _vals("ob_") + _vals("tr\\d") + _vals("tv_") + _vals("setup_")]:
     m = MONEY.search(txt) or (name.startswith("i18n") and re.search(r"\$", txt))   # «$» — только в строках (в коде это $() и ${})
     if m: guard.append(f"{name}: «{m.group(0)}» — в онбординге нет денег и сумм")
 _man = json.loads((ROOT / "manifest.webmanifest").read_text("utf-8"))
@@ -232,4 +232,14 @@ if frame_bad:
     for b in frame_bad:
         print("  ✗", b)
     sys.exit(1)
+# 8. Подпапки сайта (/beta/, /design/, /v3/, /mvp/) перечислены только в js/config.js (SUBDIRS → SITE_ROOT). 02.11.2026 список
+#    жил в четырёх файлах, новая подпапка /mvp/ дала «поделиться» на 404 (mvp/s/…). Свои регулярки подпапок в других файлах — стоп.
+_sub = []
+for f in sorted((ROOT / "js").glob("*.js")):
+    if f.name == "config.js" or f.name.startswith("._"): continue
+    for i, line in enumerate(f.read_text("utf-8").splitlines(), 1):
+        if re.search(r"\(beta\|design|['\"`]/(beta|design|v3|mvp)/['\"`]|/\\/(beta|design|v3|mvp)\\//", line):
+            _sub.append(f"{f.name}:{i}")
+if _sub:
+    print("СТОП: список подпапок сайта вне js/config.js (SITE_ROOT):", ", ".join(_sub[:6])); sys.exit(1)
 print("правила кода: ок")
