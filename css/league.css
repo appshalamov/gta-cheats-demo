@@ -29,7 +29,7 @@
 .cr-hline { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 14px; font-weight: 600; color: #fff; }
 .cr-hline svg { width: 18px; height: 18px; flex: none; }
 .cr-hcta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; margin-top: 8px; border-radius: 23px;
-  background: var(--accent); color: var(--accent-ink); font: var(--t-button); letter-spacing: var(--t-button-track); }
+  background: var(--btn); color: var(--btn-ink); font: var(--t-button); letter-spacing: var(--t-button-track); }
 .cr-hcta svg { width: 18px; height: 18px; }
 .cr-how { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 12px; padding: 0; }
 .cr-how li { display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 16px; font-size: 12.5px; line-height: 16px; color: var(--text-2);
@@ -292,7 +292,7 @@
 .cr-vtop .cr-ib { background: var(--glass-regular-bg); }
 .cr-vtabs { flex: 1; display: flex; justify-content: center; gap: 2px; min-width: 0; }
 .cr-vtabs button { min-height: 44px; padding: 0 8px; font: var(--t-label); color: rgba(255,255,255,.7); text-shadow: 0 1px 4px rgba(0,0,0,.6); border-bottom: 2px solid transparent; white-space: nowrap; }
-.cr-vtabs button[aria-selected="true"] { color: #fff; border-color: #fff; }
+.cr-vtabs button[aria-selected="true"] { color: var(--btn); border-color: var(--btn); }
 .cr-cnt { margin-left: auto; padding: 6px 10px; border-radius: 12px; font-size: 12.5px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 /* ── «Проверка»: лента карточек, смахнуть вправо / влево ── */
@@ -327,7 +327,7 @@
 .cr-rb { display: flex; align-items: center; justify-content: center; gap: 8px; height: 56px; border-radius: 28px; font: var(--t-button); }
 .cr-rb svg { width: 22px; height: 22px; }
 .cr-rb.no { color: var(--danger); background: color-mix(in srgb, var(--danger) 14%, transparent); }
-.cr-rb.ok { color: var(--accent-ink); background: var(--accent); }
+.cr-rb.ok { color: var(--btn-ink); background: var(--btn); }
 .cr-rvbtns[hidden], .cr-hint[hidden] { display: none; }
 
 /* на компьютере — в рамке телефона, как #main */
