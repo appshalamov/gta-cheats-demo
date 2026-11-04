@@ -16,11 +16,17 @@ for d in css js icons vendor data fonts media; do [ -d "$d" ] && rsync -a --excl
 # пути: копия в подпапке берёт img/map и s/ из корня — как /beta/ и /design/
 sed -i '' 's#/\\/(beta|design)\\//#/\\/(beta|design|promo)\\//#' promo/js/places.js promo/js/league.js
 sed -i '' "s#/\\\\/beta\\\\//.test(location.pathname)#/\\\\/(beta|promo)\\\\//.test(location.pathname)#; s#location.pathname.includes('/beta/')#/\\\\/(beta|promo)\\\\//.test(location.pathname)#" promo/js/map.js
+# Режим съёмки (Игорь 05.11.2026): всегда английский (и карта, и интерфейс — вне зависимости от языка телефона),
+# без подсказки «На экран Домой», без знакомства (онбординга)
+sed -i '' "s#setLang(store.lang || (navigator.language || 'ru').slice(0, 2));#store.lang = 'en'; store.onboarded = true; store.installHint = true; save(); setLang('en');#" promo/js/app.js
+# свои настройки у promo — английский и «знакомство пройдено» не попадают в прод на том же устройстве
+sed -i '' "s#^const KEY = 'cheats.v1';#const KEY = 'cheats.promo.v1';#" promo/js/app.js
+sed -i '' "s#^const devLang = () => (navigator.language || 'en').slice(0, 2).toLowerCase();#const devLang = () => 'en';#" promo/js/map.js
 # «Поделиться»: страницы s/ только в корне — ссылка из promo/ тоже в корень (проверка 05.11.2026 давала 404)
 sed -i '' 's#replace(/(beta|design|v3)\\/$/#replace(/(beta|design|v3|promo)\\/$/#' promo/js/map.js
 n=$(grep -o "const VERSION = '[^']*'" sw.js | sed "s/.*'\(.*\)'.*/\1/")
 sed -i '' "s/const VERSION = '[^']*';/const VERSION = 'promo-$n';/" promo/sw.js
 find promo -name '._*' -delete
-grep -q "beta|design|promo" promo/js/places.js && grep -q "(beta|promo)" promo/js/map.js && grep -q "v3|promo" promo/js/map.js || { echo "СТОП: пути копии не поправились (js/places.js, js/map.js)"; exit 1; }
+grep -q "beta|design|promo" promo/js/places.js && grep -q "(beta|promo)" promo/js/map.js && grep -q "v3|promo" promo/js/map.js && grep -q "const devLang = () => 'en'" promo/js/map.js && grep -q "store.installHint = true; save(); setLang('en')" promo/js/app.js || { echo "СТОП: пути копии не поправились (js/places.js, js/map.js)"; exit 1; }
 echo "promo собран: $(find promo -type f | wc -l | tr -d ' ') файлов, кэш promo-$n"
 find .git -name '._*' -type f -delete 2>/dev/null || true
