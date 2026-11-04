@@ -23,6 +23,8 @@ DATA = SRC / "данные"
 RAW = DATA / "_сырьё"
 OUT = ROOT / "data" / "map"
 IMG_OUT = ROOT / "img" / "map"
+_OVR = DATA / "правки_вручную.json"
+OWN_FIRST = (json.loads(_OVR.read_text("utf-8")) if _OVR.exists() else {}).get("пара_своя_первой") or {}
 
 GAMES = {
     "gta6": {"center": [25.79, -80.21], "zoom": 10, "places": ["locations_gta6.json", "_сырьё/canonical_locations_gta6.json"],
@@ -646,6 +648,11 @@ def build(game, cfg):
                  "r": {"url": raw(i, "rl"), "credit": "gtadb.org and contributors (CC BY 4.0)"}} for i in ids]
     for pl in places:
         pr = pairs_for(pl["lat"], pl["lon"], (pl["g"], pl["n"]), pl.get("_gtadb", ""), pl.get("c") in ("neighborhood", "beach", "park", "nature"))
+        # своя пара первой (Игорь 05.11.2026: до-после для рекламы — живое фото с ракурса кадра игры):
+        # список «пара_своя_первой» в данные/правки_вручную.json; пары gtadb остаются следом
+        if pl["id"] in OWN_FIRST.get(game, ()) and pl.get("pg") and pl.get("pr") and pl["pr"].get("file"):
+            pr = [{"g": {"url": pl["pg"]["file"], "thumb": pl["pg"].get("thumb"), "credit": pl["pg"].get("credit", "")},
+                   "r": {"url": pl["pr"]["file"], "credit": pl["pr"].get("credit", "")}, "own": 1}] + pr
         if pr:
             pl["pairs"] = pr
     for e in eggs:
