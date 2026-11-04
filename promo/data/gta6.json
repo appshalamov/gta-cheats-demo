@@ -1,0 +1,1388 @@
+{
+ "game": "gta6",
+ "source": "Прогноз: коды GTA 5 + ожидаемые эффекты. Подтверждённых кодов GTA 6 на 14.10.2026 нет.",
+ "updated": "2026-10-14",
+ "confidenceLabels": {
+  "high": [
+   "Высокая",
+   "High"
+  ],
+  "medium": [
+   "Средняя",
+   "Medium"
+  ],
+  "low": [
+   "Низкая",
+   "Low"
+  ]
+ },
+ "cheats": [
+  {
+   "id": "g6_health",
+   "category": "player",
+   "icon": "❤️",
+   "name": {
+    "ru": "Здоровье и броня",
+    "en": "Max Health & Armor"
+   },
+   "desc": {
+    "ru": "Полное здоровье и броня. В машине ещё и чинит её.",
+    "en": "Full health and armor; also repairs your car."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "O",
+     "L1",
+     "T",
+     "R2",
+     "X",
+     "S",
+     "O",
+     "→",
+     "S",
+     "L1",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "B",
+     "LB",
+     "Y",
+     "RT",
+     "A",
+     "X",
+     "B",
+     "→",
+     "X",
+     "LB",
+     "LB",
+     "LB"
+    ],
+    "pc": null,
+    "phone": "1-999-887-853"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "high"
+  },
+  {
+   "id": "g6_invincible",
+   "category": "player",
+   "icon": "🛡️",
+   "name": {
+    "ru": "Бессмертие",
+    "en": "Invincibility"
+   },
+   "desc": {
+    "ru": "Неуязвимость на 5 минут.",
+    "en": "God mode for 5 minutes."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "→",
+     "X",
+     "→",
+     "←",
+     "→",
+     "R1",
+     "→",
+     "←",
+     "X",
+     "T"
+    ],
+    "xbox": [
+     "→",
+     "A",
+     "→",
+     "←",
+     "→",
+     "RB",
+     "→",
+     "←",
+     "A",
+     "Y"
+    ],
+    "pc": null,
+    "phone": "1-999-724-654-5537"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "high"
+  },
+  {
+   "id": "g6_weapons",
+   "category": "weapon",
+   "icon": "🔫",
+   "name": {
+    "ru": "Оружие и патроны",
+    "en": "Weapons & Ammo"
+   },
+   "desc": {
+    "ru": "Дробовик, РПГ, гранаты, SMG и автомат с патронами.",
+    "en": "Pump shotgun, RPG, grenades, SMG and rifle with ammo."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "T",
+     "R2",
+     "←",
+     "L1",
+     "X",
+     "→",
+     "T",
+     "↓",
+     "S",
+     "L1",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "Y",
+     "RT",
+     "←",
+     "LB",
+     "A",
+     "→",
+     "Y",
+     "↓",
+     "X",
+     "LB",
+     "LB",
+     "LB"
+    ],
+    "pc": null,
+    "phone": "1-999-866-587"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "high"
+  },
+  {
+   "id": "g6_wanted_down",
+   "category": "player",
+   "icon": "👮",
+   "name": {
+    "ru": "Снизить розыск",
+    "en": "Lower Wanted Level"
+   },
+   "desc": {
+    "ru": "−1 звезда розыска за каждый ввод.",
+    "en": "−1 wanted star per use."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R1",
+     "R1",
+     "O",
+     "R2",
+     "→",
+     "←",
+     "→",
+     "←",
+     "→",
+     "←"
+    ],
+    "xbox": [
+     "RB",
+     "RB",
+     "B",
+     "RT",
+     "→",
+     "←",
+     "→",
+     "←",
+     "→",
+     "←"
+    ],
+    "pc": null,
+    "phone": "1-999-529-937-87"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "high"
+  },
+  {
+   "id": "g6_wanted_up",
+   "category": "player",
+   "icon": "🚨",
+   "name": {
+    "ru": "Повысить розыск",
+    "en": "Raise Wanted Level"
+   },
+   "desc": {
+    "ru": "+1 звезда розыска за каждый ввод.",
+    "en": "+1 wanted star per use."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "R1",
+     "R1",
+     "O",
+     "R2",
+     "←",
+     "→",
+     "←",
+     "→",
+     "←",
+     "→"
+    ],
+    "xbox": [
+     "RB",
+     "RB",
+     "B",
+     "RT",
+     "←",
+     "→",
+     "←",
+     "→",
+     "←",
+     "→"
+    ],
+    "pc": null,
+    "phone": "1-999-384-484-83"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "high"
+  },
+  {
+   "id": "g6_parachute",
+   "category": "player",
+   "icon": "🪂",
+   "name": {
+    "ru": "Парашют",
+    "en": "Give Parachute"
+   },
+   "desc": {
+    "ru": "Выдаёт парашют.",
+    "en": "Gives you a parachute."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "←",
+     "→",
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "R2",
+     "←",
+     "←",
+     "→",
+     "L1"
+    ],
+    "xbox": [
+     "←",
+     "→",
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "RT",
+     "←",
+     "←",
+     "→",
+     "LB"
+    ],
+    "pc": null,
+    "phone": "1-999-759-3483"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "medium"
+  },
+  {
+   "id": "g6_superjump",
+   "category": "player",
+   "icon": "🦘",
+   "name": {
+    "ru": "Суперпрыжок",
+    "en": "Super Jump"
+   },
+   "desc": {
+    "ru": "Прыжок на высоту дома.",
+    "en": "Jump as high as a house."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "←",
+     "←",
+     "T",
+     "T",
+     "→",
+     "→",
+     "←",
+     "→",
+     "S",
+     "R1",
+     "R2"
+    ],
+    "xbox": [
+     "←",
+     "←",
+     "Y",
+     "Y",
+     "→",
+     "→",
+     "←",
+     "→",
+     "X",
+     "RB",
+     "RT"
+    ],
+    "pc": null,
+    "phone": "1-999-467-8648"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "medium"
+  },
+  {
+   "id": "g6_fastrun",
+   "category": "player",
+   "icon": "🏃",
+   "name": {
+    "ru": "Быстрый бег",
+    "en": "Fast Run"
+   },
+   "desc": {
+    "ru": "Персонаж бегает заметно быстрее.",
+    "en": "Run noticeably faster."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "←",
+     "→",
+     "→",
+     "L2",
+     "L1",
+     "S"
+    ],
+    "xbox": [
+     "Y",
+     "←",
+     "→",
+     "→",
+     "LT",
+     "LB",
+     "X"
+    ],
+    "pc": null,
+    "phone": "1-999-228-2463"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "medium"
+  },
+  {
+   "id": "g6_fastswim",
+   "category": "player",
+   "icon": "🏊",
+   "name": {
+    "ru": "Быстрое плавание",
+    "en": "Fast Swim"
+   },
+   "desc": {
+    "ru": "Плавает быстрее любого катера.",
+    "en": "Swim faster than a jet ski."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "←",
+     "←",
+     "L1",
+     "→",
+     "→",
+     "R2",
+     "←",
+     "L2",
+     "→"
+    ],
+    "xbox": [
+     "←",
+     "←",
+     "LB",
+     "→",
+     "→",
+     "RT",
+     "←",
+     "LT",
+     "→"
+    ],
+    "pc": null,
+    "phone": "1-999-468-445-57"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "medium"
+  },
+  {
+   "id": "g6_skyfall",
+   "category": "player",
+   "icon": "🌤️",
+   "name": {
+    "ru": "Прыжок с неба",
+    "en": "Skyfall"
+   },
+   "desc": {
+    "ru": "Забрасывает героя высоко в небо — свободное падение.",
+    "en": "Launches you into the sky for a free fall."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "←",
+     "→",
+     "←",
+     "→",
+     "L1",
+     "L2",
+     "R1",
+     "R2",
+     "←",
+     "→",
+     "←",
+     "→"
+    ],
+    "xbox": [
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "←",
+     "→",
+     "←",
+     "→",
+     "LB",
+     "LT",
+     "RB",
+     "RT",
+     "←",
+     "→",
+     "←",
+     "→"
+    ],
+    "pc": null,
+    "phone": "1-999-759-3255"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "medium"
+  },
+  {
+   "id": "g6_drunk",
+   "category": "player",
+   "icon": "🍺",
+   "name": {
+    "ru": "Пьяный режим",
+    "en": "Drunk Mode"
+   },
+   "desc": {
+    "ru": "Походка и камера как после бара.",
+    "en": "Wobbly walk and camera."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "→",
+     "→",
+     "←",
+     "→",
+     "S",
+     "O",
+     "←"
+    ],
+    "xbox": [
+     "Y",
+     "→",
+     "→",
+     "←",
+     "→",
+     "X",
+     "B",
+     "←"
+    ],
+    "pc": null,
+    "phone": "1-999-547-867"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "low"
+  },
+  {
+   "id": "g6_recharge",
+   "category": "player",
+   "icon": "⚡",
+   "name": {
+    "ru": "Заряд способности",
+    "en": "Recharge Special Ability"
+   },
+   "desc": {
+    "ru": "Полностью заряжает особую способность героя.",
+    "en": "Refills your character's special ability."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "X",
+     "X",
+     "S",
+     "R1",
+     "L1",
+     "X",
+     "→",
+     "←",
+     "X"
+    ],
+    "xbox": [
+     "A",
+     "A",
+     "X",
+     "RB",
+     "LB",
+     "A",
+     "→",
+     "←",
+     "A"
+    ],
+    "pc": null,
+    "phone": "1-999-769-3787"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "low"
+  },
+  {
+   "id": "g6_flaming",
+   "category": "weapon",
+   "icon": "🔥",
+   "name": {
+    "ru": "Огненные пули",
+    "en": "Flaming Bullets"
+   },
+   "desc": {
+    "ru": "Пули поджигают всё, во что попадают.",
+    "en": "Bullets set targets on fire."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "L1",
+     "R1",
+     "S",
+     "R1",
+     "←",
+     "R2",
+     "R1",
+     "←",
+     "S",
+     "→",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "LB",
+     "RB",
+     "X",
+     "RB",
+     "←",
+     "RT",
+     "RB",
+     "←",
+     "X",
+     "→",
+     "LB",
+     "LB"
+    ],
+    "pc": null,
+    "phone": "1-999-462-363-4279"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "medium"
+  },
+  {
+   "id": "g6_explosive_ammo",
+   "category": "weapon",
+   "icon": "💥",
+   "name": {
+    "ru": "Взрывные пули",
+    "en": "Explosive Ammo"
+   },
+   "desc": {
+    "ru": "Каждое попадание — взрыв.",
+    "en": "Every hit explodes."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "→",
+     "S",
+     "X",
+     "←",
+     "R1",
+     "R2",
+     "←",
+     "→",
+     "→",
+     "L1",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "→",
+     "X",
+     "A",
+     "←",
+     "RB",
+     "RT",
+     "←",
+     "→",
+     "→",
+     "LB",
+     "LB",
+     "LB"
+    ],
+    "pc": null,
+    "phone": "1-999-444-439"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "medium"
+  },
+  {
+   "id": "g6_explosive_melee",
+   "category": "weapon",
+   "icon": "👊",
+   "name": {
+    "ru": "Взрывные удары",
+    "en": "Explosive Punches"
+   },
+   "desc": {
+    "ru": "Удар кулаком отправляет врага в полёт.",
+    "en": "Punches send enemies flying."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "→",
+     "←",
+     "X",
+     "T",
+     "R1",
+     "O",
+     "O",
+     "O",
+     "L2"
+    ],
+    "xbox": [
+     "→",
+     "←",
+     "A",
+     "Y",
+     "RB",
+     "B",
+     "B",
+     "B",
+     "LT"
+    ],
+    "pc": null,
+    "phone": "1-999-468-426-37"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "medium"
+  },
+  {
+   "id": "g6_slowmo_aim",
+   "category": "weapon",
+   "icon": "🎯",
+   "name": {
+    "ru": "Замедление при прицеливании",
+    "en": "Slow Motion Aim"
+   },
+   "desc": {
+    "ru": "Время замедляется, пока целитесь. До 3 раз — сильнее; 4-й ввод выключает.",
+    "en": "Time slows while aiming. Stack up to 3x; the 4th entry turns it off."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "S",
+     "L2",
+     "R1",
+     "T",
+     "←",
+     "S",
+     "L2",
+     "→",
+     "X"
+    ],
+    "xbox": [
+     "X",
+     "LT",
+     "RB",
+     "Y",
+     "←",
+     "X",
+     "LT",
+     "→",
+     "A"
+    ],
+    "pc": null,
+    "phone": "1-999-332-3393"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "medium"
+  },
+  {
+   "id": "g6_weather",
+   "category": "world",
+   "icon": "🌦️",
+   "name": {
+    "ru": "Смена погоды",
+    "en": "Change Weather"
+   },
+   "desc": {
+    "ru": "Перебирает погоду: солнце, смог, дождь, гроза, снег.",
+    "en": "Cycles weather: sun, smog, rain, storm, snow."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "R2",
+     "X",
+     "L1",
+     "L1",
+     "L2",
+     "L2",
+     "L2",
+     "S"
+    ],
+    "xbox": [
+     "RT",
+     "A",
+     "LB",
+     "LB",
+     "LT",
+     "LT",
+     "LT",
+     "X"
+    ],
+    "pc": null,
+    "phone": "1-999-625-348-7246"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "high"
+  },
+  {
+   "id": "g6_gravity",
+   "category": "world",
+   "icon": "🌙",
+   "name": {
+    "ru": "Лунная гравитация",
+    "en": "Moon Gravity"
+   },
+   "desc": {
+    "ru": "Низкая гравитация — машины и люди летают.",
+    "en": "Low gravity — cars and people float."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": false,
+   "codes": {
+    "playstation": [
+     "←",
+     "←",
+     "L1",
+     "R1",
+     "L1",
+     "→",
+     "←",
+     "L1",
+     "←"
+    ],
+    "xbox": [
+     "←",
+     "←",
+     "LB",
+     "RB",
+     "LB",
+     "→",
+     "←",
+     "LB",
+     "←"
+    ],
+    "pc": null,
+    "phone": "1-999-356-2837"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "medium"
+  },
+  {
+   "id": "g6_slidey",
+   "category": "world",
+   "icon": "🧊",
+   "name": {
+    "ru": "Скользкие машины",
+    "en": "Slidey Cars"
+   },
+   "desc": {
+    "ru": "Машины скользят, как по льду.",
+    "en": "Cars slide like on ice."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "R1",
+     "R1",
+     "←",
+     "R1",
+     "L1",
+     "R2",
+     "L1"
+    ],
+    "xbox": [
+     "Y",
+     "RB",
+     "RB",
+     "←",
+     "RB",
+     "LB",
+     "RT",
+     "LB"
+    ],
+    "pc": null,
+    "phone": "1-999-766-9329"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "medium"
+  },
+  {
+   "id": "g6_slowmo",
+   "category": "world",
+   "icon": "⏱️",
+   "name": {
+    "ru": "Замедление времени",
+    "en": "Slow Motion"
+   },
+   "desc": {
+    "ru": "Весь мир замедляется. До 3 раз — сильнее; 4-й ввод выключает.",
+    "en": "Slows the whole world. Stack up to 3x; the 4th entry turns it off."
+   },
+   "note": {
+    "ru": "Прогноз: код из GTA 5. Проверим в день релиза.",
+    "en": "Forecast: GTA 5 code. We'll verify on launch day."
+   },
+   "pro": true,
+   "codes": {
+    "playstation": [
+     "T",
+     "←",
+     "→",
+     "→",
+     "S",
+     "R2",
+     "R1"
+    ],
+    "xbox": [
+     "Y",
+     "←",
+     "→",
+     "→",
+     "X",
+     "RT",
+     "RB"
+    ],
+    "pc": null,
+    "phone": "1-999-756-966"
+   },
+   "media": null,
+   "status": "forecast",
+   "confidence": "medium"
+  },
+  {
+   "id": "g6_v_super",
+   "category": "vehicle",
+   "icon": "🏎️",
+   "name": {
+    "ru": "Спорткар",
+    "en": "Spawn Sports Car"
+   },
+   "desc": {
+    "ru": "Модели GTA 6 ещё неизвестны. В GTA 5 этот код давал Спорткар Comet.",
+    "en": "GTA 6 models are unknown yet. In GTA 5 this code spawned Comet."
+   },
+   "note": {
+    "ru": "Прогноз: код-аналог из GTA 5.",
+    "en": "Forecast: GTA 5 equivalent."
+   },
+   "pro": true,
+   "status": "forecast",
+   "confidence": "medium",
+   "codes": {
+    "playstation": [
+     "R1",
+     "O",
+     "R2",
+     "→",
+     "L1",
+     "L2",
+     "X",
+     "X",
+     "S",
+     "R1"
+    ],
+    "xbox": [
+     "RB",
+     "B",
+     "RT",
+     "→",
+     "LB",
+     "LT",
+     "A",
+     "A",
+     "X",
+     "RB"
+    ],
+    "pc": null,
+    "phone": "1-999-266-38"
+   },
+   "media": null
+  },
+  {
+   "id": "g6_v_bike",
+   "category": "vehicle",
+   "icon": "🏍️",
+   "name": {
+    "ru": "Мотоцикл",
+    "en": "Spawn Motorbike"
+   },
+   "desc": {
+    "ru": "Модели GTA 6 ещё неизвестны. В GTA 5 этот код давал Мотоцикл PCJ-600.",
+    "en": "GTA 6 models are unknown yet. In GTA 5 this code spawned PCJ-600."
+   },
+   "note": {
+    "ru": "Прогноз: код-аналог из GTA 5.",
+    "en": "Forecast: GTA 5 equivalent."
+   },
+   "pro": false,
+   "status": "forecast",
+   "confidence": "medium",
+   "codes": {
+    "playstation": [
+     "R1",
+     "→",
+     "←",
+     "→",
+     "R2",
+     "←",
+     "→",
+     "S",
+     "→",
+     "L2",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "RB",
+     "→",
+     "←",
+     "→",
+     "RT",
+     "←",
+     "→",
+     "X",
+     "→",
+     "LT",
+     "LB",
+     "LB"
+    ],
+    "pc": null,
+    "phone": "1-999-762-538"
+   },
+   "media": null
+  },
+  {
+   "id": "g6_v_heli",
+   "category": "vehicle",
+   "icon": "🚁",
+   "name": {
+    "ru": "Боевой вертолёт",
+    "en": "Spawn Attack Helicopter"
+   },
+   "desc": {
+    "ru": "Модели GTA 6 ещё неизвестны. В GTA 5 этот код давал Вертолёт Buzzard.",
+    "en": "GTA 6 models are unknown yet. In GTA 5 this code spawned Buzzard."
+   },
+   "note": {
+    "ru": "Прогноз: код-аналог из GTA 5.",
+    "en": "Forecast: GTA 5 equivalent."
+   },
+   "pro": true,
+   "status": "forecast",
+   "confidence": "medium",
+   "codes": {
+    "playstation": [
+     "O",
+     "O",
+     "L1",
+     "O",
+     "O",
+     "O",
+     "L1",
+     "L2",
+     "R1",
+     "T",
+     "O",
+     "T"
+    ],
+    "xbox": [
+     "B",
+     "B",
+     "LB",
+     "B",
+     "B",
+     "B",
+     "LB",
+     "LT",
+     "RB",
+     "Y",
+     "B",
+     "Y"
+    ],
+    "pc": null,
+    "phone": "1-999-289-9633"
+   },
+   "media": null
+  },
+  {
+   "id": "g6_v_plane",
+   "category": "vehicle",
+   "icon": "🛩️",
+   "name": {
+    "ru": "Трюковой самолёт",
+    "en": "Spawn Stunt Plane"
+   },
+   "desc": {
+    "ru": "Модели GTA 6 ещё неизвестны. В GTA 5 этот код давал Трюковой самолёт Mallard.",
+    "en": "GTA 6 models are unknown yet. In GTA 5 this code spawned Stunt Plane."
+   },
+   "note": {
+    "ru": "Прогноз: код-аналог из GTA 5.",
+    "en": "Forecast: GTA 5 equivalent."
+   },
+   "pro": true,
+   "status": "forecast",
+   "confidence": "low",
+   "codes": {
+    "playstation": [
+     "O",
+     "→",
+     "L1",
+     "L2",
+     "←",
+     "R1",
+     "L1",
+     "L1",
+     "←",
+     "←",
+     "X",
+     "T"
+    ],
+    "xbox": [
+     "B",
+     "→",
+     "LB",
+     "LT",
+     "←",
+     "RB",
+     "LB",
+     "LB",
+     "←",
+     "←",
+     "A",
+     "Y"
+    ],
+    "pc": null,
+    "phone": "1-999-227-678-676"
+   },
+   "media": null
+  },
+  {
+   "id": "g6_v_limo",
+   "category": "vehicle",
+   "icon": "🚘",
+   "name": {
+    "ru": "Лимузин",
+    "en": "Spawn Limo"
+   },
+   "desc": {
+    "ru": "Модели GTA 6 ещё неизвестны. В GTA 5 этот код давал Лимузин Stretch.",
+    "en": "GTA 6 models are unknown yet. In GTA 5 this code spawned Stretch Limo."
+   },
+   "note": {
+    "ru": "Прогноз: код-аналог из GTA 5.",
+    "en": "Forecast: GTA 5 equivalent."
+   },
+   "pro": true,
+   "status": "forecast",
+   "confidence": "low",
+   "codes": {
+    "playstation": [
+     "R2",
+     "→",
+     "L2",
+     "←",
+     "←",
+     "R1",
+     "L1",
+     "O",
+     "→"
+    ],
+    "xbox": [
+     "RT",
+     "→",
+     "LT",
+     "←",
+     "←",
+     "RB",
+     "LB",
+     "B",
+     "→"
+    ],
+    "pc": null,
+    "phone": "1-999-846-396-63"
+   },
+   "media": null
+  },
+  {
+   "id": "g6_v_dirt",
+   "category": "vehicle",
+   "icon": "🏍️",
+   "name": {
+    "ru": "Кроссовый мотоцикл",
+    "en": "Spawn Dirt Bike"
+   },
+   "desc": {
+    "ru": "Модели GTA 6 ещё неизвестны. В GTA 5 этот код давал Мотоцикл Sanchez.",
+    "en": "GTA 6 models are unknown yet. In GTA 5 this code spawned Sanchez."
+   },
+   "note": {
+    "ru": "Прогноз: код-аналог из GTA 5.",
+    "en": "Forecast: GTA 5 equivalent."
+   },
+   "pro": false,
+   "status": "forecast",
+   "confidence": "medium",
+   "codes": {
+    "playstation": [
+     "O",
+     "X",
+     "L1",
+     "O",
+     "O",
+     "L1",
+     "O",
+     "R1",
+     "R2",
+     "L2",
+     "L1",
+     "L1"
+    ],
+    "xbox": [
+     "B",
+     "A",
+     "LB",
+     "B",
+     "B",
+     "LB",
+     "B",
+     "RB",
+     "RT",
+     "LT",
+     "LB",
+     "LB"
+    ],
+    "pc": null,
+    "phone": "1-999-633-7623"
+   },
+   "media": null
+  },
+  {
+   "id": "g6_n_stamina",
+   "category": "player",
+   "icon": "💪",
+   "name": {
+    "ru": "Бесконечная выносливость",
+    "en": "Infinite Stamina"
+   },
+   "desc": {
+    "ru": "Ожидаемый чит: бег и плавание без усталости.",
+    "en": "Expected: run and swim without getting tired."
+   },
+   "note": {
+    "ru": "Код появится после выхода игры.",
+    "en": "Code will appear after launch."
+   },
+   "pro": false,
+   "status": "forecast",
+   "confidence": "medium",
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": null
+   },
+   "media": null
+  },
+  {
+   "id": "g6_n_boat",
+   "category": "vehicle",
+   "icon": "🚤",
+   "name": {
+    "ru": "Катер",
+    "en": "Spawn Speedboat"
+   },
+   "desc": {
+    "ru": "В Леониде много воды — катер почти наверняка будет.",
+    "en": "Leonida is full of water — a boat spawn is likely."
+   },
+   "note": {
+    "ru": "Код появится после выхода игры.",
+    "en": "Code will appear after launch."
+   },
+   "pro": false,
+   "status": "forecast",
+   "confidence": "medium",
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": null
+   },
+   "media": null
+  },
+  {
+   "id": "g6_n_gator",
+   "category": "world",
+   "icon": "🐊",
+   "name": {
+    "ru": "Аллигаторы повсюду",
+    "en": "Gator Swarm"
+   },
+   "desc": {
+    "ru": "Фанатская идея: болота Леониды полны аллигаторов.",
+    "en": "Fan idea: Leonida swamps full of gators."
+   },
+   "note": {
+    "ru": "Код появится после выхода игры.",
+    "en": "Code will appear after launch."
+   },
+   "pro": false,
+   "status": "forecast",
+   "confidence": "low",
+   "codes": {
+    "playstation": null,
+    "xbox": null,
+    "pc": null,
+    "phone": null
+   },
+   "media": null
+  }
+ ]
+}

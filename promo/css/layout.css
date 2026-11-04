@@ -1,0 +1,30 @@
+/* Каркас под iPhone «на экране Домой» (iOS 26).
+   Баг WebKit 301994: в standalone окно (innerHeight, 100dvh) занижено на высоту чёлки (~59px),
+   а любой position: fixed корень обрезается по этой заниженной высоте — внизу системная полоса.
+   Лечение (подтверждено в piclaw/docs/PWA.md): корень в обычном потоке, без fixed;
+   высота в standalone = 100vh (её iOS не занижает), в браузере = 100dvh. Ставит fitViewport() в app.js.
+   Подстраховка: фон страницы = цвет нижней панели — если полоса всё же останется, она сольётся с панелью. */
+:root { --tabbar-bg: var(--bg); --safe-b: max(env(safe-area-inset-bottom, 0px), var(--safe-b-min, 0px)); } /* = фон из tokens.css, в обеих темах */
+/* Страница НЕ прокручивается. overflow: hidden нужен на html: иначе свойство body уходит на всё окно
+   и body ничего не обрезает — закрытые оверлеи (translateY(100%)) растягивали документ вдвое,
+   свайп прокручивал страницу и снизу выезжал пейвол (14.10.2026).
+   height у html не 100% (у piclaw это в списке неудачных: ломает viewport-fit=cover) — по высоте body. */
+html { height: auto; overflow: hidden; overscroll-behavior: none; background: var(--tabbar-bg); }
+body { position: relative; height: var(--app-h, 100dvh); min-height: var(--app-h, 100dvh); background: var(--bg); overflow: hidden; overscroll-behavior: none; }
+#sheet-layer { overflow: hidden; }
+/* закрытый пейвол не участвует ни в отрисовке, ни в фокусе */
+#paywall { visibility: hidden; transition: transform .45s cubic-bezier(.2,.9,.25,1), visibility 0s linear .45s; }
+#paywall.open { visibility: visible; transition: transform .45s cubic-bezier(.2,.9,.25,1), visibility 0s; }
+/* было position: fixed — теперь absolute внутри body (body = полная высота) */
+#main, #onboarding, #paywall, #sheet-layer { position: absolute; }
+#toast, #install, #mp-viewer { position: absolute; }
+/* нижняя панель — стеклянная капсула (styles.css); фон страницы под ней = --tabbar-bg */
+
+/* Меньше движения (системная настройка): анимации и переходы — мгновенно, без сдвигов;
+   появление слоёв — растворением 200 мс. Логику высоты выше не трогает. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
+  #main, #toast, #install, #sheet-layer, .sheet, #paywall { transition-property: opacity, background-color !important; transition-duration: 200ms !important; transition-timing-function: ease-out !important; }
+  #sheet-layer:not(.open) .sheet, #paywall:not(.open) { opacity: 0; }
+}
