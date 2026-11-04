@@ -19,7 +19,7 @@ const GAMES = {
 // Запуск «Стекло над городом» (Игорь 26.10.2026: «делай запуск стеклом над городом… чтобы всё работало»): карта как в бете —
 // «Игра ⇄ Жизнь», карта игры, слои, легенда — теперь и в проде. Старый вид карты — только по ?nobeta (для сравнения).
 export const BETA = !new URLSearchParams(location.search).has('nobeta');
-let mode = !BETA ? 'real' : (() => { try { return localStorage.getItem('secret.map.mode') === 'real' ? 'real' : 'game'; } catch { return 'game'; } })();
+let mode = !BETA ? 'real' : (() => { try { return localStorage.getItem('secret.promo.map.mode') === 'game' ? 'game' : 'real'; } catch { return 'real'; } })();
 let wantMode = mode;     // что выбрал человек; у игры без своей карты (GAME_MAP) показываем реальную
 // Карта игры GTA 6 выключена (14.10.2026): фанатская карта Леониды (yanis) и игровые координаты GTA 6 в gtadb собраны
 // с опорой на утечки 2022 и 2026 годов (так пишет сам gtadb в FAQ), а правило проекта — утечки не показывать.
@@ -2107,7 +2107,7 @@ export async function setMode(m, cam) {
   const d = data[game]; if (!d) return;
   const T = cam || targetFor(m);   // считаем ДО смены режима: ближайшее место ищется в текущих координатах
   mode = m;
-  if (BETA) try { localStorage.setItem('secret.map.mode', m); } catch { }
+  if (BETA) try { localStorage.setItem('secret.promo.map.mode', m); } catch { }
   styleKey = m === 'game' ? 'game:' + game : themeKey();
   map.setStyle(m === 'game' ? gameStyleFor(game) : STYLE[styleKey], { diff: false });   // style.load → addLayers (точки уже в координатах режима)
   if (T) map.jumpTo({ center: T.center, zoom: T.zoom });
