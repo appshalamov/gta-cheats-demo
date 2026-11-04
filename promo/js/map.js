@@ -232,7 +232,7 @@ const W = {
   other: { en: 'Place', ru: 'Место', es: 'Lugar', pt: 'Lugar', fr: 'Lieu', de: 'Ort', it: 'Luogo', tr: 'Yer', uk: 'Місце', pl: 'Miejsce', zh: '地点', ja: '場所', ko: '장소' },
   egg: { en: 'Easter egg', ru: 'Пасхалка', es: 'Easter egg', pt: 'Easter egg', fr: 'Easter egg', de: 'Easter Egg', it: 'Easter egg', tr: 'Sürpriz', uk: 'Пасхалка', pl: 'Easter egg', zh: '彩蛋', ja: 'イースターエッグ', ko: '이스터에그' },
 };
-const devLang = () => (navigator.language || 'en').slice(0, 2).toLowerCase();
+const devLang = () => 'en';
 function uiLang() {
   if (getLang() === 'ru') return 'ru';
   const d = devLang();

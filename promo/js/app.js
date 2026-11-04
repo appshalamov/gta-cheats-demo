@@ -9,7 +9,7 @@ import { SKINS, switchTo } from './skin.js';
 import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
 // ───────── хранилище ─────────
-const KEY = 'cheats.v1';
+const KEY = 'cheats.promo.v1';
 // pro / proPlan / proUntil — демо-покупка на устройстве; trialStart — первое открытие (пробный 72 часа, 31 §4.2);
 // linkKeys — места, открытые по ссылке «поделиться»: видны и без Pro (31 §4.2, «одна вещь из ссылки»)
 const DEFAULTS = { onboarded: false, game: 'gta5', platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google' };
@@ -1415,7 +1415,7 @@ addEventListener('resize', () => scrollToCat(ui.cat, false));
 
 // ───────── старт ─────────
 (async function init() {
-  setLang(store.lang || (navigator.language || 'ru').slice(0, 2));
+  store.lang = 'en'; store.onboarded = true; store.installHint = true; save(); setLang('en');
   applyTheme(); applySkin();
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     // новая версия на сервере → перезагрузка в свежую (только если уже была старая)
