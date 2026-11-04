@@ -1415,7 +1415,7 @@ addEventListener('resize', () => scrollToCat(ui.cat, false));
 
 // ───────── старт ─────────
 (async function init() {
-  store.lang = 'en'; store.onboarded = true; store.installHint = true; save(); setLang('en');
+  store.lang = 'en'; store.onboarded = true; store.installHint = true; store.pro = true; store.proPlan = 'year'; save(); setLang('en');
   applyTheme(); applySkin();
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     // новая версия на сервере → перезагрузка в свежую (только если уже была старая)
