@@ -27,8 +27,8 @@ sed -i '' "s#^const devLang = () => (navigator.language || 'en').slice(0, 2).toL
 # «Поделиться»: страницы s/ только в корне — ссылка из promo/ тоже в корень (проверка 05.11.2026 давала 404)
 sed -i '' 's#replace(/(beta|design|v3)\\/$/#replace(/(beta|design|v3|promo)\\/$/#' promo/js/map.js
 n=$(grep -o "const VERSION = '[^']*'" sw.js | sed "s/.*'\(.*\)'.*/\1/")
-sed -i '' "s/const VERSION = '[^']*';/const VERSION = 'promo-$n';/" promo/sw.js
+st=$(date +%m%d%H%M); sed -i '' "s/const VERSION = '[^']*';/const VERSION = 'promo-$n-$st';/" promo/sw.js   # новая версия на каждую заливку — телефон не держит старое
 find promo -name '._*' -delete
 grep -q "beta|design|promo" promo/js/places.js && grep -q "(beta|promo)" promo/js/map.js && grep -q "v3|promo" promo/js/map.js && grep -q "const devLang = () => 'en'" promo/js/map.js && [ "$(grep -c 'secret.promo.map.mode' promo/js/map.js)" = 2 ] && grep -q "store.pro = true; store.proPlan = 'year'; save(); setLang('en')" promo/js/app.js || { echo "СТОП: пути копии не поправились (js/places.js, js/map.js)"; exit 1; }
-echo "promo собран: $(find promo -type f | wc -l | tr -d ' ') файлов, кэш promo-$n"
+echo "promo собран: $(find promo -type f | wc -l | tr -d ' ') файлов, кэш promo-$n-$st"
 find .git -name '._*' -type f -delete 2>/dev/null || true
