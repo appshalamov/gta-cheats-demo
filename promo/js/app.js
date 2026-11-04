@@ -1415,7 +1415,7 @@ addEventListener('resize', () => scrollToCat(ui.cat, false));
 
 // ───────── старт ─────────
 (async function init() {
-  store.lang = 'en'; store.onboarded = true; store.installHint = true; store.pro = true; store.proPlan = 'year'; save(); setLang('en');
+  store.lang = 'en'; store.onboarded = true; store.installHint = true; store.pro = true; store.proPlan = 'year'; const pOpen = new URLSearchParams(location.search).get('open'); if (pOpen && /^(place|egg|db):gta[56]:/.test(pOpen)) store.game = pOpen.split(':')[1]; save(); setLang('en');
   applyTheme(); applySkin();
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     // новая версия на сервере → перезагрузка в свежую (только если уже была старая)
