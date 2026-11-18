@@ -351,7 +351,7 @@ function forecastBanner() {
 }
 const POPULAR = {
   gta5: ['invincible', 'weapons', 'health', 'wanted_down', 'buzzard', 'superjump', 'sanchez', 'weather'],
-  gta6: ['g6_invincible', 'g6_weapons', 'g6_health', 'g6_wanted_down', 'g6_v_heli', 'g6_superjump', 'g6_v_super', 'g6_weather'],
+  gta6: ['g6_money', 'g6_armor', 'g6_max_ammo', 'g6_weather', 'g6_inf_ammo', 'g6_boomazoom', 'g6_focus', 'g6_no_reload'],   // настоящие коды GTA 6 (18.11.2026)
 };
 const liveGames = () => GAMES.filter((g) => g.status !== 'soon');
 const mapPlaceName = (gid) => ({ gta6: t('place_gta6'), gta5: t('place_gta5') }[gid] || '');
