@@ -1,9 +1,14 @@
 {
  "codes": "live",
- "map": "approx",
- "tiles": "release",
- "maxz": 4,
- "coords": null,
+ "map": "live",
+ "tiles": "yanis18",
+ "maxz": 5,
+ "coords": "gtadb",
  "updated": "2026-11-18",
- "note": "Пишет только tools/gta6_switch.py. codes/map/tiles/maxz повторены в js/config.js (GTA6)."
+ "note": "Пишет только tools/gta6_switch.py. codes/map/tiles/maxz повторены в js/config.js (GTA6).",
+ "approved": {
+  "set": "yanis18",
+  "by": "Игорь 18.11.2026: «утечку эту берём», «перед тем как брать — проверь»",
+  "check": "ПРОВЕРКА yanis v18 (18.11.2026).md"
+ }
 }

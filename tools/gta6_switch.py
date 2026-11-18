@@ -10,7 +10,7 @@
   --offline — не проверять плитку по сети (только локальную папку хостинга)
 
 Перед включением проверяет: коды — все status live и у каждого ≥ 2 источника с разных сайтов;
-карта — набор не yanis (утечки), плитки зума maxz есть в «хостинг-плиток/gta-map-assets/maps/tiles/6/<набор>/»
+карта — набор yanis (утечки) только с --approve «Игорь ДД.ММ» --check <файл проверки>; плитки зума maxz есть в «хостинг-плиток/gta-map-assets/maps/tiles/6/<набор>/»
 и отдаются с appshalamov.github.io/gta-map-assets (иначе в приложении будет пустая карта).
 После: build_map.py (если менялась карта), поднять VERSION в sw.js, check_code.py, check_links.py, deep.py, выкладка.
 """
@@ -49,10 +49,21 @@ def check_codes():
     return bad
 
 
-def check_map(tset, maxz, offline):
+CHECKS = ROOT.parent / "GTA 6 — реальные данные" / "карта — подтверждения"
+
+
+def leak_ok(rel, tset):
+    """yanis (фанатская карта по утечкам и трейлерам) — только по решению Игоря и с файлом проверки (18.11.2026)."""
+    ap = rel.get("approved") or {}
+    return ap.get("set") == tset and ap.get("by") and (CHECKS / (ap.get("check") or "-")).is_file()
+
+
+def check_map(tset, maxz, offline, rel=None):
     bad = []
-    if not tset or "yanis" in tset.lower():
-        return [f"набор плиток «{tset}» — нельзя (yanis = утечки) или не задан"]
+    if not tset:
+        return ["набор плиток не задан"]
+    if "yanis" in tset.lower() and not leak_ok(rel or {}, tset):
+        return [f"набор «{tset}» — карта по утечкам: нужен --approve «кто и когда» и --check <файл проверки в «карта — подтверждения»>"]
     zdir = HOST / tset / str(maxz)
     tiles = sorted(zdir.glob("*.jpg")) if zdir.is_dir() else []
     if not tiles:
@@ -90,7 +101,9 @@ def main():
             rel["coords"] = opt("--coords") or rel.get("coords")
             if rel["coords"] not in ("own", "gtadb"):
                 bad.append("--coords own|gtadb: откуда игровые координаты мест")
-            bad += check_map(rel["tiles"], rel["maxz"], "--offline" in sys.argv)
+            if opt("--approve"):
+                rel["approved"] = {"set": rel["tiles"], "by": opt("--approve"), "check": opt("--check")}
+            bad += check_map(rel["tiles"], rel["maxz"], "--offline" in sys.argv, rel)
         rel["map"] = mp
     if bad:
         print("СТОП, ничего не меняю:")
