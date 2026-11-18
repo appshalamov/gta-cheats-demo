@@ -2,7 +2,7 @@
 // Архитектура как у Cheats Pro: онбординг (игра → платформа) → пейвол →
 // 4 вкладки (Главная / Поиск / Избранное / Настройки) → шторка чита.
 
-import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN_ART } from './config.js';
+import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN_ART, GTA6 } from './config.js';
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
 import { I, platformIcon, comboHTML, btn } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
@@ -941,7 +941,10 @@ function openCheat(id) {
     ${others ? `<details class="d-other"><summary><span>${t('other_platforms')}</span>${I.chevron}</summary><div class="plat-list">${others}</div></details>` : ''}
   `, 'sheet-detail');
 }
-function howto(p) { return t({ playstation: 'howto_ps', xbox: 'howto_xbox', pc: 'howto_pc', phone: 'howto_phone' }[p]); }
+function howto(p) {   // GTA 6: телефон (↑) + зажать L1+R1 / LB+RB + стрелки, только после сюжета (18.11.2026)
+  if (store.game === 'gta6' && GTA6.codes === 'live' && (p === 'playstation' || p === 'xbox')) return t(p === 'xbox' ? 'howto6_xbox' : 'howto6_ps');
+  return t({ playstation: 'howto_ps', xbox: 'howto_xbox', pc: 'howto_pc', phone: 'howto_phone' }[p]);
+}
 
 // Озвучка кода с подсветкой кнопок
 function speechItems(c) {
