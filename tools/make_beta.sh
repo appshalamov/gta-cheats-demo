@@ -9,7 +9,9 @@ cd "$(dirname "$0")/.."
 find beta -mindepth 1 -maxdepth 1 ! -name og-compare -exec rm -rf {} + 2>/dev/null || true
 mkdir -p beta
 for f in index.html manifest.webmanifest sw.js; do cp "$f" beta/; done
-for d in css js icons vendor data; do rsync -a --exclude '._*' "$d/" "beta/$d/"; done
+for d in css js icons vendor data fonts; do rsync -a --exclude '._*' "$d/" "beta/$d/"; done
+# картинки эпох (скины «Стекла над городом», 26.10.2026) грузятся относительно страницы — без них в бете 404 и пустые баннеры (18.11.2026)
+mkdir -p beta/img; rsync -a --exclude '._*' img/ui/ beta/img/ui/
 # свой кэш и своё имя у беты, чтобы не путать с продом
 n=$(grep -o "const VERSION = '[^']*'" sw.js | sed "s/.*'\(.*\)'.*/\1/")
 sed -i '' "s/const VERSION = '[^']*';/const VERSION = 'beta-$n';/" beta/sw.js
