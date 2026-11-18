@@ -4,7 +4,7 @@
  "tiles": "yanis18",
  "maxz": 5,
  "coords": "gtadb",
- "updated": "2026-11-18",
+ "updated": "2026-11-19",
  "note": "Пишет только tools/gta6_switch.py. codes/map/tiles/maxz повторены в js/config.js (GTA6).",
  "approved": {
   "set": "yanis18",
