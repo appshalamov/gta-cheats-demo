@@ -29,10 +29,16 @@ export const PLATFORMS = {
 // Игра по умолчанию — store.game в app.js (GTA 5), от порядка не зависит.
 // Другие части (status 'soon') — только коды, без карты: карта и места есть только у GTA 6 и GTA 5 (places.js MAP_GAMES).
 // status: 'live' — коды проверены; 'forecast' — игра ещё не вышла, коды-прогноз; 'soon' — раздел в разработке
+// GTA 6 после выхода (19.11.2026): реальные данные включаются ТОЛЬКО командой tools/gta6_switch.py (она же правит tools/gta6_release.json).
+//   codes: 'forecast' — прогноз (коды GTA 5); 'live' — проверенные коды игры, data/gta6.json из tools/import_gta6_codes.py (≥ 2 источника на код)
+//   map:   'approx' — своя карта «Леонида» по Флориде; 'live' — плитки карты вышедшей игры с нашего хостинга gta-map-assets
+//          (tools/import_gta6_map.py), места по игровым координатам. «Леонида» остаётся запасной: ?leonida в адресе.
+//   tiles / maxz — набор плиток maps/tiles/6/<tiles>/ на хостинге и его последний зум (зум gtadb). Утечки (yanis) — никогда.
+export const GTA6 = { codes: 'forecast', map: 'approx', tiles: 'release', maxz: 4 };
 export const GAMES = [
   {
     id: 'gta6', title: 'GTA 6', header: { ru: 'Коды GTA 6', en: 'GTA 6 codes' },
-    status: 'forecast', release: '2026-11-19',
+    status: GTA6.codes === 'live' ? 'live' : 'forecast', release: '2026-11-19',
     platforms: ['playstation', 'xbox', 'phone', 'pc'],
     platformNote: {
       playstation: { ru: 'PS5', en: 'PS5' },

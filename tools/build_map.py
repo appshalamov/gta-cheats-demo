@@ -10,6 +10,7 @@
 Запуск:  python3 tools/build_map.py
 """
 import json
+import os
 import pathlib
 import re
 import shutil
@@ -153,7 +154,13 @@ def leak_reason(it, game):
 
 # Игровые координаты GTA 6 в gtadb ставят «по самой точной карте» — фанатской карте Леониды, собранной с опорой на утечки
 # 2022 и 2026 годов (FAQ gtadb). Правило проекта — утечки не показывать (14.10.2026), поэтому до карты из вышедшей игры — выкл.
-GAME_COORDS = {"gta5": True, "gta6": False}
+# После выхода (19.11.2026) — по tools/gta6_release.json (пишет tools/gta6_switch.py):
+#   coords "own"   — опорные точки «жизнь ↔ карта вышедшей игры», снятые нами (tools/import_gta6_map.py → данные/gta6_релиз/);
+#   coords "gtadb" — landmarks_gta6.json gtadb, только когда gtadb перестроен по вышедшей игре (проверка — gta6_watch.py).
+_REL_F = ROOT / "tools" / "gta6_release.json"
+_REL = json.loads(_REL_F.read_text("utf-8")) if _REL_F.exists() else {}
+GAME_COORDS = {"gta5": True, "gta6": _REL.get("map") == "live" and _REL.get("coords") in ("own", "gtadb")}
+GTA6_OWN_LM = pathlib.Path(os.environ.get("GTA6_LM") or DATA / "gta6_релиз" / "landmarks_gta6_release.json")
 
 
 def attach_ingame(game, cfg, places, eggs, pts):
@@ -165,8 +172,12 @@ def attach_ingame(game, cfg, places, eggs, pts):
         print(f"  где в игре: выключено для {game} (координаты gtadb опираются на утечки)")
         return
     v = 5 if game == "gta5" else 6
-    lm = json.loads((SRC / "источники" / "gtadb.org (CC BY 4.0)" / f"landmarks_gta{v}.json").read_text("utf-8"))
-    ctrl = [(k, it[1], it[4]) for k, it in lm.items() if it[1] and it[4]
+    lm_path = SRC / "источники" / "gtadb.org (CC BY 4.0)" / f"landmarks_gta{v}.json"
+    if game == "gta6" and _REL.get("coords") == "own":
+        lm_path = GTA6_OWN_LM
+    lm = json.loads(lm_path.read_text("utf-8"))
+    print(f"  где в игре: опорные точки {lm_path.name} ({len(lm)})")
+    ctrl =[(k, it[1], it[4]) for k, it in lm.items() if it[1] and it[4]
             and not any(t.lower() == "events" or re.fullmatch(r"l\d+", t.lower()) for t in it[6])]
     def est(lat, lon):
         near = sorted(((meters((lat, lon), (rl[0], rl[1])), ig) for _, ig, rl in ctrl), key=lambda t: t[0])[:6]

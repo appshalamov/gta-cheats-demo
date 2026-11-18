@@ -7,6 +7,7 @@
 // Свои клики обрабатываем здесь через атрибут data-mp (app.js их не трогает).
 
 import { t, L as tr, getLang } from './i18n.js';
+import { GTA6 } from './config.js';
 
 const COLORS = { confirmed: '#22c3d9', likely: '#f5b942', speculative: '#9a8cab', egg: '#f472b6', gtadb: '#8b93a1' };
 const GAMES = {
@@ -28,7 +29,13 @@ let wantMode = mode;     // что выбрал человек; у игры бе
 // чтобы примерно показывать, где будет локация; точно обновим, когда выйдет»): реальная Флорида из OpenStreetMap
 // в стиле радара GTA 5 с акцентами GTA 6 и официальными названиями регионов. Не по утечкам. 'approx' — точки по реальным
 // координатам; true — плитки игры и игровые координаты (gm).
-const GAME_MAP = { gta5: true, gta6: BETA ? 'approx' : false };
+// После выхода (19.11.2026) карта игры включается флагом GTA6.map = 'live' (js/config.js, tools/gta6_switch.py) — плитки вышедшей
+// игры с нашего хостинга. «Леонида» остаётся запасной: GTA6.map = 'approx' или ?leonida в адресе (сравнить и откатить без выкладки).
+const LEONIDA = new URLSearchParams(location.search).has('leonida');
+const GAME_MAP = { gta5: true, gta6: GTA6.map === 'live' && !LEONIDA ? true : BETA ? 'approx' : false };
+// игра уже вышла, а точной карты ещё нет — честная подпись «в ближайшие дни» вместо «в день выхода»
+const OUT6 = () => Date.now() >= new Date('2026-11-19T00:00:00').getTime();
+const soon6 = () => w(OUT6() ? 'soon6b' : 'soon6');
 const approx = (g = game) => GAME_MAP[g] === 'approx';
 const tilesGame = () => mode === 'game' && !approx();   // карта игры из плиток: свои зумы (2…8) и игровые координаты
 // категории для игрока (бета): цвет, подпись, что тут делать, какие читы открыть
@@ -114,10 +121,10 @@ function leonidaStyle() {
 }
 const gameStyle = (g) => ({
   version: 8, glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
-  sources: { gtamap: { type: 'raster', tiles: [`https://gtadb-tile.invalid/${g}/{z}/{x}/{y}`], tileSize: 256, minzoom: 2, maxzoom: 8,
-    attribution: 'gtadb.org (CC BY 4.0) · © Rockstar Games' } },
+  sources: { gtamap: { type: 'raster', tiles: [`https://gtadb-tile.invalid/${g}/{z}/{x}/{y}`], tileSize: 256, minzoom: 2, maxzoom: g === 'gta6' ? GTA6.maxz + 2 : 8,
+    attribution: g === 'gta6' ? '© Rockstar Games' : 'gtadb.org (CC BY 4.0) · © Rockstar Games' } },
   layers: [{ id: 'bg', type: 'background', paint: { 'background-color': g === 'gta5' ? '#1b1f23' : '#0e0f12' } },
-    { id: 'gtamap', type: 'raster', source: 'gtamap', paint: { 'raster-fade-duration': 150, ...(g === 'gta6' ? { 'raster-saturation': -1, 'raster-contrast': 0.35, 'raster-brightness-max': 0.42, 'raster-brightness-min': 0.04 } : { 'raster-saturation': -0.6, 'raster-brightness-max': 0.7, 'raster-contrast': 0.15 }) } }],
+    { id: 'gtamap', type: 'raster', source: 'gtamap', paint: { 'raster-fade-duration': 150, ...(g === 'gta6' && /yanis/i.test(GMAP.gta6.set) ? { 'raster-saturation': -1, 'raster-contrast': 0.35, 'raster-brightness-max': 0.42, 'raster-brightness-min': 0.04 } : { 'raster-saturation': -0.6, 'raster-brightness-max': 0.7, 'raster-contrast': 0.15 }) } }],
 });
 const gameStyleFor = (g) => (approx(g) ? leonidaStyle() : gameStyle(g));
 function tileUrl(url) {   // https://gtadb-tile.invalid/gta5/6/40/52 → плитка gtadb z−2 в репозитории на GitHub
@@ -131,7 +138,7 @@ function tileUrl(url) {   // https://gtadb-tile.invalid/gta5/6/40/52 → пли�
 // Фото из жизни (,rl.jpg) там нет — их у себя не храним (часто это кадры Street View), они идут ссылкой на gtadb.
 const ASSETS = 'https://appshalamov.github.io/gta-map-assets/';
 const GTADB_RAW = 'https://raw.githubusercontent.com/rolux/gtadb.org/main/';
-const tileBase = (v) => (v === 5 ? ASSETS : GTADB_RAW);
+const tileBase = (v) => (v === 5 || v === 6 ? ASSETS : GTADB_RAW);   // плитки GTA 6 — только свой хостинг (вышедшая игра)
 // Чистые широкие кадры GTA 6 вместо мелких мутных вырезок gtadb (бета, 16.10.2026; жалоба Игоря на «ужасные фото,
 // как Вашингтон-Бич»): официальные скриншоты и кадры трейлеров на своём хостинге official/6/{Lid}.jpg.
 // SF[Lid] = [x, y, w, h] — где в кадре старая вырезка (доли), собирает build_map.py source_frames. Кадра нет — fitTiny.
@@ -187,6 +194,8 @@ const W = {
   glSrc: { en: 'Coordinates', ru: 'Координаты', es: 'Coordenadas', pt: 'Coordenadas', fr: 'Coordonnées', de: 'Koordinaten', it: 'Coordinate', tr: 'Koordinatlar', uk: 'Координати', pl: 'Współrzędne', zh: '坐标', ja: '座標', ko: '좌표' },
   glSrcAll: { en: 'Coordinate sources', ru: 'Источники координат', es: 'Fuentes de coordenadas', pt: 'Fontes das coordenadas', fr: 'Sources des coordonnées', de: 'Quellen der Koordinaten', it: 'Fonti delle coordinate', tr: 'Koordinat kaynakları', uk: 'Джерела координат', pl: 'Źródła współrzędnych', zh: '坐标来源', ja: '座標の出典', ko: '좌표 출처' },
   soon6: { en: 'The exact spot on the GTA 6 map — on release day, Nov 19', ru: 'Точное место на карте GTA 6 — в день выхода, 19 ноября', es: 'El lugar exacto en el mapa de GTA 6, el día del lanzamiento: 19 de noviembre', pt: 'O local exato no mapa do GTA 6 — no lançamento, 19 de novembro', fr: 'L’endroit exact sur la carte de GTA 6 — à la sortie, le 19 novembre', de: 'Die genaue Stelle auf der GTA-6-Karte — zum Release am 19. November', it: 'Il punto esatto sulla mappa di GTA 6 — all’uscita, il 19 novembre', tr: 'GTA 6 haritasındaki tam yer — çıkış günü, 19 Kasım', uk: 'Точне місце на мапі GTA 6 — у день виходу, 19 листопада', pl: 'Dokładne miejsce na mapie GTA 6 — w dniu premiery, 19 listopada', zh: 'GTA 6 地图上的确切位置——11月19日发售当天公布', ja: 'GTA 6マップでの正確な場所は発売日の11月19日に', ko: 'GTA 6 지도의 정확한 위치는 출시일인 11월 19일에' },
+  soon6b: { en: 'The exact spot on the GTA 6 map — in the coming days after release', ru: 'Точное место на карте GTA 6 — в ближайшие дни после выхода', es: 'El lugar exacto en el mapa de GTA 6, en los próximos días tras el lanzamiento', pt: 'O local exato no mapa do GTA 6 — nos próximos dias após o lançamento', fr: 'L’endroit exact sur la carte de GTA 6 — dans les jours qui suivent la sortie', de: 'Die genaue Stelle auf der GTA-6-Karte — in den Tagen nach dem Release', it: 'Il punto esatto sulla mappa di GTA 6 — nei giorni dopo l’uscita', tr: 'GTA 6 haritasındaki tam yer — çıkıştan sonraki günlerde', uk: 'Точне місце на мапі GTA 6 — найближчими днями після виходу', pl: 'Dokładne miejsce na mapie GTA 6 — w najbliższych dniach po premierze', zh: 'GTA 6 地图上的确切位置——发售后几天内公布', ja: 'GTA 6マップでの正確な場所は発売後数日以内に', ko: 'GTA 6 지도의 정확한 위치는 출시 후 며칠 안에' },
+  approxMapB: { en: '≈ GTA 6 map inspired by Florida · the exact one in the coming days after release', ru: '≈ Карта GTA 6 по мотивам Флориды · точная — в ближайшие дни после выхода', es: '≈ Mapa de GTA 6 inspirado en Florida · el exacto, en los próximos días', pt: '≈ Mapa do GTA 6 inspirado na Flórida · o exato nos próximos dias', fr: '≈ Carte de GTA 6 inspirée de la Floride · la vraie dans les prochains jours', de: '≈ GTA-6-Karte nach Florida · die genaue in den nächsten Tagen', it: '≈ Mappa di GTA 6 ispirata alla Florida · quella esatta nei prossimi giorni', tr: '≈ Florida esinli GTA 6 haritası · kesini önümüzdeki günlerde', uk: '≈ Мапа GTA 6 за мотивами Флориди · точна — найближчими днями', pl: '≈ Mapa GTA 6 na wzór Florydy · dokładna w najbliższych dniach', zh: '≈ 以佛罗里达为原型的 GTA 6 地图 · 精确版将在几天内推出', ja: '≈ フロリダをもとにしたGTA 6マップ · 正確版は数日以内に', ko: '≈ 플로리다 기반 GTA 6 지도 · 정확한 지도는 며칠 안에' },
   approxHere: { en: '≈ approximately here', ru: '≈ примерно здесь', es: '≈ aproximadamente aquí', pt: '≈ aproximadamente aqui', fr: '≈ à peu près ici', de: '≈ ungefähr hier', it: '≈ più o meno qui', tr: '≈ yaklaşık burada', uk: '≈ приблизно тут', pl: '≈ mniej więcej tutaj', zh: '≈ 大致在这里', ja: '≈ だいたいこの辺り', ko: '≈ 대략 여기' },
   nextTo: { en: 'next to', ru: 'рядом', es: 'junto a', pt: 'perto de', fr: 'à côté de', de: 'neben', it: 'accanto a', tr: 'yanında', uk: 'поруч', pl: 'obok', zh: '旁边', ja: '近く', ko: '옆' },
   nearby: { en: 'Nearby', ru: 'Рядом', es: 'Cerca', pt: 'Perto', fr: 'À proximité', de: 'In der Nähe', it: 'Nelle vicinanze', tr: 'Yakında', uk: 'Поруч', pl: 'W pobliżu', zh: '附近', ja: '近く', ko: '근처' },
@@ -501,13 +510,14 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
 // «Где в игре»: плитки карты игры из репозитория gtadb (GTA 5 — спутник, GTA 6 — фанатская карта Леониды «yanis»).
 // Мир игры −16384…16384 единиц; при z=4 одна точка картинки = 2 единицы, плитка 256 px = 512 единиц (~500 м).
 // GTA 5 — набор «radar»: карта из меню паузы игры (тёмная суша, светлые дороги) — просьба Игоря 14.10.2026 «как в GTA».
-const GMAP = { gta5: { v: 5, key: 'V', set: 'radar', z: 4 }, gta6: { v: 6, key: 'VI', set: 'yanis,16', z: 4 } };
+// GTA 6: только набор плиток вышедшей игры с нашего хостинга (GTA6.tiles); фанатская yanis — утечки, не показываем.
+const GMAP = { gta5: { v: 5, key: 'V', set: 'radar', z: 4 }, gta6: { v: 6, key: 'VI', set: /yanis/i.test(GTA6.tiles) ? 'none' : GTA6.tiles, z: Math.min(4, GTA6.maxz) } };
 function gameBlock(gm, addr, region, gid, ref = {}) {
-  if (!GAME_MAP[game]) return `<div class="mp-ingame mp-ig-soon"><span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))}</small><b>${esc(w('soon6'))}</b></span></div>`;
+  if (!GAME_MAP[game]) return `<div class="mp-ingame mp-ig-soon"><span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))}</small><b>${esc(soon6())}</b></span></div>`;
   const at = `data-k="${ref.k || ''}" data-i="${ref.i ?? ''}"`;
   if (approx() && mode !== 'game' && ref.k !== 'd')   // GTA 6 до выхода: место на «Леониде» — по реальным координатам, примерно
     return `<button class="mp-ingame mp-ig-approx" data-mp="ingame" ${at}>
-      <span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))} · ≈</small><b>${esc(tr(GAMES[game].gameCity))}</b><em>${esc(w('soon6'))}</em></span>
+      <span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))} · ≈</small><b>${esc(tr(GAMES[game].gameCity))}</b><em>${esc(soon6())}</em></span>
       <span class="mp-ig-open">${esc(w('showInGame'))}${IC.chevR}</span></button>`;
   if (!gm && !(approx() && mode === 'game')) return '';
   if (mode === 'game') {   // на карте игры — обратный путь: где это в жизни
@@ -1684,9 +1694,9 @@ function renderChips() {
     `<button class="${mode === 'real' ? 'on' : ''}" data-mp="mode" data-v="real" aria-pressed="${mode === 'real'}" title="${esc(w('modeReal'))}: ${esc(tr(G.real))}">${IC.pin}<b>${esc(w('life'))}</b></button>` +
     (GAME_MAP[game]
       ? `<button class="${mode === 'game' ? 'on' : ''}" data-mp="mode" data-v="game" aria-pressed="${mode === 'game'}" title="${esc(w('modeGame'))}: ${esc(tr(G.gameCity))}">${IC.game}<b>${esc(w('inGame'))}${approx() ? ' ≈' : ''}</b></button></div>`
-      : `<button class="mg-soon" disabled title="${esc(w('soon6'))}" aria-label="${esc(w('inGame'))}: ${esc(w('soon6'))}">${IC.game}<b>19.11</b></button></div>`);
+      : `<button class="mg-soon" disabled title="${esc(soon6())}" aria-label="${esc(w('inGame'))}: ${esc(soon6())}">${IC.game}<b>19.11</b></button></div>`);
   const lg = document.getElementById('map-legend');
-  if (lg) { const on = mode === 'game' && approx(); lg.classList.toggle('map-approx', on); lg.innerHTML = on ? `<span>${esc(w('approxMap'))}</span>` : ''; }
+  if (lg) { const on = mode === 'game' && approx(); lg.classList.toggle('map-approx', on); lg.innerHTML = on ? `<span>${esc(w(OUT6() ? 'approxMapB' : 'approxMap'))}</span>` : ''; }
 }
 
 // ───── «Появилось под пальцем» (Игорь 26.10.2026: «карта грузится, я нажимаю на кнопку — и сразу открывается элемент

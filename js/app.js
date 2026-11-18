@@ -340,7 +340,7 @@ function forecastBanner() {
   // дни до выхода — во вкладке мира на Главной; здесь короткая пометка, как на экранах этапа 2
   return `<div class="fc-banner">
     <span class="fc-ic">${I.info}</span>
-    <div class="fc-text"><div class="fc-title">${d > 0 ? t('release_in').replace('{d}', date) : t('released')}</div><div class="fc-sub">${t('forecast_banner')}</div></div>
+    <div class="fc-text"><div class="fc-title">${d > 0 ? t('release_in').replace('{d}', date) : t('released')}</div><div class="fc-sub">${t(d > 0 ? 'forecast_banner' : 'forecast_banner_out')}</div></div>
   </div>`;
 }
 const POPULAR = {

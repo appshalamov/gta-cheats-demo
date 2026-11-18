@@ -1,0 +1,9 @@
+{
+ "codes": "forecast",
+ "map": "approx",
+ "tiles": "release",
+ "maxz": 4,
+ "coords": null,
+ "updated": "2026-11-18",
+ "note": "Пишет только tools/gta6_switch.py. codes/map/tiles/maxz повторены в js/config.js (GTA6)."
+}
