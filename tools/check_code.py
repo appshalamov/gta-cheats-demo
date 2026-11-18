@@ -262,6 +262,12 @@ else:
         for _c in _d6["cheats"]:
             if _c.get("status") == "live" and len({s.get("site") for s in _c.get("sources") or []}) < 2:
                 g6_bad.append(f"data/gta6.json {_c['id']}: меньше двух источников")
+#     id кодов GTA 6 в коде (POPULAR и др.) есть в data/gta6.json — 18.11.2026 после смены прогноза на настоящие коды «Популярные» опустели
+_ids6 = {c["id"] for c in json.loads((ROOT / "data" / "gta6.json").read_text("utf-8"))["cheats"]}
+for _f in sorted((ROOT / "js").glob("*.js")):
+    if _f.name.startswith("._"): continue
+    for _x in sorted(set(re.findall(r"'(g6_\w+)'", _f.read_text("utf-8"))) - _ids6):
+        g6_bad.append(f"{_f.name}: код {_x} есть в коде, но нет в data/gta6.json")
 _mp = (ROOT / "js" / "map.js").read_text("utf-8")
 if re.search(r"set: '[^']*yanis", _mp):
     g6_bad.append("js/map.js: набор плиток yanis прописан в GMAP")
