@@ -242,4 +242,32 @@ for f in sorted((ROOT / "js").glob("*.js")):
             _sub.append(f"{f.name}:{i}")
 if _sub:
     print("СТОП: список подпапок сайта вне js/config.js (SITE_ROOT):", ", ".join(_sub[:6])); sys.exit(1)
+# 14. GTA 6 после выхода (18.11.2026): реальные коды и карта — только через tools/gta6_switch.py, без утечек.
+#     config.js GTA6 совпадает с tools/gta6_release.json; карта игры GTA 6 не берёт набор yanis (фанатская карта по утечкам);
+#     при codes 'live' в data/gta6.json только проверенные коды, у каждого ≥ 2 источника с разных сайтов.
+g6_bad = []
+_cfg = (ROOT / "js" / "config.js").read_text("utf-8")
+_g6 = re.search(r"^export const GTA6 = \{ codes: '(\w+)', map: '(\w+)', tiles: '([^']*)', maxz: (\d+) \};$", _cfg, re.M)
+_rel_f = ROOT / "tools" / "gta6_release.json"
+if not _g6 or not _rel_f.exists():
+    g6_bad.append("нет строки GTA6 в js/config.js или tools/gta6_release.json")
+else:
+    _rel = json.loads(_rel_f.read_text("utf-8"))
+    if (_g6.group(1), _g6.group(2), _g6.group(3), int(_g6.group(4))) != (_rel["codes"], _rel["map"], _rel["tiles"], int(_rel["maxz"])):
+        g6_bad.append("js/config.js GTA6 ≠ tools/gta6_release.json — менять только tools/gta6_switch.py")
+    if "yanis" in _g6.group(3).lower():
+        g6_bad.append("GTA6.tiles = yanis — карта по утечкам")
+    if _g6.group(1) == "live":
+        _d6 = json.loads((ROOT / "data" / "gta6.json").read_text("utf-8"))
+        for _c in _d6["cheats"]:
+            if _c.get("status") == "live" and len({s.get("site") for s in _c.get("sources") or []}) < 2:
+                g6_bad.append(f"data/gta6.json {_c['id']}: меньше двух источников")
+_mp = (ROOT / "js" / "map.js").read_text("utf-8")
+if re.search(r"set: '[^']*yanis", _mp):
+    g6_bad.append("js/map.js: набор плиток yanis прописан в GMAP")
+if g6_bad:
+    print("СТОП: GTA 6 — реальные данные:")
+    for b in g6_bad:
+        print("  ✗", b)
+    sys.exit(1)
 print("правила кода: ок")
