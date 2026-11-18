@@ -1,7 +1,7 @@
 {
  "game": "gta6",
- "source": "Проверенные коды GTA 6 (PS5, Xbox Series X|S): каждый — минимум по двум независимым источникам, 2026-11-18.",
- "updated": "2026-11-18",
+ "source": "Проверенные коды GTA 6 (PS5, Xbox Series X|S): каждый — минимум по двум независимым источникам, 2026-11-19.",
+ "updated": "2026-11-19",
  "confidenceLabels": {
   "high": [
    "Высокая",
@@ -405,6 +405,66 @@
    "sources": [
     {
      "site": "gamespot.com",
+     "date": "2026-11-18"
+    },
+    {
+     "site": "powerpyx.com",
+     "date": "2026-11-18"
+    }
+   ]
+  },
+  {
+   "id": "g6_attack_force",
+   "category": "weapon",
+   "icon": "👊",
+   "name": {
+    "ru": "Ударная сила",
+    "en": "Attack Force"
+   },
+   "desc": {
+    "ru": "Пули и удары в ближнем бою отбрасывают цели.",
+    "en": "Bullets and melee attacks launch targets on impact."
+   },
+   "note": {
+    "ru": "Открывается: пройти сюжет. Ввод: ↑ — телефон, зажать L1+R1 (Xbox: LB+RB), набрать стрелки. С читом нельзя сохраниться, трофеи выключаются. У GameSpot в коде 8 стрелок (пропущена одна ←) — верный вариант из 9.",
+    "en": "Unlock: finish the story. Entry: ↑ for the phone, hold L1+R1 (Xbox: LB+RB), then the arrows. Cheats disable saving and trophies. GameSpot lists 8 arrows (one ← missing) — the correct code has 9."
+   },
+   "pro": true,
+   "status": "live",
+   "codes": {
+    "playstation": [
+     "↓",
+     "↑",
+     "←",
+     "←",
+     "→",
+     "↓",
+     "↓",
+     "↑",
+     "↓"
+    ],
+    "xbox": [
+     "↓",
+     "↑",
+     "←",
+     "←",
+     "→",
+     "↓",
+     "↓",
+     "↑",
+     "↓"
+    ],
+    "pc": null,
+    "phone": null
+   },
+   "media": null,
+   "sources": [
+    {
+     "site": "rockpapershotgun.com",
+     "date": "2026-11-18"
+    },
+    {
+     "site": "insider-gaming.com",
      "date": "2026-11-18"
     },
     {
