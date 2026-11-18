@@ -39,7 +39,8 @@ export const GAMES = [
   {
     id: 'gta6', title: 'GTA 6', header: { ru: 'Коды GTA 6', en: 'GTA 6 codes' },
     status: GTA6.codes === 'live' ? 'live' : 'forecast', release: '2026-11-19',
-    platforms: ['playstation', 'xbox', 'phone', 'pc'],
+    // у GTA 6 нет номеров для телефона: читы вводятся стрелками через телефон (18.11.2026) — платформа «Телефон» только у прогноза
+    platforms: GTA6.codes === 'live' ? ['playstation', 'xbox', 'pc'] : ['playstation', 'xbox', 'phone', 'pc'],
     platformNote: {
       playstation: { ru: 'PS5', en: 'PS5' },
       xbox: { ru: 'Series X|S', en: 'Series X|S' },
