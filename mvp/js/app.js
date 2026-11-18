@@ -2,7 +2,7 @@
 // Архитектура как у Cheats Pro: онбординг (игра → платформа) → пейвол →
 // 4 вкладки (Главная / Поиск / Избранное / Настройки) → шторка чита.
 
-import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN_ART, MVP } from './config.js';
+import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN_ART, MVP, GTA6 } from './config.js';
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
 import { I, platformIcon, comboHTML, btn } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
@@ -346,12 +346,12 @@ function forecastBanner() {
   // дни до выхода — во вкладке мира на Главной; здесь короткая пометка, как на экранах этапа 2
   return `<div class="fc-banner">
     <span class="fc-ic">${I.info}</span>
-    <div class="fc-text"><div class="fc-title">${d > 0 ? t('release_in').replace('{d}', date) : t('released')}</div><div class="fc-sub">${t('forecast_banner')}</div></div>
+    <div class="fc-text"><div class="fc-title">${d > 0 ? t('release_in').replace('{d}', date) : t('released')}</div><div class="fc-sub">${t(d > 0 ? 'forecast_banner' : 'forecast_banner_out')}</div></div>
   </div>`;
 }
 const POPULAR = {
   gta5: ['invincible', 'weapons', 'health', 'wanted_down', 'buzzard', 'superjump', 'sanchez', 'weather'],
-  gta6: ['g6_invincible', 'g6_weapons', 'g6_health', 'g6_wanted_down', 'g6_v_heli', 'g6_superjump', 'g6_v_super', 'g6_weather'],
+  gta6: ['g6_money', 'g6_armor', 'g6_max_ammo', 'g6_weather', 'g6_inf_ammo', 'g6_boomazoom', 'g6_focus', 'g6_no_reload'],   // настоящие коды GTA 6 (18.11.2026)
 };
 const liveGames = () => GAMES.filter((g) => g.status !== 'soon');
 const mapPlaceName = (gid) => ({ gta6: t('place_gta6'), gta5: t('place_gta5') }[gid] || '');
@@ -975,7 +975,10 @@ function openCheat(id) {
     ${others ? `<details class="d-other"><summary><span>${t('other_platforms')}</span>${I.chevron}</summary><div class="plat-list">${others}</div></details>` : ''}
   `, 'sheet-detail');
 }
-function howto(p) { return t({ playstation: 'howto_ps', xbox: 'howto_xbox', pc: 'howto_pc', phone: 'howto_phone' }[p]); }
+function howto(p) {   // GTA 6: телефон (↑) + зажать L1+R1 / LB+RB + стрелки, только после сюжета (18.11.2026)
+  if (store.game === 'gta6' && GTA6.codes === 'live' && (p === 'playstation' || p === 'xbox')) return t(p === 'xbox' ? 'howto6_xbox' : 'howto6_ps');
+  return t({ playstation: 'howto_ps', xbox: 'howto_xbox', pc: 'howto_pc', phone: 'howto_phone' }[p]);
+}
 
 // Озвучка кода с подсветкой кнопок
 function speechItems(c) {

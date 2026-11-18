@@ -37,27 +37,31 @@ export async function findByKey(key) {
 
 // ── подписи ──
 export const CAT_LABELS = {
-  building: { ru: 'Здания', en: 'Buildings', icon: '🏢' },
-  neighborhood: { ru: 'Районы', en: 'Neighborhoods', icon: '🏘️' },
-  business: { ru: 'Заведения', en: 'Businesses', icon: '🛍️' },
-  landmark: { ru: 'Достопримечательности', en: 'Landmarks', icon: '🗽' },
-  bridge: { ru: 'Мосты', en: 'Bridges', icon: '🌉' },
-  venue: { ru: 'Арены и клубы', en: 'Venues', icon: '🏟️' },
-  infrastructure: { ru: 'Транспорт и инфраструктура', en: 'Infrastructure', icon: '🛣️' },
-  nature: { ru: 'Природа', en: 'Nature', icon: '🌴' },
-  street: { ru: 'Улицы', en: 'Streets', icon: '🛤️' },
-  park: { ru: 'Парки', en: 'Parks', icon: '🌳' },
-  beach: { ru: 'Пляжи', en: 'Beaches', icon: '🏖️' },
-  sign: { ru: 'Вывески', en: 'Signs', icon: '🪧' },
+  building: { ru: 'Здания', en: 'Buildings', icon: 'plBuilding' },
+  neighborhood: { ru: 'Районы', en: 'Neighborhoods', icon: 'plHood' },
+  business: { ru: 'Заведения', en: 'Businesses', icon: 'plStore' },
+  landmark: { ru: 'Достопримечательности', en: 'Landmarks', icon: 'plLandmark' },
+  bridge: { ru: 'Мосты', en: 'Bridges', icon: 'plBridge' },
+  venue: { ru: 'Арены и клубы', en: 'Venues', icon: 'plVenue' },
+  infrastructure: { ru: 'Транспорт и инфраструктура', en: 'Infrastructure', icon: 'plRoad' },
+  nature: { ru: 'Природа', en: 'Nature', icon: 'plNature' },
+  street: { ru: 'Улицы', en: 'Streets', icon: 'plStreet' },
+  park: { ru: 'Парки', en: 'Parks', icon: 'plPark' },
+  beach: { ru: 'Пляжи', en: 'Beaches', icon: 'plBeach' },
+  sign: { ru: 'Вывески', en: 'Signs', icon: 'plSign' },
 };
 export const catLabel = (c) => (CAT_LABELS[c] ? L(CAT_LABELS[c]) : c || '');
-export const catIcon = (c) => CAT_LABELS[c]?.icon || '📍';
+export const catIcon = (c) => CAT_LABELS[c]?.icon || 'pin'; // id значка из I (js/icons.js)
 export const CONF = ['confirmed', 'likely', 'speculative'];
 
 export const titleOf = (o) => (o.kind === 'egg' ? L(o.t) : o.g || '');
 // у пасхалки место в жизни — первая часть адреса без пояснений («Piru United Methodist Church — прообраз …», «(Оаху)»):
 // пояснения в данных по-русски и с игровыми названиями (тест 21.10.2026: русский текст на Главной в английском интерфейсе)
 export const realOf = (o) => (o.kind === 'egg' ? (o.p || '').split(',')[0].split(' — ')[0].replace(/\s*\([^)]*[А-Яа-яЁё][^)]*\)/g, '').trim() : o.n || '');
+// Решение Игоря №15: на карточках мест (Главная, Поиск, Избранное) крупно — настоящее место, как в карточке карты
+// (map.js realShort: до первой запятой или скобки); игровое название не показываем. Мелко — адрес (место) или город (пасхалка).
+export const realName = (o) => { const r = realOf(o); return (o.kind === 'egg' ? r : r.split(/,| \(/)[0].trim()) || r || catLabel(o.c); };
+export const realSub = (o) => (o.kind === 'egg' ? cityOf(o) : o.a || cityOf(o));
 export function cityOf(o) {
   const parts = String(o.kind === 'egg' ? o.p : o.a || '').split(',').map((s) => s.trim()).filter(Boolean);
   const st = parts.findIndex((s) => /^(FL|CA)\b/.test(s));

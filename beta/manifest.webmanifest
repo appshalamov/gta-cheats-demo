@@ -1,14 +1,14 @@
 {
-  "name": "Secret Base β — Cheats & Codes GTA 6",
+  "name": "Secret Base: карта и чит-коды",
   "short_name": "Secret Base β",
-  "description": "Чит-коды GTA 5 и прогноз GTA 6 для PlayStation, Xbox, ПК и телефона в игре",
+  "description": "Места из игр в реальной жизни и чит-коды для PlayStation, Xbox и ПК. Неофициальное приложение.",
   "lang": "ru",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#101013",
-  "theme_color": "#000000",
+  "background_color": "#1c1b20",
+  "theme_color": "#1c1b20",
   "categories": [
     "games",
     "reference"
@@ -29,6 +29,11 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
     }
   ],
   "id": "./"
