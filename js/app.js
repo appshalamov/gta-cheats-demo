@@ -917,7 +917,8 @@ function openCheat(id) {
   // прогноз: пометка из данных одной строкой; если пометки нет — только плашка «Прогноз»
   const note = c.note ? esc(L(c.note)) : c.status === 'forecast' ? `<span class="badge badge-fc">${t('forecast')}</span>` : '';
   // как вводить — одна короткая строка под кнопками (полный текст — Настройки, «Как вводить коды»)
-  const how = { combo: 'how_ps', pc: 'how_pc', phone: 'how_phone' }[pass.shown];
+  // GTA 6: не «нажмите во время игры», а телефон (↑) + L1+R1 / LB+RB + стрелки (18.11.2026)
+  const how = { combo: store.game === 'gta6' && GTA6.codes === 'live' ? 'how6' : 'how_ps', pc: 'how_pc', phone: 'how_phone' }[pass.shown];
   openSheet(`
     <div class="d-head">
       <h2><span class="d-emoji">${cheatIc(c)}</span>${esc(L(c.name))}</h2>
