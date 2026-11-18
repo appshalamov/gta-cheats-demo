@@ -116,7 +116,12 @@ def cmd_ctrl():
         px, py = p["img"]
         p["g"] = (meta["x0"] + px * meta["k"], meta["ytop"] - py * meta["k"])
     # перекрёстная проверка: убираем точку и предсказываем её по остальным
-    err = sorted(math.hypot(*(a - b for a, b in zip(idw(pts, *p["real"], skip=i), p["g"]))) for i, p in enumerate(pts))
+    sys.path.insert(0, str(ROOT / "tools"))
+    from build_map import local_affine   # то же местное аффинное, что ставит места в build_map.py
+    def pred(i):
+        rest = [(q["real"], q["g"]) for j, q in enumerate(pts) if j != i]
+        return local_affine(rest, *pts[i]["real"]) or idw(pts, *pts[i]["real"], skip=i)
+    err = sorted(math.hypot(*(a - b for a, b in zip(pred(i), p["g"]))) for i, p in enumerate(pts))
     lm = {f"R{i + 1}": [p["name"], [round(p["g"][0], 1), round(p["g"][1], 1)], None, p.get("addr") or p["name"],
                         list(p["real"]), None, [], f"r{i + 1}"] for i, p in enumerate(pts)}
     LM_OUT.parent.mkdir(parents=True, exist_ok=True)

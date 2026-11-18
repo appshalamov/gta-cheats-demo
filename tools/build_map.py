@@ -163,6 +163,38 @@ GAME_COORDS = {"gta5": True, "gta6": _REL.get("map") == "live" and _REL.get("coo
 GTA6_OWN_LM = pathlib.Path(os.environ.get("GTA6_LM") or DATA / "gta6_релиз" / "landmarks_gta6_release.json")
 
 
+def local_affine(pairs, lat, lon, k=8):
+    """Игровые [x, y] по k ближайшим опорным парам ((lat, lon), (gx, gy)): взвешенный МНК gx = a·lon + b·lat + c.
+    None — если опор мало или они на одной линии."""
+    near = sorted(pairs, key=lambda p: meters((lat, lon), (p[0][0], p[0][1])))[:k]
+    if len(near) < 3:
+        return None
+    out = []
+    for j in (0, 1):
+        A = [[0.0] * 3 for _ in range(3)]
+        bv = [0.0] * 3
+        for rl, ig in near:
+            w = 1 / max(meters((lat, lon), (rl[0], rl[1])), 500)
+            r = (rl[1], rl[0], 1.0)
+            for a in range(3):
+                bv[a] += w * r[a] * ig[j]
+                for b in range(3):
+                    A[a][b] += w * r[a] * r[b]
+        det = (A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) - A[0][1] * (A[1][0] * A[2][2] - A[1][2] * A[2][0])
+               + A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]))
+        if abs(det) < 1e-12:
+            return None
+        def col(i):
+            M = [row[:] for row in A]
+            for r_ in range(3):
+                M[r_][i] = bv[r_]
+            return (M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1]) - M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0])
+                    + M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0])) / det
+        a_, b_, c_ = col(0), col(1), col(2)
+        out.append(round(a_ * lon + b_ * lat + c_, 1))
+    return out
+
+
 def attach_ingame(game, cfg, places, eggs, pts):
     """«Где в игре» (просьба Игоря 14.10.2026: «как это в GTA найти»): координаты места на карте игры.
     gm = [x, y, точность]: 0 — своя точка gtadb, 1 — соседняя пара gtadb, 2 — оценка по 6 ближайшим опорным точкам
@@ -183,6 +215,12 @@ def attach_ingame(game, cfg, places, eggs, pts):
         near = sorted(((meters((lat, lon), (rl[0], rl[1])), ig) for _, ig, rl in ctrl), key=lambda t: t[0])[:6]
         ws = [1 / max(d, 50) ** 2 for d, _ in near]
         return [round(sum(w * ig[0] for w, (_, ig) in zip(ws, near)) / sum(ws), 1), round(sum(w * ig[1] for w, (_, ig) in zip(ws, near)) / sum(ws), 1)]
+    if game == "gta6" and _REL.get("coords") == "own":
+        # своя карта: опорных точек десятки, а не тысячи — IDW тянет место к ближайшей опоре; местное аффинное по 8 ближайшим
+        _idw = est
+        def est(lat, lon):
+            g = local_affine([(rl, ig) for _, ig, rl in ctrl], lat, lon)
+            return g or _idw(lat, lon)
     def gid_of(x):
         for pr in x.get("pairs") or []:
             m = re.search(r"/(L\d+),ig\.jpg", pr["g"]["url"])
