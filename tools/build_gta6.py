@@ -53,6 +53,10 @@ def forecast(src, conf):
 
 
 def main():
+    # 18.11.2026: в data/gta6.json настоящие коды (tools/import_gta6_codes.py). Прогноз поверх них — только после отката рубильника.
+    rel = ROOT / "tools" / "gta6_release.json"
+    if rel.exists() and json.loads(rel.read_text("utf-8")).get("codes") == "live":
+        raise SystemExit("СТОП: коды GTA 6 настоящие (gta6_release.json codes=live). Откат — python3 tools/gta6_switch.py --codes forecast")
     out = []
     for cid, conf in CARRY:
         s = gta5[cid]
