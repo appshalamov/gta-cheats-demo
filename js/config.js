@@ -34,7 +34,7 @@ export const PLATFORMS = {
 //   map:   'approx' — своя карта «Леонида» по Флориде; 'live' — плитки карты вышедшей игры с нашего хостинга gta-map-assets
 //          (tools/import_gta6_map.py), места по игровым координатам. «Леонида» остаётся запасной: ?leonida в адресе.
 //   tiles / maxz — набор плиток maps/tiles/6/<tiles>/ на хостинге и его последний зум (зум gtadb). Утечки (yanis) — никогда.
-export const GTA6 = { codes: 'forecast', map: 'approx', tiles: 'release', maxz: 4 };
+export const GTA6 = { codes: 'live', map: 'approx', tiles: 'release', maxz: 4 };
 export const GAMES = [
   {
     id: 'gta6', title: 'GTA 6', header: { ru: 'Коды GTA 6', en: 'GTA 6 codes' },
