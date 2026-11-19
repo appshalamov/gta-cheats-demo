@@ -66,7 +66,10 @@ function setProfile(P) { acc.P = P || null; onAccess(); }
 const workUntil = () => until(acc.P?.work_pro_until || (acc.P?.pro_kind === 'work' ? acc.P?.pro_until : null));
 const paidUntil = () => (acc.P?.pro_kind === 'work' ? 0 : until(acc.P?.pro_until));
 // с оплатой (PAY.api) Pro — только ответ сервера (js/pay.js); store.pro — демо-покупка, пока оплаты нет
-const demoPro = () => !pay.enabled() && !!store.pro;
+// демо-покупка (Pro без оплаты) — только на localhost, в «демо для съёмки» (sb.demo) и у тестов (sb.demopay). В проде, пока
+// оплата не включена для всех, «Оформить» Pro не даёт (Игорь 19.11.2026: «пропустило в карту без оплаты»)
+const demoPay = () => { try { return /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || localStorage.getItem('sb.demopay') === '1' || localStorage.getItem('sb.demo') === '1'; } catch { return false; } };
+const demoPro = () => !pay.enabled() && demoPay() && !!store.pro;
 function hasPro() { const now = Date.now(); return demoPro() || pay.proActive() || paidUntil() > now || workUntil() > now; }
 function proKind() {
   const now = Date.now();
@@ -1135,7 +1138,7 @@ function paywallPanel(st) {
     ${buy}
     <div class="pw-links"><button data-action="${pay.enabled() ? 'restore' : 'buy'}">${t('pw_restore')}</button><a href="terms.html">${t('pw_terms')}</a><a href="privacy.html">${t('pw_privacy')}</a></div>
     <p class="pw-fine">${t(st === 'nopay' ? 'pw_fine_np' : 'pw_fine')}</p>
-    ${pay.enabled() ? (pay.isTest() ? `<p class="pw-demo">${t('pw_test')}</p>` : '') : `<p class="pw-demo">${t('pw_demo')}</p>`}`;
+    ${pay.enabled() ? (pay.isTest() ? `<p class="pw-demo">${t('pw_test')}</p>` : '') : (demoPay() ? `<p class="pw-demo">${t('pw_demo')}</p>` : '')}`;
 }
 // вещь из ссылки — стеклянная карточка наверху, видна и без Pro (тап — это место)
 async function pwThing(pw) {
@@ -1403,6 +1406,7 @@ document.addEventListener('click', async (e) => {
     case 'plan': plan = v; haptic(); openPaywall(pwSt); $('#paywall .pw-close').classList.add('show'); break;
     case 'buy':
       haptic();
+      if (!pay.enabled() && !demoPay()) { toast(t('pay_soon')); break; }
       if (!pay.enabled()) { demoBuy(); closePaywall(); toast(t('pro_unlocked')); onAccess(); renderAll(); break; }
       el.disabled = true; toast(t(pay.signedIn() ? 'pay_open' : 'acct_open'));
       pay.checkout(plan).catch((e) => { el.disabled = false; toast(t(e.code === 'nopay' ? 'pay_nopay' : 'pay_err_net')); });

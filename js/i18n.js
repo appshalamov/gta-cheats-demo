@@ -83,7 +83,7 @@ const T = {
     acct_pair_code: 'Код {c} — введите на другом устройстве в течение 10 минут', acct_code_ask: 'Код из 6 цифр с устройства, где вы уже вошли',
     acct_code_slow: 'Слишком много попыток. Подождите 10 минут', acct_code_bad: 'Код не подошёл или устарел', acct_hi: 'Вы вошли: {e}', acct_bye: 'Вы вышли из аккаунта', acct_cancel: 'Вход отменён. Оформить Pro можно в любой момент', acct_err: 'Не получилось войти через Google. Попробуйте ещё раз',
     pw_restore: 'Восстановить покупку', pw_terms: 'Условия', pw_privacy: 'Конфиденциальность',
-    pw_demo: 'Демо-версия: оплата не списывается.', pro_unlocked: 'Pro открыт (демо)',
+    pw_demo: 'Демо-версия: оплата не списывается.', pro_unlocked: 'Pro открыт (демо)', pay_soon: 'Оплата подключается — откроется в ближайшие дни',
     // пробный доступ 72 часа (31 §4.2), код после пробного и карта без Pro (концепт v11: codelock, map:trial)
     trial_left: 'Пробный доступ: ещё {t}', trial_h: 'ч', trial_m: 'мин', gift_home: 'Подарок от @{n}: +30 дней к первой покупке',
     cl_lock: 'Комбинация — в Pro', cl_trial: 'Пробные 3 дня закончились', cl_work: 'Рабочий Pro закончился', open_pro: 'Открыть Pro', saved: 'Сохранено',
@@ -180,7 +180,7 @@ const T = {
     acct_pair_code: 'Code {c}: enter it on the other device within 10 minutes', acct_code_ask: 'The 6-digit code from a device where you are signed in',
     acct_code_slow: 'Too many attempts. Wait 10 minutes', acct_code_bad: 'The code is wrong or expired', acct_hi: 'Signed in as {e}', acct_bye: 'Signed out', acct_cancel: 'Sign-in cancelled. You can get Pro any time', acct_err: "Couldn't sign in with Google. Try again",
     pw_restore: 'Restore purchase', pw_terms: 'Terms', pw_privacy: 'Privacy',
-    pw_demo: 'Demo build: no payment is taken.', pro_unlocked: 'Pro unlocked (demo)',
+    pw_demo: 'Demo build: no payment is taken.', pro_unlocked: 'Pro unlocked (demo)', pay_soon: 'Payments are being set up — available in a few days',
     trial_left: 'Trial access: {t} left', trial_h: 'h', trial_m: 'min', gift_home: 'A gift from @{n}: +30 days on your first purchase',
     cl_lock: 'The combination is in Pro', cl_trial: 'Your 3-day trial has ended', cl_work: 'Your working Pro has ended', open_pro: 'Get Pro', saved: 'Saved',
     map10: '10-second preview, then the map is in Pro', map_locked: 'The map is in Pro',
