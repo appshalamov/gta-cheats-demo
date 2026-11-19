@@ -1419,7 +1419,7 @@ document.addEventListener('click', async (e) => {
     case 'acct-pair': haptic(); pay.pairCode().then((c) => toast(tf('acct_pair_code', { c: c.slice(0, 3) + ' ' + c.slice(3) }))).catch(() => toast(t('pay_err_net'))); break;
     case 'acct-code': {   // вход кодом с устройства, где уже вошли (например, вход прошёл в Safari, а приложение — на экране Домой)
       haptic(); const c = (prompt(t('acct_code_ask')) || '').replace(/\D/g, '');
-      if (c.length === 6) pay.redeem(c).then(() => { onAccess(); renderAll(); toast(tf('acct_hi', { e: pay.user()?.email || '' })); }).catch(() => toast(t('acct_code_bad')));
+      if (c.length === 6) pay.redeem(c).then(() => { onAccess(); renderAll(); toast(tf('acct_hi', { e: pay.user()?.email || '' })); }).catch((e) => toast(t(e.status === 429 ? 'acct_code_slow' : 'acct_code_bad')));
       break;
     }
     case 'pw-close': closePaywall(); break;
@@ -1469,6 +1469,7 @@ function payToast(R) {
   if (R.portal) { toast(t(pay.proActive() ? (pay.pro()?.cancel ? 'pay_portal_end' : 'pay_portal') : 'pay_portal_off')); return; }
   if (R.login === 'ok') toast(pay.proActive() ? t('pay_restored') : tf('acct_hi', { e: pay.user()?.email || '' }));
   else if (R.login === 'error') toast(t('acct_err'));
+  else if (R.login === 'cancel') toast(t('acct_cancel'));
 }
 // вернулись в приложение (портал в другой вкладке, долгий фон) — свежий статус Pro
 document.addEventListener('visibilitychange', () => {

@@ -59,3 +59,7 @@ CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY, type TEXT, created INTEG
 
 -- настройки, которые Worker создал сам в Stripe (секрет вебхука, конфигурация портала)
 CREATE TABLE IF NOT EXISTS config (k TEXT PRIMARY KEY, v TEXT NOT NULL);
+
+-- неудачные попытки ввода кода с другого устройства (защита от подбора): ключ 'pair:<ip>' и 'pair:all'
+CREATE TABLE IF NOT EXISTS fails (k TEXT NOT NULL, at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS fails_k_at ON fails(k, at);

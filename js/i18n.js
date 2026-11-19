@@ -81,7 +81,7 @@ const T = {
     acct_open: 'Открываем вход через Google…', acct_in: 'Войти через Google', acct_code: 'Войти кодом с другого устройства', acct_google: 'Google',
     acct_portal: 'Управлять подпиской', acct_cancelled: 'до {d}', acct_pair: 'Код для входа на другом устройстве', acct_out: 'Выйти из аккаунта',
     acct_pair_code: 'Код {c} — введите на другом устройстве в течение 10 минут', acct_code_ask: 'Код из 6 цифр с устройства, где вы уже вошли',
-    acct_code_bad: 'Код не подошёл или устарел', acct_hi: 'Вы вошли: {e}', acct_bye: 'Вы вышли из аккаунта', acct_err: 'Не получилось войти через Google. Попробуйте ещё раз',
+    acct_code_slow: 'Слишком много попыток. Подождите 10 минут', acct_code_bad: 'Код не подошёл или устарел', acct_hi: 'Вы вошли: {e}', acct_bye: 'Вы вышли из аккаунта', acct_cancel: 'Вход отменён. Оформить Pro можно в любой момент', acct_err: 'Не получилось войти через Google. Попробуйте ещё раз',
     pw_restore: 'Восстановить покупку', pw_terms: 'Условия', pw_privacy: 'Конфиденциальность',
     pw_demo: 'Демо-версия: оплата не списывается.', pro_unlocked: 'Pro открыт (демо)',
     // пробный доступ 72 часа (31 §4.2), код после пробного и карта без Pro (концепт v11: codelock, map:trial)
@@ -178,7 +178,7 @@ const T = {
     acct_open: 'Opening Google sign-in…', acct_in: 'Sign in with Google', acct_code: 'Sign in with a code from another device', acct_google: 'Google',
     acct_portal: 'Manage subscription', acct_cancelled: 'until {d}', acct_pair: 'Code to sign in on another device', acct_out: 'Sign out',
     acct_pair_code: 'Code {c}: enter it on the other device within 10 minutes', acct_code_ask: 'The 6-digit code from a device where you are signed in',
-    acct_code_bad: 'The code is wrong or expired', acct_hi: 'Signed in as {e}', acct_bye: 'Signed out', acct_err: "Couldn't sign in with Google. Try again",
+    acct_code_slow: 'Too many attempts. Wait 10 minutes', acct_code_bad: 'The code is wrong or expired', acct_hi: 'Signed in as {e}', acct_bye: 'Signed out', acct_cancel: 'Sign-in cancelled. You can get Pro any time', acct_err: "Couldn't sign in with Google. Try again",
     pw_restore: 'Restore purchase', pw_terms: 'Terms', pw_privacy: 'Privacy',
     pw_demo: 'Demo build: no payment is taken.', pro_unlocked: 'Pro unlocked (demo)',
     trial_left: 'Trial access: {t} left', trial_h: 'h', trial_m: 'min', gift_home: 'A gift from @{n}: +30 days on your first purchase',

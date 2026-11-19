@@ -228,6 +228,22 @@ async function verifyStripe(env, raw, header) {
   const sig = hex(await crypto.subtle.sign('HMAC', key, ENC.encode(`${t}.${raw}`)));
   return v1.some((s) => safeEq(s, sig));
 }
+// полный возврат: пропуск — снять сразу; подписка — отменить в Stripe (без новых списаний) и снять Pro сразу
+async function refunded(env, ch) {
+  const pi = ch.payment_intent, t = now();
+  const pass = await env.DB.prepare("UPDATE ents SET status = 'refunded', until = ?, updated = ? WHERE id = ? RETURNING id").bind(t, t, pi).first();
+  if (pass) return;
+  let subId = null;
+  try {   // новый API: платёж → invoice_payment → счёт → подписка
+    const ip = await stripe(env, 'GET', '/v1/invoice_payments', { payment: { type: 'payment_intent', payment_intent: pi }, limit: 1 });
+    const invId = ip.data?.[0]?.invoice;
+    if (invId) { const inv = await stripe(env, 'GET', '/v1/invoices/' + invId); subId = inv.parent?.subscription_details?.subscription || inv.subscription || null; }
+  } catch { }
+  if (!subId && ch.invoice) { const inv = await stripe(env, 'GET', '/v1/invoices/' + ch.invoice).catch(() => null); subId = inv?.subscription || inv?.parent?.subscription_details?.subscription || null; }
+  if (!subId) return;
+  await env.DB.prepare("UPDATE ents SET status = 'refunded', until = ?, updated = ? WHERE id = ?").bind(t, t, subId).run();
+  await stripe(env, 'DELETE', '/v1/subscriptions/' + subId).catch(() => { });   // уже отменена — не страшно
+}
 async function webhook(env, req) {
   const raw = await req.text();
   if (!(await verifyStripe(env, raw, req.headers.get('Stripe-Signature')))) return json({ error: 'signature' }, 400);
@@ -238,7 +254,7 @@ async function webhook(env, req) {
   try {
     if (ev.type.startsWith('checkout.session.')) await saveCheckout(env, o);
     else if (ev.type.startsWith('customer.subscription.')) await saveSub(env, await stripe(env, 'GET', '/v1/subscriptions/' + o.id).catch(() => o));   // свежая версия: события приходят не по порядку
-    else if (ev.type === 'charge.refunded' && o.payment_intent) await env.DB.prepare("UPDATE ents SET status = 'refunded', until = ?, updated = ? WHERE id = ?").bind(now(), now(), o.payment_intent).run();
+    else if (ev.type === 'charge.refunded' && o.payment_intent && o.refunded) await refunded(env, o);   // только полный возврат; частичный Pro не снимает
   } catch (e) {
     await env.DB.prepare('DELETE FROM events WHERE id = ?').bind(ev.id).run();   // Stripe повторит
     throw e;
@@ -319,9 +335,20 @@ async function route(env, req) {
     return json({ code, expires: now() + 10 * 60e3 });
   }
   if (p === '/auth/pair/redeem' && M === 'POST') {
+    // защита от подбора 6 цифр: 10 попыток в минуту с адреса и 100 в минуту на всех (Cloudflare Rate Limiting)
+    const ip = req.headers.get('CF-Connecting-IP') || 'x';
+    for (const [rl, key] of [[env.RL_IP, 'pair:' + ip], [env.RL_ALL, 'pair:all']]) if (rl && !(await rl.limit({ key })).success) throw new HttpError(429, 'slow_down');
+    const since = now() - 10 * 60e3;
+    const cnt = async (k) => (await env.DB.prepare('SELECT COUNT(*) n FROM fails WHERE k = ? AND at > ?').bind(k, since).first())?.n || 0;
+    if ((await cnt('pair:' + ip)) >= 20 || (await cnt('pair:all')) >= 300) throw new HttpError(429, 'slow_down');
     const b = await body(); const code = String(b.code || '').replace(/\D/g, '');
-    if (code.length !== 6) throw new HttpError(400, 'ticket');
-    const uid = await useTicket(env, 'pair', code);
+    let uid;
+    try { if (code.length !== 6) throw new HttpError(400, 'ticket'); uid = await useTicket(env, 'pair', code); }
+    catch (e) {
+      await env.DB.batch([env.DB.prepare('INSERT INTO fails (k, at) VALUES (?, ?)').bind('pair:' + ip, now()), env.DB.prepare('INSERT INTO fails (k, at) VALUES (?, ?)').bind('pair:all', now()),
+        env.DB.prepare('DELETE FROM fails WHERE at < ?').bind(now() - 3600e3)]);
+      throw e;
+    }
     const u = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(uid).first();
     return json({ token: await newSession(env, uid), ...(await meOf(env, req, u)) });
   }
