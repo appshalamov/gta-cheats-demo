@@ -124,6 +124,58 @@
    ]
   },
   {
+   "id": "g6_wanted_up",
+   "category": "player",
+   "icon": "🚨",
+   "name": {
+    "ru": "Поднять розыск",
+    "en": "Raise Wanted Level"
+   },
+   "desc": {
+    "ru": "Повышает уровень розыска по всей карте.",
+    "en": "Raises your Wanted level across the map."
+   },
+   "note": {
+    "ru": "Открывается: 50 раз уйти от розыска 3 звезды. Ввод: ↑ — телефон, зажать L1+R1 (Xbox: LB+RB), набрать стрелки. Чит работает после прохождения сюжета и своего условия; с читом нельзя сохраниться, трофеи выключаются. Не путать с «Поднять жар» (там ↓ на шестом месте).",
+    "en": "Unlock: lose a 3-star Wanted level 50 times. Entry: ↑ for the phone, hold L1+R1 (Xbox: LB+RB), then the arrows. Works after you finish the story and its own unlock; cheats disable saving and trophies. Not the same as Raise Heat Level (that one has ↓ sixth)."
+   },
+   "pro": true,
+   "status": "live",
+   "codes": {
+    "playstation": [
+     "←",
+     "↓",
+     "→",
+     "↓",
+     "↑",
+     "→",
+     "↑"
+    ],
+    "xbox": [
+     "←",
+     "↓",
+     "→",
+     "↓",
+     "↑",
+     "→",
+     "↑"
+    ],
+    "pc": null,
+    "phone": null
+   },
+   "media": null,
+   "sources": [
+    {
+     "site": "gamespot.com",
+     "date": "2026-11-18"
+    },
+    {
+     "site": "redbull.com",
+     "date": "2026-11-18"
+    }
+   ]
+  },
+  {
    "id": "g6_focus",
    "category": "player",
    "icon": "🎯",
