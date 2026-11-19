@@ -15,7 +15,13 @@ const ls = { get: (k) => { try { return localStorage.getItem(k); } catch { retur
 // стенд и тесты: свой сервер через localStorage sb.payapi — только на localhost
 // sb.payapi = 'off' — выключить оплату на стенде (старые тесты с демо-Pro)
 export const apiBase = () => { const o = DEV ? ls.get('sb.payapi') : null; return o === 'off' ? '' : (o || PAY.api || '').replace(/\/$/, ''); };
-export const enabled = () => !!apiBase();
+// Пока Stripe в тестовом режиме (PAY.test), оплата включена только у тех, кто сам её включил: ?paytest=1 в адресе или
+// 5 нажатий на заголовок «О приложении» (для приложения «на экране Домой» — у него своё хранилище). Остальные видят демо, как раньше.
+const PT = 'sb.paytest';
+try { const v = new URLSearchParams(location.search).get('paytest'); if (v === '1') ls.set(PT, '1'); if (v === '0') ls.set(PT, null); } catch { }
+export const paytest = () => ls.get(PT) === '1';
+export function togglePaytest() { ls.set(PT, paytest() ? null : '1'); return paytest(); }
+export const enabled = () => !!apiBase() && (!PAY.test || (DEV ? !!ls.get('sb.payapi') : paytest()));
 
 let st = {};
 try { st = JSON.parse(ls.get(KEY) || '{}') || {}; } catch { st = {}; }
@@ -55,6 +61,7 @@ export async function handleReturn() {
   const q = new URLSearchParams(location.search);
   const login = q.get('login'), paid = q.get('paid'), portal = q.get('portal');
   const out = { login: null, paid: null, portal: false };
+  if (q.has('paytest')) { q.delete('paytest'); if (!login && !paid && !portal) history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); }
   if (!login && !paid && !portal) return out;
   ['login', 'paid', 'portal'].forEach((k) => q.delete(k));
   history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);

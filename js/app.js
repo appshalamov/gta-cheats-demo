@@ -1032,6 +1032,9 @@ function openHowto() {
 }
 function openAbout() {
   openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p>${OWN_ART ? '' : `<p class="about">${esc(t('frames_credit'))}</p>`}<p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp in ${__vp.inner} vh ${__vp.vh} dvh ${__vp.dvh} scr ${__vp.screen} sb ${__vp.safeB}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}${__vp.overflow ? ' OVERFLOW' : ''}` : ''}</div>`, 'sheet-pick');
+  // 5 нажатий на заголовок — включить или выключить тестовую оплату Stripe (для проверки до live)
+  const h = document.querySelector('#sheet-body .pick-t'); let n = 0, tm = 0;
+  if (h && pay.apiBase()) h.addEventListener('click', () => { clearTimeout(tm); tm = setTimeout(() => { n = 0; }, 2500); if (++n < 5) return; n = 0; toast(pay.togglePaytest() ? t('pay_test_on') : t('pay_test_off')); onAccess(); renderAll(); });
 }
 
 // ───────── код после пробного (codelock, концепт v11; 31 §4.2) ─────────

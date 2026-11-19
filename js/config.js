@@ -98,7 +98,7 @@ export const PAYWALL = {
 
 // Оплата Stripe и вход через Google (js/pay.js, сервер server/pay-worker). api: null — оплаты нет, демо-покупка на устройстве.
 // test: true — тестовый режим Stripe (карта 4242…), строка об этом на пейволе. Live — только после «да» Игоря.
-export const PAY = { api: null, test: true };
+export const PAY = { api: 'https://pay.sbgta.app', test: true };   // test: true — оплата только у включивших ?paytest=1; live — test: false
 
 // ───────── креаторский раздел: режимы и закрытый доступ (Дизайн Secret Base/08 MVP/08 ТЗ §1, §2) ─────────
 // Режим площадки: 'beta' — закрытый доступ по приглашениям, суммы «предварительные», выплат нет; 'live' — боевой (сервер).
