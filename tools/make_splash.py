@@ -56,8 +56,12 @@ def render(w, h, scale):
     ImageDraw.Draw(glow).ellipse((w // 2 - m, top - m // 3, w // 2 + m, top + m + m // 3), fill=(255, 120, 160, 70))
     c.paste(glow.filter(ImageFilter.GaussianBlur(40 * s)), (0, 0), glow.filter(ImageFilter.GaussianBlur(40 * s)))
     c.paste(mark, ((w - m) // 2, top), mask)
-    title = font(round(34 * s), 760)
-    d.text((w / 2, top + m + 22 * s), "Secret Base", font=title, fill=(250, 248, 252), anchor="mt")
+    # надпись — домен (Игорь 19.11.2026): «sbgta» жирным, «.app» тоньше и розовым, как в шапке (tools/make_lockup_domain.py)
+    b, r = font(round(36 * s), 800), font(round(36 * s), 500)
+    wb, wr = d.textlength("sbgta", font=b), d.textlength(".app", font=r)
+    x = (w - wb - wr) / 2; y = top + m + 20 * s
+    d.text((x, y), "sbgta", font=b, fill=(250, 248, 252), anchor="lt")
+    d.text((x + wb, y), ".app", font=r, fill=(255, 138, 160), anchor="lt")
     sub = font(round(16 * s), 520)
     d.text((w / 2, top + m + 66 * s), "Карта мест из игр и чит-коды", font=sub, fill=(222, 218, 230), anchor="mt")
     return c
