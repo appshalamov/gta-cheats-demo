@@ -208,6 +208,8 @@ async function checkoutUrl(env, req, u, plan, ret, ticket, lang) {
     ...(sub ? { subscription_data: { metadata: meta } } : { payment_intent_data: { metadata: meta } }),
     locale: lang === 'ru' ? 'ru' : 'auto',
     ...(mp ? { managed_payments: { enabled: 'true' } } : {}),
+    allow_promotion_codes: 'true',   // поле «Промокод» на странице Stripe (бесплатный доступ — /admin/promo)
+    ...(sub ? { payment_method_collection: 'if_required' } : {}),   // при сумме $0 карту не спрашивать
   });
   return cs.url;
 }
@@ -353,6 +355,19 @@ async function route(env, req) {
     const configuration = await cfg(env, 'portal_cfg');
     const s = await stripe(env, 'POST', '/v1/billing_portal/sessions', { customer: u.customer_id, return_url: withParams(okReturn(env, b.return || ''), { portal: 'back' }), ...(configuration ? { configuration } : {}), locale: b.lang === 'ru' ? 'ru' : 'auto' });
     return json({ url: s.url });
+  }
+  if (p === '/admin/promo' && M === 'POST') {   // промокод в Stripe: { code, percent_off=100, duration='forever'|'once'|'repeating', months, max }
+    const m = /^Bearer\s+(.+)$/.exec(req.headers.get('Authorization') || '');
+    if (!env.ADMIN_TOKEN || !m || !safeEq(m[1], env.ADMIN_TOKEN)) throw new HttpError(401, 'auth');
+    const b = await body(), code = String(b.code || '').toUpperCase();
+    if (!/^[A-Z0-9]{4,30}$/.test(code)) throw new HttpError(400, 'bad_code');
+    const duration = b.duration || 'forever';
+    const cp = await stripe(env, 'POST', '/v1/coupons', { percent_off: String(b.percent_off || 100), duration, ...(duration === 'repeating' ? { duration_in_months: String(b.months || 12) } : {}), name: 'Secret Base ' + code });
+    const lim = b.max ? { max_redemptions: String(b.max) } : {};
+    let pc;
+    try { pc = await stripe(env, 'POST', '/v1/promotion_codes', { promotion: { type: 'coupon', coupon: cp.id }, code, ...lim }); }
+    catch { pc = await stripe(env, 'POST', '/v1/promotion_codes', { coupon: cp.id, code, ...lim }); }
+    return json({ ok: true, code: pc.code, id: pc.id, coupon: cp.id, test: isTest(env) });
   }
   if (p === '/admin/setup' && M === 'POST') {
     const m = /^Bearer\s+(.+)$/.exec(req.headers.get('Authorization') || '');
