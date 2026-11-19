@@ -195,16 +195,19 @@ async function checkoutUrl(env, req, u, plan, ret, ticket, lang) {
   const customer = await ensureCustomer(env, u);
   const sub = plan !== 'pass';
   const meta = { user_id: u.id, plan, zone: String(pr.zone) };
+  // Managed Payments: Stripe — продавец (merchant of record), сам считает и платит налоги/VAT; нужен tax_code товара
+  const mp = String(env.MANAGED_PAYMENTS || '') === '1';
   const cs = await stripe(env, 'POST', '/v1/checkout/sessions', {
     mode: sub ? 'subscription' : 'payment',
     customer,
     client_reference_id: u.id,
     success_url: withParams(ret, { paid: '{CHECKOUT_SESSION_ID}', login: ticket }),
     cancel_url: withParams(ret, { paid: 'cancel', login: ticket }),
-    line_items: { 0: { quantity: 1, price_data: { currency: 'usd', unit_amount: Math.round(pr[plan] * 100), product_data: { name: NAMES[plan] }, ...(sub ? { recurring: { interval: plan } } : {}) } } },
+    line_items: { 0: { quantity: 1, price_data: { currency: 'usd', tax_behavior: env.TAX_BEHAVIOR || 'inclusive', unit_amount: Math.round(pr[plan] * 100), product_data: { name: NAMES[plan], ...(mp ? { tax_code: env.TAX_CODE || 'txcd_10103000' } : {}) }, ...(sub ? { recurring: { interval: plan } } : {}) } } },
     metadata: meta,
     ...(sub ? { subscription_data: { metadata: meta } } : { payment_intent_data: { metadata: meta } }),
     locale: lang === 'ru' ? 'ru' : 'auto',
+    ...(mp ? { managed_payments: { enabled: 'true' } } : {}),
   });
   return cs.url;
 }

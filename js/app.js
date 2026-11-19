@@ -672,7 +672,8 @@ function row(action, icon, label, value = '', chevron = true) {
 function proCardHTML() {
   const a = access(), kind = proKind(), end = proEnds(), d = end ? dlong(end) : '';
   const renew = a === 'pro' && kind === 'pass' && end - Date.now() < 7 * DAY;
-  const sub = a === 'pro' ? (d ? tf({ work: 'st_pro_work', pass: 'st_pro_pass', month: 'st_pro_month' }[kind] || 'st_pro_year', { d }) : '')
+  const ended = a === 'pro' && pay.proActive() && pay.pro()?.cancel;   // подписка отменена: Pro до конца оплаченного срока, без продления
+  const sub = a === 'pro' ? (d ? tf(ended ? 'st_pro_cancelled' : { work: 'st_pro_work', pass: 'st_pro_pass', month: 'st_pro_month' }[kind] || 'st_pro_year', { d }) : '')
     : a === 'trial' ? tf('trial_left', { t: trialLeft() }) : tf('st_pro_free', { p: usd(zone().year) });
   return `<button class="pro-card${a === 'pro' ? ' on' : ''}" data-action="${a === 'pro' && !renew ? 'noop' : 'paywall'}">
       ${pic(HERO[store.game]?.banners[0], 'pro-photo', 860, 676, true)}
@@ -1129,7 +1130,7 @@ function paywallPanel(st) {
     <ul class="pw-feat">${pwValues().map((x) => `<li>${I.check}<span>${esc(x)}</span></li>`).join('')}</ul>
     ${g && st !== 'nopay' ? `<p class="pw-gift">${I.gift}<b>${esc(tf('pw_gift', { n: g.from }))}</b></p>` : ''}
     ${buy}
-    <div class="pw-links"><button data-action="${pay.enabled() ? 'restore' : 'buy'}">${t('pw_restore')}</button><button data-action="noop">${t('pw_terms')}</button><button data-action="noop">${t('pw_privacy')}</button></div>
+    <div class="pw-links"><button data-action="${pay.enabled() ? 'restore' : 'buy'}">${t('pw_restore')}</button><a href="terms.html">${t('pw_terms')}</a><a href="privacy.html">${t('pw_privacy')}</a></div>
     <p class="pw-fine">${t(st === 'nopay' ? 'pw_fine_np' : 'pw_fine')}</p>
     ${pay.enabled() ? (pay.isTest() ? `<p class="pw-demo">${t('pw_test')}</p>` : '') : `<p class="pw-demo">${t('pw_demo')}</p>`}`;
 }

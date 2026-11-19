@@ -4,18 +4,25 @@ name = "sb-pay"
 main = "worker.js"
 compatibility_date = "2026-11-01"
 workers_dev = true
+# свой адрес на домене приложения (зона sbgta.app в этом же аккаунте Cloudflare): DNS-запись Cloudflare создаст сам
+routes = [{ pattern = "pay.sbgta.app", custom_domain = true }]
 
 [[d1_databases]]
 binding = "DB"
 database_name = "sb-pay"
-database_id = "REPLACE_AFTER_CREATE"
+database_id = "d9c4decd-5b61-4d71-8086-01e1bd72a7bc"
 
 [vars]
 APP_ORIGINS = "https://sbgta.app,https://appshalamov.github.io"
-GOOGLE_CLIENT_ID = ""
+GOOGLE_CLIENT_ID = "683421076782-plptj72c864boge9ap1h27cf6c8oqi3p.apps.googleusercontent.com"
 RELEASE = "2026-11-19"
-# тестовый режим: отмена в портале снимает Pro сразу; для live — решение Игоря (по умолчанию at_period_end — Pro до конца оплаченного срока)
-CANCEL_MODE = "immediately"
+# отмена в портале: at_period_end — Pro остаётся до конца оплаченного срока (решение Игоря 19.11); immediately — снять сразу
+CANCEL_MODE = "at_period_end"
+# Stripe Managed Payments (решение Игоря 19.11: налоги платит Stripe): 1 — включено; TAX_CODE — код товара для налогов (SaaS, личное пользование)
+MANAGED_PAYMENTS = "1"
+TAX_CODE = "txcd_10103000"
+# налог внутри цены: покупатель платит ровно цену из приложения (inclusive) или налог сверху (exclusive)
+TAX_BEHAVIOR = "inclusive"
 NO_PAY = "RU,BY"
 # те же пояса и цены, что js/config.js PAYWALL (31 §1, §4.6); месяц — только пояс 1
 PRICES = '{"zones":{"1":{"year":29.99,"pass":12.99,"month":5.99},"2":{"year":17.99,"pass":7.99},"3":{"year":11.99,"pass":4.99},"4":{"year":7.49,"pass":3.49}},"countries":{"MX":2,"PL":2,"CL":2,"BR":3,"KZ":3,"PH":3,"IN":4,"ID":4,"TR":4}}'
