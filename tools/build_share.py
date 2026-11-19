@@ -30,7 +30,7 @@ import sys
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SITE = "https://appshalamov.github.io/gta-cheats-demo/"
+SITE = "https://sbgta.app/"
 OUT = ROOT / "s"
 GAMES = {"gta5": ("GTA 5", "Los Santos", "Лос-Сантос"), "gta6": ("GTA 6", "Vice City", "Вайс-Сити")}
 
