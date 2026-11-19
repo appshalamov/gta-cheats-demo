@@ -3,6 +3,7 @@
 // 4 вкладки (Главная / Поиск / Избранное / Настройки) → шторка чита.
 
 import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN_ART, GTA6 } from './config.js';
+import * as pay from './pay.js';
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
 import { I, platformIcon, comboHTML, btn } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
@@ -64,14 +65,17 @@ const until = (v) => (v ? new Date(/T/.test(v) ? v : v + 'T23:59:59').getTime() 
 function setProfile(P) { acc.P = P || null; onAccess(); }
 const workUntil = () => until(acc.P?.work_pro_until || (acc.P?.pro_kind === 'work' ? acc.P?.pro_until : null));
 const paidUntil = () => (acc.P?.pro_kind === 'work' ? 0 : until(acc.P?.pro_until));
-function hasPro() { const now = Date.now(); return !!store.pro || paidUntil() > now || workUntil() > now; }
+// с оплатой (PAY.api) Pro — только ответ сервера (js/pay.js); store.pro — демо-покупка, пока оплаты нет
+const demoPro = () => !pay.enabled() && !!store.pro;
+function hasPro() { const now = Date.now(); return demoPro() || pay.proActive() || paidUntil() > now || workUntil() > now; }
 function proKind() {
   const now = Date.now();
-  if (store.pro) return store.proPlan || 'year';
+  if (pay.proActive()) return pay.pro().plan || 'year';
+  if (demoPro()) return store.proPlan || 'year';
   if (paidUntil() > now) return acc.P.pro_kind || 'year';
   return workUntil() > now ? 'work' : null;
 }
-function proEnds() { const k = proKind(); return k === 'work' ? workUntil() : store.pro ? store.proUntil : paidUntil(); }
+function proEnds() { const k = proKind(); return k === 'work' ? workUntil() : pay.proActive() ? pay.pro().until : demoPro() ? store.proUntil : paidUntil(); }
 const trialEnd = () => (acc.P?.trial_until ? until(acc.P.trial_until) : (store.trialStart || Date.now()) + PAYWALL.trialHours * HOUR);
 function access() { return hasPro() ? 'pro' : Date.now() < trialEnd() ? 'trial' : 'locked'; }
 const isLocked = () => access() === 'locked';
@@ -676,6 +680,18 @@ function proCardHTML() {
       <span class="pro-end">${a === 'pro' && !renew ? I.check : I.chevron}</span>
     </button>`;
 }
+// аккаунт (вход через Google): покупка Pro привязана к нему и восстанавливается на любом устройстве входом
+function acctHTML() {
+  if (!pay.enabled()) return '';
+  if (!pay.signedIn()) return `<div class="group">${row('acct-in', I.users, t('acct_in'))}${row('acct-code', I.link, t('acct_code'))}</div>`;
+  const p = pay.pro();
+  return `<div class="group">
+      <div class="row row-static"><span class="row-ic">${I.users}</span><span class="row-l">${esc(pay.user()?.email || '')}</span><span class="row-v">${t('acct_google')}</span></div>
+      ${p?.manage ? row('acct-portal', I.wallet, t('acct_portal'), p?.cancel && p.active ? esc(tf('acct_cancelled', { d: dlong(p.until) })) : '') : ''}
+      ${row('acct-pair', I.link, t('acct_pair'))}
+      ${row('acct-out', I.close, t('acct_out'), '', false)}
+    </div>`;
+}
 // в каких картах открывать место (Игорь 15.10.2026: «Google по умолчанию, в настройках — Apple, потом любые другие»).
 // Новая карта — строка здесь и ветка в mapsLink (map.js); наружу — только карты (правило «не уводить из приложения»).
 const MAPS_APPS = [['google', 'Google'], ['apple', 'Apple']];
@@ -685,6 +701,7 @@ function renderSettings() {
   $('#settings-body').innerHTML = `
     <div id="cr-hub" class="cr-hub"${crHub ? '' : ' hidden'}>${crHub}</div>
     ${proCardHTML()}
+    ${acctHTML()}
     <div class="group">
       ${row('pick-game', I.gamepad, t('st_game'), esc(g.title))}
       ${row('pick-platform', platformIcon(store.platform), t('st_platform'), L(PLATFORMS[store.platform]))}
@@ -1105,15 +1122,16 @@ function paywallPanel(st) {
     ? `<button class="btn-primary pw-cta" data-action="pw-partner">${t('pw_partner')}</button>`
     : `<div class="plans">${card('year', tf('pw_year', { p: usd(Z.year) }), tf('pw_year_s', { m: usd(Math.round(Z.year / 12 * 100) / 100) }), t('pw_best'))}${card('pass', tf('pw_pass', { p: usd(Z.pass) }), t('pw_pass_s'))}</div>
       ${Z.month ? `<button class="pw-month${plan === 'month' ? ' on' : ''}" data-action="plan" data-v="month" aria-pressed="${plan === 'month'}">${esc(tf('pw_month', { p: usd(Z.month) }))}</button>` : ''}
-      <button class="btn-primary pw-cta" data-action="buy">${t('pw_cta')}</button>`;
+      <button class="btn-primary pw-cta" data-action="buy">${t(pay.enabled() ? 'pw_cta_pay' : 'pw_cta')}</button>
+      ${pay.enabled() ? `<p class="pw-acct">${esc(pay.signedIn() ? tf('pw_acct_in', { e: pay.user()?.email || '' }) : t('pw_acct'))}</p>` : ''}`;
   return `<h1 class="pw-title${head.length > 24 ? ' pw-long' : ''}">${esc(head)}</h1>
     <p class="pw-lead">${esc(lead)}</p>
     <ul class="pw-feat">${pwValues().map((x) => `<li>${I.check}<span>${esc(x)}</span></li>`).join('')}</ul>
     ${g && st !== 'nopay' ? `<p class="pw-gift">${I.gift}<b>${esc(tf('pw_gift', { n: g.from }))}</b></p>` : ''}
     ${buy}
-    <div class="pw-links"><button data-action="buy">${t('pw_restore')}</button><button data-action="noop">${t('pw_terms')}</button><button data-action="noop">${t('pw_privacy')}</button></div>
+    <div class="pw-links"><button data-action="${pay.enabled() ? 'restore' : 'buy'}">${t('pw_restore')}</button><button data-action="noop">${t('pw_terms')}</button><button data-action="noop">${t('pw_privacy')}</button></div>
     <p class="pw-fine">${t(st === 'nopay' ? 'pw_fine_np' : 'pw_fine')}</p>
-    <p class="pw-demo">${t('pw_demo')}</p>`;
+    ${pay.enabled() ? (pay.isTest() ? `<p class="pw-demo">${t('pw_test')}</p>` : '') : `<p class="pw-demo">${t('pw_demo')}</p>`}`;
 }
 // вещь из ссылки — стеклянная карточка наверху, видна и без Pro (тап — это место)
 async function pwThing(pw) {
@@ -1379,7 +1397,27 @@ document.addEventListener('click', async (e) => {
     }
     case 'paywall': haptic(); closeSheet(); openPaywall(el.dataset.pw || ''); break;
     case 'plan': plan = v; haptic(); openPaywall(pwSt); $('#paywall .pw-close').classList.add('show'); break;
-    case 'buy': demoBuy(); haptic(); closePaywall(); toast(t('pro_unlocked')); onAccess(); renderAll(); break;
+    case 'buy':
+      haptic();
+      if (!pay.enabled()) { demoBuy(); closePaywall(); toast(t('pro_unlocked')); onAccess(); renderAll(); break; }
+      el.disabled = true; toast(t(pay.signedIn() ? 'pay_open' : 'acct_open'));
+      pay.checkout(plan).catch((e) => { el.disabled = false; toast(t(e.code === 'nopay' ? 'pay_nopay' : 'pay_err_net')); });
+      break;
+    case 'restore':   // «Восстановить покупку»: вход через Google (покупка привязана к аккаунту) или сверка со Stripe
+      haptic();
+      if (!pay.signedIn()) { toast(t('acct_open')); pay.signIn(); break; }
+      pay.refresh(true).then(() => { onAccess(); renderAll(); toast(t(pay.proActive() ? 'pay_restored' : 'pay_none')); if (pay.proActive()) closePaywall(); })
+        .catch(() => toast(t('pay_err_net')));
+      break;
+    case 'acct-in': haptic(); toast(t('acct_open')); pay.signIn(); break;
+    case 'acct-out': haptic(); pay.signOut().then(() => { onAccess(); renderAll(); toast(t('acct_bye')); }); break;
+    case 'acct-portal': haptic(); toast(t('pay_open')); pay.portal().catch(() => toast(t('pay_err_net'))); break;
+    case 'acct-pair': haptic(); pay.pairCode().then((c) => toast(tf('acct_pair_code', { c: c.slice(0, 3) + ' ' + c.slice(3) }))).catch(() => toast(t('pay_err_net'))); break;
+    case 'acct-code': {   // вход кодом с устройства, где уже вошли (например, вход прошёл в Safari, а приложение — на экране Домой)
+      haptic(); const c = (prompt(t('acct_code_ask')) || '').replace(/\D/g, '');
+      if (c.length === 6) pay.redeem(c).then(() => { onAccess(); renderAll(); toast(tf('acct_hi', { e: pay.user()?.email || '' })); }).catch(() => toast(t('acct_code_bad')));
+      break;
+    }
     case 'pw-close': closePaywall(); break;
     case 'pw-partner': closePaywall(); window.SB.becomePartner(); break;
     case 'pw-thing': { const k = giftKey(); closePaywall(); if (k) openOnMap(k); break; }
@@ -1417,6 +1455,22 @@ $('#pager').addEventListener('scroll', () => requestAnimationFrame(moveInk), { p
 })();
 addEventListener('resize', () => scrollToCat(ui.cat, false));
 
+// итог возврата из Google / Stripe / портала — одной строкой
+function payToast(R) {
+  if (!R) return;
+  if (R.paid === 'ok') { toast(t('pay_ok')); closePaywall(); return; }
+  if (R.paid === 'pending') { toast(t('pay_pending')); return; }
+  if (R.paid === 'cancel') { toast(t('pay_cancel')); return; }
+  if (R.paid === 'error') { toast(t('pay_err')); return; }
+  if (R.portal) { toast(t(pay.proActive() ? (pay.pro()?.cancel ? 'pay_portal_end' : 'pay_portal') : 'pay_portal_off')); return; }
+  if (R.login === 'ok') toast(pay.proActive() ? t('pay_restored') : tf('acct_hi', { e: pay.user()?.email || '' }));
+  else if (R.login === 'error') toast(t('acct_err'));
+}
+// вернулись в приложение (портал в другой вкладке, долгий фон) — свежий статус Pro
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && pay.signedIn() && Date.now() - (pay.state().checked || 0) > 60e3) pay.refresh().then(() => onAccess()).catch(() => { });
+});
+
 // ───────── старт ─────────
 (async function init() {
   setLang(store.lang || (navigator.language || 'ru').slice(0, 2));
@@ -1433,9 +1487,12 @@ addEventListener('resize', () => scrollToCat(ui.cat, false));
   // профиль SB.api: доступ (Pro, рабочий Pro, пробный, подарок, страна). Источник выбирает js/api.js: закрытый доступ на
   // устройстве (новый человек — гость), demo для съёмки (включает экран «Для админов»), ?sbmock — только на localhost
   const apiP = import('./api.js').then(() => { const api = window.SB.api; return api && (!api.isMock || api.useProfile || api.mockChosen) ? api.getProfile() : null; }).catch(() => null);
-  const [P] = await Promise.all([apiP, loadGame(store.game).catch(() => { })]);
+  const ret = pay.handleReturn().catch(() => ({}));
+  const [P, R] = await Promise.all([apiP, ret, loadGame(store.game).catch(() => { })]);
   acc.P = P; lastAccess = access();
   renderAll();
+  payToast(R);
+  if (pay.signedIn() && !R?.login && !R?.paid && !R?.portal) pay.refresh().then(() => onAccess()).catch(() => { });
   // ссылка «поделиться местом» (…/?open=place:gta5:<id>): друг сразу видит это место (и без Pro); знакомство — в следующий раз
   const openKey = new URLSearchParams(location.search).get('open');
   if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); openOnMap(openKey); }

@@ -1,0 +1,21 @@
+# Secret Base — оплата и вход (Cloudflare Worker + D1). Аккаунт Cloudflare — тот, где DNS sbgta.app.
+# Секреты — только через `wrangler secret put` (STRIPE_SECRET_KEY, GOOGLE_CLIENT_SECRET, ADMIN_TOKEN), в git их нет.
+name = "sb-pay"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sb-pay"
+database_id = "REPLACE_AFTER_CREATE"
+
+[vars]
+APP_ORIGINS = "https://sbgta.app,https://appshalamov.github.io"
+GOOGLE_CLIENT_ID = ""
+RELEASE = "2026-11-19"
+# тестовый режим: отмена в портале снимает Pro сразу; для live — решение Игоря (по умолчанию at_period_end — Pro до конца оплаченного срока)
+CANCEL_MODE = "immediately"
+NO_PAY = "RU,BY"
+# те же пояса и цены, что js/config.js PAYWALL (31 §1, §4.6); месяц — только пояс 1
+PRICES = '{"zones":{"1":{"year":29.99,"pass":12.99,"month":5.99},"2":{"year":17.99,"pass":7.99},"3":{"year":11.99,"pass":4.99},"4":{"year":7.49,"pass":3.49}},"countries":{"MX":2,"PL":2,"CL":2,"BR":3,"KZ":3,"PH":3,"IN":4,"ID":4,"TR":4}}'

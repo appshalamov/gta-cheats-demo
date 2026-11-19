@@ -325,6 +325,7 @@ body.in-ob #onboarding { display: flex; }
 .pw-gift b { font-weight: 700; }
 .pw-fine { margin-top: 2px; text-align: center; font-size: 12px; line-height: 1.4; color: var(--text-3); }
 .pw-demo { margin-top: 4px; }
+.pw-acct { margin-top: 8px; text-align: center; font-size: 13px; line-height: 1.4; color: var(--text-2); }
 /* вещь из ссылки — карточка на стекле наверху, рядом с «Закрыть» */
 .pw-thing { position: absolute; z-index: 2; top: calc(var(--safe-t) + 12px); left: 16px; right: 72px; display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 6px 12px 6px 6px;
   border-radius: 20px; text-align: left; color: var(--on-photo);

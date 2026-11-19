@@ -6,6 +6,10 @@
 Разрешены только: mapsLink(…) / panoLink(…) / o.pano (Google Maps, Apple Maps, Street View),
 прямые адреса google.com/maps и maps.apple.com. Всё остальное — стоп (код выхода 1).
 
+Осознанное исключение (задача «Оплата Stripe», 19.11.2026): js/pay.js уводит на сервер оплаты (PAY.api), а он — на вход
+Google и на страницу оплаты Stripe Checkout / портал Stripe, и возвращает обратно в приложение. Разрешено только в js/pay.js
+и только в строке с пометкой «check_links: оплата». Любой другой переход (location.href/assign/replace = …) — стоп.
+
 Запуск:  python3 tools/check_links.py [файл …]
 """
 import pathlib
@@ -26,10 +30,12 @@ for f in files:
             if OK_EXPR.search(href) or OK_URL.search(href):
                 continue
             bad.append(f"{f.name}:{n}: <a href=\"{href[:80]}\">")
-        for m in re.finditer(r"window\.open\(|location\.href\s*=\s*['\"`]https?://", line):
+        for m in re.finditer(r"window\.open\(|location\.href\s*=(?!=)|location\.(assign|replace)\(", line):
+            if f.name == "pay.js" and "check_links: оплата" in line:
+                continue   # вход Google и Stripe Checkout / портал — см. шапку
             bad.append(f"{f.name}:{n}: {line.strip()[:90]}")
 if bad:
-    print("СТОП: ссылки наружу (разрешено только Google/Apple Maps и Street View):")
+    print("СТОП: ссылки наружу (разрешено только Google/Apple Maps, Street View и оплата в js/pay.js):")
     for b in bad:
         print("  ✗", b)
     sys.exit(1)
