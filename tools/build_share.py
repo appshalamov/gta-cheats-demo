@@ -202,7 +202,7 @@ def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=()):
     # в метке — и содержимое своих снимков (размер+время): заменили фото под тем же адресом — новая картинка и новый ?p=
     # (15.10.2026: люк LOST — фото заменили, а превью в Telegram оставалось старым)
     stamp = "|".join(_stamp(u) for u in [gurl, rurl] + [x for p in pairs for x in p[:2]])
-    sig = hashlib.sha1(f"v6|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}|{pk}|{stamp}".encode()).hexdigest()[:8]
+    sig = hashlib.sha1(f"v7|{gf}|{gurl}|{rurl}|{rcred}|{title}|{sub}|{pk}|{stamp}".encode()).hexdigest()[:8]
     rel = f"og/{game}/{pid}.{sig}.jpg"
     fp = OUT / rel
     OG_MADE.add(fp)
@@ -244,10 +244,12 @@ def page(game, kind, x):
     fid = x.get("_file") or x["id"]
     if kind in ("place", "db"):
         name_g, name_r, addr = x.get("g") or "", x.get("n") or "", x.get("a") or ""
+        name_r_ru, addr_ru = x.get("nr") or name_r, x.get("ar") or addr
         d_ru, d_en = t(x.get("s"), "ru"), t(x.get("s"), "en")
     else:
         p_ = x.get("p") or ""
         # место пасхалки: «название, адрес» — название жирно, адрес отдельно (15.10: строка повторялась дважды)
+        name_r_ru = addr_ru = None
         name_g, name_r, addr = t(x.get("t"), "en"), p_.split(",")[0], (p_.split(",", 1)[1].strip() if "," in p_ else "")
         d_ru, d_en = t(x.get("d"), "ru"), t(x.get("d"), "en")
     gimg, gcred = game_img(x)
@@ -285,6 +287,9 @@ def page(game, kind, x):
     if rimg and not (cg and cr):
         imgs += f'<figure><img src="{e(rimg)}" alt="real life"><figcaption>📍 <span data-ru="В жизни" data-en="Real life">Real life</span></figcaption></figure>'
     credits = " · ".join(c for c in ((ccred,) if pr0 else (gcred, rcred)) if c)
+    ln_en = name_r + ((" · " + addr) if addr and addr != name_r else "")
+    ln_ru = ((name_r_ru or name_r) + ((" · " + (addr_ru or addr)) if addr and addr != name_r else "")) if name_r_ru is not None else ln_en
+    real_line = f'<span data-ru="{e(ln_ru)}" data-en="{e(ln_en)}">{e(ln_en)}</span>' if ln_ru != ln_en else e(ln_en)
     return f"""<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -300,7 +305,7 @@ def page(game, kind, x):
 <style>
 :root{{color-scheme:dark}}*{{box-sizing:border-box}}body{{margin:0;background:#0b0d12;color:#eef1f6;font:16px/1.45 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif}}
 main{{max-width:520px;margin:0 auto;padding:max(10px,env(safe-area-inset-top)) 16px 32px}}.brand{{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;letter-spacing:.02em}}
-.brand img{{width:26px;height:26px;border-radius:7px}}.tag{{margin-left:auto;font-size:12px;font-weight:700;color:#a9b2c3;text-align:right}}
+.brand img{{width:26px;height:26px;border-radius:7px}}.brand .lk{{font-size:16px;letter-spacing:-.01em}}.brand .lk b{{font-weight:600;color:#ff8aa0}}.tag{{margin-left:auto;font-size:12px;font-weight:700;color:#a9b2c3;text-align:right}}
 h1{{margin:10px 0 1px;font-size:19px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
 .real{{color:#a9b2c3;font-size:13px;line-height:1.35;margin:0 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
 .pics{{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px}}figure{{margin:0;position:relative;border-radius:16px;overflow:hidden;background:#151922;aspect-ratio:4/3}}
@@ -316,14 +321,14 @@ background:linear-gradient(90deg,#22c3d9,#7ee0ff)}}.sub{{display:block;text-alig
 .hint{{text-align:center;color:#a9b2c3;font-size:12.5px;margin:6px 0 0}}
 @media (max-height:620px){{.cmp,figure{{aspect-ratio:16/10}}}}
 </style></head><body><main>
-<div class="brand"><img src="../../icons/icon-192.png" alt=""><span>Secret Base</span><span class="tag">{e(gt)} · <span data-ru="{e(city_ru)} в жизни" data-en="{e(city_en)} in real life">{e(city_en)} in real life</span></span></div>
+<div class="brand"><img src="../../icons/icon-192.png" alt=""><span class="lk">SBgta<b>.app</b></span><span class="tag">{e(gt)} · <span data-ru="{e(city_ru)} в жизни" data-en="{e(city_en)} in real life">{e(city_en)} in real life</span></span></div>
 <h1{h1_lang}>{e(name_g or name_r)}</h1>
-<p class="real">📍 {e(name_r)}{(' · ' + e(addr)) if addr and addr != name_r else ''}</p>
+<p class="real">📍 {real_line}</p>
 {imgs if has_cmp else f'<div class="pics">{imgs}</div>'}
 <a class="cta" href="{e(app)}" data-ru="Открыть в Secret Base" data-en="Open in Secret Base">Open in Secret Base</a>
 <p class="d" data-ru="{e(d_ru)}" data-en="{e(d_en)}">{e(d_en or d_ru)}</p>
 <a class="sub" href="{e(maps)}" data-ru="Как добраться — Google Maps" data-en="Directions — Google Maps">Directions — Google Maps</a>
-<p class="cred">{e(credits)}{' · ' if credits else ''}Secret Base — fan app, not affiliated with Rockstar Games.</p>
+<p class="cred">{e(credits)}{' · ' if credits else ''}<span data-ru="Неофициальное приложение, не связано с Rockstar Games." data-en="Unofficial fan app, not affiliated with Rockstar Games.">Unofficial fan app, not affiliated with Rockstar Games.</span></p>
 </main>
 <script>(()=>{{const ru=(navigator.language||'').toLowerCase().startsWith('ru')||(navigator.language||'').toLowerCase().startsWith('uk');
 document.documentElement.lang=ru?'ru':'en';document.querySelectorAll('[data-ru]').forEach(n=>{{const v=n.dataset[ru?'ru':'en'];if(v)n.textContent=v;}});
