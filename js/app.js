@@ -7,7 +7,7 @@ import * as pay from './pay.js';
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
 import { I, platformIcon, comboHTML, btn } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
-import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
+import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
 // ───────── хранилище ─────────
 const KEY = 'cheats.v1';
@@ -373,10 +373,39 @@ function placeCard(o, opt = {}) {
   return `<div class="pcard" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
     ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pc-ph">${o.kind === 'egg' ? I.egg : I[catIcon(o.c)]}</span>`}
     <span class="pc-grad"></span>
-    <span class="pc-tags">${o.kind === 'egg' ? `<i class="tag-egg">${t('map_egg')}</i>` : `<i class="conf conf-${o.cf}">${t('conf_' + o.cf)}</i>`}${opt.game ? `<i class="tag-game">${GAMES.find((g) => g.id === o.game)?.title || ''}</i>` : ''}</span>
+    <span class="pc-tags">${isNew(o) ? `<i class="tag-new">${t('news_new')}</i>` : ''}${o.kind === 'egg' ? `<i class="tag-egg">${t('map_egg')}</i>` : `<i class="conf conf-${o.cf}">${t('conf_' + o.cf)}</i>`}${opt.game ? `<i class="tag-game">${GAMES.find((g) => g.id === o.game)?.title || ''}</i>` : ''}</span>
     <button class="pc-fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="${esc(t('save'))}">${fav ? I.heartFill : I.heart}</button>
     <span class="pc-txt"><b>${esc(realName(o))}</b>${o.kind === 'egg' ? (realSub(o) ? `<small>${esc(realSub(o))}</small>` : '') : `<small>${I.pin}${esc(cityOf(o) || realSub(o))}</small>`}</span>
   </div>`;
+}
+// ── «Новое» на Главной: карточка новости в стиле ленты; подробности — в шторке, источник подписью без ссылки ──
+function newsDate(d) {
+  const days = Math.floor((Date.now() - Date.parse(d + 'T00:00:00Z')) / 864e5);
+  if (days <= 0) return t('news_today');
+  if (days === 1) return t('news_yday');
+  return new Date(d + 'T12:00:00Z').toLocaleDateString(getLang(), { day: 'numeric', month: 'long' });
+}
+function newsCard(n) {
+  const img = n.img ? imgUrl(n.img.thumb || n.img.file) : '';
+  return `<div class="pcard ncard" data-action="open-news" data-id="${esc(n.id)}" role="button" tabindex="0">
+    ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pc-ph">${I.egg}</span>`}
+    <span class="pc-grad"></span>
+    <span class="pc-tags"><i class="tag-new">${esc(newsDate(n.date))}</i></span>
+    <span class="pc-txt"><b>${esc(L(n.t))}</b><small>${esc((n.src || []).join(', '))}</small></span>
+  </div>`;
+}
+async function openNews(id) {
+  const n = (await loadNews()).find((x) => x.id === id); if (!n) return;
+  const img = n.img ? imgUrl(n.img.file) : '';
+  const src = n.src || [];
+  openSheet(`<div class="news-sheet">
+    ${img ? `<figure class="ns-img"><img src="${esc(img)}" alt="" decoding="async">${n.img.credit && !OWN_ART ? `<figcaption>${esc(n.img.credit)}</figcaption>` : ''}</figure>` : ''}
+    <small class="ns-date">${esc(newsDate(n.date))}</small>
+    <h2>${esc(L(n.t))}</h2>
+    <p>${esc(L(n.d))}</p>
+    ${src.length ? `<p class="ns-src">${esc(t(src.length > 1 ? 'news_srcs' : 'news_src'))}: ${esc(src.join(', '))}</p>` : ''}
+    ${n.key ? `<button class="btn-primary" data-action="open-place" data-key="${esc(n.key)}">${I.pin}<span>${esc(t('news_on_map'))}</span></button>` : ''}
+  </div>`, 'news');
 }
 // строка места (Поиск, Избранное): фото, настоящее место (решение №15, без игрового названия), адрес, точность — строкой, без рамки-карточки
 function placeRow(o, opt = {}) {
@@ -468,11 +497,13 @@ async function renderHub() {
   const popular = (POPULAR[store.game] || []).map((id) => list.find((c) => c.id === id)).filter(Boolean);
   const places = pd ? featured(pd, 'place', 14) : [];
   const eggs = pd ? featured(pd, 'egg', 12) : [];
+  const news = (await loadNews()).filter((n) => n.game === store.game).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 12);
   const favPreview = await favItems();
   if (my !== hubSeq) return;
   renderHero();
   box.innerHTML = `
     ${forecastBanner()}
+    ${news.length ? hubSection(t('hub_news'), t('hub_news_sub'), '', `<div class="hscroll">${news.map(newsCard).join('')}</div>`) : ''}
     ${hubSection(t('hub_cheats'), L(PLATFORMS[store.platform]), `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
         <span class="ct-ic">${I[c.icon]}</span><span class="ct-t"><b>${L(c)}</b><small>${tn(list.filter((x) => x.category === c.id).length, 'n_codes')}</small></span></button>`).join('')}</div>`)}
@@ -1365,6 +1396,7 @@ document.addEventListener('click', async (e) => {
       if (v === store.game) break;
       haptic(); changeGame(v); break;
     }
+    case 'open-news': haptic(); openNews(el.dataset.id); break;
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
     case 'fav-place': {
       e.stopPropagation(); toggleFavPlace(el.dataset.key);

@@ -635,6 +635,7 @@ def build(game, cfg):
             "_gtadb": it.get("gtadb_id") or "",
             "_gxy": it.get("game_xy"), "_gaddr": it.get("game_addr"), "_ggid": it.get("game_gid"),
             "_hadr": 1 if isinstance(it.get("photo_real"), dict) and banned_real(it["photo_real"]) else 0,
+            "dt": it.get("found", ""),   # дата добавления (20.11.2026): свежее 7 дней — первым в ленте и с меткой «Новое»
         }
         places.append({k: v for k, v in place.items() if v not in (None, "", [], {"ru": "", "en": ""})})
     skipped = []
@@ -662,6 +663,7 @@ def build(game, cfg):
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"), "gg": gal(it, game, "game_gallery", 4),
             "_gxy": it.get("game_xy"), "_ggid": it.get("game_gid"), "_pair": bool(it.get("pair_photos")),
             "rk": {"prototype": "p", "reference": "r"}.get(it.get("real_kind"), "") or auto_rk(it),   # точка в жизни: прообраз / отсылка
+            **({"dt": it["found"]} if it.get("found") else {}),
         })
     if skipped:
         print(f"  пасхалки не в приложение: {len(skipped)} — " + ", ".join(skipped[:6]) + (" …" if len(skipped) > 6 else ""))

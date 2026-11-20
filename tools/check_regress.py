@@ -81,7 +81,11 @@ for g in ("gta6", "gta5"):
     for k, n in new.items():   # копии снимков gtadb главным фото / в галерее — не должны попасть ни через сборку, ни руками
         if any(banned(ph) for ph in [n.get("pr")] + (n.get("gl") or []) if ph):
             problems.append(f"{k}: фото из жизни без права показа (gtadb / Street View)")
-    if g == "gta6" and any(n.get("gm") for n in new.values()):   # координаты GTA 6 в gtadb — по карте с утечками (14.10.2026);
+    # координаты GTA 6 в gtadb — по карте с утечками (14.10.2026); с 18.11.2026 разрешены, только когда набор карты одобрен Игорем
+    # (tools/gta6_release.json → approved, пишет только gta6_switch.py --approve; сейчас yanis18)
+    rel = json.loads((ROOT / "tools" / "gta6_release.json").read_text("utf-8")) if (ROOT / "tools" / "gta6_release.json").exists() else {}
+    gm_ok = rel.get("coords") == "gtadb" and (rel.get("approved") or {}).get("set") == rel.get("tiles")
+    if g == "gta6" and not gm_ok and any(n.get("gm") for n in new.values()):
         problems.append("gta6: игровые координаты (gm) — по карте с утечками, до карты из вышедшей игры не выкладываем")
     with_pairs = sum(1 for n in new.values() if n.get("pairs"))
     if with_pairs < MIN_PAIRS[g]:   # пол: сравнение не может исчезнуть целиком, даже если в ref его уже нет

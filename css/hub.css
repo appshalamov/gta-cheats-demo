@@ -337,3 +337,15 @@ mark.hl { background: none; color: var(--accent); font-weight: 750; } /* сов�
 .d-other .plat-list { padding-bottom: 4px; }
 .sheet-detail .plat-row { border-radius: 18px; background: color-mix(in srgb, var(--text) 5%, transparent); }
 :root[data-theme="light"] .sheet-detail .plat-row { background: var(--card); }
+
+/* «Новое» (20.11.2026): метка свежего места/пасхалки/новости и шторка новости */
+.pc-tags .tag-new { color: var(--accent); }
+.news-sheet { display: flex; flex-direction: column; gap: 10px; padding-bottom: 8px; }
+.news-sheet .ns-img { margin: 0; position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 16 / 9; background: var(--card-2); }
+.news-sheet .ns-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.news-sheet .ns-img figcaption { position: absolute; right: 8px; bottom: 8px; font-size: 11px; padding: 2px 6px; border-radius: 6px; color: var(--on-photo); background: var(--glass-thin-bg); }
+.news-sheet .ns-date { color: var(--accent); font-weight: 650; font-size: 13px; }
+.news-sheet h2 { margin: 0; font-size: 21px; line-height: 1.25; }
+.news-sheet p { margin: 0; line-height: 1.5; color: var(--text-2, var(--text)); }
+.news-sheet .ns-src { font-size: 13px; color: var(--muted, var(--text-2)); }
+.news-sheet .btn-primary { margin-top: 6px; }
