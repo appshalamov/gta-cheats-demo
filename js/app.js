@@ -562,8 +562,9 @@ function searchCheats(list, q, cat) {
   return list.filter((c) => {
     if (cat && c.category !== cat) return false;
     if (!qq) return true;
-    const hay = norm([c.name.ru, c.name.en, c.desc?.ru, c.desc?.en, c.codes.pc, SYN[c.category], CODE_WORDS].join(' '));
-    return qq.split(/\s+/).every((w) => hay.includes(w)) || (qd.length >= 3 && (c.codes.phone || '').replace(/\D/g, '').includes(qd));
+    const hay = norm([c.name.ru, c.name.en, c.desc?.ru, c.desc?.en, c.codes.pc, SYN[c.category]].join(' '));
+    // служебные слова («код», «cheat») — только с начала слова: «heat» внутри «cheat» находил все коды (QA 20.11.2026)
+    return qq.split(/\s+/).every((w) => hay.includes(w) || (w.length >= 3 && CODE_WORDS.split(' ').some((cw) => cw.startsWith(w)))) || (qd.length >= 3 && (c.codes.phone || '').replace(/\D/g, '').includes(qd));
   });
 }
 function chip(action, v, label, on, extra = '') {
@@ -607,7 +608,10 @@ async function renderSearch() {
   // счётчики видны и в обзоре (экран 8 этапа 2): в обзоре — сколько всего, при запросе — сколько нашлось
   renderSearchFilters(browsing ? { cheats: cheatList.length, places: pd.places.length, eggs: pd.eggs.length } : { all: R.cheats.length + R.places.length + R.eggs.length, cheats: R.cheats.length, places: R.places.length, eggs: R.eggs.length });
   if (browsing) {
-    const hints = getLang() === 'ru' ? ['вертолёт', 'бессмертие', 'Ocean Drive', 'мост', 'отель', 'розыск'] : ['helicopter', 'invincibility', 'Ocean Drive', 'bridge', 'hotel', 'wanted'];
+    // подсказки — под игру пользователя: у GTA 6 нет «бессмертия» и «вертолёта» (QA 20.11.2026)
+    const hints = store.game === 'gta6'
+      ? (getLang() === 'ru' ? ['патроны', 'бронежилет', 'Ocean Drive', 'мост', 'отель', 'розыск'] : ['ammo', 'armor', 'Ocean Drive', 'bridge', 'hotel', 'wanted'])
+      : (getLang() === 'ru' ? ['вертолёт', 'бессмертие', 'Ocean Drive', 'мост', 'отель', 'розыск'] : ['helicopter', 'invincibility', 'Ocean Drive', 'bridge', 'hotel', 'wanted']);
     const qchip = (h, ic = '') => `<button class="qchip" data-action="hint" data-q="${esc(h)}">${ic}<span>${esc(h)}</span></button>`;
     // плитки «Обзор» — настоящие фото мест; без сети — подложка эпохи со значком
     const ph = (list, prefer) => { const o = list.find((x) => thumbOf(x, prefer)); return o ? `<img src="${esc(thumbOf(o, prefer))}" alt="" loading="lazy" decoding="async">` : ''; };
@@ -1180,6 +1184,24 @@ function openPaywall(want) {
   // живые счётчики: коды GTA 5 — сразу (25 КБ); места — только уже загруженных игр (данные карты 1–2 МБ ради подписи не качаем)
   if (!data[store.game]) loadGame(store.game).then(() => { if (pw.classList.contains('open') && pw.dataset.k === key) pw.querySelector('.pw-panel').innerHTML = paywallPanel(st); }).catch(() => { });
 }
+// «Назад» браузера и свайп назад в Safari (QA 20.11.2026: уводили со страницы из открытой шторки кода).
+// Над исходной записью истории ставим одну свою ({sbg:1}). «Назад» снимает её — закрываем верхнее (просмотр фото — map.js сам,
+// экран раздела креатора, шторку, пейвол, вкладку → Главная) и ставим запись снова. На Главной без открытого — уходим как обычно.
+function backGuard() {
+  if (!history.state?.sbg) { history.replaceState({ ...(history.state || {}), sbg: 0 }, ''); history.pushState({ sbg: 1 }, ''); }
+  addEventListener('popstate', (e) => {
+    if (e.state?.sbg !== 0) return;   // вернулись на свою запись (после просмотра фото) или чужая — не наше
+    const again = () => history.pushState({ sbg: 1 }, '');
+    if (document.getElementById('mp-viewer')?.classList.contains('open')) { again(); return; }
+    const cr = document.getElementById('cr');
+    if (cr && !cr.hidden && crLoaded) { crMod().then((m) => m.back?.()).catch(() => { }); again(); return; }
+    if ($('#sheet-layer').classList.contains('open')) { closeSheet(); again(); return; }
+    const pw = $('#paywall');
+    if (pw.classList.contains('open')) { if (pw.querySelector('.pw-close.show')) closePaywall(); again(); return; }
+    if (document.body.classList.contains('in-ob')) { again(); return; }
+    if (ui.tab !== 'home') { ui.tab = 'home'; renderAll(); again(); }
+  });
+}
 function closePaywall() { $('#paywall').classList.remove('open'); maybeInstallHint(); }
 // демо-покупка: срок как у настоящей (пропуск до 19.11 считается с 19.11 — 31 §4.4); настоящая — Paddle / покупки Apple (сервер)
 function demoBuy() {
@@ -1346,7 +1368,7 @@ document.addEventListener('click', async (e) => {
     }
     case 'share': shareText(cheatShareText(byId(id))); break;
     case 'share-app': shareText(t('share_app_text')); break;
-    case 'copy': try { await navigator.clipboard.writeText(v); toast(t('copied')); } catch { } break;
+    case 'copy': try { await navigator.clipboard.writeText(v); toast(t('copied')); } catch { toast(t('copy_fail')); } break;
     case 'play': play(id); break;
     case 'desc': el.classList.toggle('open'); break;   // описание кода в шторке — одной строкой, по тапу целиком
     case 'plat': case 'pick-platform': haptic(); openPickPlatform(); break;
@@ -1524,6 +1546,7 @@ document.addEventListener('visibilitychange', () => {
     store.onboarded = true; save(); if (location.hash) history.replaceState(null, '', location.pathname + location.search); window.SB.openCreator('admin');
   }
   else if (!store.onboarded) showOnboarding();
+  backGuard();
   document.body.classList.add('ready');
   requestAnimationFrame(guardTabbar);
   checkTrialEnd();
