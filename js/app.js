@@ -4,6 +4,7 @@
 
 import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN_ART, GTA6 } from './config.js';
 import * as pay from './pay.js';
+import * as ref from './ref.js';
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
 import { I, platformIcon, comboHTML, btn } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
@@ -1495,12 +1496,15 @@ document.addEventListener('visibilitychange', () => {
   if (!store.trialStart) { store.trialStart = Date.now(); save(); }
   // профиль SB.api: доступ (Pro, рабочий Pro, пробный, подарок, страна). Источник выбирает js/api.js: закрытый доступ на
   // устройстве (новый человек — гость), demo для съёмки (включает экран «Для админов»), ?sbmock — только на localhost
+  // рефералка: ссылка креатора (?r=КОД) и запуск «на экране Домой» → закрепление на сервере (js/ref.js), не ждём ответа
+  ref.boot({ onboarded: () => store.onboarded, payToken: () => (pay.signedIn() ? pay.state().token : null) }).catch(() => { });
   const apiP = import('./api.js').then(() => { const api = window.SB.api; return api && (!api.isMock || api.useProfile || api.mockChosen) ? api.getProfile() : null; }).catch(() => null);
   const ret = pay.handleReturn().catch(() => ({}));
   const [P, R] = await Promise.all([apiP, ret, loadGame(store.game).catch(() => { })]);
   acc.P = P; lastAccess = access();
   renderAll();
   payToast(R);
+  if ((R?.login === 'ok' || R?.paid === 'ok') && pay.signedIn()) ref.syncPay(pay.state().token, true);   // аккаунт и оплата → креатору
   if (pay.signedIn() && !R?.login && !R?.paid && !R?.portal) pay.refresh().then(() => onAccess()).catch(() => { });
   // ссылка «поделиться местом» (…/?open=place:gta5:<id>): друг сразу видит это место (и без Pro); знакомство — в следующий раз
   const openKey = new URLSearchParams(location.search).get('open');

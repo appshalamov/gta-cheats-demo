@@ -33,6 +33,7 @@
 import { CREATOR_MODE, CREATOR } from './config.js';
 import { demoDB, DEMO } from './demo-data.js';
 import { loadPlaces } from './places.js';
+import * as ref from './ref.js';
 
 const ls = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
   set: (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch { } } };
@@ -257,6 +258,18 @@ const pub = (v) => ({ id: v.id, platform: v.platform, place: v.place, title: v.t
 const sumBy = (arr, f) => arr.reduce((a, x) => a + f(x), 0);
 const addDays = (iso, n) => { const t = new Date(iso + 'T12:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
 const NOPAY = ['RU', 'BY'];
+// рефералка (js/ref.js): код креатора регистрируется на сервере при первом открытии с профилем (и после входа). Сервер может
+// вернуть другой код, если этот уже занят другим человеком, — тогда профиль берёт его. Только источник beta (настоящие люди).
+let regP = null;
+function ensureRef() {
+  const P = db().P;
+  if (SOURCE !== 'beta' || !P.ref_code) return Promise.resolve(null);
+  if (ref.registered() === P.ref_code) return Promise.resolve(P.ref_code);
+  return (regP = regP || ref.register({ code: P.ref_code, nick: P.nick, email: P.email })
+    .then((d) => { if (d?.code && d.code !== P.ref_code) { P.ref_code = d.code; persist(); } return d?.code || null; })
+    .catch(() => null).finally(() => { regP = null; }));
+}
+const REF_DEMO = { clicks: 1355, people: 121, installs: 46, onboarded: 104, pays: 10, week: { clicks: 212, people: 19 } };
 
 // ── задания и вклады (08 ТЗ §3 №11–13, §4; 02 §6) ──
 // Задание (GET /tasks, таблица tasks 04 §1.4): { id, kind, section:'all'|'partner'|'league', world, type? (вид вклада), place?, title?, platforms?,
@@ -503,7 +516,13 @@ const api = {
   mockChosen: !!MOCK,
 
   /** Профиль: { nick, ref_code, email, country, payouts, roles[], level, adult_at, pro_until, pro_kind:'year'|'pass'|'month'|'work', work_pro_until, trial_until (ISO), gift{from,days,place}|null, league_unlocked, league_progress{views,goal}, mod{today{checked,accuracy,cents},stage}, accounts[{platform,status}] } */
-  getProfile: () => { kycTick(db().P); return wait({ ...db().P, demo: MODE === 'demo' }, 60); },
+  getProfile: () => { kycTick(db().P); ensureRef(); return wait({ ...db().P, demo: MODE === 'demo' }, 60); },
+  /** Кто пришёл по ссылке (сервер рефералки): { code, clicks, people, installs, onboarded, pays, week{clicks,people} } | null (нет сети и ответа) */
+  getRefStats: async () => {
+    if (SOURCE !== 'beta') return wait({ code: db().P.ref_code, ...REF_DEMO }, 60);
+    await ensureRef();
+    return ref.stats();
+  },
   /** Правила и цифры (rules.json на сервере): ставки, холды, порог вывода, дата первого раунда, медиана (null до раунда) */
   // payouts_open: выплаты идут (live; demo и стенды показывают путь целиком). В beta — false: экран «Вывод» в состоянии beta_off (08 §2.4)
   getRules: () => wait({ ...RULES, mode: MODE, open_at: OPEN_AT, payouts_open: MODE !== 'beta' || SOURCE === 'mock', ...(SOURCE === 'demo' ? { first_round: DEMO.first_round } : {}) }, 40),
@@ -513,7 +532,7 @@ const api = {
   signIn: (email) => {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(email))) return fail('bad_email');
     if (SOURCE === 'mock') return wait({ sent: true, email }, 300);
-    const P = db().P; signInLocal(P, email); persist();
+    const P = db().P; signInLocal(P, email); persist(); ensureRef();
     return wait({ sent: false, signed_in: true, email }, 250);
   },
   /** Проверка кода из письма → профиль */
@@ -712,13 +731,15 @@ const api = {
 
   /** Заработок за месяц: { month, totals{maturing,available,paid,total}, round_date, median_cents|null, payout|null,
    *  ledger[{id,date,reason,amount_cents,status,ref,part?,plan?}], funnel{views,clicks,trials,pays}, pro_days[{date,reason,days,note}], pro_days_total } */
-  getEarnings: (month = db().month || '2026-10') => {
+  getEarnings: async (month = db().month || '2026-10') => {
     const { ledger, videos, payout, pro_days } = db();
     const t = (s) => sumBy(ledger.filter((x) => x.status === s), (x) => x.amount_cents);
     // frozen (антифрод, 03 §5) — в «Начисляется», но приостановлено: список роликов — в frozen_videos
     const totals = { maturing: t('maturing') + t('frozen'), available: t('available'), paid: t('paid') }; totals.total = totals.maturing + totals.available + totals.paid;
     const funnel = { views: sumBy(videos, (v) => v.views), clicks: sumBy(videos, (v) => v.clicks) + (ledger.some((x) => x.ref === 'profile') ? 40 : 0),
       trials: sumBy(videos, (v) => v.trials) + (ledger.some((x) => x.ref === 'profile') ? 3 : 0), pays: ledger.filter((x) => x.reason === 'share').length };
+    // закрытый доступ: переходы, знакомство и покупки по ссылке — с сервера рефералки (у роликов цифр пока нет)
+    if (SOURCE === 'beta') { const s = await ensureRef().then(() => ref.stats()).catch(() => null); if (s) Object.assign(funnel, { clicks: funnel.clicks + s.clicks, trials: funnel.trials + s.onboarded, pays: funnel.pays + s.pays }); }
     const frozen_videos = videos.filter((v) => v.status === 'frozen').map((v) => v.id);
     return wait({ month, totals, round_date: SOURCE === 'demo' ? DEMO.first_round : FIRST_ROUND, median_cents: RULES.median_cents, payout, ledger, funnel, frozen_videos, pro_days, pro_days_total: sumBy(pro_days, (x) => x.days) });
   },

@@ -104,6 +104,8 @@ const S = {
     wd_h: 'Вывести {s}', wd_sub: 'Выплата {d}, от {min}. Первый вывод — с проверкой личности', wd_1: 'Сумма: {s}, всё доступное', wd_2: 'Проверка личности и возраста 18+ у платёжного партнёра, один раз. Ссылку пришлём на {e}', wd_3: 'Раунд {d}',
     wd_fee: 'Комиссию способа выплаты платит получатель.', wd_send: 'Отправить заявку', wd_below_h: 'Пока меньше {min}', wd_below_p: 'Доступно {s}. Остаток перейдёт на следующий раунд и сложится с новыми начислениями.',
     wd_ok_h: 'Заявка принята', wd_ok_1: 'Заявка отправлена', wd_ok_2: 'На проверке: первую выплату смотрит человек', wd_ok_3: 'Выплата в раунд {d}', wd_status: 'Статус выплаты: на проверке',
+    rf_h: 'Кто пришёл по ссылке', rf_clicks: 'Открыли ссылку', rf_people: 'Новые люди за вами', rf_onb: 'Прошли знакомство', rf_inst: 'Поставили на экран «Домой»', rf_pays: 'Оформили Pro',
+    rf_note: 'За 7 дней: +{n}. Человек закрепляется за вами при первом переходе — навсегда; один человек считается один раз.', rf_off: 'Цифры появятся, когда будет связь с сервером.',
     ml_code: 'Ваш код', ml_link: 'Общая ссылка', ml_gift: 'Зритель получит это место и +30 дней к первой покупке. Вам — 40% с его покупки после холда 30 дней',
     ml_gift_np: 'Друг получит это место и +30 дней к первой покупке. Вам — 30 дней Pro, когда он купит Pro', my_link_p: 'Моя ссылка',
     ml_cpa: '$15 за приведённого креатора, когда он заработает $50 доли за 90 дней.', ml_pro: 'Рабочий Pro: 14 дней после подтверждения аккаунта площадки и +30 дней за каждый принятый ролик от 1 000 просмотров',
@@ -314,6 +316,8 @@ const S = {
     wd_h: 'Withdraw {s}', wd_sub: 'Payout on {d}, from {min}. The first payout includes an identity check', wd_1: 'Amount: {s}, everything available', wd_2: 'Identity and 18+ check with the payout partner, once. We will email the link to {e}', wd_3: 'Round on {d}',
     wd_fee: 'The payout method fee is paid by the recipient.', wd_send: 'Send request', wd_below_h: 'Less than {min} so far', wd_below_p: '{s} available. The rest moves to the next round and adds up with new earnings.',
     wd_ok_h: 'Request received', wd_ok_1: 'Request sent', wd_ok_2: 'In review: a person checks the first payout', wd_ok_3: 'Payout in the {d} round', wd_status: 'Payout status: in review',
+    rf_h: 'Who came by your link', rf_clicks: 'Opened the link', rf_people: 'New people for you', rf_onb: 'Finished the intro', rf_inst: 'Added to Home Screen', rf_pays: 'Got Pro',
+    rf_note: 'Last 7 days: +{n}. A person is tied to you on their first visit, for good; each person counts once.', rf_off: 'Numbers will appear once there is a connection to the server.',
     ml_code: 'Your code', ml_link: 'General link', ml_gift: 'A viewer gets this place and +30 days to their first purchase. You get 40% of their purchase after a 30-day hold',
     ml_gift_np: 'A friend gets this place and +30 days to their first purchase. You get 30 days of Pro when they buy Pro', my_link_p: 'My link',
     ml_cpa: '$15 for a referred creator once they earn $50 of share in 90 days.', ml_pro: 'Working Pro: 14 days after confirming a platform account and +30 days for each accepted video with 1,000+ views',
@@ -755,7 +759,9 @@ const isOpen = () => mode() === 'live' || (R?.open_at && today() >= R.open_at);
 const hasAccess = () => isOpen() || !!P?.invited;
 const verifiedAcc = () => (P?.accounts || []).find((a) => a.status === 'verified');
 const workingAcc = () => [...(P?.accounts || [])].reverse().find((a) => a.status === 'pending' || a.status === 'failed');
-const link = (code, world, id, v) => `${APP.domain}/${code}${world ? `/${world}/${slugOf(id, world)}` : ''}${v ? `?v=${v}` : ''}`;
+// ссылка креатора (js/ref.js): общая — sbgta.app/?r=КОД; место — страница «Поделиться» s/<игра>/<место>.html (превью «игра | жизнь»)
+// с ?r=КОД&v=<ролик>. Нет такой страницы — 404.html всё равно откроет приложение на месте с кодом.
+const link = (code, world, id, v) => (world ? `${APP.domain}/s/${world}/${id}.html?r=${code}${v ? `&v=${v}` : ''}` : `${APP.domain}/?r=${code}`);
 const daysTo = (iso) => Math.max(0, Math.ceil((new Date(iso + 'T00:00:00') - new Date()) / 864e5));
 
 async function load(force = false) {
@@ -1225,15 +1231,23 @@ async function vstatsHTML(a) {
 }
 
 // ───────── «Моя ссылка и код» ─────────
+// «Кто пришёл по ссылке» — цифры сервера рефералки (js/ref.js); без ответа сервера блока нет
+async function refStatsHTML() {
+  const s = await api().getRefStats?.().catch(() => null);
+  if (!s) return `<h2 class="cr-h">${esc(tx('rf_h'))}</h2><p class="cr-p">${esc(tx('rf_off'))}</p>`;
+  const r = (k, n) => `<div><b>${esc(tx(k))}</b><span class="v">${esc(num(n || 0))}</span></div>`;
+  return `<h2 class="cr-h">${esc(tx('rf_h'))}</h2><div class="cr-ledger cr-refstats">${r('rf_clicks', s.clicks)}${r('rf_people', s.people)}${r('rf_onb', s.onboarded)}${r('rf_inst', s.installs)}${r('rf_pays', s.pays)}</div>
+    <p class="cr-p">${esc(tx('rf_note', { n: num(s.week?.people || 0) }))}</p>`;
+}
 async function mylinkHTML() {
-  const np = noPay() || !isPartner(), l = link(P.ref_code);
+  const np = noPay() || !isPartner(), l = link(P.ref_code), rs = await refStatsHTML();
   if (!isPartner()) return `${head(tx('my_link_p'))}${body(`<div class="cr-code"><span>${esc(tx('ml_code'))}</span><b>${esc(P.ref_code || '')}</b></div>${field(tx('ml_link'), l, 'https://' + l)}
-    <button class="btn-primary" data-cr="share-link">${I.share}${esc(tx('share'))}</button><div class="cr-note">${I.gift}<span>${esc(tx('ml_gift_np'))}</span></div><p class="cr-p">${esc(tx('pd_note'))}</p>
+    <button class="btn-primary" data-cr="share-link">${I.share}${esc(tx('share'))}</button>${rs}<div class="cr-note">${I.gift}<span>${esc(tx('ml_gift_np'))}</span></div><p class="cr-p">${esc(tx('pd_note'))}</p>
     ${isMinor() ? '' : `<h2 class="cr-h">${esc(tx('hub_player'))}</h2><p class="cr-p">${esc(tx('partner'))}</p><button class="btn-ghost" data-cr="login">${esc(tx('hub_player'))}</button>`}`)}`;
   const acc = (P.accounts || []).map((a) => `<div><b>${esc(PLAT[a.platform])}</b><span class="v">${tag({ verified: 'ok', pending: 'wait', none: '', soon: '' }[a.status], tx('acc_' + a.status))}</span></div>`).join('');
   return `${head(tx('my_link'))}${body(`<div class="cr-code"><span>${esc(tx('ml_code'))}</span><b>${esc(P.ref_code)}</b></div>
     ${field(tx('ml_link'), l, 'https://' + l)}
-    <button class="btn-primary" data-cr="share-link">${I.share}${esc(tx('share'))}</button>
+    <button class="btn-primary" data-cr="share-link">${I.share}${esc(tx('share'))}</button>${rs}
     <div class="cr-note">${I.gift}<span>${esc(np ? tx('ml_gift_np') : tx('ml_gift'))}</span></div>
     ${np ? '' : `<p class="cr-p">${esc(tx('ml_cpa'))}</p>${med()}`}
     <div class="cr-note">${I.star}<span>${esc(tx('ml_pro'))}</span></div>

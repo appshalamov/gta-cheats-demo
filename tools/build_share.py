@@ -343,6 +343,7 @@ addEventListener('mousemove',e=>{{if(drag)set(e.clientX);}});addEventListener('m
 // подсказка движением: ползунок сам качнётся, чтобы было понятно, что его можно тянуть
 setTimeout(()=>{{if(drag)return;let t=0;a=setInterval(()=>{{t+=1;c.style.setProperty('--x',(50+22*Math.sin(t/6))+'%');if(t>=38){{clearInterval(a);c.style.setProperty('--x','50%');}}}},16);}},700);
 }})();</script>
+<script src="../ref.js"></script>
 </body></html>
 """
 
