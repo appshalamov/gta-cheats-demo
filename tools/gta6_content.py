@@ -115,17 +115,20 @@ def process(folder, dry):
     folder = pathlib.Path(folder)
     have_p, have_e = existing_ids()
     errs, places, eggs = [], [], []
-    for fname, kind, have, out in (("места.json", "place", have_p, places), ("пасхалки.json", "egg", have_e, eggs)):
-        f = folder / fname
-        if not f.exists():
+    # места*.json и пасхалки*.json (второй проход агента — пасхалки_2.json и т. п.); уже слитые id пропускаются
+    jobs = [(f, "place", have_p, places) for f in sorted(folder.glob("места*.json"))] + \
+           [(f, "egg", have_e, eggs) for f in sorted(folder.glob("пасхалки*.json"))]
+    for f, kind, have, out in jobs:
+        fname = f.name
+        if fname.startswith("._"):
             continue
         for it in json.loads(f.read_text("utf-8")):
             rid = it["id"]
             tag = f"{fname}:{rid}"
             if it.get("rumor") or it.get("confidence") == "speculative":
                 print(f"  пропуск {tag}: слух/догадка"); continue
-            if rid in have:
-                print(f"  пропуск {tag}: уже есть"); continue
+            if rid in have or any(x["id"] == rid for x in out):
+                continue   # уже в данных — повторный запуск по той же папке безопасен
             if len({urllib.parse.urlparse(u).netloc.replace("www.", "") for u in it.get("sources", [])}) < 2:
                 errs.append(f"{tag}: меньше 2 источников с разных сайтов"); continue
             addr = it.get("real_address") or it.get("real_place") or ""
