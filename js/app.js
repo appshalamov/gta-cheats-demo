@@ -14,7 +14,7 @@ import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, fea
 const KEY = 'cheats.v1';
 // pro / proPlan / proUntil — демо-покупка на устройстве; trialStart — первое открытие (пробный 72 часа, 31 §4.2);
 // linkKeys — места, открытые по ссылке «поделиться»: видны и без Pro (31 §4.2, «одна вещь из ссылки»)
-const DEFAULTS = { onboarded: false, game: 'gta5', platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google' };
+const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google' };
 const store = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { }
@@ -356,6 +356,8 @@ const POPULAR = {
   gta6: ['g6_money', 'g6_armor', 'g6_max_ammo', 'g6_weather', 'g6_inf_ammo', 'g6_boomazoom', 'g6_focus', 'g6_no_reload'],   // настоящие коды GTA 6 (18.11.2026)
 };
 const liveGames = () => GAMES.filter((g) => g.status !== 'soon');
+// на Главной — только GTA 6 (и прошлая часть, если её выбрали в Настройках): прошлые игры не на виду (Игорь 20.11.2026)
+const heroGames = () => liveGames().filter((g) => g.id === 'gta6' || g.id === store.game);
 const mapPlaceName = (gid) => ({ gta6: t('place_gta6'), gta5: t('place_gta5') }[gid] || '');
 
 function miniCheat(c) {
@@ -415,7 +417,7 @@ function heroHTML() {
   const slides = h ? h.banners.map((b, i) => `<picture class="hero-slide"><source type="image/avif" srcset="${b}.avif"><img src="${b}.webp" alt="" width="860" height="676" decoding="async" ${i ? 'loading="lazy"' : 'fetchpriority="high"'}></picture>`).join('') : '';
   return `<div class="hero${h ? '' : ' no-photo'}">
     <div class="hero-track">${slides}</div><span class="hero-scrim"></span>
-    <div class="worlds" id="hero-worlds">${liveGames().map(worldTab).join('')}</div>
+    <div class="worlds" id="hero-worlds">${heroGames().map(worldTab).join('')}</div>
     <div class="hero-city"><h2${(h ? L(h.city) : g.title).length > 8 ? ' class="long"' : ''}>${esc(h ? L(h.city) : g.title)}</h2><p id="hero-meta">${esc(heroMeta())}</p></div>
     ${h && h.banners.length > 1 ? `<div class="hero-dots">${h.banners.map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>` : ''}
     ${h && !OWN_ART ? `<span class="hero-credit">${esc(t('frame_credit'))}</span>` : ''}
@@ -435,7 +437,7 @@ function renderHero() {
   if (key !== heroKey) { heroKey = key; $('#home-hero').innerHTML = heroHTML(); bindHero(); renderTrialLine(); return; }
   // данные догрузились — меняем только подписи, фото и положение листания не трогаем
   const w = $('#hero-worlds'), m = $('#hero-meta');
-  if (w) w.innerHTML = liveGames().map(worldTab).join('');
+  if (w) w.innerHTML = heroGames().map(worldTab).join('');
   if (m) m.textContent = heroMeta();
 }
 function bindHero() {
@@ -1074,6 +1076,7 @@ function openCodeLock(c) { openSheet(codeLockHTML(c), 'sheet-detail sheet-lock')
 
 // ───────── карта без Pro: 10 секунд показа за запуск, потом размытие и замок (концепт v11 map:trial; 31 §4.2) ─────────
 // Замок — слой поверх вкладки «Карта» (js/map.js не трогаем); шторка места из ссылки открывается над ним.
+const MAP_DEMO = 20000;   // демо карты в пробном: 20 с (Игорь 20.11.2026: «15–20 секунд, а не как сейчас»)
 const mapLock = { t0: 0, timer: 0, paywall: false };
 const mapPw = () => (access() === 'trial' ? 'map' : workEnded() ? '' : 'trial_end');
 function renderMapLock() {
@@ -1088,17 +1091,17 @@ function renderMapLock() {
   el.innerHTML = `<div class="ml-veil"></div><div class="ml-box"><span class="ml-ic">${I.lock}</span><b id="ml-t"></b><span class="ml-bar"><i id="ml-bar"></i></span>
     <button class="btn-primary" data-action="paywall" data-pw="${mapPw()}">${t('open_pro')}</button></div>`;
   const tick = () => {
-    const left = Math.max(0, 10000 - (Date.now() - mapLock.t0)), done = !left;
+    const left = Math.max(0, MAP_DEMO - (Date.now() - mapLock.t0)), done = !left;
     el.classList.toggle('done', done);
     $('#ml-t').textContent = t(done ? 'map_locked' : 'map10');
-    $('#ml-bar').style.width = ((1 - left / 10000) * 100).toFixed(1) + '%';
+    $('#ml-bar').style.width = ((1 - left / MAP_DEMO) * 100).toFixed(1) + '%';
     if (done) {
       clearInterval(mapLock.timer); mapLock.timer = 0;
       if (!mapLock.paywall && ui.tab === 'map') { mapLock.paywall = true; openPaywall(mapPw()); }
     }
   };
   tick();
-  if (!mapLock.timer && Date.now() - mapLock.t0 < 10000) mapLock.timer = setInterval(tick, 250);
+  if (!mapLock.timer && Date.now() - mapLock.t0 < MAP_DEMO) mapLock.timer = setInterval(tick, 250);
 }
 
 // ───────── пейвол: только платные тарифы, 6 состояний (Ресерч 31 §4.5; концепт v11 paywall) ─────────
@@ -1438,8 +1441,8 @@ document.addEventListener('click', async (e) => {
     case 'ob-watch': haptic(); obPickThen(el, () => finishOnboarding('map')); break;
     case 'ob-game': haptic(); obPickThen(el, () => { ui.obGame = v; obGo('platform', 1); }); break;
     case 'ob-platform': haptic(); obPickThen(el, () => { ui.obPlatform = v; finishOnboarding(); }); break;
-    case 'ob-back': haptic(); if (!obBusy) obGo(ui.obStep === 'platform' ? 'game' : 'welcome', -1); break;
-    case 'ob-start': haptic(); obGo('game', 1); break;
+    case 'ob-back': haptic(); if (!obBusy) obGo('welcome', -1); break;
+    case 'ob-start': haptic(); ui.obGame = 'gta6'; obGo('platform', 1); break;   // шаг выбора игры убран: сразу GTA 6 (20.11.2026)
     case 'ob-next':
       haptic();
       if (obBusy) break;
@@ -1494,6 +1497,8 @@ document.addEventListener('visibilitychange', () => {
   if (window.speechSynthesis) speechSynthesis.getVoices();
   // пробный доступ: 72 часа с первого открытия на устройстве (если сервер не дал trial_until)
   if (!store.trialStart) { store.trialStart = Date.now(); save(); }
+  // Игорь 20.11.2026: приложение про GTA 6 — у всех (и у прежних пользователей) один раз открываем GTA 6; прошлые части — в Настройках
+  if (!store.g6) { store.game = 'gta6'; store.g6 = 1; save(); }
   // профиль SB.api: доступ (Pro, рабочий Pro, пробный, подарок, страна). Источник выбирает js/api.js: закрытый доступ на
   // устройстве (новый человек — гость), demo для съёмки (включает экран «Для админов»), ?sbmock — только на localhost
   // рефералка: ссылка креатора (?r=КОД) и запуск «на экране Домой» → закрепление на сервере (js/ref.js), не ждём ответа
