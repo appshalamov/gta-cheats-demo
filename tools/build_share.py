@@ -263,7 +263,8 @@ def page(game, kind, x):
                 for p in (x.get("pairs") or []) if p.get("g") and p.get("r"))[:3]
     o_r, o_c = (REPL[x["id"]] if (x["id"] in REPL and "BY-SA" in (rcred or "") and not prs) else (rimg, rcred))
     og = og_card(game, fid, gimg if kind == "db" else og_game_img(x), o_r, o_c, name_g or name_r, f"{name_r}" if name_g else "", prs)
-    og_abs = f"{SITE}s/{og}" if og else gimg
+    # нет своего превью и кадра игры — запасное превью сайта (QA 20.11.2026: 202 страницы уходили в мессенджер без картинки)
+    og_abs = f"{SITE}s/{og}" if og else (gimg or f"{SITE}s/og/site.jpg")
     title = f"{name_g} = {name_r}" if name_g and name_r else (name_g or name_r)
     og_title = f"{title} · {gt} in real life · Secret Base"
     og_desc = (d_en or d_ru)[:190]
@@ -298,7 +299,7 @@ def page(game, kind, x):
 <meta property="og:type" content="website"><meta property="og:site_name" content="Secret Base">
 <meta property="og:title" content="{e(og_title)}"><meta property="og:description" content="{e(og_desc)}">
 <meta property="og:url" content="{SITE}s/{game}/{e(fid)}.html">
-{f'<meta property="og:image" content="{e(og_abs)}">' if og_abs else ''}{'<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' if og else ''}
+{f'<meta property="og:image" content="{e(og_abs)}">' if og_abs else ''}{'<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' if og or not gimg else ''}
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{e(og_title)}">
 <meta name="twitter:description" content="{e(og_desc)}">{f'<meta name="twitter:image" content="{e(og_abs)}">' if og_abs else ''}
 <meta name="theme-color" content="#0b0d12"><link rel="icon" href="../../icons/icon-192.png">
