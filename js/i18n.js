@@ -87,7 +87,7 @@ const T = {
     // пробный доступ 72 часа (31 §4.2), код после пробного и карта без Pro (концепт v11: codelock, map:trial)
     trial_left: 'Пробный доступ: ещё {t}', trial_h: 'ч', trial_m: 'мин', gift_home: 'Подарок от @{n}: +30 дней к первой покупке',
     cl_lock: 'Комбинация — в Pro', cl_trial: 'Пробные 3 дня закончились', cl_work: 'Рабочий Pro закончился', open_pro: 'Открыть Pro', saved: 'Сохранено',
-    map10: '10 секунд показа, дальше — в Pro', map_locked: 'Карта — в Pro',
+    map10: '20 секунд показа, дальше — в Pro', map_locked: 'Карта — в Pro',
     st_pro_free: 'Коды, карта GTA 5 и GTA 6 и места из игр в реальном мире. Год — {p}',
     st_pro_cancelled: 'Подписка отменена, Pro работает до {d}', st_pro_year: 'Год, продлится {d}. Напомним за 7 дней, отмена в один тап', st_pro_pass: 'Пропуск релиза до {d}', st_pro_month: 'Месяц, продлится {d}. Отмена в один тап',
     st_pro_work: 'Рабочий Pro до {d}. +30 дней за каждый принятый ролик от 1 000 просмотров',
@@ -183,7 +183,7 @@ const T = {
     pw_demo: 'Demo build: no payment is taken.', pro_unlocked: 'Pro unlocked (demo)', pay_soon: 'Payments are being set up — available in a few days',
     trial_left: 'Trial access: {t} left', trial_h: 'h', trial_m: 'min', gift_home: 'A gift from @{n}: +30 days on your first purchase',
     cl_lock: 'The combination is in Pro', cl_trial: 'Your 3-day trial has ended', cl_work: 'Your working Pro has ended', open_pro: 'Get Pro', saved: 'Saved',
-    map10: '10-second preview, then the map is in Pro', map_locked: 'The map is in Pro',
+    map10: '20-second preview, then the map is in Pro', map_locked: 'The map is in Pro',
     st_pro_free: 'Codes, the GTA 5 and GTA 6 map and game places in the real world. Year — {p}',
     st_pro_cancelled: 'Subscription cancelled, Pro stays until {d}', st_pro_year: 'Year, renews on {d}. We remind you 7 days before, cancel in one tap', st_pro_pass: 'Release pass until {d}', st_pro_month: 'Month, renews on {d}. Cancel in one tap',
     st_pro_work: 'Working Pro until {d}. +30 days for each accepted video with 1,000+ views',
