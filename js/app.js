@@ -13,7 +13,7 @@ import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, fea
 const KEY = 'cheats.v1';
 // pro / proPlan / proUntil — демо-покупка на устройстве; trialStart — первое открытие (пробный 72 часа, 31 §4.2);
 // linkKeys — места, открытые по ссылке «поделиться»: видны и без Pro (31 §4.2, «одна вещь из ссылки»)
-const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google' };
+const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google', ftUntil: 0 };
 const store = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { }
@@ -70,15 +70,20 @@ const paidUntil = () => (acc.P?.pro_kind === 'work' ? 0 : until(acc.P?.pro_until
 // оплата не включена для всех, «Оформить» Pro не даёт (Игорь 19.11.2026: «пропустило в карту без оплаты»)
 const demoPay = () => { try { return /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || localStorage.getItem('sb.demopay') === '1' || localStorage.getItem('sb.demo') === '1'; } catch { return false; } };
 const demoPro = () => !pay.enabled() && demoPay() && !!store.pro;
-function hasPro() { const now = Date.now(); return demoPro() || pay.proActive() || paidUntil() > now || workUntil() > now; }
+// «Попробовать 3 дня бесплатно» на пейволе (Игорь 22.11.2026): полный доступ с картой на 72 часа, один раз на устройство
+const freeUntil = () => store.ftUntil || 0;
+const canTryFree = () => !store.ftUntil && !hasPaid();
+function hasPaid() { const now = Date.now(); return demoPro() || pay.proActive() || paidUntil() > now || workUntil() > now; }
+function hasPro() { const now = Date.now(); return freeUntil() > now || demoPro() || pay.proActive() || paidUntil() > now || workUntil() > now; }
 function proKind() {
   const now = Date.now();
   if (pay.proActive()) return pay.pro().plan || 'year';
   if (demoPro()) return store.proPlan || 'year';
   if (paidUntil() > now) return acc.P.pro_kind || 'year';
-  return workUntil() > now ? 'work' : null;
+  if (workUntil() > now) return 'work';
+  return freeUntil() > now ? 'free' : null;
 }
-function proEnds() { const k = proKind(); return k === 'work' ? workUntil() : pay.proActive() ? pay.pro().until : demoPro() ? store.proUntil : paidUntil(); }
+function proEnds() { const k = proKind(); return k === 'free' ? freeUntil() : k === 'work' ? workUntil() : pay.proActive() ? pay.pro().until : demoPro() ? store.proUntil : paidUntil(); }
 const trialEnd = () => (acc.P?.trial_until ? until(acc.P.trial_until) : (store.trialStart || Date.now()) + PAYWALL.trialHours * HOUR);
 function access() { return hasPro() ? 'pro' : Date.now() < trialEnd() ? 'trial' : 'locked'; }
 const isLocked = () => access() === 'locked';
@@ -362,8 +367,8 @@ const POPULAR = {
   gta6: ['g6_money', 'g6_armor', 'g6_max_ammo', 'g6_weather', 'g6_inf_ammo', 'g6_boomazoom', 'g6_focus', 'g6_no_reload'],   // настоящие коды GTA 6 (18.11.2026)
 };
 const liveGames = () => GAMES.filter((g) => g.status !== 'soon');
-// на Главной — только GTA 6 (и прошлая часть, если её выбрали в Настройках): прошлые игры не на виду (Игорь 20.11.2026)
-const heroGames = () => liveGames().filter((g) => g.id === 'gta6' || g.id === store.game);
+// на Главной — все вышедшие части, GTA 6 первой (Игорь 22.11.2026: «GTA 5 оставить на главном экране — у многих ещё нет GTA 6»)
+const heroGames = () => liveGames();
 const mapPlaceName = (gid) => ({ gta6: t('place_gta6'), gta5: t('place_gta5') }[gid] || '');
 
 function miniCheat(c) {
@@ -530,7 +535,8 @@ function moveInk() {
 
 // Карта открывается одним общим обещанием: два одновременных open() создавали карту дважды.
 let mapOpening = null;
-function openMap(preferGame = store.game) {
+// вкладка «Карта» — только GTA 6 (Игорь 22.11.2026); место другой игры из карточки открывается в своей игре (ui.mapHold)
+function openMap(preferGame = ui.mapHold || 'gta6') {
   // та же логика, что в map.js open(): игра из настроек приложения переключает карту, если её там поменяли
   if (preferGame !== ui.mapPrefer) { ui.mapPrefer = preferGame; ui.mapGame = preferGame; applySkin(); }
   if (!mapOpening) mapOpening = mapMod().then((m) => m.open(mapCtx(), preferGame).then(() => m)).catch((e) => { mapOpening = null; toast(t('map_error')); throw e; });
@@ -542,6 +548,7 @@ async function openOnMap(key) {
   const { kind, game: g, id } = parseKey(key);
   closeSheet();
   if (!canOpenPlace(key)) { openPaywall(mapPw()); return; }
+  ui.mapHold = g;
   if (!mapOpening) openMap(g);
   ui.tab = 'map'; renderAll();
   ui.mapGame = g; applySkin();   // карта откроет место в его игре (focus) — скин за ней
@@ -689,7 +696,7 @@ function proCardHTML() {
   const a = access(), kind = proKind(), end = proEnds(), d = end ? dlong(end) : '';
   const renew = a === 'pro' && kind === 'pass' && end - Date.now() < 7 * DAY;
   const ended = a === 'pro' && pay.proActive() && pay.pro()?.cancel;   // подписка отменена: Pro до конца оплаченного срока, без продления
-  const sub = a === 'pro' ? (d ? tf(ended ? 'st_pro_cancelled' : { work: 'st_pro_work', pass: 'st_pro_pass', month: 'st_pro_month' }[kind] || 'st_pro_year', { d }) : '')
+  const sub = a === 'pro' ? (d ? tf(ended ? 'st_pro_cancelled' : { work: 'st_pro_work', pass: 'st_pro_pass', month: 'st_pro_month', free: 'st_pro_free3' }[kind] || 'st_pro_year', { d }) : '')
     : a === 'trial' ? tf('trial_left', { t: trialLeft() }) : tf('st_pro_free', { p: usd(zone().year) });
   return `<button class="pro-card${a === 'pro' ? ' on' : ''}" data-action="${a === 'pro' && !renew ? 'noop' : 'paywall'}">
       ${pic(HERO[store.game]?.banners[0], 'pro-photo', 860, 676, true)}
@@ -1144,6 +1151,7 @@ function paywallPanel(st) {
     : `<div class="plans">${card('year', tf('pw_year', { p: usd(Z.year) }), tf('pw_year_s', { m: usd(Math.round(Z.year / 12 * 100) / 100) }), t('pw_best'))}${card('pass', tf('pw_pass', { p: usd(Z.pass) }), t('pw_pass_s'))}</div>
       ${Z.month ? `<button class="pw-month${plan === 'month' ? ' on' : ''}" data-action="plan" data-v="month" aria-pressed="${plan === 'month'}">${esc(tf('pw_month', { p: usd(Z.month) }))}</button>` : ''}
       <button class="btn-primary pw-cta" data-action="buy">${t(pay.enabled() ? 'pw_cta_pay' : 'pw_cta')}</button>
+      ${canTryFree() && st !== 'renew' ? `<button class="pw-try" data-action="try-free">${t('pw_try')}</button>` : ''}
       ${pay.enabled() ? `<p class="pw-acct">${esc(pay.signedIn() ? tf('pw_acct_in', { e: pay.user()?.email || '' }) : t('pw_acct'))}</p>` : ''}`;
   return `<h1 class="pw-title${head.length > 24 ? ' pw-long' : ''}">${esc(head)}</h1>
     <p class="pw-lead">${esc(lead)}</p>
@@ -1222,7 +1230,7 @@ function welcomeHTML() {
   return `<span class="ob-mark"><img src="icons/favicon.svg" alt="" width="40" height="40"></span>
     <h1>${t('w_title')}</h1>
     <p class="ob-lead">${t('w_sub')}</p>
-    <ul class="ob-ticks">${['w_f1', 'w_f2', 'w_f3'].map((k) => `<li>${I.check}<span><b>${t(k)}</b></span></li>`).join('')}</ul>
+    <ul class="ob-ticks">${['w_f1', 'w_f2', 'w_f3', 'w_f4'].map((k) => `<li>${I.check}<span><b>${t(k)}</b></span></li>`).join('')}</ul>
     ${access() === 'trial' ? `<div class="o-trial">${I.clock}<span>${esc(tf('trial_left', { t: trialLeft() }))}</span></div>` : ''}
     <button class="btn-primary ob-cta" data-action="ob-start">${t('next')}</button>
     <p class="ob-fine">${t('w_note')}</p>`;
@@ -1346,6 +1354,7 @@ document.addEventListener('click', async (e) => {
   switch (a) {
     case 'tab': {
       const tab = el.dataset.tab; haptic();
+      if (tab === 'map') ui.mapHold = null;   // своя вкладка карты — снова GTA 6
       el.classList.remove('bounce'); void el.offsetWidth; el.classList.add('bounce');
       if (tab === ui.tab) { // повторное нажатие — наверх, как в iOS
         if (tab === 'map') { mapMod().then((m) => m.refit()); break; }
@@ -1430,11 +1439,17 @@ document.addEventListener('click', async (e) => {
     case 'about': openAbout(); break;
     case 'rate': toast(t('rated')); break;
     case 'reset': {   // «Начать заново»: демо-Pro снят, настройки и избранное — по умолчанию; срок пробного прежний
-      ui.stopPlay?.(); Object.assign(store, { ...DEFAULTS, lang: store.lang, theme: store.theme, trialStart: store.trialStart || Date.now(), linkKeys: [] }); save();   // пробный НЕ начинается заново (QA 20.11.2026: «Начать заново» давал ещё 72 ч)
+      ui.stopPlay?.(); Object.assign(store, { ...DEFAULTS, lang: store.lang, theme: store.theme, trialStart: store.trialStart || Date.now(), ftUntil: store.ftUntil, linkKeys: [] }); save();   // пробный НЕ начинается заново (QA 20.11.2026: «Начать заново» давал ещё 72 ч)
       Object.assign(mapLock, { t0: 0, paywall: false }); clearInterval(mapLock.timer); mapLock.timer = 0;
       closeSheet(); closePaywall(); $('#install').classList.remove('show'); lastAccess = access(); showOnboarding(); renderMapLock(); break;
     }
     case 'paywall': haptic(); closeSheet(); openPaywall(el.dataset.pw || ''); break;
+    case 'try-free':
+      haptic();
+      if (!canTryFree()) break;
+      store.ftUntil = Date.now() + 3 * DAY; save();
+      closePaywall(); toast(t('pw_try_on')); onAccess(); renderAll();
+      break;
     case 'plan': plan = v; haptic(); openPaywall(pwSt); $('#paywall .pw-close').classList.add('show'); break;
     case 'buy':
       haptic();
