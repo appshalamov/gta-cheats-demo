@@ -1094,10 +1094,10 @@ function renderCards() {
     }).join('');
   }
   const other = game === 'gta6' ? 'gta5' : 'gta6';
-  const promo = BETA && !activeCat && map.getZoom() < (tilesGame() ? 4.5 : 11) ? `<button class="mc mc-promo${other === 'gta6' ? ' g6' : ''}" data-mp="game" data-v="${other}">
+  const promo = BETA && other === 'gta6' && !activeCat && map.getZoom() < (tilesGame() ? 4.5 : 11) ? `<button class="mc mc-promo${other === 'gta6' ? ' g6' : ''}" data-mp="game" data-v="${other}">
       <span class="mc-promo-t"><b>${GAMES[other].title}</b><small>${esc(w(other === 'gta6' ? 'promo6' : 'promo5'))}</small></span>
       <span class="mc-promo-n">${data[other] ? `<em>${data[other].places.length}</em> ${esc(w('places_n'))}` : ''}${IC.chevR}</span></button>` : '';
-  if (BETA && !data[other]) loadGame(other).then(() => { if (promo === '') return; renderCards(); }).catch(() => { });
+  if (BETA && other === 'gta6' && !data[other]) loadGame(other).then(() => { if (promo === '') return; renderCards(); }).catch(() => { });
   if (!top.length && !extra) { box.innerHTML = promo + `<div class="mc-empty">${IC.pin}<span>${esc(w('zoom'))}</span></div>`; return; }
   box.innerHTML = promo + (extra && !top.length ? extra : top.map(({ p, i }) => {
     const ck = catKey(p);
@@ -1692,7 +1692,7 @@ function renderChips() {
     document.getElementById('map-games').innerHTML = Object.entries(GAMES).map(([id, g]) =>
       `<button class="${id === game ? 'on' : ''}" data-action="map-game" data-v="${id}"><b>${g.title}</b><small>${tr(g.place)}</small></button>`).join('');
   } else document.getElementById('map-games').innerHTML =
-    `<div class="mg-seg mg-games" role="group" aria-label="GTA">${['gta6', 'gta5'].map((id) => `<button class="${id === game ? 'on' : ''}${id === 'gta6' ? ' g6' : ''}" data-mp="game" data-v="${id}" aria-pressed="${id === game}"><b>${GAMES[id].title}</b>${id === 'gta6' && game !== 'gta6' ? '<i class="mg-new" aria-hidden="true"></i>' : ''}</button>`).join('')}</div>` +
+    (game === 'gta6' ? '' : `<div class="mg-seg mg-games" role="group" aria-label="GTA">${['gta6', 'gta5'].map((id) => `<button class="${id === game ? 'on' : ''}${id === 'gta6' ? ' g6' : ''}" data-mp="game" data-v="${id}" aria-pressed="${id === game}"><b>${GAMES[id].title}</b>${id === 'gta6' && game !== 'gta6' ? '<i class="mg-new" aria-hidden="true"></i>' : ''}</button>`).join('')}</div>`) +
     `<div class="mg-seg mg-mode" role="group">` +
     `<button class="${mode === 'real' ? 'on' : ''}" data-mp="mode" data-v="real" aria-pressed="${mode === 'real'}" title="${esc(w('modeReal'))}: ${esc(tr(G.real))}">${IC.pin}<b>${esc(w('life'))}</b></button>` +
     (GAME_MAP[game]
@@ -1811,6 +1811,9 @@ addEventListener('keydown', (e) => {
 
 let opening = null;   // карта создаётся один раз: второй open() во время загрузки ждёт первый
 let lastPrefer = null, userGame = null;   // игра из настроек приложения / выбранная на самой карте
+let netToastAt = 0;
+function netToast() { if (Date.now() - netToastAt < 15000) return; netToastAt = Date.now(); ctx?.toast?.(t('map_offline')); }
+addEventListener('online', () => { if (map) { netToastAt = 0; try { map.style?.sourceCaches && Object.values(map.style.sourceCaches).forEach((s) => s.reload?.()); } catch { } map.triggerRepaint(); } });
 export async function open(c, preferGame) {
   ctx = c;
   ensureChrome();
@@ -1820,6 +1823,7 @@ export async function open(c, preferGame) {
     if (preferGame && GAMES[preferGame] && preferGame !== lastPrefer && preferGame !== game) await setGame(preferGame);
   } else await (opening ||= create(preferGame).finally(() => { opening = null; }));
   if (preferGame) lastPrefer = preferGame;
+  if (!navigator.onLine) netToast();
   requestAnimationFrame(() => map?.resize());
 }
 
@@ -1840,6 +1844,8 @@ async function create(preferGame) {
     map.on('error', (e) => {   // плиток игры за краем карты нет — это не ошибка; отменённые запросы при смене вида — тоже
       const er = e?.error || e;
       if (e?.sourceId === 'gtamap' || er?.name === 'AbortError') return;
+      // нет сети — сказать человеку, а не сыпать ошибками в консоль (QA 20.11.2026: офлайн карта молча чёрная)
+      if (!navigator.onLine || /Failed to fetch|NetworkError|Load failed/i.test(er?.message || '')) { netToast(); return; }
       console.error('map:', e?.sourceId || '', er?.status || '', er?.url || '', er?.message || er);
     });
     map.touchZoomRotate.disableRotation();

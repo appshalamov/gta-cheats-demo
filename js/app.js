@@ -13,7 +13,7 @@ import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, fea
 const KEY = 'cheats.v1';
 // pro / proPlan / proUntil — демо-покупка на устройстве; trialStart — первое открытие (пробный 72 часа, 31 §4.2);
 // linkKeys — места, открытые по ссылке «поделиться»: видны и без Pro (31 §4.2, «одна вещь из ссылки»)
-const DEFAULTS = { onboarded: false, game: 'gta5', platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google' };
+const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google', ftUntil: 0 };
 const store = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { }
@@ -70,15 +70,20 @@ const paidUntil = () => (acc.P?.pro_kind === 'work' ? 0 : until(acc.P?.pro_until
 // оплата не включена для всех, «Оформить» Pro не даёт (Игорь 19.11.2026: «пропустило в карту без оплаты»)
 const demoPay = () => { try { return /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || localStorage.getItem('sb.demopay') === '1' || localStorage.getItem('sb.demo') === '1'; } catch { return false; } };
 const demoPro = () => !pay.enabled() && demoPay() && !!store.pro;
-function hasPro() { const now = Date.now(); return demoPro() || pay.proActive() || paidUntil() > now || workUntil() > now; }
+// «Попробовать 3 дня бесплатно» на пейволе (Игорь 22.11.2026): полный доступ с картой на 72 часа, один раз на устройство
+const freeUntil = () => store.ftUntil || 0;
+const canTryFree = () => !store.ftUntil && !hasPaid();
+function hasPaid() { const now = Date.now(); return demoPro() || pay.proActive() || paidUntil() > now || workUntil() > now; }
+function hasPro() { const now = Date.now(); return freeUntil() > now || demoPro() || pay.proActive() || paidUntil() > now || workUntil() > now; }
 function proKind() {
   const now = Date.now();
   if (pay.proActive()) return pay.pro().plan || 'year';
   if (demoPro()) return store.proPlan || 'year';
   if (paidUntil() > now) return acc.P.pro_kind || 'year';
-  return workUntil() > now ? 'work' : null;
+  if (workUntil() > now) return 'work';
+  return freeUntil() > now ? 'free' : null;
 }
-function proEnds() { const k = proKind(); return k === 'work' ? workUntil() : pay.proActive() ? pay.pro().until : demoPro() ? store.proUntil : paidUntil(); }
+function proEnds() { const k = proKind(); return k === 'free' ? freeUntil() : k === 'work' ? workUntil() : pay.proActive() ? pay.pro().until : demoPro() ? store.proUntil : paidUntil(); }
 const trialEnd = () => (acc.P?.trial_until ? until(acc.P.trial_until) : (store.trialStart || Date.now()) + PAYWALL.trialHours * HOUR);
 function access() { return hasPro() ? 'pro' : Date.now() < trialEnd() ? 'trial' : 'locked'; }
 const isLocked = () => access() === 'locked';
@@ -135,6 +140,13 @@ function haptic() {
 }
 
 let toastTimer;
+// фото в карточке, просмотре и на Главной не загрузилось — прячем значок битой картинки, пишем «Фото не загрузилось» (QA 20.11.2026)
+document.addEventListener('error', (e) => {
+  const im = e.target;
+  if (im?.tagName !== 'IMG' || !im.closest('#sheet-body, #mp-viewer, #main') || im.closest('#map')) return;
+  im.classList.add('img-fail');
+  const box = im.parentElement; if (box && !box.classList.contains('img-fail-box') && box.offsetWidth > 120) { box.classList.add('img-fail-box'); box.dataset.nf = t('photo_nf'); }
+}, true);
 function toast(msg) {
   const el = $('#toast');
   el.textContent = msg; el.classList.add('show');
@@ -355,6 +367,8 @@ const POPULAR = {
   gta6: ['g6_money', 'g6_armor', 'g6_max_ammo', 'g6_weather', 'g6_inf_ammo', 'g6_boomazoom', 'g6_focus', 'g6_no_reload'],   // настоящие коды GTA 6 (18.11.2026)
 };
 const liveGames = () => GAMES.filter((g) => g.status !== 'soon');
+// на Главной — все вышедшие части, GTA 6 первой (Игорь 22.11.2026: «GTA 5 оставить на главном экране — у многих ещё нет GTA 6»)
+const heroGames = () => liveGames();
 const mapPlaceName = (gid) => ({ gta6: t('place_gta6'), gta5: t('place_gta5') }[gid] || '');
 
 function miniCheat(c) {
@@ -414,7 +428,7 @@ function heroHTML() {
   const slides = h ? h.banners.map((b, i) => `<picture class="hero-slide"><source type="image/avif" srcset="${b}.avif"><img src="${b}.webp" alt="" width="860" height="676" decoding="async" ${i ? 'loading="lazy"' : 'fetchpriority="high"'}></picture>`).join('') : '';
   return `<div class="hero${h ? '' : ' no-photo'}">
     <div class="hero-track">${slides}</div><span class="hero-scrim"></span>
-    <div class="worlds" id="hero-worlds">${liveGames().map(worldTab).join('')}</div>
+    <div class="worlds" id="hero-worlds">${heroGames().map(worldTab).join('')}</div>
     <div class="hero-city"><h2${(h ? L(h.city) : g.title).length > 8 ? ' class="long"' : ''}>${esc(h ? L(h.city) : g.title)}</h2><p id="hero-meta">${esc(heroMeta())}</p></div>
     ${h && h.banners.length > 1 ? `<div class="hero-dots">${h.banners.map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>` : ''}
     ${h && !OWN_ART ? `<span class="hero-credit">${esc(t('frame_credit'))}</span>` : ''}
@@ -434,7 +448,7 @@ function renderHero() {
   if (key !== heroKey) { heroKey = key; $('#home-hero').innerHTML = heroHTML(); bindHero(); renderTrialLine(); return; }
   // данные догрузились — меняем только подписи, фото и положение листания не трогаем
   const w = $('#hero-worlds'), m = $('#hero-meta');
-  if (w) w.innerHTML = liveGames().map(worldTab).join('');
+  if (w) w.innerHTML = heroGames().map(worldTab).join('');
   if (m) m.textContent = heroMeta();
 }
 function bindHero() {
@@ -521,7 +535,8 @@ function moveInk() {
 
 // Карта открывается одним общим обещанием: два одновременных open() создавали карту дважды.
 let mapOpening = null;
-function openMap(preferGame = store.game) {
+// вкладка «Карта» — только GTA 6 (Игорь 22.11.2026); место другой игры из карточки открывается в своей игре (ui.mapHold)
+function openMap(preferGame = ui.mapHold || 'gta6') {
   // та же логика, что в map.js open(): игра из настроек приложения переключает карту, если её там поменяли
   if (preferGame !== ui.mapPrefer) { ui.mapPrefer = preferGame; ui.mapGame = preferGame; applySkin(); }
   if (!mapOpening) mapOpening = mapMod().then((m) => m.open(mapCtx(), preferGame).then(() => m)).catch((e) => { mapOpening = null; toast(t('map_error')); throw e; });
@@ -533,12 +548,13 @@ async function openOnMap(key) {
   const { kind, game: g, id } = parseKey(key);
   closeSheet();
   if (!canOpenPlace(key)) { openPaywall(mapPw()); return; }
+  ui.mapHold = g;
   if (!mapOpening) openMap(g);
   ui.tab = 'map'; renderAll();
   ui.mapGame = g; applySkin();   // карта откроет место в его игре (focus) — скин за ней
   try {
     const m = await mapOpening;
-    if (m.focus) await m.focus(g, kind, id);
+    if (m.focus) { if (!(await m.focus(g, kind, id))) toast(t('place_nf')); }   // места нет (ссылка устарела) — сказать, а не молчать
     else { await m.setGame(g); toast(t('map_find_hint')); }
   } catch { }
 }
@@ -553,8 +569,9 @@ function searchCheats(list, q, cat) {
   return list.filter((c) => {
     if (cat && c.category !== cat) return false;
     if (!qq) return true;
-    const hay = norm([c.name.ru, c.name.en, c.desc?.ru, c.desc?.en, c.codes.pc, SYN[c.category], CODE_WORDS].join(' '));
-    return qq.split(/\s+/).every((w) => hay.includes(w)) || (qd.length >= 3 && (c.codes.phone || '').replace(/\D/g, '').includes(qd));
+    const hay = norm([c.name.ru, c.name.en, c.desc?.ru, c.desc?.en, c.codes.pc, SYN[c.category]].join(' '));
+    // служебные слова («код», «cheat») — только с начала слова: «heat» внутри «cheat» находил все коды (QA 20.11.2026)
+    return qq.split(/\s+/).every((w) => hay.includes(w) || (w.length >= 3 && CODE_WORDS.split(' ').some((cw) => cw.startsWith(w)))) || (qd.length >= 3 && (c.codes.phone || '').replace(/\D/g, '').includes(qd));
   });
 }
 function chip(action, v, label, on, extra = '') {
@@ -598,7 +615,10 @@ async function renderSearch() {
   // счётчики видны и в обзоре (экран 8 этапа 2): в обзоре — сколько всего, при запросе — сколько нашлось
   renderSearchFilters(browsing ? { cheats: cheatList.length, places: pd.places.length, eggs: pd.eggs.length } : { all: R.cheats.length + R.places.length + R.eggs.length, cheats: R.cheats.length, places: R.places.length, eggs: R.eggs.length });
   if (browsing) {
-    const hints = getLang() === 'ru' ? ['вертолёт', 'бессмертие', 'Ocean Drive', 'мост', 'отель', 'розыск'] : ['helicopter', 'invincibility', 'Ocean Drive', 'bridge', 'hotel', 'wanted'];
+    // подсказки — под игру пользователя: у GTA 6 нет «бессмертия» и «вертолёта» (QA 20.11.2026)
+    const hints = store.game === 'gta6'
+      ? (getLang() === 'ru' ? ['патроны', 'бронежилет', 'Ocean Drive', 'мост', 'отель', 'розыск'] : ['ammo', 'armor', 'Ocean Drive', 'bridge', 'hotel', 'wanted'])
+      : (getLang() === 'ru' ? ['вертолёт', 'бессмертие', 'Ocean Drive', 'мост', 'отель', 'розыск'] : ['helicopter', 'invincibility', 'Ocean Drive', 'bridge', 'hotel', 'wanted']);
     const qchip = (h, ic = '') => `<button class="qchip" data-action="hint" data-q="${esc(h)}">${ic}<span>${esc(h)}</span></button>`;
     // плитки «Обзор» — настоящие фото мест; без сети — подложка эпохи со значком
     const ph = (list, prefer) => { const o = list.find((x) => thumbOf(x, prefer)); return o ? `<img src="${esc(thumbOf(o, prefer))}" alt="" loading="lazy" decoding="async">` : ''; };
@@ -676,7 +696,7 @@ function proCardHTML() {
   const a = access(), kind = proKind(), end = proEnds(), d = end ? dlong(end) : '';
   const renew = a === 'pro' && kind === 'pass' && end - Date.now() < 7 * DAY;
   const ended = a === 'pro' && pay.proActive() && pay.pro()?.cancel;   // подписка отменена: Pro до конца оплаченного срока, без продления
-  const sub = a === 'pro' ? (d ? tf(ended ? 'st_pro_cancelled' : { work: 'st_pro_work', pass: 'st_pro_pass', month: 'st_pro_month' }[kind] || 'st_pro_year', { d }) : '')
+  const sub = a === 'pro' ? (d ? tf(ended ? 'st_pro_cancelled' : { work: 'st_pro_work', pass: 'st_pro_pass', month: 'st_pro_month', free: 'st_pro_free3' }[kind] || 'st_pro_year', { d }) : '')
     : a === 'trial' ? tf('trial_left', { t: trialLeft() }) : tf('st_pro_free', { p: usd(zone().year) });
   return `<button class="pro-card${a === 'pro' ? ' on' : ''}" data-action="${a === 'pro' && !renew ? 'noop' : 'paywall'}">
       ${pic(HERO[store.game]?.banners[0], 'pro-photo', 860, 676, true)}
@@ -1103,7 +1123,7 @@ function openHowto() {
   openSheet(`<h2 class="pick-t">${t('st_howto')}</h2>${g.platforms.map((p) => `<div class="howto"><div class="plat-h">${platformIcon(p)}<span>${L(PLATFORMS[p])}</span></div><p>${esc(howto(p))}</p></div>`).join('')}<p class="d-note">${t('howto_warn')}</p>`, 'sheet-pick');
 }
 function openAbout() {
-  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p>${OWN_ART ? '' : `<p class="about">${esc(t('frames_credit'))}</p>`}<p class="d-note">${esc(data[store.game]?.source || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp in ${__vp.inner} vh ${__vp.vh} dvh ${__vp.dvh} scr ${__vp.screen} sb ${__vp.safeB}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}${__vp.overflow ? ' OVERFLOW' : ''}` : ''}</div>`, 'sheet-pick');
+  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p>${OWN_ART ? '' : `<p class="about">${esc(t('frames_credit'))}</p>`}<p class="d-note">${esc((getLang() === 'en' ? data[store.game]?.source_en : data[store.game]?.source) || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp in ${__vp.inner} vh ${__vp.vh} dvh ${__vp.dvh} scr ${__vp.screen} sb ${__vp.safeB}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}${__vp.overflow ? ' OVERFLOW' : ''}` : ''}</div>`, 'sheet-pick');
   // 5 нажатий на заголовок — включить или выключить тестовую оплату Stripe (для проверки до live)
   const h = document.querySelector('#sheet-body .pick-t'); let n = 0, tm = 0;
   if (h && pay.apiBase()) h.addEventListener('click', () => { clearTimeout(tm); tm = setTimeout(() => { n = 0; }, 2500); if (++n < 5) return; n = 0; toast(pay.togglePaytest() ? t('pay_test_on') : t('pay_test_off')); onAccess(); renderAll(); });
@@ -1142,6 +1162,7 @@ function openCodeLock(c) { openSheet(codeLockHTML(c), 'sheet-detail sheet-lock')
 
 // ───────── карта без Pro: 10 секунд показа за запуск, потом размытие и замок (концепт v11 map:trial; 31 §4.2) ─────────
 // Замок — слой поверх вкладки «Карта» (js/map.js не трогаем); шторка места из ссылки открывается над ним.
+const MAP_DEMO = 20000;   // демо карты в пробном: 20 с (Игорь 20.11.2026: «15–20 секунд, а не как сейчас»)
 const mapLock = { t0: 0, timer: 0, paywall: false };
 const mapPw = () => (access() === 'trial' ? 'map' : workEnded() ? '' : 'trial_end');
 function renderMapLock() {
@@ -1156,17 +1177,17 @@ function renderMapLock() {
   el.innerHTML = `<div class="ml-veil"></div><div class="ml-box"><span class="ml-ic">${I.lock}</span><b id="ml-t"></b><span class="ml-bar"><i id="ml-bar"></i></span>
     <button class="btn-primary" data-action="paywall" data-pw="${mapPw()}">${t('open_pro')}</button></div>`;
   const tick = () => {
-    const left = Math.max(0, 10000 - (Date.now() - mapLock.t0)), done = !left;
+    const left = Math.max(0, MAP_DEMO - (Date.now() - mapLock.t0)), done = !left;
     el.classList.toggle('done', done);
     $('#ml-t').textContent = t(done ? 'map_locked' : 'map10');
-    $('#ml-bar').style.width = ((1 - left / 10000) * 100).toFixed(1) + '%';
+    $('#ml-bar').style.width = ((1 - left / MAP_DEMO) * 100).toFixed(1) + '%';
     if (done) {
       clearInterval(mapLock.timer); mapLock.timer = 0;
       if (!mapLock.paywall && ui.tab === 'map') { mapLock.paywall = true; openPaywall(mapPw()); }
     }
   };
   tick();
-  if (!mapLock.timer && Date.now() - mapLock.t0 < 10000) mapLock.timer = setInterval(tick, 250);
+  if (!mapLock.timer && Date.now() - mapLock.t0 < MAP_DEMO) mapLock.timer = setInterval(tick, 250);
 }
 
 // ───────── пейвол: только платные тарифы, 6 состояний (Ресерч 31 §4.5; концепт v11 paywall) ─────────
@@ -1183,8 +1204,8 @@ function pwResolve(want) {
   return beforeRelease() ? 'prerelease' : 'pro';
 }
 function pwValues() {
-  const n5 = data.gta5?.cheats?.length, np = MAP_GAMES.every((g) => placeCounts[g] != null) ? MAP_GAMES.reduce((a, g) => a + placeCounts[g], 0) : 0;
-  return [n5 ? tf('pw_v1', { n: n5 }) : t('pw_v1n'), t('pw_v2'), np ? tf('pw_v3', { n: tn(np, 'n_places') }) : t('pw_v3n'), t('pw_v4')]
+  const g = store.game, n5 = data[g]?.cheats?.length, gt = GAMES.find((x) => x.id === g)?.title || 'GTA', np = MAP_GAMES.every((g) => placeCounts[g] != null) ? MAP_GAMES.reduce((a, g) => a + placeCounts[g], 0) : 0;
+  return [n5 ? tf('pw_v1', { n: n5, g: gt }) : tf('pw_v1n', { g: gt }), t('pw_v2'), np ? tf('pw_v3', { n: tn(np, 'n_places') }) : t('pw_v3n'), t('pw_v4')]
     .concat(PAYWALL.scouts > 0 ? [tf('pw_scouts', { n: PAYWALL.scouts, m: 0 })] : []);
 }
 function paywallPanel(st) {
@@ -1199,6 +1220,7 @@ function paywallPanel(st) {
     : `<div class="plans">${card('year', tf('pw_year', { p: usd(Z.year) }), tf('pw_year_s', { m: usd(Math.round(Z.year / 12 * 100) / 100) }), t('pw_best'))}${card('pass', tf('pw_pass', { p: usd(Z.pass) }), t('pw_pass_s'))}</div>
       ${Z.month ? `<button class="pw-month${plan === 'month' ? ' on' : ''}" data-action="plan" data-v="month" aria-pressed="${plan === 'month'}">${esc(tf('pw_month', { p: usd(Z.month) }))}</button>` : ''}
       <button class="btn-primary pw-cta" data-action="buy">${t(pay.enabled() ? 'pw_cta_pay' : 'pw_cta')}</button>
+      ${canTryFree() && st !== 'renew' ? `<button class="pw-try" data-action="try-free">${t('pw_try')}</button>` : ''}
       ${pay.enabled() ? `<p class="pw-acct">${esc(pay.signedIn() ? tf('pw_acct_in', { e: pay.user()?.email || '' }) : t('pw_acct'))}</p>` : ''}`;
   return `<h1 class="pw-title${head.length > 24 ? ' pw-long' : ''}">${esc(head)}</h1>
     <p class="pw-lead">${esc(lead)}</p>
@@ -1237,7 +1259,25 @@ function openPaywall(want) {
   setTimeout(() => pw.querySelector('.pw-close')?.classList.add('show'), 900);
   pwThing(pw);
   // живые счётчики: коды GTA 5 — сразу (25 КБ); места — только уже загруженных игр (данные карты 1–2 МБ ради подписи не качаем)
-  if (!data.gta5) loadGame('gta5').then(() => { if (pw.classList.contains('open') && pw.dataset.k === key) pw.querySelector('.pw-panel').innerHTML = paywallPanel(st); }).catch(() => { });
+  if (!data[store.game]) loadGame(store.game).then(() => { if (pw.classList.contains('open') && pw.dataset.k === key) pw.querySelector('.pw-panel').innerHTML = paywallPanel(st); }).catch(() => { });
+}
+// «Назад» браузера и свайп назад в Safari (QA 20.11.2026: уводили со страницы из открытой шторки кода).
+// Над исходной записью истории ставим одну свою ({sbg:1}). «Назад» снимает её — закрываем верхнее (просмотр фото — map.js сам,
+// экран раздела креатора, шторку, пейвол, вкладку → Главная) и ставим запись снова. На Главной без открытого — уходим как обычно.
+function backGuard() {
+  if (!history.state?.sbg) { history.replaceState({ ...(history.state || {}), sbg: 0 }, ''); history.pushState({ sbg: 1 }, ''); }
+  addEventListener('popstate', (e) => {
+    if (e.state?.sbg !== 0) return;   // вернулись на свою запись (после просмотра фото) или чужая — не наше
+    const again = () => history.pushState({ sbg: 1 }, '');
+    if (document.getElementById('mp-viewer')?.classList.contains('open')) { again(); return; }
+    const cr = document.getElementById('cr');
+    if (cr && !cr.hidden && crLoaded) { crMod().then((m) => m.back?.()).catch(() => { }); again(); return; }
+    if ($('#sheet-layer').classList.contains('open')) { closeSheet(); again(); return; }
+    const pw = $('#paywall');
+    if (pw.classList.contains('open')) { if (pw.querySelector('.pw-close.show')) closePaywall(); again(); return; }
+    if (document.body.classList.contains('in-ob')) { again(); return; }
+    if (ui.tab !== 'home') { ui.tab = 'home'; renderAll(); again(); }
+  });
 }
 function closePaywall() { $('#paywall').classList.remove('open'); maybeInstallHint(); }
 // демо-покупка: срок как у настоящей (пропуск до 19.11 считается с 19.11 — 31 §4.4); настоящая — Paddle / покупки Apple (сервер)
@@ -1259,7 +1299,7 @@ function welcomeHTML() {
   return `<span class="ob-mark"><img src="icons/favicon.svg" alt="" width="40" height="40"></span>
     <h1>${t('w_title')}</h1>
     <p class="ob-lead">${t('w_sub')}</p>
-    <ul class="ob-ticks">${['w_f1', 'w_f2', 'w_f3'].map((k) => `<li>${I.check}<span><b>${t(k)}</b></span></li>`).join('')}</ul>
+    <ul class="ob-ticks">${['w_f1', 'w_f2', 'w_f3', 'w_f4'].map((k) => `<li>${I.check}<span><b>${t(k)}</b></span></li>`).join('')}</ul>
     ${access() === 'trial' ? `<div class="o-trial">${I.clock}<span>${esc(tf('trial_left', { t: trialLeft() }))}</span></div>` : ''}
     <button class="btn-primary ob-cta" data-action="ob-start">${t('next')}</button>
     <p class="ob-fine">${t('w_note')}</p>`;
@@ -1383,6 +1423,7 @@ document.addEventListener('click', async (e) => {
   switch (a) {
     case 'tab': {
       const tab = el.dataset.tab; haptic();
+      if (tab === 'map') ui.mapHold = null;   // своя вкладка карты — снова GTA 6
       el.classList.remove('bounce'); void el.offsetWidth; el.classList.add('bounce');
       if (tab === ui.tab) { // повторное нажатие — наверх, как в iOS
         if (tab === 'map') { mapMod().then((m) => m.refit()); break; }
@@ -1405,7 +1446,7 @@ document.addEventListener('click', async (e) => {
     }
     case 'share': shareText(cheatShareText(byId(id))); break;
     case 'share-app': shareText(t('share_app_text')); break;
-    case 'copy': try { await navigator.clipboard.writeText(v); toast(t('copied')); } catch { } break;
+    case 'copy': try { await navigator.clipboard.writeText(v); toast(t('copied')); } catch { toast(t('copy_fail')); } break;
     case 'play': play(id); break;
     case 'desc': el.classList.toggle('open'); break;   // описание кода в шторке — одной строкой, по тапу целиком
     case 'plat': case 'pick-platform': haptic(); openPickPlatform(); break;
@@ -1466,12 +1507,18 @@ document.addEventListener('click', async (e) => {
     case 'howto': openHowto(); break;
     case 'about': openAbout(); break;
     case 'rate': toast(t('rated')); break;
-    case 'reset': {   // «Начать заново»: демо-Pro снят, пробный — заново с этого момента
-      ui.stopPlay?.(); Object.assign(store, { ...DEFAULTS, lang: store.lang, theme: store.theme, trialStart: Date.now(), linkKeys: [] }); save();
+    case 'reset': {   // «Начать заново»: демо-Pro снят, настройки и избранное — по умолчанию; срок пробного прежний
+      ui.stopPlay?.(); Object.assign(store, { ...DEFAULTS, lang: store.lang, theme: store.theme, trialStart: store.trialStart || Date.now(), ftUntil: store.ftUntil, linkKeys: [] }); save();   // пробный НЕ начинается заново (QA 20.11.2026: «Начать заново» давал ещё 72 ч)
       Object.assign(mapLock, { t0: 0, paywall: false }); clearInterval(mapLock.timer); mapLock.timer = 0;
       closeSheet(); closePaywall(); $('#install').classList.remove('show'); lastAccess = access(); showOnboarding(); renderMapLock(); break;
     }
     case 'paywall': haptic(); closeSheet(); openPaywall(el.dataset.pw || ''); break;
+    case 'try-free':
+      haptic();
+      if (!canTryFree()) break;
+      store.ftUntil = Date.now() + 3 * DAY; save();
+      closePaywall(); toast(t('pw_try_on')); onAccess(); renderAll();
+      break;
     case 'plan': plan = v; haptic(); openPaywall(pwSt); $('#paywall .pw-close').classList.add('show'); break;
     case 'buy':
       haptic();
@@ -1509,8 +1556,8 @@ document.addEventListener('click', async (e) => {
     case 'ob-watch': haptic(); obPickThen(el, () => finishOnboarding('map')); break;
     case 'ob-game': haptic(); obPickThen(el, () => { ui.obGame = v; obGo('platform', 1); }); break;
     case 'ob-platform': haptic(); obPickThen(el, () => { ui.obPlatform = v; finishOnboarding(); }); break;
-    case 'ob-back': haptic(); if (!obBusy) obGo(ui.obStep === 'platform' ? 'game' : 'welcome', -1); break;
-    case 'ob-start': haptic(); obGo('game', 1); break;
+    case 'ob-back': haptic(); if (!obBusy) obGo('welcome', -1); break;
+    case 'ob-start': haptic(); ui.obGame = 'gta6'; obGo('platform', 1); break;   // шаг выбора игры убран: сразу GTA 6 (20.11.2026)
     case 'ob-next':
       haptic();
       if (obBusy) break;
@@ -1566,6 +1613,8 @@ document.addEventListener('visibilitychange', () => {
   if (window.speechSynthesis) speechSynthesis.getVoices();
   // пробный доступ: 72 часа с первого открытия на устройстве (если сервер не дал trial_until)
   if (!store.trialStart) { store.trialStart = Date.now(); save(); }
+  // Игорь 20.11.2026: приложение про GTA 6 — у всех (и у прежних пользователей) один раз открываем GTA 6; прошлые части — в Настройках
+  if (!store.g6) { store.game = 'gta6'; store.g6 = 1; save(); }
   // профиль SB.api: доступ (Pro, рабочий Pro, пробный, подарок, страна). Источник выбирает js/api.js: закрытый доступ на
   // устройстве (новый человек — гость), demo для съёмки (включает экран «Для админов»), ?sbmock — только на localhost
   const apiP = import('./api.js').then(() => { const api = window.SB.api; return api && (!api.isMock || api.useProfile || api.mockChosen) ? api.getProfile() : null; }).catch(() => null);
@@ -1576,12 +1625,16 @@ document.addEventListener('visibilitychange', () => {
   payToast(R);
   if (pay.signedIn() && !R?.login && !R?.paid && !R?.portal) pay.refresh().then(() => onAccess()).catch(() => { });
   // ссылка «поделиться местом» (…/?open=place:gta5:<id>): друг сразу видит это место (и без Pro); знакомство — в следующий раз
-  const openKey = new URLSearchParams(location.search).get('open');
+  // ключ проверяем по виду: мусор в ?open= молча открывал пейвол карты (QA 20.11.2026)
+  const openRaw = new URLSearchParams(location.search).get('open');
+  const openKey = /^(place|egg|db):(gta6|gta5):[\w.-]{1,120}$/.test(openRaw || '') ? openRaw : null;
+  if (openRaw && !openKey) { history.replaceState(null, '', location.pathname); toast(t('place_nf')); }
   if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); openOnMap(openKey); }
   else if (/[?&#]admin\b/.test(location.search + location.hash)) {   // экран «Для админов» (только веб): ?admin или #admin
     store.onboarded = true; save(); if (location.hash) history.replaceState(null, '', location.pathname + location.search); window.SB.openCreator('admin');
   }
   else if (!store.onboarded) showOnboarding();
+  backGuard();
   document.body.classList.add('ready');
   requestAnimationFrame(guardTabbar);
   checkTrialEnd();

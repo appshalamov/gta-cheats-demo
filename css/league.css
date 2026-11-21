@@ -331,7 +331,7 @@
 .cr-rvbtns[hidden], .cr-hint[hidden] { display: none; }
 
 /* на компьютере — в рамке телефона, как #main */
-@media (min-width: 700px) {
+@media (min-width: 700px) and (min-height: 560px) {
   #cr { left: 50%; right: auto; width: 393px; top: 50%; bottom: auto; height: min(852px, 100vh); margin-top: max(-426px, -50vh); margin-left: -196.5px; border-radius: 44px; }
 }
 /* меньше движения: слои и экраны — растворением */

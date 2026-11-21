@@ -124,6 +124,7 @@ def main():
     OUT.write_text(json.dumps({
         "game": "gta6",
         "source": f"Проверенные коды GTA 6 (PS5, Xbox Series X|S): каждый — минимум по двум независимым источникам, {today}.",
+        "source_en": f"Verified GTA 6 codes (PS5, Xbox Series X|S): each confirmed by at least two independent sources, {today}.",
         "updated": today,
         "confidenceLabels": {"high": ["Высокая", "High"], "medium": ["Средняя", "Medium"], "low": ["Низкая", "Low"]},
         "cheats": out,
