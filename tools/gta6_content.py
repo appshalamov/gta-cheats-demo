@@ -129,6 +129,8 @@ def process(folder, dry):
                 print(f"  пропуск {tag}: слух/догадка"); continue
             if rid in have or any(x["id"] == rid for x in out):
                 continue   # уже в данных — повторный запуск по той же папке безопасен
+            if it.get("dup_of"):   # агент нашёл совпадение с имеющимся местом/пасхалкой/точкой gtadb — не плодим дубль
+                print(f"  дубль {tag} → {it['dup_of']}"); continue
             if len({urllib.parse.urlparse(u).netloc.replace("www.", "") for u in it.get("sources", [])}) < 2:
                 errs.append(f"{tag}: меньше 2 источников с разных сайтов"); continue
             addr = it.get("real_address") or it.get("real_place") or ""
