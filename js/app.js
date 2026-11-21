@@ -687,14 +687,83 @@ function proCardHTML() {
 // аккаунт (вход через Google): покупка Pro привязана к нему и восстанавливается на любом устройстве входом
 function acctHTML() {
   if (!pay.enabled()) return '';
-  if (!pay.signedIn()) return `<div class="group">${row('acct-in', I.users, t('acct_in'))}${row('acct-code', I.link, t('acct_code'))}</div>`;
-  const p = pay.pro();
+  if (!pay.signedIn()) return `<div class="group">${row('acct-email', I.users, t('acct_email_in'))}${row('acct-in', I.users, t('acct_in'))}${row('acct-code', I.link, t('acct_code'))}</div>`;
+  const p = pay.pro(), u = pay.user() || {};
   return `<div class="group">
-      <div class="row row-static"><span class="row-ic">${I.users}</span><span class="row-l">${esc(pay.user()?.email || '')}</span><span class="row-v">${t('acct_google')}</span></div>
+      <div class="row row-static"><span class="row-ic">${I.users}</span><span class="row-l">${esc(u.email || '')}</span><span class="row-v">${u.google ? t('acct_google') : ''}</span></div>
+      ${row('acct-setpw', I.link, t(u.has_pw ? 'au_chpw' : 'au_setpw_row'))}
       ${p?.manage ? row('acct-portal', I.wallet, t('acct_portal'), p?.cancel && p.active ? esc(tf('acct_cancelled', { d: dlong(p.until) })) : '') : ''}
       ${row('acct-pair', I.link, t('acct_pair'))}
       ${row('acct-out', I.close, t('acct_out'), '', false)}
     </div>`;
+}
+// ───────── вход по почте (20.11.2026): оплата без входа → пароль после оплаты; вход паролем; код на почту ─────────
+// mode: 'setpw' — сразу после оплаты (почта из Stripe, можно «Позже»); 'chpw' — сменить; 'login' — почта+пароль; 'code' — код на почту
+function authSheet(mode, o = {}) {
+  const u = pay.user() || {}, h = pay.hint() || {};
+  const email = esc(o.email || u.email || h.email || '');
+  const inp = (id, type, ph, val = '', ac = '') => `<input class="au-in" id="${id}" type="${type}" placeholder="${esc(ph)}" value="${val}" autocomplete="${ac}" ${type === 'email' ? 'inputmode="email" autocapitalize="off" spellcheck="false"' : ''}>`;
+  let body;
+  if (mode === 'setpw' || mode === 'chpw') {
+    body = `<h2 class="pick-t">${t(mode === 'setpw' ? 'au_setpw_h' : 'au_chpw')}</h2>
+      ${mode === 'setpw' ? `<p class="au-p">${t('au_setpw_p')}</p>` : ''}
+      <input type="email" id="au-user" value="${email}" autocomplete="username" readonly class="au-in au-ro">
+      ${mode === 'chpw' && u.has_pw ? inp('au-old', 'password', t('au_old'), '', 'current-password') : ''}
+      ${inp('au-pw', 'password', t('au_pw'), '', 'new-password')}
+      <button type="button" class="btn-primary" data-action="au-setpw">${t('au_save')}</button>
+      ${mode === 'setpw' ? `<button type="button" class="btn-ghost" data-action="au-later">${t('au_later')}</button>` : ''}`;
+  } else if (mode === 'login') {
+    body = `<h2 class="pick-t">${t('au_login_h')}</h2>
+      <p class="au-p">${o.note ? esc(o.note) : t('au_login_p')}</p>
+      ${inp('au-email', 'email', t('au_email'), email, 'username')}
+      ${inp('au-pw', 'password', t('au_pw_in'), '', 'current-password')}
+      <button type="button" class="btn-primary" data-action="au-login">${t('au_go')}</button>
+      <button type="button" class="au-lnk" data-action="au-forgot">${t('au_forgot')}</button>
+      <button type="button" class="au-lnk" data-action="acct-in">${t('au_google')}</button>`;
+  } else {
+    const sent = !!o.sent;
+    body = `<h2 class="pick-t">${t('au_code_h')}</h2>
+      <p class="au-p">${t(sent ? 'au_sent' : 'au_code_p')}</p>
+      ${inp('au-email', 'email', t('au_email'), email, 'username')}
+      ${sent ? inp('au-code', 'text', t('au_code'), '', 'one-time-code').replace('type="text"', 'type="text" inputmode="numeric" maxlength="6"') + inp('au-pw', 'password', t('au_newpw'), '', 'new-password') : ''}
+      <button type="button" class="btn-primary" data-action="${sent ? 'au-verify' : 'au-send'}">${t(sent ? 'au_go' : 'au_send')}</button>
+      ${sent ? `<button type="button" class="au-lnk" data-action="au-send">${t('au_resend')}</button>` : ''}`;
+  }
+  openSheet(`<form class="au" data-mode="${mode}" novalidate>${body}</form>`, 'sheet-au');
+  setTimeout(() => { const f = [...document.querySelectorAll('#sheet-body .au input:not([readonly])')].find((x) => !x.value); try { f?.focus({ preventScroll: true }); } catch { } }, 350);
+}
+const auVal = (id) => ($('#' + id)?.value || '').trim();
+function auDone(msg) { closeSheet(); onAccess(); renderAll(); if (pay.proActive()) closePaywall(); if (msg) toast(msg); }
+function auErr(e) {
+  toast(t(e.status === 429 ? 'acct_code_slow' : e.code === 'weak_password' ? 'au_weak' : e.code === 'bad_login' ? 'au_bad_login'
+    : e.code === 'bad_old' ? 'au_bad_old' : e.code === 'email_off' ? 'au_mail_off' : e.code === 'bad_email' ? 'au_bad_email' : e.code === 'ticket' ? 'acct_code_bad' : 'pay_err_net'));
+}
+document.addEventListener('submit', (e) => { if (e.target.closest('form.au')) e.preventDefault(); });
+document.addEventListener('keydown', (e) => { if (e.key !== 'Enter' || !e.target.closest?.('form.au input')) return; e.preventDefault(); e.target.closest('form.au').querySelector('.btn-primary')?.click(); });
+async function auAction(a, el) {
+  el.disabled = true;
+  try {
+    if (a === 'au-setpw') {
+      const pw = auVal('au-pw'); if (pw.length < 8) { toast(t('au_weak')); return; }
+      await pay.setPassword(pw, auVal('au-old')); auDone(t('au_saved'));
+    } else if (a === 'au-later') { auDone(); }
+    else if (a === 'au-login') {
+      const em = auVal('au-email'), pw = auVal('au-pw'); if (!em || !pw) { toast(t('au_fill')); return; }
+      await pay.login(em, pw); auDone(pay.proActive() ? t('pay_restored') : tf('acct_hi', { e: pay.user()?.email || '' }));
+    } else if (a === 'au-forgot') { authSheet('code', { email: auVal('au-email') }); }
+    else if (a === 'au-send') {
+      const em = auVal('au-email'); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { toast(t('au_bad_email')); return; }
+      await pay.emailCode(em); authSheet('code', { email: em, sent: true });
+    } else if (a === 'au-verify') {
+      const em = auVal('au-email'), code = auVal('au-code').replace(/\D/g, ''), pw = auVal('au-pw');
+      if (code.length !== 6) { toast(t('acct_code_bad')); return; }
+      if (pw && pw.length < 8) { toast(t('au_weak')); return; }
+      await pay.emailVerify(em, code, pw || null);
+      auDone(pay.proActive() ? t('pay_restored') : tf('acct_hi', { e: pay.user()?.email || '' }));
+      if (!pw && !pay.user()?.has_pw) setTimeout(() => authSheet('setpw'), 400);
+    }
+  } catch (e) { auErr(e); }
+  finally { el.disabled = false; }
 }
 // в каких картах открывать место (Игорь 15.10.2026: «Google по умолчанию, в настройках — Apple, потом любые другие»).
 // Новая карта — строка здесь и ветка в mapsLink (map.js); наружу — только карты (правило «не уводить из приложения»).
@@ -1408,16 +1477,19 @@ document.addEventListener('click', async (e) => {
       haptic();
       if (!pay.enabled() && !demoPay()) { toast(t('pay_soon')); break; }
       if (!pay.enabled()) { demoBuy(); closePaywall(); toast(t('pro_unlocked')); onAccess(); renderAll(); break; }
-      el.disabled = true; toast(t(pay.signedIn() ? 'pay_open' : 'acct_open'));
+      el.disabled = true; toast(t('pay_open'));
       pay.checkout(plan).catch((e) => { el.disabled = false; toast(t(e.code === 'nopay' ? 'pay_nopay' : 'pay_err_net')); });
       break;
     case 'restore':   // «Восстановить покупку»: вход через Google (покупка привязана к аккаунту) или сверка со Stripe
       haptic();
-      if (!pay.signedIn()) { toast(t('acct_open')); pay.signIn(); break; }
+      if (!pay.signedIn()) { closePaywall(); setTimeout(() => authSheet('login'), 250); break; }   // шторка — над приложением, не под пейволом
       pay.refresh(true).then(() => { onAccess(); renderAll(); toast(t(pay.proActive() ? 'pay_restored' : 'pay_none')); if (pay.proActive()) closePaywall(); })
         .catch(() => toast(t('pay_err_net')));
       break;
     case 'acct-in': haptic(); toast(t('acct_open')); pay.signIn(); break;
+    case 'acct-email': haptic(); authSheet('login'); break;
+    case 'acct-setpw': haptic(); authSheet(pay.user()?.has_pw ? 'chpw' : 'setpw'); break;
+    case 'au-setpw': case 'au-later': case 'au-login': case 'au-forgot': case 'au-send': case 'au-verify': haptic(); auAction(a, el); break;
     case 'acct-out': haptic(); pay.signOut().then(() => { onAccess(); renderAll(); toast(t('acct_bye')); }); break;
     case 'acct-portal': haptic(); toast(t('pay_open')); pay.portal().catch(() => toast(t('pay_err_net'))); break;
     case 'acct-pair': haptic(); pay.pairCode().then((c) => toast(tf('acct_pair_code', { c: c.slice(0, 3) + ' ' + c.slice(3) }))).catch(() => toast(t('pay_err_net'))); break;
@@ -1466,7 +1538,8 @@ addEventListener('resize', () => scrollToCat(ui.cat, false));
 // итог возврата из Google / Stripe / портала — одной строкой
 function payToast(R) {
   if (!R) return;
-  if (R.paid === 'ok') { toast(t('pay_ok')); closePaywall(); return; }
+  if (R.paid === 'ok') { toast(t('pay_ok')); closePaywall(); if (R.fresh) setTimeout(() => authSheet('setpw'), 2000); return; }
+  if (R.paid === 'login') { closePaywall(); authSheet('login', { email: R.email, note: tf('au_linked', { e: R.email }) }); return; }
   if (R.paid === 'pending') { toast(t('pay_pending')); return; }
   if (R.paid === 'cancel') { toast(t('pay_cancel')); return; }
   if (R.paid === 'error') { toast(t('pay_err')); return; }
