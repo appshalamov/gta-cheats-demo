@@ -22,6 +22,31 @@ TOP = H - BAND
 BG, FIELD = (14, 16, 21), (24, 27, 34)
 CYAN, WHITE, MUTED = (34, 195, 217), (244, 246, 250), (168, 175, 189)
 ICON = pathlib.Path(__file__).resolve().parent.parent / "icons" / "icon-192.png"
+ONEST = pathlib.Path(__file__).resolve().parent.parent / "fonts" / "onest.woff2"
+PINK = (255, 138, 160)
+_onest = {}
+
+
+def onest(size, weight):
+    """Onest нужного веса — шрифт логотипа SBgta.app (как в шапке, tools/make_lockup_domain.py)"""
+    k = (size, weight)
+    if k not in _onest:
+        import io
+        from fontTools.ttLib import TTFont
+        f = TTFont(ONEST); f.flavor = None
+        buf = io.BytesIO(); f.save(buf); buf.seek(0)
+        ft = ImageFont.truetype(buf, size)
+        ft.set_variation_by_axes([weight])
+        _onest[k] = ft
+    return _onest[k]
+
+
+def lockup(d, x, y, size=22):
+    """«SBgta.app» (Игорь 21.11.2026): SB заглавными, gta строчными, .app тем же шрифтом розовым; y — середина строки"""
+    b, r = onest(size, 800), onest(size, 560)
+    wb = d.textlength("SBgta", font=b)
+    d.text((x, y), "SBgta", font=b, fill=WHITE, anchor="lm")
+    d.text((x + wb, y), ".app", font=r, fill=PINK, anchor="lm")
 
 
 def font(size, bold=True):
@@ -86,7 +111,7 @@ def _band(c, left_label=None, right_label=None, center_label=None, credits=()):
         c.paste(ic, (22, TOP + 14), ic)
     except Exception:
         pass
-    d.text((60, TOP + 29), "Secret Base", font=font(20), fill=MUTED, anchor="lm")
+    lockup(d, 60, TOP + 29)
     y = TOP + 30
     if left_label:
         d.text((W // 2 - 22, y), left_label, font=font(32), fill=CYAN, anchor="rm")
@@ -184,7 +209,7 @@ def render(g=None, r=None, rcred="", title="", sub="", game_frame=True):
         return c, "real"
     d = ImageDraw.Draw(c)   # ни кадра, ни фото — тёмная карточка с названием (по центру — для квадратной миниатюры)
     tf = font(64)
-    t = title or "Secret Base"
+    t = title or "SBgta.app"
     while d.textlength(t, font=tf) > 600 and tf.size > 34:
         tf = font(tf.size - 2)
     words, lines = t.split(), [""]
@@ -201,5 +226,5 @@ def render(g=None, r=None, rcred="", title="", sub="", game_frame=True):
         y += tf.size * 1.15
     if sub:
         d.text((W // 2, y + 18), sub, font=font(30, False), fill=MUTED, anchor="mm")
-    _band(c, credits=("Compare the game and real life in Secret Base",))
+    _band(c, credits=("Compare the game and real life at SBgta.app",))
     return c, "card"

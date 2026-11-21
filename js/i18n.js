@@ -10,8 +10,8 @@ const T = {
     n_places: 'место|места|мест', n_codes: 'код|кода|кодов', n_days: 'день|дня|дней', w_in_days: 'через {n}',
     pass_cat: 'Категория', pass_plat: 'Платформа',
     hub_foot: 'Неофициальное приложение. Не связано с Rockstar Games и Take-Two Interactive.', see_all: 'Все', open_map: 'Карта', go_map: 'Открыть карту', codes_n: 'кодов',
-    place_gta6: 'Майами', place_gta5: 'Лос-Анджелес', skin_skip: 'Нажмите, чтобы пропустить', map_find_hint: 'Место на карте',
-    map_error: 'Карта не загрузилась. Проверьте сеть и откройте карту ещё раз.',
+    place_gta6: 'Майами', place_gta5: 'Лос-Анджелес', skin_skip: 'Нажмите, чтобы пропустить', map_find_hint: 'Место на карте', photo_nf: 'Фото не загрузилось', copy_fail: 'Не удалось скопировать — выделите код и скопируйте вручную', place_nf: 'Место по ссылке не найдено — возможно, ссылка устарела',
+    map_error: 'Карта не загрузилась. Проверьте сеть и откройте карту ещё раз.', map_offline: 'Нет сети — карта и фото загрузятся, когда она появится. Коды работают и без сети.',
     // онбординг — 32 §3.1, §3.7 и концепт v11 (без «Чит-коды — бесплатно»: решение №14, файл 31 главнее)
     w_title: 'Secret Base: карта и чит-коды', w_sub: 'Места из игр в реальной жизни. Сдвиньте ползунок: кадр игры и та же улица сегодня.', start: 'Начать', next: 'Дальше',
     w_f1: 'Коды с кнопками вашего контроллера и озвучкой', w_f2: 'Сравнение «в игре и в жизни» на карте', w_f3: 'Фото мест из жизни и виды 360°',
@@ -65,7 +65,7 @@ const T = {
     pw_h_renew: 'Пропуск заканчивается {d}', pw_l_renew: 'Продлить на 3 месяца — {p} или перейти на год — {y}',
     pw_h_nopay: 'Оплата из вашей страны пока не принимается', pw_l_nopay: 'Авторам роликов о приложении Pro открывается как рабочий доступ', pw_partner: 'Стать партнёром',
     pw_gift: 'Подарок от @{n}: +30 дней к любому сроку', pw_thing: 'Открыто по ссылке, видно и без Pro',
-    pw_v1: 'Все коды: {n} для GTA 5, ввод под вашу платформу', pw_v1n: 'Все коды GTA 5, ввод под вашу платформу',
+    pw_v1: 'Все коды: {n} для {g}, ввод под вашу платформу', pw_v1n: 'Все коды {g}, ввод под вашу платформу',
     pw_v2: 'Карта GTA 5 и GTA 6 со слоями и отметками «Собрано»',
     pw_v3: '{n} из игр в Лос-Анджелесе и Майами с фото из жизни', pw_v3n: 'Места из игр в Лос-Анджелесе и Майами с фото из жизни',
     pw_v4: 'Сравнение «игра ⇄ жизнь» и виды 360°', pw_scouts: 'Новые пары Скаутов: {n}, +{m} за неделю',
@@ -109,8 +109,8 @@ const T = {
     n_places: 'place|places', n_codes: 'code|codes', n_days: 'day|days', w_in_days: 'in {n}',
     pass_cat: 'Category', pass_plat: 'Platform',
     hub_foot: 'Unofficial app. Not affiliated with Rockstar Games or Take-Two Interactive.', see_all: 'All', open_map: 'Map', go_map: 'Open map', codes_n: 'codes',
-    place_gta6: 'Miami', place_gta5: 'Los Angeles', skin_skip: 'Tap to skip', map_find_hint: 'Place on the map',
-    map_error: 'The map didn\'t load. Check your connection and open the map again.',
+    place_gta6: 'Miami', place_gta5: 'Los Angeles', skin_skip: 'Tap to skip', map_find_hint: 'Place on the map', photo_nf: 'Photo didn\'t load', copy_fail: 'Couldn\'t copy — select the code and copy it manually', place_nf: 'Place from the link not found — the link may be outdated',
+    map_error: 'The map didn\'t load. Check your connection and open the map again.', map_offline: 'You\'re offline — the map and photos will load when you\'re back online. Codes work offline.',
     w_title: 'Secret Base: map & cheat codes', w_sub: 'Game places in real life. Move the slider: the game shot and the same street today.', start: 'Start', next: 'Next',
     w_f1: "Codes with your controller's buttons and voice playback", w_f2: 'In the game and in real life, compared on the map', w_f3: 'Real-life photos of places and 360° views',
     w_note: 'Unofficial app. Not affiliated with Rockstar Games or Take-Two Interactive.',
@@ -162,7 +162,7 @@ const T = {
     pw_h_renew: 'Your pass ends on {d}', pw_l_renew: 'Renew for 3 months for {p} or switch to a year for {y}',
     pw_h_nopay: "Payments from your country aren't accepted yet", pw_l_nopay: 'Creators of videos about the app get Pro as working access', pw_partner: 'Become a partner',
     pw_gift: 'A gift from @{n}: +30 days on any plan', pw_thing: 'Opened from a link, visible without Pro',
-    pw_v1: 'All codes: {n} for GTA 5, input for your platform', pw_v1n: 'All GTA 5 codes, input for your platform',
+    pw_v1: 'All codes: {n} for {g}, input for your platform', pw_v1n: 'All {g} codes, input for your platform',
     pw_v2: 'GTA 5 and GTA 6 map with layers and Collected marks',
     pw_v3: '{n} from the games in Los Angeles and Miami with real-life photos', pw_v3n: 'Game places in Los Angeles and Miami with real-life photos',
     pw_v4: 'Game ⇄ life comparison and 360° views', pw_scouts: 'New Scout pairs: {n}, +{m} this week',
@@ -219,7 +219,8 @@ export const SPEAK = {
 };
 
 let lang = 'ru';
-export function setLang(l) { lang = T[l] ? l : 'ru'; document.documentElement.lang = lang; }
+export function setLang(l) { lang = T[l] ? l : ['uk', 'be', 'kk'].includes(l) ? 'ru' : 'en';   // незнакомый язык телефона — английский (QA 20.11.2026: de/es/fr получали русский)
+  document.documentElement.lang = lang; }
 export function getLang() { return lang; }
 // Число со словом в нужной форме: tn(5, 'n_places') → «5 мест» / «5 places»
 export function tn(n, key) {
