@@ -18,10 +18,18 @@
   a { color: var(--accent); } ul { padding-left: 20px; }
   hr { border: 0; border-top: 1px solid color-mix(in srgb, var(--text) 18%, transparent); margin: 40px 0; }
   .back { display: inline-block; margin-bottom: 12px; text-decoration: none; }
+  .lg { display: none; } html:not([data-l]) .lg, html[data-l="en"] .lg[lang="en"], html[data-l="ru"] .lg[lang="ru"] { display: block; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; } .top .back { margin: 0; }
+  .sw { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-size: 15px; }
+  html:not([data-l]) .sw { display: none; }
 </style>
+<script>(()=>{let l='';try{l=new URLSearchParams(location.search).get('lang')||JSON.parse(localStorage.getItem('cheats.v1')||'{}').lang||''}catch(e){}
+if(l!=='ru'&&l!=='en')l=/^(ru|uk|be|kk)/i.test(navigator.language||'')?'ru':'en';const set=(x)=>{document.documentElement.dataset.l=x;document.documentElement.lang=x;};set(l);
+document.addEventListener('click',(e)=>{const a=e.target.closest('[data-to]');if(a){e.preventDefault();set(a.dataset.to);scrollTo(0,0);}});})();</script>
 </head>
 <body>
-<a class="back" href="./">← Secret Base</a>
+<div class="top"><a class="back" href="./">← Secret Base</a><span><a class="sw lg" lang="en" href="?lang=ru" data-to="ru">Русская версия</a><a class="sw lg" lang="ru" href="?lang=en" data-to="en">English version</a></span></div>
+<div class="lg" lang="en">
 <h1>Privacy Policy</h1>
 <p class="muted">Effective: November 19, 2026</p>
 
@@ -57,10 +65,9 @@
 <p>If this policy changes, we will update this page and the date above. Questions: <a href="mailto:loveminesgame@gmail.com">loveminesgame@gmail.com</a>.</p>
 
 <p class="muted">Secret Base is an unofficial fan project and is not affiliated with or endorsed by Rockstar Games or Take-Two Interactive.</p>
-
-<hr>
-
-<h1 lang="ru">Политика конфиденциальности</h1>
+</div>
+<div class="lg" lang="ru">
+<h1>Политика конфиденциальности</h1>
 <div lang="ru">
 <p class="muted">Действует с 19 ноября 2026 г.</p>
 <p>Secret Base (sbgta.app) — фанатское приложение-спутник к играм с открытым миром: карта, которая связывает места из игры с реальными, гиды и подсказки. Здесь описано, какие данные мы обрабатываем и зачем. Мы берём только то, без чего приложение не работает.</p>
@@ -75,6 +82,7 @@
 <h2>Сроки хранения и ваши права</h2>
 <p>Данные аккаунта и покупок храним, пока существует аккаунт и сколько нужно для учёта и возвратов. Сессия входа действует 180 дней. Выйти можно в Настройках. Удалить аккаунт или получить копию данных — письмом на <a href="mailto:loveminesgame@gmail.com">loveminesgame@gmail.com</a>. Отменить подписку — Настройки → Управлять подпиской.</p>
 <p class="muted">Secret Base — неофициальный фанатский проект, не связан с Rockstar Games и Take-Two Interactive.</p>
+</div>
 </div>
 </body>
 </html>

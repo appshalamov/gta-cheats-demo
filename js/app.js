@@ -4,8 +4,9 @@
 
 import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN_ART, GTA6 } from './config.js';
 import * as pay from './pay.js';
+import * as ref from './ref.js';
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
-import { I, platformIcon, comboHTML, btn } from './icons.js';
+import { I, platformIcon, comboHTML, btn, balanceCombos } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
 import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
@@ -13,11 +14,13 @@ import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, fea
 const KEY = 'cheats.v1';
 // pro / proPlan / proUntil — демо-покупка на устройстве; trialStart — первое открытие (пробный 72 часа, 31 §4.2);
 // linkKeys — места, открытые по ссылке «поделиться»: видны и без Pro (31 §4.2, «одна вещь из ссылки»)
-const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google', ftUntil: 0 };
+const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google', ftUntil: 0, tourMap: false, tourCodes: false };
 const store = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { }
-  return { ...DEFAULTS, ...s };
+  const st = { ...DEFAULTS, ...s };
+  if (s.onboarded && s.tourMap === undefined) st.tourMap = st.tourCodes = true;   // знакомство 22.11.2026 — только новым
+  return st;
 })();
 function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch { } }
 
@@ -847,6 +850,7 @@ function renderSettings() {
         <button class="switch${store.haptic ? ' on' : ''}" data-action="haptic-toggle" aria-label="haptics"><i></i></button></div>
     </div>
     <div class="group">
+      ${row('tour', I.map, t('st_tour'))}
       ${row('howto', I.info, t('st_howto'))}
       ${row('share-app', I.share, t('st_share_app'))}
       ${row('rate', I.star, t('st_rate'))}
@@ -887,6 +891,7 @@ function renderAll() {
   document.querySelectorAll('.tab-l').forEach((s) => { s.textContent = t('tab_' + s.dataset.k); });
   document.querySelectorAll('[data-t]').forEach((s) => { s.textContent = t(s.dataset.t); });
   renderHome(); renderSearch(); renderFavs(); renderSettings();
+  maybeCodesTour();
 }
 
 // ───────── шторки ─────────
@@ -1200,11 +1205,11 @@ function openCodeLock(c) { openSheet(codeLockHTML(c), 'sheet-detail sheet-lock')
 // ───────── карта без Pro: 10 секунд показа за запуск, потом размытие и замок (концепт v11 map:trial; 31 §4.2) ─────────
 // Замок — слой поверх вкладки «Карта» (js/map.js не трогаем); шторка места из ссылки открывается над ним.
 const MAP_DEMO = 20000;   // демо карты в пробном: 20 с (Игорь 20.11.2026: «15–20 секунд, а не как сейчас»)
-const mapLock = { t0: 0, timer: 0, paywall: false };
+const mapLock = { t0: 0, timer: 0, paywall: false, pausedAt: 0 };
 const mapPw = () => (access() === 'trial' ? 'map' : workEnded() ? '' : 'trial_end');
 function renderMapLock() {
   let el = $('#map-lock');
-  if (ui.tab !== 'map' || access() === 'pro' || document.body.classList.contains('in-ob')) {
+  if (ui.tab !== 'map' || access() === 'pro' || document.body.classList.contains('in-ob') || document.body.classList.contains('in-tour')) {
     if (el) el.hidden = true;
     clearInterval(mapLock.timer); mapLock.timer = 0; return;
   }
@@ -1370,10 +1375,16 @@ function backGuard() {
     const pw = $('#paywall');
     if (pw.classList.contains('open')) { if (pw.querySelector('.pw-close.show')) closePaywall(); again(); return; }
     if (document.body.classList.contains('in-ob')) { again(); return; }
+    if (document.getElementById('tour')) { import('./tour.js').then((m) => m.skip()); again(); return; }
     if (ui.tab !== 'home') { ui.tab = 'home'; renderAll(); again(); }
   });
 }
-function closePaywall() { pay.closeInApp(); promoUi = ''; $('#paywall').classList.remove('open'); maybeInstallHint(); }
+function closePaywall() {
+  pay.closeInApp(); promoUi = '';
+  $('#paywall').classList.remove('open');
+  if (store.tourMap && !store.tourCodes && ui.tab === 'map' && store.onboarded) { ui.tab = 'home'; renderAll(); return; }   // после пейвола — Главная и одна анимация кодов
+  maybeInstallHint();
+}
 // демо-покупка: срок как у настоящей (пропуск до 19.11 считается с 19.11 — 31 §4.4); настоящая — Paddle / покупки Apple (сервер)
 function demoBuy() {
   const now = new Date(), d = new Date(Math.max(now.getTime(), plan === 'pass' && beforeRelease() ? new Date(PAYWALL.release + 'T00:00:00').getTime() : 0));
@@ -1390,10 +1401,10 @@ function obDefaultPlatform(gameId) {
 }
 // экран 1 «Обещание»: фото эпохи и стеклянная панель снизу, в зоне большого пальца
 function welcomeHTML() {
-  return `<span class="ob-mark"><img src="icons/favicon.svg" alt="" width="40" height="40"></span>
-    <h1>${t('w_title')}</h1>
-    <p class="ob-lead">${t('w_sub')}</p>
-    <ul class="ob-ticks">${['w_f1', 'w_f2', 'w_f3', 'w_f4'].map((k) => `<li>${I.check}<span><b>${t(k)}</b></span></li>`).join('')}</ul>
+  const sec = (ic, k) => `<div class="ob-sec"><span class="ob-sec-ic">${ic}</span><span><b>${t(k)}</b><small>${t(k + '_s')}</small></span></div>`;
+  return `<div class="ob-brand"><img src="icons/favicon.svg" alt="" width="44" height="44"><h1>Secret Base</h1></div>
+    ${sec(I.map, 'w_map')}${sec(I.gamepad, 'w_codes')}
+    <p class="ob-more">${t('w_more')}</p>
     ${access() === 'trial' ? `<div class="o-trial">${I.clock}<span>${esc(tf('trial_left', { t: trialLeft() }))}</span></div>` : ''}
     <button class="btn-primary ob-cta" data-action="ob-start">${t('next')}</button>
     <p class="ob-fine">${t('w_note')}</p>`;
@@ -1421,6 +1432,34 @@ function renderOnboarding(dir = 0) {
       <button class="btn-primary ob-cta" data-action="ob-next">${isGame ? t('next') : t('start')}</button>
     </div>`;
 }
+// ───────── знакомство на карте и с кодами (js/tour.js; Игорь 22.11.2026, сценарий «Гибрид») ─────────
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const tourCtx = () => ({ t, tf, haptic, setSnap, reduced: reducedMotion(), pro: access() === 'pro',
+  codeId: (POPULAR[store.game] || [])[0] || 'g6_money' });
+let codesBusy = false;
+async function startMapTour(replay = false) {
+  document.body.classList.add('in-tour');
+  if (mapLock.t0 && !mapLock.pausedAt) mapLock.pausedAt = Date.now();   // повтор из Настроек: показ стоит, не сбрасывается
+  renderMapLock();
+  let r = 'error';
+  try { r = await (await import('./tour.js')).mapTour(tourCtx()); } catch { }
+  store.tourMap = true; save();
+  document.body.classList.remove('in-tour');
+  if (mapLock.pausedAt) { mapLock.t0 += Date.now() - mapLock.pausedAt; mapLock.pausedAt = 0; }
+  if (r === 'nomap' || replay) { ui.tab = 'home'; renderAll(); }   // нет карты — сразу к кодам; повтор — карта и коды подряд
+  else renderMapLock();
+}
+function maybeCodesTour() {
+  if (codesBusy || !store.tourMap || store.tourCodes || ui.tab !== 'home' || !store.onboarded) return;
+  const b = document.body.classList;
+  if (b.contains('in-ob') || b.contains('in-tour') || $('#paywall').classList.contains('open') || $('#sheet-layer').classList.contains('open')) return;
+  codesBusy = true;
+  setTimeout(async () => {
+    if (ui.tab !== 'home') { codesBusy = false; return; }
+    try { await (await import('./tour.js')).codesTour(tourCtx()); } catch { }
+    store.tourCodes = true; save(); codesBusy = false;
+  }, 450);
+}
 function showOnboarding() {
   ui.obStep = 'welcome'; ui.obGame = store.game; ui.obPlatform = obDefaultPlatform(store.game); obBusy = false;
   document.body.classList.add('in-ob');
@@ -1442,9 +1481,12 @@ function obPickThen(el, fn) {
 async function finishOnboarding(tab = 'home') {
   store.game = ui.obGame; store.platform = ui.obPlatform; store.onboarded = true; save();
   try { await loadGame(store.game); } catch { /* нет сети при первом запуске — данные подгрузятся позже, не держим на онбординге */ }
+  const tour = tab === 'map' && !store.tourMap;
+  if (tour) document.body.classList.add('in-tour');   // 20 с показа карты стоят, пока идёт знакомство
   document.body.classList.remove('in-ob');
   ui.tab = tab; ui.cat = DEFAULT_CATEGORY;
   renderAll();
+  if (tour) startMapTour();
   if (tab === 'home') maybeInstallHint();   // на карте подсказка закрыла бы замок карты
   checkTrialEnd();
 }
@@ -1600,6 +1642,7 @@ document.addEventListener('click', async (e) => {
     case 'lang': store.lang = v; save(); setLang(v); renderAll(); mapMod().then((m) => m.relang()); if (crLoaded) crMod().then((m) => m.relang()).catch(() => { }); break;
     case 'haptic-toggle': store.haptic = !store.haptic; save(); haptic(); renderSettings(); break;
     case 'howto': openHowto(); break;
+    case 'tour': haptic(); closeSheet(); store.tourCodes = false; save(); ui.tab = 'map'; renderAll(); startMapTour(true); break;
     case 'about': openAbout(); break;
     case 'rate': toast(t('rated')); break;
     case 'reset': {   // «Начать заново»: демо-Pro снят, настройки и избранное — по умолчанию; срок пробного прежний
@@ -1674,14 +1717,14 @@ document.addEventListener('click', async (e) => {
     }
     case 'ob-watch': haptic(); obPickThen(el, () => finishOnboarding('map')); break;
     case 'ob-game': haptic(); obPickThen(el, () => { ui.obGame = v; obGo('platform', 1); }); break;
-    case 'ob-platform': haptic(); obPickThen(el, () => { ui.obPlatform = v; finishOnboarding(); }); break;
+    case 'ob-platform': haptic(); obPickThen(el, () => { ui.obPlatform = v; finishOnboarding('map'); }); break;   // Игорь 22.11.2026: после платформы — карта Майами
     case 'ob-back': haptic(); if (!obBusy) obGo('welcome', -1); break;
     case 'ob-start': haptic(); ui.obGame = 'gta6'; obGo('platform', 1); break;   // шаг выбора игры убран: сразу GTA 6 (20.11.2026)
     case 'ob-next':
       haptic();
       if (obBusy) break;
       if (ui.obStep === 'game') obGo('platform');
-      else finishOnboarding();
+      else finishOnboarding('map');
       break;
     case 'install': deferredPrompt?.prompt(); deferredPrompt = null; $('#install').classList.remove('show'); break;
     case 'install-x': $('#install').classList.remove('show'); break;
@@ -1700,6 +1743,11 @@ $('#pager').addEventListener('scroll', () => requestAnimationFrame(moveInk), { p
   hb.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(upd); }, { passive: true });
 })();
 addEventListener('resize', () => scrollToCat(ui.cat, false));
+// комбинации в списках — ровными рядами (js/icons.js balanceCombos): после любой перерисовки и при смене ширины
+{ let q = 0; const run = () => { q = 0; balanceCombos(); };
+  const later = () => { if (!q) q = requestAnimationFrame(run); };
+  new MutationObserver((ms) => { if (ms.some((m) => m.addedNodes.length)) later(); }).observe(document.getElementById('main') || document.body, { childList: true, subtree: true });
+  addEventListener('resize', later); later(); }
 
 // итог возврата из Google / Stripe / портала — одной строкой
 function payToast(R) {
@@ -1736,12 +1784,15 @@ document.addEventListener('visibilitychange', () => {
   if (!store.g6) { store.game = 'gta6'; store.g6 = 1; save(); }
   // профиль SB.api: доступ (Pro, рабочий Pro, пробный, подарок, страна). Источник выбирает js/api.js: закрытый доступ на
   // устройстве (новый человек — гость), demo для съёмки (включает экран «Для админов»), ?sbmock — только на localhost
+  // рефералка: ссылка креатора (?r=КОД) и запуск «на экране Домой» → закрепление на сервере (js/ref.js), не ждём ответа
+  ref.boot({ onboarded: () => store.onboarded, payToken: () => (pay.signedIn() ? pay.state().token : null) }).catch(() => { });
   const apiP = import('./api.js').then(() => { const api = window.SB.api; return api && (!api.isMock || api.useProfile || api.mockChosen) ? api.getProfile() : null; }).catch(() => null);
   const ret = pay.handleReturn().catch(() => ({}));
   const [P, R] = await Promise.all([apiP, ret, loadGame(store.game).catch(() => { })]);
   acc.P = P; lastAccess = access();
   renderAll();
   payToast(R);
+  if ((R?.login === 'ok' || R?.paid === 'ok') && pay.signedIn()) ref.syncPay(pay.state().token, true);   // аккаунт и оплата → креатору
   if (pay.signedIn() && !R?.login && !R?.paid && !R?.portal) pay.refresh().then(() => onAccess()).catch(() => { });
   // ссылка «поделиться местом» (…/?open=place:gta5:<id>): друг сразу видит это место (и без Pro); знакомство — в следующий раз
   // ключ проверяем по виду: мусор в ?open= молча открывал пейвол карты (QA 20.11.2026)

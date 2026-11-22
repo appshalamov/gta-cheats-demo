@@ -108,3 +108,18 @@ export function comboHTML(tokens, platform, big = false) {
     return `<span class="${b.cls}" data-i="${i}">${b.html}</span>`;
   }).join('')}</div>`;
 }
+
+// Комбинация в списке, которая не влезает в строку, — ровными рядами (8 кнопок на 360: 4+4, а не 7+1). Считается по
+// настоящей ширине строки после отрисовки и при повороте/смене ширины (QA 21.11.2026: одинокая стрелка на второй строке).
+export function balanceCombos(root = document) {
+  for (const c of root.querySelectorAll('.card-code .combo')) {
+    const n = c.children.length; if (n < 2) continue;
+    c.classList.remove('combo-bal'); c.style.removeProperty('--per');
+    const k = c.children[0].getBoundingClientRect().width, gap = parseFloat(getComputedStyle(c).columnGap) || 0;
+    const w = c.parentElement.getBoundingClientRect().width; if (!k || !w) continue;
+    const fit = Math.max(1, Math.floor((w + gap) / (k + gap)));
+    if (n <= fit) continue;
+    const rows = Math.ceil(n / fit), per = Math.ceil(n / rows);
+    c.classList.add('combo-bal'); c.style.setProperty('--per', per);
+  }
+}

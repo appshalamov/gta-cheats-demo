@@ -5,8 +5,8 @@ export const APP = {
   name: 'Secret Base: карта и чит-коды',   // 32 §3.1; «GTA» в имени нельзя (ASRG 4.1(c), 00 §14)
   shortName: 'Secret Base',
   version: '0.3.1 demo',
-  // домен ссылок креаторов домен/КОД/мир/место?v=<ролик> — ЗАГЛУШКА: настоящий покупает и вписывает feature/foundation
-  domain: 'secretbase.example',
+  // домен ссылок креаторов: sbgta.app/?r=КОД и sbgta.app/s/<игра>/<место>.html?r=КОД&v=<ролик> (league.js link(), js/ref.js)
+  domain: 'sbgta.app',
 };
 
 // icon — id значка из I (js/icons.js), не эмодзи
@@ -98,6 +98,9 @@ export const PAYWALL = {
 
 // Оплата Stripe и вход через Google (js/pay.js, сервер server/pay-worker). api: null — оплаты нет, демо-покупка на устройстве.
 // test: true — тестовый режим Stripe (карта 4242…), строка об этом на пейволе. Live — только после «да» Игоря.
+// Рефералка (js/ref.js, сервер server/ref-worker): закрепление по ссылке и статистика креатора. api: null — выключено.
+export const REF = { api: 'https://ref.sbgta.app' };
+
 export const PAY = { api: 'https://pay.sbgta.app', test: false };   // боевая оплата для всех с 22.11.2026 (Stripe «MR DALLARS» → «Secret Base»); test: true — только у включивших ?paytest=1
 
 // ───────── креаторский раздел: режимы и закрытый доступ (Дизайн Secret Base/08 MVP/08 ТЗ §1, §2) ─────────
