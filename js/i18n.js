@@ -256,4 +256,6 @@ export function t(key) { return (T[lang] && T[lang][key]) ?? T.ru[key] ?? key; }
 // Имена собственные остаются латиницей; ссылку в Карты строим по n (английское — лучше ищется).
 export const rn = (o) => (o ? (lang === 'ru' && o.nr) || o.n || '' : '');
 export const ra = (o) => (o ? (lang === 'ru' && o.ar) || o.a || '' : '');
+export const rg = (o) => (o ? (lang === 'ru' && o.gr) || o.g || '' : '');   // игровое имя места (gr — русское пояснение)
+export const rp = (o) => (o ? (lang === 'ru' && o.pr) || o.p || '' : '');   // реальное место пасхалки
 export function L(v) { if (v == null) return ''; return typeof v === 'string' ? v : (v[lang] ?? v.ru ?? v.en ?? ''); }

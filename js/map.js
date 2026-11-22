@@ -6,7 +6,7 @@
 // пиктограммы типа места, доступа и точности совпадения, короткие подписи на языке устройства.
 // Свои клики обрабатываем здесь через атрибут data-mp (app.js их не трогает).
 
-import { t, L as tr, getLang, rn, ra } from './i18n.js';
+import { t, L as tr, getLang, rn, ra, rg, rp } from './i18n.js';
 import { GTA6 } from './config.js';
 import { lifeStyle, LIFE_VARIANTS } from './mapstyle.js';
 
@@ -602,7 +602,7 @@ function nearbyRow(p, i) {
   const pic = (q) => q.pr?.thumb || q.pg?.thumb || q.pr?.file || q.pg?.file || q.pairs?.[0]?.r?.url || '';
   return `<div class="mp-near"><b class="mp-near-t">${IC.pin}<span>${esc(w('nearby'))}</span></b><div class="mp-near-row">${near.map(([k, d]) => {
     const q = all[k], img = pic(q);
-    return `<button class="mp-near-c" data-mp="near" data-i="${k}">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="mp-ch-ic">${IC.pin}</span>`}<span><b>${esc(q.g || rn(q))}</b><small>${esc(fmtKm(d))} · ${esc(rn(q))}</small></span></button>`;
+    return `<button class="mp-near-c" data-mp="near" data-i="${k}">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="mp-ch-ic">${IC.pin}</span>`}<span><b>${esc(rg(q) || rn(q))}</b><small>${esc(fmtKm(d))} · ${esc(rn(q))}</small></span></button>`;
   }).join('')}</div></div>`;
 }
 function eggSheet(e, i) {
@@ -611,11 +611,11 @@ function eggSheet(e, i) {
     ? `<button class="mp-cta mp-cta-yt" data-mp="yt" data-v="${yt[0].id}" data-t="${yt[0].t}" data-l="${esc(yt[0].label)}">${IC.play}<span>${esc(w('seen'))} · ${esc(yt[0].label.split(' · ')[1] || '')}</span></button>`
     : `<a class="mp-cta" href="${panoLink(e.lat, e.lon, e.view)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>`;
   return `
-    ${peekHead(txt(e.t), (e.p || '').split(',')[0], true)}
-    ${heroBox('e' + i, e.pairs, gameList(e), realList(e), { g: txt(e.t), r: (e.p || '').split(',')[0] }, { egg: true })}
+    ${peekHead(txt(e.t), rp(e).split(',')[0], true)}
+    ${heroBox('e' + i, e.pairs, gameList(e), realList(e), { g: txt(e.t), r: rp(e).split(',')[0] }, { egg: true })}
     <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><h2>${esc(txt(e.t))}</h2></div></div>
-    ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(e.p.split(',')[0])}</b><small>${esc(e.p.split(',').slice(1).join(',').trim())}</small></div></div>` : ''}
-    ${gameBlock(e.gm, e.ga, '', '', { k: 'e', i, real: e.p || '' })}
+    ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(rp(e).split(',')[0])}</b><small>${esc(rp(e).split(',').slice(1).join(',').trim())}</small></div></div>` : ''}
+    ${gameBlock(e.gm, e.ga, '', '', { k: 'e', i, real: rp(e) })}
     <div class="mp-picto"><span class="mp-pic">${meter(e.cf)}<small>${esc(w(e.cf || 'likely'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel(e)}</small></span>` : ''}</div>
     <div class="mp-acts">${cta}
       <a class="mp-ib" href="${mapsLink(e.lat, e.lon, e.p)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}">${IC.nav}</a>
