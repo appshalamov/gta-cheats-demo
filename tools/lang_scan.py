@@ -34,13 +34,19 @@ LATIN_OK = re.compile(r"Wikimedia Commons|CC BY(?:-SA)?(?: \d\.\d)?|Public domai
 # tools/names_ru.json, где перевод = оригиналу (имя переводить не нужно), и текст в «ёлочках» (вывеска, цитата, название).
 PROPER_EXTRA = ["Ocarina of Time", "Know Your Meme", "Gons and Audet", "Bank of America", "Toyota of Downtown LA",
                 "Everglades on the Bay", "Brickell on the River", "Quantum on the Bay", "Zak the Baker", "Jack of Hearts",
-                "King of Diamonds", "Adrienne Arsht Center for the Performing Arts", "Hobbs Milford", "Duke of Wellington"]
+                "King of Diamonds", "Adrienne Arsht Center for the Performing Arts", "Hobbs Milford", "Duke of Wellington", "loanDepot park"]
 def _proper():
     f = ROOT / "tools" / "names_ru.json"
     ru = json.loads(f.read_text("utf-8")) if f.exists() else {}
     names = sorted({k for k, v in ru.items() if k == v} | set(PROPER_EXTRA), key=len, reverse=True)
     return re.compile("|".join(re.escape(n) for n in names) + r"|«[^»]*»")
 PROPER = _proper()
+# строчное английское слово в названии/адресе = пояснение («building», «former», «near»): в русском интерфейсе его надо перевести
+_LOW = re.compile(r"(?<![\w'’&.-])[a-z]{3,}(?![\w'’-])")
+_LOW_OK = {"del", "des", "von", "van", "der", "les", "los", "las", "dos", "via", "mia", "ave", "blvd"}
+def _descr(v):
+    t = LATIN_OK.sub("", PROPER.sub("", v))
+    return bool(EN_STOP.search(t)) or any(w not in _LOW_OK for w in _LOW.findall(t))
 # переключатель языка подписан на своём языке (как у всех сайтов): «Русская версия» в английском режиме — не утечка
 EN_OK = re.compile(r"^Русская версия$")
 CREDIT = re.compile(r"(?:Фото|Photo|Кадр|Frame)\s*:[^\n]*|[^\n]*\b(?:CC BY|CC0|Public domain|Wikimedia)[^\n]*", re.I)
@@ -292,7 +298,7 @@ def static_checks():
             for p in d.get(k) or []:
                 for f in ("n", "a", "g", "p"):
                     v = p.get(f)
-                    if isinstance(v, str) and v not in ru_names and EN_STOP.search(LATIN_OK.sub("", PROPER.sub("", v))):
+                    if isinstance(v, str) and v not in ru_names and _descr(v):
                         bad.append({"file": f"data/map/{g}.json", "issue": f"нет русского имени (tools/names_ru.json): {p.get('id')}.{f} = {v[:60]}"})
     for fp in sorted((ROOT / "data").rglob("*.json")):
         if fp.name.startswith("._"): continue

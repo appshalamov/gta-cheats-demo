@@ -86,7 +86,7 @@ function hay(o) {
   if (!o._hay) {
     o._hay = norm(o.kind === 'egg'
       ? [o.t?.ru, o.t?.en, o.d?.ru, o.d?.en, o.p].join(' ')
-      : [o.g, o.r, o.n, o.a, o.c, catLabel(o.c), CAT_LABELS[o.c]?.en, o.s?.ru, o.s?.en].join(' '));
+      : [o.g, o.gr, o.r, o.n, o.nr, o.a, o.c, catLabel(o.c), CAT_LABELS[o.c]?.en, o.s?.ru, o.s?.en].join(' '));
   }
   return o._hay;
 }
