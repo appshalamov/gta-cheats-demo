@@ -6,7 +6,7 @@ import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN
 import * as pay from './pay.js';
 import * as ref from './ref.js';
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
-import { I, platformIcon, comboHTML, btn } from './icons.js';
+import { I, platformIcon, comboHTML, btn, balanceCombos } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
 import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
@@ -1627,6 +1627,11 @@ $('#pager').addEventListener('scroll', () => requestAnimationFrame(moveInk), { p
   hb.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(upd); }, { passive: true });
 })();
 addEventListener('resize', () => scrollToCat(ui.cat, false));
+// комбинации в списках — ровными рядами (js/icons.js balanceCombos): после любой перерисовки и при смене ширины
+{ let q = 0; const run = () => { q = 0; balanceCombos(); };
+  const later = () => { if (!q) q = requestAnimationFrame(run); };
+  new MutationObserver((ms) => { if (ms.some((m) => m.addedNodes.length)) later(); }).observe(document.getElementById('main') || document.body, { childList: true, subtree: true });
+  addEventListener('resize', later); later(); }
 
 // итог возврата из Google / Stripe / портала — одной строкой
 function payToast(R) {

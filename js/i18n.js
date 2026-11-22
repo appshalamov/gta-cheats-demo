@@ -240,4 +240,8 @@ export function tn(n, key) {
 }
 export function t(key) { return (T[lang] && T[lang][key]) ?? T.ru[key] ?? key; }
 // Текст из данных: {ru, en} или строка
+// Имя и адрес реального места (data/map: n, a — латиницей; nr, ar — по-русски, где в названии есть пояснения: «бывший…», «и»…).
+// Имена собственные остаются латиницей; ссылку в Карты строим по n (английское — лучше ищется).
+export const rn = (o) => (o ? (lang === 'ru' && o.nr) || o.n || '' : '');
+export const ra = (o) => (o ? (lang === 'ru' && o.ar) || o.a || '' : '');
 export function L(v) { if (v == null) return ''; return typeof v === 'string' ? v : (v[lang] ?? v.ru ?? v.en ?? ''); }

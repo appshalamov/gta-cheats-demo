@@ -20,7 +20,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 // ───────── строки ─────────
 const S = {
   ru: {
-    for_authors: 'Для авторов', league: 'Лига креаторов', title: 'Зарабатывайте, снимая ролики о местах',
+    for_authors: 'Для авторов', league: 'Лига креаторов', title: 'Снимайте ролики о местах из GTA',
     title_np: 'Снимайте ролики о местах', title_minor: 'Места и пасхалки от вас',
     first_pay: 'Первые выплаты — {d}. Медиану покажем после них', median: 'Медиана у креаторов: {m}',
     hub_np_sub: 'За принятый ролик от 1 000 просмотров — 30 дней Pro', hub_minor_sub: 'За принятые вклады — дни Pro. Креатором можно стать с 18 лет',
@@ -30,7 +30,7 @@ const S = {
     trial_t: 'Пробный доступ', trial_p: 'Все коды и поиск открыты без входа и без карты оплаты. Карта и места из жизни — в Pro',
     buys_h: 'Покупки по вашей ссылке', buy_pass: '3 месяца — {p}', buy_year: 'Год — {p}', buy_month: 'Месяц — {p} за каждую оплату', n_buys: '{n} покупка|{n} покупки|{n} покупок', n_pays: '{n} оплата|{n} оплаты|{n} оплат',
     buys_note: 'Доступно через 30 дней после покупки. При возврате доля откатывается из будущих начислений', work_pro: 'Рабочий Pro до {d}. +30 дней за каждый принятый ролик от 1 000 просмотров', work_pro_end: 'Рабочий Pro закончился {d}. +30 дней за каждый принятый ролик от 1 000 просмотров',
-    how1: 'Снимите место из игры в жизни', how2: 'Подайте ролик со своей ссылкой', how3: 'Получайте 40% с покупок по коду',
+    how1: 'Снимите место из игры в жизни', how2: 'Подайте ролик со своей ссылкой', how3: 'Делитесь ссылкой и своим кодом',
     how3_np: 'Получайте дни Pro за принятые ролики',
     my_earn: 'Мой заработок', my_earn_sub: 'Начисления по дням, ролики, вывод', pro_days: 'Дни Pro', pro_days_sub: 'За вклады, ролики и подарки друзьям',
     my_videos: 'Мои ролики', my_link: 'Моя ссылка и код', review: 'Проверка', review_sub: 'Лента карточек: смахните вправо или влево',
@@ -142,7 +142,7 @@ const S = {
     rs_pair: 'Пары Скаута', rs_pair_d: '$10 за принятую пару «игра и жизнь»', d_pair: 'пара принята',
     rj_no_disclosure: 'В начале ролика нет пометки о рекламе. Добавьте её голосом и текстом',
     // список ожидания и приглашение (08 §2)
-    wl_title: 'Снимайте ролики о местах из игр — мы платим за просмотры и делимся покупками',
+    wl_title: 'Снимайте ролики о местах из игр — лучшие попадут на карту',
     wl_l1: '{r} за 1 000 просмотров, до {cap} за ролик, от {min}. Shorts — {rs}', wl_l2: '{p}% с каждой покупки по вашей ссылке в течение {m} месяцев',
     wl_l3: 'Участие бесплатное, с 18 лет', wl_plate: 'Программа откроется {d}, в день выхода GTA 6. Сейчас — закрытый доступ по приглашениям',
     wl_join: 'Записаться', wl_have: 'У меня есть приглашение', wl_partner: 'Стать партнёром',
@@ -232,7 +232,7 @@ const S = {
     e_frozen: 'Начисления по ролику {id} приостановлены: проверяем просмотры. Ответим до 48 часов', e_pd: 'Дни Pro: {n}',
   },
   en: {
-    for_authors: 'For creators', league: 'Creator League', title: 'Earn by filming videos about places',
+    for_authors: 'For creators', league: 'Creator League', title: 'Film videos about places from GTA',
     title_np: 'Film videos about places', title_minor: 'Your places and easter eggs',
     first_pay: 'First payouts on {d}. We will show the median after them', median: 'Creator median: {m}',
     hub_np_sub: '30 days of Pro for each accepted video with 1,000+ views', hub_minor_sub: 'Accepted contributions earn Pro days. Creators must be 18+',
@@ -242,7 +242,7 @@ const S = {
     trial_t: 'Trial access', trial_p: 'All codes and search are open without sign-in or a card. The map and real-life places are in Pro',
     buys_h: 'Purchases with your link', buy_pass: '3 months — {p}', buy_year: 'Year — {p}', buy_month: 'Month — {p} for each payment', n_buys: '{n} purchase|{n} purchases', n_pays: '{n} payment|{n} payments',
     buys_note: 'Available 30 days after purchase. On a refund the share is taken back from future earnings', work_pro: 'Working Pro until {d}. +30 days for each accepted video with 1,000+ views', work_pro_end: 'Working Pro ended on {d}. +30 days for each accepted video with 1,000+ views',
-    how1: 'Film a game place in real life', how2: 'Submit the video with your link', how3: 'Get 40% of purchases with your code',
+    how1: 'Film a game place in real life', how2: 'Submit the video with your link', how3: 'Share your link and your code',
     how3_np: 'Get Pro days for accepted videos',
     my_earn: 'My earnings', my_earn_sub: 'Daily earnings, videos, payout', pro_days: 'Pro days', pro_days_sub: 'For contributions, videos and friend gifts',
     my_videos: 'My videos', my_link: 'My link and code', review: 'Review', review_sub: 'Card feed: swipe right or left',
@@ -352,7 +352,7 @@ const S = {
     beta_pay: 'Payouts start when the program opens to everyone. Your earnings are kept', for_month_pre: 'preliminary for {m}',
     rs_pair: 'Scout pairs', rs_pair_d: '$10 per accepted game and life pair', d_pair: 'pair accepted',
     rj_no_disclosure: 'The start of the video has no ad disclosure. Add it by voice and on screen',
-    wl_title: 'Film videos about places from games — we pay for views and share purchases',
+    wl_title: 'Film videos about places from games — the best ones go on the map',
     wl_l1: '{r} per 1,000 views, up to {cap} per video, from {min}. Shorts — {rs}', wl_l2: '{p}% of every purchase with your link for {m} months',
     wl_l3: 'Free to join, 18+', wl_plate: 'The program opens on {d}, the day GTA 6 comes out. For now it is invite-only',
     wl_join: 'Join the list', wl_have: 'I have an invite', wl_partner: 'Become a partner',

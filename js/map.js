@@ -6,7 +6,7 @@
 // пиктограммы типа места, доступа и точности совпадения, короткие подписи на языке устройства.
 // Свои клики обрабатываем здесь через атрибут data-mp (app.js их не трогает).
 
-import { t, L as tr, getLang } from './i18n.js';
+import { t, L as tr, getLang, rn, ra } from './i18n.js';
 import { GTA6 } from './config.js';
 
 const COLORS = { confirmed: '#22c3d9', likely: '#f5b942', speculative: '#9a8cab', egg: '#f472b6', gtadb: '#8b93a1' };
@@ -79,7 +79,7 @@ function leonidaStyle() {
   return {
     version: 8, glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
     sources: {
-      omt: { type: 'vector', url: 'https://tiles.openfreemap.org/planet', attribution: '≈ GTA 6 по мотивам Флориды · © OpenStreetMap · OpenFreeMap' },
+      omt: { type: 'vector', url: 'https://tiles.openfreemap.org/planet', attribution: `≈ GTA 6 ${getLang() === 'ru' ? 'по мотивам Флориды' : 'based on Florida'} · © OpenStreetMap · OpenFreeMap` },
       regions: { type: 'geojson', data: fc([]) },   // вымышленные названия регионов не показываем (решение Игоря №15, 16.10.2026)
     },
     layers: [
@@ -360,7 +360,7 @@ const cred = (c) => {
   if (uiLang() !== 'ru') for (const [re, to] of CRED_EN) s = s.replace(re, to);
   return s;
 };
-const realShort = (p) => String(p.n || '').split(/,| \(/)[0] || p.n || '';
+const realShort = (p) => String(rn(p)).split(/,| \(/)[0] || rn(p);
 const themeKey = () => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
 // Тексты мест (почему похоже, совет, интересно…) есть по-русски; у ~950 полей «en» в данных пока тоже русский текст.
 // Пока перевода нет, вне русского интерфейса такой блок не показываем, а не показываем русский (тест 21.10.2026).
@@ -554,13 +554,13 @@ function placeSheet(p, i) {
   const dist = distLabel(p);
   const media = (p.m || []).map(ytLink).filter(Boolean);
   return `
-    ${peekHead(realShort(p), p.a || p.n)}
-    ${heroBox('p' + i, p.pairs, gameList(p), realList(p), { g: GAMES[game]?.title || '', r: p.n }, { pano: panoLink(p.lat, p.lon, p.view) })}
+    ${peekHead(realShort(p), ra(p) || rn(p))}
+    ${heroBox('p' + i, p.pairs, gameList(p), realList(p), { g: GAMES[game]?.title || '', r: rn(p) }, { pano: panoLink(p.lat, p.lon, p.view) })}
     <div class="mp-names">
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(GAMES[game]?.title || '')}</b><small>${esc(tr(GAMES[game]?.place || {}))}</small></div></div>
-      <a class="mp-nm r mp-nm-link" href="${mapsLink(p.lat, p.lon, p.n)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(p.n)}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(p.n)}</b>${p.a ? `<small>${esc(p.a)}</small>` : ''}</div><span class="mp-nm-go">${IC.nav}</span></a>
+      <a class="mp-nm r mp-nm-link" href="${mapsLink(p.lat, p.lon, p.n)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(rn(p))}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(rn(p))}</b>${p.a ? `<small>${esc(ra(p))}</small>` : ''}</div><span class="mp-nm-go">${IC.nav}</span></a>
     </div>
-    ${gameBlock(p.gm, p.ga, p.r, '', { k: 'p', i, real: [p.n, p.a].filter(Boolean).join(' · ') })}
+    ${gameBlock(p.gm, p.ga, p.r, '', { k: 'p', i, real: [rn(p), ra(p)].filter(Boolean).join(' · ') })}
     ${playerBlock(p.gc)}
     ${BETA ? eggBlocks(p) : ''}
     <div class="mp-picto">
@@ -589,7 +589,7 @@ function nearbyRow(p, i) {
   const pic = (q) => q.pr?.thumb || q.pg?.thumb || q.pr?.file || q.pg?.file || q.pairs?.[0]?.r?.url || '';
   return `<div class="mp-near"><b class="mp-near-t">${IC.pin}<span>${esc(w('nearby'))}</span></b><div class="mp-near-row">${near.map(([k, d]) => {
     const q = all[k], img = pic(q);
-    return `<button class="mp-near-c" data-mp="near" data-i="${k}">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="mp-ch-ic">${IC.pin}</span>`}<span><b>${esc(q.g || q.n)}</b><small>${esc(fmtKm(d))} · ${esc(q.n)}</small></span></button>`;
+    return `<button class="mp-near-c" data-mp="near" data-i="${k}">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="mp-ch-ic">${IC.pin}</span>`}<span><b>${esc(q.g || rn(q))}</b><small>${esc(fmtKm(d))} · ${esc(rn(q))}</small></span></button>`;
   }).join('')}</div></div>`;
 }
 function eggSheet(e, i) {
