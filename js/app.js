@@ -1243,11 +1243,15 @@ function renderMapLock() {
   }
   if (!el) { el = document.createElement('div'); el.id = 'map-lock'; $('#view-map').appendChild(el); }
   el.hidden = false;
-  if (!mapLock.t0) mapLock.t0 = Date.now();
+  // 20 с считаются с момента, когда карта видна, а не с тапа по вкладке: на iPhone карта грузится 10–16 с
+  // и живого показа оставалось ~10 с (QA 22.11, роль «карта»)
+  const mapShown = () => !!window.__gtaMap && !document.getElementById('map')?.classList.contains('loading');
+  if (!mapLock.t0 && mapShown()) mapLock.t0 = Date.now();
   el.innerHTML = `<div class="ml-veil"></div><div class="ml-box"><span class="ml-ic">${I.lock}</span><b id="ml-t"></b><span class="ml-bar"><i id="ml-bar"></i></span>
     <button class="btn-primary" data-action="paywall" data-pw="${mapPw()}">${t('open_pro')}</button></div>`;
   const tick = () => {
-    const left = Math.max(0, MAP_DEMO - (Date.now() - mapLock.t0)), done = !left;
+    if (!mapLock.t0 && mapShown()) mapLock.t0 = Date.now();
+    const left = mapLock.t0 ? Math.max(0, MAP_DEMO - (Date.now() - mapLock.t0)) : MAP_DEMO, done = !left;
     el.classList.toggle('done', done);
     $('#ml-t').textContent = t(done ? 'map_locked' : 'map10');
     $('#ml-bar').style.width = ((1 - left / MAP_DEMO) * 100).toFixed(1) + '%';
@@ -1257,7 +1261,7 @@ function renderMapLock() {
     }
   };
   tick();
-  if (!mapLock.timer && Date.now() - mapLock.t0 < MAP_DEMO) mapLock.timer = setInterval(tick, 250);
+  if (!mapLock.timer && (!mapLock.t0 || Date.now() - mapLock.t0 < MAP_DEMO)) mapLock.timer = setInterval(tick, 250);
 }
 
 // ───────── пейвол: только платные тарифы, 6 состояний (Ресерч 31 §4.5; концепт v11 paywall) ─────────
