@@ -351,3 +351,37 @@ mark.hl { background: none; color: var(--accent); font-weight: 750; } /* сов�
 .news-sheet p { margin: 0; line-height: 1.5; color: var(--text-2, var(--text)); }
 .news-sheet .ns-src { font-size: 13px; color: var(--muted, var(--text-2)); }
 .news-sheet .btn-primary { margin-top: 6px; }
+
+/* Игорь 22.11.2026: «если тяну страницу вверх — картинка ужасно подтягивается». На Главной фото героя у верхнего края:
+   резиновый отскок iOS отрывал его от края и показывал пустоту. Отскок на Главной выключен — страница стоит у края. */
+#home-body.scroll { overscroll-behavior-y: none; }
+
+/* 22.11.2026 — единый значок «игра + платформа» в шапке (решение Fable, вариант A) и шторка «Игра и платформа» */
+.hub-hdr .plat-btn.gsw, #view-cheats .plat-btn.gsw { width: auto; min-width: 112px; height: 44px; padding: 0 12px 0 11px; border-radius: 22px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.plat-btn.gsw > svg { flex: none; width: 20px; height: 20px; }
+.plat-btn.gsw b { font-size: 15px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
+.gsw-chev { display: inline-grid; place-items: center; width: 12px; height: 12px; transform: rotate(90deg); opacity: .7; }
+.gsw-chev svg { width: 12px; height: 12px; stroke-width: 2.6; }
+.hub-plat { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin: -12px 0; padding: 0 8px 0 0; font: inherit; color: inherit; }
+.gsw-games { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gsw-game { position: relative; height: 132px; padding: 0; border-radius: 22px; overflow: hidden; text-align: left; color: #fff; background: #26242b;
+  border: 2px solid transparent; transition: border-color var(--d-fast); }
+.gsw-game picture, .gsw-game img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.gsw-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.08) 25%, rgba(0,0,0,.74)); }
+.gsw-game .pw-radio { position: absolute; top: 10px; right: 10px; border-color: rgba(255,255,255,.9); background: rgba(0,0,0,.25); }
+.gsw-game.on { border-color: var(--accent); }
+.gsw-game.on .pw-radio { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.gsw-t { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; flex-direction: column; gap: 1px; }
+.gsw-t b { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+.gsw-t small { font-size: 12.5px; line-height: 1.25; opacity: .9; }
+.gsw-h { margin: 18px 2px 8px; font-size: 15px; font-weight: 700; color: var(--text-2); }
+.gsw-plats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gsw-plat { display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 8px 12px; border-radius: 18px; text-align: left; color: var(--text);
+  background: color-mix(in srgb, var(--text) 6%, transparent); border: 2px solid transparent; transition: border-color var(--d-fast), background-color var(--d-fast); }
+:root[data-theme="light"] .gsw-plat { background: var(--card); }
+.gsw-plat.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.gsw-pn { display: flex; flex-direction: column; min-width: 0; }
+.gsw-pn b { font-size: 15px; font-weight: 650; }
+.gsw-pn small { font-size: 12px; line-height: 1.25; color: var(--text-2); }
+.gsw-soon { margin: 14px 4px 4px; text-align: center; font-size: 12.5px; line-height: 1.4; color: var(--text-3); }

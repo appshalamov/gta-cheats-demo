@@ -63,6 +63,7 @@ const T = {
     about_text: 'Secret Base — неофициальное приложение. Оно не связано с Rockstar Games и Take-Two Interactive и не одобрено ими. GTA и другие названия — торговые марки их владельцев, здесь они используются только для описания. Приложение не изменяет игру и не вмешивается в её файлы: это справочник кодов и карта реальных мест.',
     share_app_text: 'Secret Base: карта и чит-коды. Места из игр в реальной жизни',
     select_game: 'Выберите игру', select_platform: 'Выберите платформу',
+    sw_title: 'Игра и платформа', sw_plat: 'Платформа для кодов', sw_soon: 'Скоро: {g}. Только коды', sw_aria: 'Игра и платформа: {g}, {p}. Изменить',
     // пейвол — Ресерч 31 §4.5, тексты дословно; ни слова о деньгах авторов (tools/check_code.py)
     pw_h_trial_end: 'Пробные 3 дня закончились', pw_l_trial_end: 'Коды, карта GTA 5 и GTA 6 и места из игр в реальном мире — в Pro',
     pw_h_map: 'Карта — в Pro', pw_l_map: 'В пробные дни открыты коды. Карта, места из жизни и сравнение — в Pro',
@@ -183,6 +184,7 @@ const T = {
     about_text: 'Secret Base is an unofficial app. It is not affiliated with or endorsed by Rockstar Games or Take-Two Interactive. GTA and other names are trademarks of their owners and are used here for description only. The app does not modify the game or touch its files: it is a code reference and a map of real places.',
     share_app_text: 'Secret Base: map & cheat codes. Game places in real life',
     select_game: 'Select game', select_platform: 'Select platform',
+    sw_title: 'Game and platform', sw_plat: 'Platform for codes', sw_soon: 'Coming soon: {g}. Codes only', sw_aria: 'Game and platform: {g}, {p}. Change',
     pw_h_trial_end: 'Your 3-day trial has ended', pw_l_trial_end: 'Codes, the GTA 5 and GTA 6 map and game places in the real world are in Pro',
     pw_h_map: 'The map is in Pro', pw_l_map: 'During the trial, codes are open. The map, real-life places and the comparison are in Pro',
     pw_h_pro: 'Pro', pw_l_pro: 'Codes, the GTA 5 and GTA 6 map and game places in the real world',
