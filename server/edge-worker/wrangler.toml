@@ -3,7 +3,7 @@ main = "worker.js"
 compatibility_date = "2026-11-01"
 workers_dev = true
 # custom domains повесить после активации зоны sbgta.app на этом аккаунте (смена NS у регистратора):
-# routes = [{ pattern = "pay.sbgta.app", custom_domain = true }, { pattern = "ref.sbgta.app", custom_domain = true }]
+routes = [{ pattern = "pay.sbgta.app", custom_domain = true }, { pattern = "ref.sbgta.app", custom_domain = true }]
 
 [vars]
 PAY_ORIGIN = "https://sb-pay.pay-worker.workers.dev"
