@@ -385,3 +385,51 @@ mark.hl { background: none; color: var(--accent); font-weight: 750; } /* сов�
 .gsw-pn b { font-size: 15px; font-weight: 650; }
 .gsw-pn small { font-size: 12px; line-height: 1.25; color: var(--text-2); }
 .gsw-soon { margin: 14px 4px 4px; text-align: center; font-size: 12.5px; line-height: 1.4; color: var(--text-3); }
+
+/* ── Скелетоны (23.11.2026, Игорь: «интерфейс уже подгрузился… демонстрирует потенциальную плитку»).
+   Под каждым фото — мерцающая подложка того же размера: видно, что карточка на месте и фото в пути; фото ложится
+   поверх, прыжков нет. Мерцание — сдвиг полупрозрачной полосы (transform, без перерисовки); у загруженного фото
+   (класс .ok ставит js/app.js по событию load/error) подложка убирается совсем. */
+@keyframes sk-sweep { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.pcard::before, .hero-slide::before, .sk-photo::before, .sk-box::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 25%, var(--sk-glow, rgba(255,255,255,.07)) 50%, transparent 75%);
+  transform: translateX(-100%); animation: sk-sweep 1.25s ease-in-out infinite;
+}
+:root[data-theme="light"] { --sk-glow: rgba(255,255,255,.55); }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --sk-glow: rgba(255,255,255,.55); } }
+.hero-slide { position: relative; overflow: hidden; background: var(--card-2); }
+.pcard:has(> img.ok)::before, .pcard:has(> .pc-ph)::before, .hero-slide:has(img.ok)::before, .sk-photo:has(img.ok)::before { display: none; }
+.pcard.sk { cursor: default; pointer-events: none; }
+.pcard.sk:active { transform: none; }
+.sk-line { position: absolute; left: 14px; bottom: 36px; width: 62%; height: 13px; border-radius: 7px; background: color-mix(in srgb, var(--text) 11%, transparent); }
+.sk-line.short { bottom: 16px; width: 38%; height: 10px; }
+.sk-row { overflow: hidden; }
+.sk-box { position: relative; overflow: hidden; border-radius: 12px; background: var(--card-2); }
+.sk-photo { position: relative; overflow: hidden; background: var(--card-2); }
+@media (prefers-reduced-motion: reduce) { .pcard::before, .hero-slide::before, .sk-photo::before, .sk-box::before { animation: none; transform: none; } }
+/* карта: превью стартового вида, пока грузятся плитки (js/map.js phShow) */
+#map > .map-ph { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;
+  background: var(--card-2) center / cover no-repeat; filter: saturate(.9) brightness(.92); transition: opacity .4s ease; }
+#map > .map-ph::before { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 25%, var(--sk-glow, rgba(255,255,255,.07)) 50%, transparent 75%);
+  transform: translateX(-100%); animation: sk-sweep 1.4s ease-in-out infinite; }
+#map > .map-ph.out { opacity: 0; }
+#map.loading.has-ph::after { display: none; }
+@media (prefers-reduced-motion: reduce) { #map > .map-ph::before { animation: none; transform: none; } }
+/* новость: пока большой кадр в пути — уже загруженная миниатюра из ленты, размыта (её место займёт кадр) */
+.news-sheet .ns-img .ns-th { position: absolute; inset: 0; filter: blur(8px); transform: scale(1.08); }
+.news-sheet .ns-img img:not(.ns-th) { position: relative; }
+.news-sheet .ns-img img:not(.ns-th):not(.ok) { opacity: 0; }
+.news-sheet .ns-img img:not(.ns-th) { transition: opacity .25s; }
+/* скелетон списка (Поиск, пока нет данных мест) */
+.sk-list .sk-item { display: flex; gap: 12px; align-items: center; padding: 8px 0; }
+.sk-list .sk-ava { flex: 0 0 56px; height: 56px; border-radius: 14px; }
+.sk-list .sk-txt { flex: 1; display: grid; gap: 8px; }
+.sk-list .sk-txt .sk-box { height: 13px; width: 72%; border-radius: 7px; }
+.sk-list .sk-txt .sk-box + .sk-box { height: 10px; width: 46%; }
+/* пейвол: пока фото в пути — мерцание поверх подложки эпохи (панель с ценой видна сразу, она не ждёт фото) */
+.pw-photo::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(100deg, transparent 25%, var(--sk-glow, rgba(255,255,255,.07)) 50%, transparent 75%);
+  transform: translateX(-100%); animation: sk-sweep 1.25s ease-in-out infinite; }
+.pw-photo:has(img.ok)::before { display: none; }
+@media (prefers-reduced-motion: reduce) { .pw-photo::before { animation: none; transform: none; } }

@@ -3,7 +3,7 @@
 
 import { L, getLang, rn, ra, rg, rp } from './i18n.js';
 
-const cache = {};
+const cache = {}, done = {};
 export const MAP_GAMES = ['gta6', 'gta5'];
 
 export async function loadPlaces(game) {
@@ -17,12 +17,15 @@ export async function loadPlaces(game) {
         if (seen.has(e.id)) return;
         seen.add(e.id); d.eggs.push({ ...e, kind: 'egg', game, parent: p.id });
       }));
+      done[game] = d;
       return d;
     }).catch(() => ({ places: [], eggs: [] }));
   }
   return cache[game];
 }
 export const loadedPlaces = (game) => cache[game];
+// данные уже в памяти (без ожидания) — Главная рисует карточки сразу, иначе скелетон и дорисовка
+export const placesNow = (game) => done[game] || null;
 
 export const placeKey = (o) => `${o.kind}:${o.game}:${o.id}`;
 export function parseKey(key) {
@@ -124,9 +127,10 @@ export function featured(d, kind = 'place', n = 12) {
 }
 
 // Новости и инфоповоды (data/news.json): заголовок, дата, кадр, источник — без ссылок наружу
-let newsP = null;
+let newsP = null, newsDone = null;
+export const newsNow = () => newsDone;
 export function loadNews() {
-  if (!newsP) newsP = fetch('data/news.json').then((r) => (r.ok ? r.json() : { items: [] })).then((d) => d.items || []).catch(() => []);
+  if (!newsP) newsP = fetch('data/news.json').then((r) => (r.ok ? r.json() : { items: [] })).then((d) => (newsDone = d.items || [])).catch(() => (newsDone = []));
   return newsP;
 }
 

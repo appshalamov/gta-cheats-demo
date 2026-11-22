@@ -1,7 +1,8 @@
-// Офлайн-кэш. Оболочка — из кэша (быстро), данные data/*.json — сначала из сети,
-// чтобы новые коды (например, GTA 6 после релиза) появлялись без обновления приложения.
+// Офлайн-кэш. Оболочка — из кэша (быстро). Данные data/*.json — «сразу из кэша, в фоне обновить» (23.11.2026: раньше
+// сначала из сети — на слабой сети Главная ждала 1–2 МБ данных при каждом запуске); новые коды и места приходят
+// со следующего открытия. Плитки карты (своя карта игры и OpenFreeMap) — свой кэш, переживает обновления приложения.
 // При изменении файлов оболочки поднимите VERSION.
-const VERSION = 'v111';
+const VERSION = 'v113';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/tokens.css', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css', 'css/map-glass.css', 'css/skin.css', 'css/league.css',
   'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/mapstyle.js', 'js/places.js', 'js/skin.js', 'js/league.js', 'js/api.js', 'js/demo-data.js', 'js/pay.js', 'js/ref.js', 'js/tour.js',
@@ -24,11 +25,35 @@ const UI_CRIT = ['img/ui/gta6/gta6-banner-01.avif', 'img/ui/gta6/gta6-load-02.av
 const uiPrecache = () => caches.open(UI).then((c) => Promise.all(UI_CRIT.map((u) => c.match(u).then((hit) => hit || c.add(new Request(u, { cache: 'reload' }))))))
   .catch(() => { });
 
+// Первая установка: страница регистрирует SW после прогрева карты (js/app.js), так что оболочка вместе с картой
+// (maplibre, map.js) уже лежит в HTTP-кэше — установка берёт её оттуда без сети, и Chrome заранее компилирует
+// скрипты, положенные при установке (тёплый старт карты быстрее на ~0,6 с). Не нужное сразу (раздел авторов,
+// знакомство, большие значки) при первой установке не качаем — ляжет в кэш при первом обращении (fetch ниже).
+// 23.11.2026: раньше первая установка качала ~600 КБ, ровно когда человек открывал Главную или карту на 3G.
+const LAZY = new Set(['js/league.js', 'js/tour.js', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png']);
 self.addEventListener('install', (e) => {
-  // cache: 'reload' — мимо HTTP-кэша браузера, иначе в новую версию может попасть старый файл
-  e.waitUntil(Promise.all([caches.open(VERSION).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))), uiPrecache()])
-    .then(() => self.skipWaiting()));
+  // обновление: cache: 'reload' — мимо HTTP-кэша браузера, иначе в новую версию может попасть старый файл; всё, как раньше.
+  // Первая установка (своих кэшей ещё нет): только то, что уже скачала сама страница, — из HTTP-кэша, без второй закачки;
+  // фото эпох — по сигналу страницы после прогрева карты (message 'warm-ui').
+  e.waitUntil(caches.keys().then((ks) => {
+    const first = !ks.some((k) => family(k) === family(VERSION));
+    const list = first ? SHELL.filter((u) => !LAZY.has(u)) : SHELL;
+    return Promise.all([caches.open(VERSION).then((c) => c.addAll(list.map((u) => new Request(u, { cache: first ? 'default' : 'reload' })))), first ? null : uiPrecache()]);
+  }).then(() => self.skipWaiting()));
 });
+self.addEventListener('message', (e) => { if (e.data === 'warm-ui') e.waitUntil(uiPrecache()); });
+// своё из оболочки, чего нет в кэше (LAZY при первой установке): из сети и в кэш версии — дальше работает без сети
+const shellish = (p) => /\/(js|css|vendor|fonts|icons)\/[^?]+\.(js|css|woff2|svg|png)$/.test(p);
+// искать только в кэше версии: caches.match по всем кэшам с ignoreSearch перебирает и тысячи плиток (+0,7 с к карте, 23.11.2026)
+let shellC = null;
+const shell = () => (shellC ||= caches.open(VERSION));
+async function own(req, ev, url) {
+  const hit = await (await shell()).match(req, { ignoreSearch: true });
+  if (hit) return hit;
+  const r = await fetch(req);
+  if (r.ok && shellish(url.pathname)) { const copy = r.clone(); ev.waitUntil(caches.open(VERSION).then((c) => c.put(req, copy)).catch(() => { })); }
+  return r;
+}
 // Прод, /beta/, /design/ и /v3/ живут на одном домене и делят хранилище кэшей: удаляем только старые версии своего
 // семейства (v73 → v74, beta-v73 → beta-v74), чужие не трогаем. До 21.10.2026 каждая версия стирала кэши остальных —
 // открыл прод, и бета или /design/ без сети не открывались (тест 21.10).
@@ -80,18 +105,52 @@ async function uiTrim(c) {   // не больше UI_MAX картинок: са�
   const n = ks.length + UI_CRIT.length - UI_MAX;
   for (const k of ks.slice(0, Math.max(0, n))) await c.delete(k);
 }
+// данные: сразу из кэша (если есть), в фоне — свежие с сервера в кэш; нет в кэше — из сети (и в кэш)
+async function data(req, ev) {
+  const hit = await (await shell()).match(req, { ignoreSearch: true });
+  // есть в кэше — отдаём, а свежую версию берём с проверкой на сервере (no-cache); нет — обычный запрос
+  // (HTTP-кэш браузера свежий 10 мин: без лишней проверки по сети, на 3G это ~0,6 с)
+  const net = fetch(req, hit ? { cache: 'no-cache' } : undefined).then((r) => {
+    if (r.ok) { const copy = r.clone(); ev.waitUntil(shell().then((c) => c.put(req, copy)).catch(() => { })); }
+    return r;
+  });
+  if (hit) { ev.waitUntil(net.catch(() => { })); return hit; }
+  return net.catch(() => Response.error());
+}
+// Плитки карты: игра (gta-map-assets/maps/tiles, gtadb) и «Жизнь» (OpenFreeMap: стиль, плитки, шрифты, значки).
+// Сами плитки по адресу не меняются — из кэша без сети; описание набора (TileJSON) и стиль — из кэша и в фоне обновить.
+// Сменили картинки плиток под теми же адресами — поднять TILES (tiles-v1 → v2).
+const TILES = 'tiles-v1', TILES_MAX = 4000;
+const isTile = (u) => (u.host === 'appshalamov.github.io' && u.pathname.startsWith('/gta-map-assets/maps/tiles/'))
+  || (u.host === 'raw.githubusercontent.com' && /^\/rolux\/gtadb\.org\/.*\/tiles\//.test(u.pathname))
+  || u.host === 'tiles.openfreemap.org';
+let tilePuts = 0;
+let tilesC = null;   // один раз открытый кэш плиток: карта просит десятки плиток разом
+async function tile(req, ev) {
+  const c = await (tilesC ||= caches.open(TILES));
+  const hit = await c.match(req.url);
+  const fixed = /\.(pbf|png|jpe?g|webp|mvt)$/i.test(new URL(req.url).pathname);
+  if (hit && fixed) return hit;
+  // сам запрос карты (cors, с отменой: карта сдвинулась — плитка не докачивается зря)
+  const net = fetch(req).then((r) => {
+    if (r.ok && r.type !== 'opaque') ev.waitUntil(c.put(req.url, r.clone()).then(() => { if (++tilePuts % 100 === 0) return trimTiles(c); }).catch(() => { }));
+    return r;
+  });
+  if (hit) { ev.waitUntil(net.catch(() => { })); return hit; }
+  return net;
+}
+async function trimTiles(c) {   // не больше TILES_MAX: самые старые — вон
+  const ks = await c.keys();
+  for (const k of ks.slice(0, Math.max(0, ks.length - TILES_MAX))) await c.delete(k);
+}
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
+  if (e.request.method === 'GET' && isTile(url)) { e.respondWith(tile(e.request, e)); return; }
   if (e.request.method === 'GET' && e.request.destination === 'image' && isPhoto(url)) { e.respondWith(photo(e.request, e)); return; }
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   // фото эпох (img/ui/<скин>/): сразу из кэша, в фоне обновить; без кэша — из сети и в кэш.
   // Берётся только формат, который выбрал браузер (AVIF или WebP), поэтому не в SHELL — там качались бы оба.
   if (url.pathname.includes('/img/ui/')) { e.respondWith(uiImg(e.request, e)); return; }
-  if (url.pathname.includes('/data/')) {
-    e.respondWith(fetch(e.request).then((r) => {
-      const copy = r.clone(); caches.open(VERSION).then((c) => c.put(e.request, copy)); return r;
-    }).catch(() => caches.match(e.request)));
-    return;
-  }
-  e.respondWith(caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || fetch(e.request)));
+  if (url.pathname.includes('/data/')) { e.respondWith(data(e.request, e)); return; }
+  e.respondWith(own(e.request, e, url));
 });

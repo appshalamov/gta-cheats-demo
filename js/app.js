@@ -8,7 +8,7 @@ import * as ref from './ref.js';
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
 import { I, platformIcon, comboHTML, btn, balanceCombos } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
-import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
+import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, placesNow, newsNow, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
 // ───────── хранилище ─────────
 const KEY = 'cheats.v1';
@@ -42,6 +42,33 @@ function renderCrHub() {
 }
 // вход для сессии карты: кнопка «Ролики об этом месте» в карточке места вызывает window.SB.openPlaceVideos(игра, id места)
 window.SB = window.SB || {};
+// после первого экрана: страница загрузилась, + пауза, + простой браузера (фоновое не мешает Главной)
+function afterFirstScreen(fn, delay = 0) {
+  const go = () => setTimeout(() => (window.requestIdleCallback ? requestIdleCallback(() => fn(), { timeout: 3000 }) : fn()), delay);
+  if (document.readyState === 'complete') go(); else addEventListener('load', go, { once: true });
+}
+// после главного фото Главной (или 3 с, если его нет/долго) + простой
+function afterHero(fn, delay = 0) {
+  let done = false;
+  const go = () => { if (done) return; done = true; setTimeout(() => (window.requestIdleCallback ? requestIdleCallback(() => fn(), { timeout: 1500 }) : fn()), delay); };
+  const img = $('#home-hero .hero-slide img[src]');
+  if (!img || (img.complete && img.naturalWidth)) go();
+  else { img.addEventListener('load', go, { once: true }); img.addEventListener('error', go, { once: true }); }
+  setTimeout(go, 3000);
+}
+// Прогрев карты (Игорь 23.11.2026; контракт с онбордингом): библиотека, данные мест, стиль и плитки стартового вида
+// «Игра», затем «Жизнь» — в фоне, без показа. → Promise<{ game, life }>. Повторный вызов той же игры — тот же Promise.
+// Экономия трафика в системе (Save-Data) — не греем. Открыли настоящую карту — прогрев уступает ей (map.js warmStop).
+const warmP = {};
+let swAfterWarm = null;   // первая регистрация SW ждёт прогрева (init)
+// фото эпох обеих игр для офлайна (sw.js uiPrecache) — после прогрева карты, чтобы не отнимать канал у первого экрана и карты
+const warmUI = () => { try { navigator.serviceWorker?.controller?.postMessage('warm-ui'); } catch { } };
+window.SB.prewarmMap = (g = MAP_OF(store.game)) => {
+  if (navigator.connection?.saveData) return Promise.resolve({ game: false, life: false });
+  window.SB.prewarmMap.ready = warmP[g] ||= mapMod().then((m) => m.prewarm(g)).catch(() => ({ game: false, life: false }))
+    .then((r) => { swAfterWarm?.(); if (r.game && r.life && !r.byMap) setTimeout(warmUI, 4000); return r; });   // карта открылась раньше — фото позже (sb:map-idle)
+  return window.SB.prewarmMap.ready;
+};
 window.SB.openPlaceVideos = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.openPlaceVideos(world, placeId); }); };
 window.SB.openCreator = (id, args) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.openCreator(id, args); }); };
 window.SB.shootPlace = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.shootPlace(world, placeId); }); };   // «Снять про это» из карточки места
@@ -277,6 +304,10 @@ function applySkin(gid = skinGame()) {
 }
 matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', applyTheme);
 
+// фото показано (или не пришло) — скелетон под ним больше не нужен (css/hub.css «Скелетоны»)
+const imgDone = (e) => { if (e.target?.tagName === 'IMG') e.target.classList.add('ok'); };
+document.addEventListener('load', imgDone, true); document.addEventListener('error', imgDone, true);
+
 // ───────── данные ─────────
 async function loadGame(id) {
   if (data[id]) return data[id];
@@ -417,7 +448,7 @@ async function openNews(id) {
   const img = n.img ? imgUrl(n.img.file) : '';
   const src = n.src || [];
   openSheet(`<div class="news-sheet">
-    ${img ? `<figure class="ns-img"><img src="${esc(img)}" alt="" decoding="async">${n.img.credit && !OWN_ART ? `<figcaption>${esc(n.img.credit)}</figcaption>` : ''}</figure>` : ''}
+    ${img ? `<figure class="ns-img sk-photo">${n.img.thumb ? `<img class="ns-th" src="${esc(imgUrl(n.img.thumb))}" alt="" aria-hidden="true">` : ''}<img src="${esc(img)}" alt="" decoding="async">${n.img.credit && !OWN_ART ? `<figcaption>${esc(t('frame_credit'))}</figcaption>` : ''}</figure>` : ''}
     <small class="ns-date">${esc(newsDate(n.date))}</small>
     <h2>${esc(L(n.t))}</h2>
     <p>${esc(L(n.d))}</p>
@@ -458,7 +489,9 @@ function heroMeta() {
 }
 function heroHTML() {
   const h = HERO[store.game], g = game();
-  const slides = h ? h.banners.map((b, i) => `<picture class="hero-slide"><source type="image/avif" srcset="${b}.avif"><img src="${b}.webp" alt="" width="860" height="676" decoding="async" ${i ? 'loading="lazy"' : 'fetchpriority="high"'}></picture>`).join('') : '';
+  // 2-е и 3-е фото — без адреса до первого экрана (bindHero): на слабой сети они отнимали канал у Главной (~110 КБ, 23.11.2026)
+  const slides = h ? h.banners.map((b, i) => (i ? `<picture class="hero-slide"><source type="image/avif" data-srcset="${b}.avif"><img data-src="${b}.webp" alt="" width="860" height="676" decoding="async"></picture>`
+    : `<picture class="hero-slide"><source type="image/avif" srcset="${b}.avif"><img src="${b}.webp" alt="" width="860" height="676" decoding="async" fetchpriority="high"></picture>`)).join('') : '';
   return `<div class="hero${h ? '' : ' no-photo'}">
     <div class="hero-track">${slides}</div><span class="hero-scrim"></span>
     <div class="worlds" id="hero-worlds">${heroGames().map(worldTab).join('')}</div>
@@ -487,6 +520,12 @@ function renderHero() {
 function bindHero() {
   const tr = $('#home-hero .hero-track'), dots = [...document.querySelectorAll('#home-hero .hero-dots i')];
   if (!tr || dots.length < 2) return;
+  const fill = () => tr.querySelectorAll('[data-srcset],[data-src]').forEach((x) => {
+    if (x.dataset.srcset) { x.srcset = x.dataset.srcset; delete x.dataset.srcset; }
+    if (x.dataset.src) { x.src = x.dataset.src; delete x.dataset.src; }
+  });
+  tr.addEventListener('scroll', fill, { once: true, passive: true });
+  afterFirstScreen(fill, 15000);   // листнул — сразу; иначе позже, когда карта и Главная уже взяли своё
   let raf = 0;
   tr.addEventListener('scroll', () => {
     if (raf) return;
@@ -502,36 +541,49 @@ function watchPlaceCounts() {
 }
 
 let hubSeq = 0;
+// Главная рисуется сразу: коды и всё, что уже в памяти; ленты, которым нужны данные мест и новости, — скелетоном
+// тех же размеров (без прыжков), затем дорисовка (Игорь 23.11.2026: «интерфейс уже подгрузился, на клик сразу отреагировали»)
 async function renderHub() {
   const my = ++hubSeq;
   renderHero();
-  const g = game(), box = $('#home-main');
-  const pd = MAP_GAMES.includes(store.game) ? await loadPlaces(store.game) : null;
+  const box = $('#home-main'), isMap = MAP_GAMES.includes(store.game);
+  const favCount = store.favs.length + store.favPlaces.length;
+  const pdP = isMap ? loadPlaces(store.game) : null, newsP = loadNews(), favP = favCount ? favItems() : Promise.resolve([]);
+  const pd0 = isMap ? placesNow(store.game) : null, news0 = newsNow();
+  const full0 = (!isMap || pd0) && news0 && !favCount;
+  if (pd0?.places?.length) placeCounts[store.game] = pd0.places.length;
+  paintHub(box, isMap, pd0, news0, favCount ? null : []);
+  if (full0) { watchPlaceCounts(); return; }
+  const [pd, news, fav] = await Promise.all([pdP, newsP, favP]);
+  if (my !== hubSeq) return;
   if (pd?.places?.length) placeCounts[store.game] = pd.places.length;
   watchPlaceCounts();
-  const favCount = store.favs.length + store.favPlaces.length;
-  if (my !== hubSeq) return;
+  renderHero();
+  paintHub(box, isMap, pd, news, fav);
+}
+// скелетон ленты: те же карточки по размеру, мерцание вместо фото
+const skRow = (cls = '', n = 3) => `<div class="hscroll sk-row" aria-hidden="true">${`<div class="pcard sk${cls}"><span class="sk-line"></span><span class="sk-line short"></span></div>`.repeat(n)}</div>`;
+function paintHub(box, isMap, pd, newsAll, favPreview) {
   const list = cheats();
   const popular = (POPULAR[store.game] || []).map((id) => list.find((c) => c.id === id)).filter(Boolean);
   const places = pd ? featured(pd, 'place', 14) : [];
   const eggs = pd ? featured(pd, 'egg', 12) : [];
-  const news = (await loadNews()).filter((n) => n.game === store.game).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 12);
-  const favPreview = await favItems();
-  if (my !== hubSeq) return;
-  renderHero();
+  const news = newsAll ? newsAll.filter((n) => n.game === store.game).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 12) : null;
+  const favCount = store.favs.length + store.favPlaces.length;
+  const placesBtn = `<button class="hub-more" data-action="tab" data-tab="map">${t('open_map')}${I.chevron}</button>`;
+  const eggsBtn = `<button class="hub-more" data-action="search-browse" data-type="eggs">${t('see_all')}${I.chevron}</button>`;
   box.innerHTML = `
     ${forecastBanner()}
-    ${news.length ? hubSection(t('hub_news'), t('hub_news_sub'), '', `<div class="hscroll">${news.map(newsCard).join('')}</div>`) : ''}
+    ${!news ? hubSection(t('hub_news'), t('hub_news_sub'), '', skRow(' ncard')) : news.length ? hubSection(t('hub_news'), t('hub_news_sub'), '', `<div class="hscroll">${news.map(newsCard).join('')}</div>`) : ''}
     ${hubSection(t('hub_cheats'), `<button class="hub-plat" data-action="switch">${esc(L(PLATFORMS[store.platform]))}<i class="gsw-chev">${I.chevron}</i></button>`, `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
         <span class="ct-ic">${I[c.icon]}</span><span class="ct-t"><b>${L(c)}</b><small>${tn(list.filter((x) => x.category === c.id).length, 'n_codes')}</small></span></button>`).join('')}</div>`)}
     ${popular.length ? hubSection(t('hub_popular'), '', '', `<div class="hscroll">${popular.map(miniCheat).join('')}</div>`) : ''}
-    ${places.length ? hubSection(t('hub_places'), t('hub_places_sub'), `<button class="hub-more" data-action="tab" data-tab="map">${t('open_map')}${I.chevron}</button>`,
-      `<div class="hscroll">${places.map((o) => placeCard(o)).join('')}</div>`) : ''}
-    ${eggs.length ? hubSection(t('hub_eggs'), t('hub_eggs_sub'), `<button class="hub-more" data-action="search-browse" data-type="eggs">${t('see_all')}${I.chevron}</button>`,
-      `<div class="hscroll">${eggs.map((o) => placeCard(o)).join('')}</div>`) : ''}
+    ${isMap && !pd ? hubSection(t('hub_places'), t('hub_places_sub'), placesBtn, skRow()) + hubSection(t('hub_eggs'), t('hub_eggs_sub'), eggsBtn, skRow()) : ''}
+    ${places.length ? hubSection(t('hub_places'), t('hub_places_sub'), placesBtn, `<div class="hscroll">${places.map((o) => placeCard(o)).join('')}</div>`) : ''}
+    ${eggs.length ? hubSection(t('hub_eggs'), t('hub_eggs_sub'), eggsBtn, `<div class="hscroll">${eggs.map((o) => placeCard(o)).join('')}</div>`) : ''}
     ${favCount ? hubSection(t('hub_favs'), '', `<button class="hub-more" data-action="tab" data-tab="fav">${t('see_all')}${I.chevron}</button>`,
-      `<div class="hscroll">${favPreview.slice(0, 10).map((x) => (x.kind ? placeCard(x, { game: x.game !== store.game }) : miniCheat(x))).join('')}</div>`) : ''}
+      favPreview ? `<div class="hscroll">${favPreview.slice(0, 10).map((x) => (x.kind ? placeCard(x, { game: x.game !== store.game }) : miniCheat(x))).join('')}</div>` : skRow()) : ''}
     <div class="hub-foot">${t('hub_foot')}</div>`;
 }
 
@@ -576,7 +628,7 @@ const MAP_OF = (g) => (MAP_GAMES.includes(g) ? g : 'gta6');
 function openMap(preferGame = ui.mapHold || MAP_OF(store.game)) {
   // та же логика, что в map.js open(): игра из настроек приложения переключает карту, если её там поменяли
   if (preferGame !== ui.mapPrefer) { ui.mapPrefer = preferGame; ui.mapGame = preferGame; applySkin(); }
-  if (!mapOpening) mapOpening = mapMod().then((m) => m.open(mapCtx(), preferGame).then(() => m)).catch((e) => { mapOpening = null; toast(t('map_error')); throw e; });
+  if (!mapOpening) mapOpening = mapMod().then((m) => m.open(mapCtx(), preferGame).then(() => { ui.mapReady = true; return m; })).catch((e) => { mapOpening = null; toast(t('map_error')); throw e; });
   else mapOpening.then((m) => m.open(mapCtx(), preferGame)).catch(() => { });
   return mapOpening;
 }
@@ -589,11 +641,35 @@ async function openOnMap(key) {
   if (!mapOpening) openMap(g);
   ui.tab = 'map'; renderAll();
   ui.mapGame = g; applySkin();   // карта откроет место в его игре (focus) — скин за ней
+  let early = false;
+  // карта ещё грузится — карточка открывается сразу: название и превью-фото из данных мест, остальное мерцает;
+  // карта подменит содержимое плавно (openSheet swap), без прыжка (Игорь 23.11.2026)
+  if (!ui.mapReady) {
+    placeSkeleton(kind, g, id);
+    mapMod().then((m) => (!ui.mapReady && ui.tab === 'map' ? m.sheetEarly?.(g, kind, id) : false)).then((r) => { early = !!r; }).catch(() => { });   // содержимое — по данным, не дожидаясь карты
+  }
   try {
     const m = await mapOpening;
-    if (m.focus) { if (!(await m.focus(g, kind, id))) toast(t('place_nf')); }   // места нет (ссылка устарела) — сказать, а не молчать
+    ui.mapReady = true;
+    if (early && !$('#sheet-layer').classList.contains('open')) return;   // карточку уже закрыли, пока грузилась карта, — не открываем снова
+    let ok = true;
+    if (m.focus) { ok = await m.focus(g, kind, id); if (!ok) toast(t('place_nf')); }   // места нет (ссылка устарела) — сказать, а не молчать
     else { await m.setGame(g); toast(t('map_find_hint')); }
-  } catch { }
+    if (!ok && $('#sheet-body .mp-sk')) closeSheet();
+  } catch { if ($('#sheet-body .mp-sk')) closeSheet(); }
+}
+
+function placeSkeleton(kind, g, id) {
+  const d = placesNow(g); if (!d) return;
+  const o = kind === 'egg' ? d.eggs.find((x) => x.id === id) : kind === 'place' ? d.places.find((x) => x.id === id) : null;
+  if (!o) return;
+  const img = thumbOf(o, kind === 'egg' ? 'game' : 'real');
+  const line = (w, h = 13) => `<span class="sk-box" style="display:block;width:${w};height:${h}px;margin:0 0 10px"></span>`;
+  openSheet(`<div class="mp-sk" aria-busy="true">
+      <div class="cmp-stage cmp-inline sk-photo">${img ? `<img src="${esc(img)}" alt="" decoding="async" style="width:100%;height:100%;object-fit:cover;filter:blur(6px);transform:scale(1.06)">` : ''}</div>
+      <div class="mp-names"><div class="mp-nm r"><span class="mp-nic">${I.pin}</span><div><b>${esc(kind === 'egg' ? L(o.t) : realName(o))}</b></div></div></div>
+      ${line('86%')}${line('64%')}${line('92%', 44)}${line('72%')}
+    </div>`, 'sheet-map', null, { snap: 'half' });
 }
 
 // ───────── Поиск: читы, места, пасхалки ─────────
@@ -639,6 +715,8 @@ async function renderSearch() {
   const sg = sf.game || store.game;
   const q = ui.query.trim();
   const box = $('#search-results');
+  // данных мест ещё нет — сразу скелетон списка (вкладка отвечает на тап мгновенно), потом результаты
+  if (MAP_GAMES.includes(sg) && !placesNow(sg)) box.innerHTML = `<div class="s-sec sk-list" aria-busy="true">${'<div class="sk-item"><span class="sk-box sk-ava"></span><span class="sk-txt"><span class="sk-box"></span><span class="sk-box"></span></span></div>'.repeat(7)}</div>`;
   const [pd] = await Promise.all([loadPlaces(sg), loadGame(sg).catch(() => null)]);
   placesSync[sg] = pd;
   if (my !== searchSeq) return;
@@ -690,8 +768,10 @@ function rememberQuery() {
 
 // ───────── Избранное: читы и места ─────────
 async function favItems() {
-  const games = [...new Set([...store.favPlaces.map((k) => parseKey(k).game), ...liveGames().map((g) => g.id)])];
-  await Promise.all(games.map((g) => Promise.all([loadGame(g).catch(() => null), MAP_GAMES.includes(g) ? loadPlaces(g) : null])));
+  // данные мест — только игр, где есть сохранённые места (23.11.2026: Главная GTA 6 ждала ещё 340 КБ мест GTA 5 при пустом Избранном)
+  const pGames = new Set(store.favPlaces.map((k) => parseKey(k).game));
+  const games = [...new Set([...pGames, ...liveGames().map((g) => g.id)])];
+  await Promise.all(games.map((g) => Promise.all([loadGame(g).catch(() => null), MAP_GAMES.includes(g) && pGames.has(g) ? loadPlaces(g) : null])));
   const places = (await Promise.all(store.favPlaces.map(findByKey))).filter(Boolean);
   const cheatsF = store.favs.map((id) => byId(id)).filter(Boolean);
   return [...places, ...cheatsF];
@@ -1815,11 +1895,21 @@ document.addEventListener('visibilitychange', () => {
 (async function init() {
   setLang(store.lang || (navigator.language || 'ru').slice(0, 2));
   applyTheme(); applySkin();
+  // данные Главной (места и лента «Новое») — качаем сразу, параллельно с профилем и кодами; Главная не ждёт их, а рисует скелетон
+  if (MAP_GAMES.includes(store.game)) loadPlaces(store.game);
+  loadNews();
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     // новая версия на сервере → перезагрузка в свежую (только если уже была старая)
     const hadController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) location.reload(); });
-    navigator.serviceWorker.register('sw.js').then((r) => r.update()).catch(() => { });
+    // первый запуск: офлайн-кэш ставим ПОСЛЕ первого экрана — иначе на слабой сети он качает оболочку (~1 МБ)
+    // одновременно со страницей и Главная ждёт вдвое дольше (замер 23.11.2026). Уже стоящий SW — проверяем обновление сразу.
+    let regd = false;
+    const reg = () => { if (regd) return; regd = true; navigator.serviceWorker.register('sw.js').then((r) => r.update()).catch(() => { }); };
+    // первый раз — после прогрева карты (её файлы уже в HTTP-кэше, установка не качает их второй раз) или когда карта
+    // открылась и легла, но не позже 20 с после первого экрана
+    if (hadController) reg();
+    else { swAfterWarm = reg; addEventListener('sb:map-idle', reg, { once: true }); afterFirstScreen(reg, 20000); }
   }
   if (window.speechSynthesis) speechSynthesis.getVoices();
   // пробный доступ: 72 часа с первого открытия на устройстве (если сервер не дал trial_until)
@@ -1852,6 +1942,12 @@ document.addEventListener('visibilitychange', () => {
   backGuard();
   document.body.classList.add('ready');
   requestAnimationFrame(guardTabbar);
+  // карта «Игра», потом «Жизнь» — прогрев в простое, пока человек на Главной: вкладка карты откроется без ожидания
+  // прогрев — как только показано главное фото Главной (не ждём остальных картинок): к тапу по карте она уже в пути
+  if (store.onboarded) afterHero(() => window.SB.prewarmMap(), 600);
+  // фото эпох для офлайна — когда канал свободен: карта открылась и плитки легли (+6 с) или через 45 с без карты
+  addEventListener('sb:map-idle', () => setTimeout(warmUI, 6000), { once: true });
+  afterFirstScreen(warmUI, 45000);
   checkTrialEnd();
   // таймер пробного: строка «ещё …» и конец пробного без перезапуска
   setInterval(() => { if (access() !== lastAccess || access() === 'trial') onAccess(); }, 30000);

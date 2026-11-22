@@ -1595,6 +1595,7 @@ function prefetchNear() {
   prefetchT = setTimeout(() => {
     const cn = navigator.connection;
     if (!map || cn?.saveData || /2g/.test(cn?.effectiveType || '')) return;
+    if (!map.areTilesLoaded()) { map.once('idle', prefetchNear); return; }   // сначала плитки, фото соседей — потом (23.11.2026)
     const d = data[game]; if (!d) return;
     const b = map.getBounds(), c = map.getCenter(), near = [];
     for (const p of d.places) { const q = ll(p); if (q && b.contains(q)) near.push([(q[0] - c.lng) ** 2 + (q[1] - c.lat) ** 2, p]); }
@@ -1844,12 +1845,31 @@ export async function open(c, preferGame) {
   requestAnimationFrame(() => map?.resize());
 }
 
+// «Потенциальная плитка» (Игорь 23.11.2026, как экран загрузки в GTA): пока качаются библиотека, стиль и плитки,
+// на месте карты — снимок её стартового вида (img/ui/map-ph/<режим>-<игра>.webp, ~30 КБ, снимает tools/map_preview.py)
+// с мерцанием; когда плитки легли (первый idle) — плавно уходит. Снимка нет — просто мерцающая подложка.
+function phShow(box) {
+  let el = box.querySelector('.map-ph');
+  if (!el) { el = document.createElement('div'); el.className = 'map-ph'; el.setAttribute('aria-hidden', 'true'); box.prepend(el); }
+  el.style.backgroundImage = `url(${IMG_BASE}img/ui/map-ph/${mode === 'game' ? 'game' : 'life'}-${game}.webp)`;
+  el.classList.remove('out');
+  box.classList.add('has-ph');
+}
+function phHide() {
+  const box = document.getElementById('map'), el = box?.querySelector('.map-ph');
+  box?.classList.remove('has-ph');
+  if (!el) return;
+  el.classList.add('out');
+  setTimeout(() => el.remove(), 450);
+}
 async function create(preferGame) {
   const box = document.getElementById('map');
   box.classList.add('loading');
+  warmStop?.();
   try {
     game = preferGame === 'gta5' ? 'gta5' : 'gta6';
     if (!GAME_MAP[game]) mode = 'real';
+    phShow(box);
     const [d] = await Promise.all([loadGame(game), loadLib(), loadGtadb(game).catch(() => null)]);
     styleKey = mode === 'game' ? 'game:' + game : themeKey();
     const start = startView(d);
@@ -1869,6 +1889,7 @@ async function create(preferGame) {
     window.__gtaMap = map; // для проверки из консоли (?vptest и т. п.)
     map.on('style.load', addLayers);
     map.on('load', () => { box.classList.remove('loading'); renderCards(); });
+    map.once('idle', () => { phHide(); warmMark(game); dispatchEvent(new Event('sb:map-idle')); });   // плитки на месте — превью уходит; app.js: фоновые докачки можно
     map.on('moveend', renderCards);
     map.on('moveend', () => ghostPrep(400));
     map.on('moveend', prefetchNear);
@@ -1878,7 +1899,7 @@ async function create(preferGame) {
     longPress(map);
     renderChips();
   } catch (err) {
-    box.classList.remove('loading');
+    box.classList.remove('loading'); phHide();
     throw err;
   }
 }
@@ -2263,6 +2284,26 @@ export async function focus(g, kind, id) {
   return true;
 }
 
+// Карточка без карты (Игорь 23.11.2026: «на клик сразу отреагировали»): на холодном старте карта (maplibre, стиль,
+// плитки) ещё в пути, а карточке нужны только данные места — показываем её сразу; focus() потом поставит точку на карте
+// и обновит ту же карточку. Карта уже есть — false (откроет focus).
+export async function sheetEarly(g, kind, id) {
+  if (map || !ctx || (kind !== 'place' && kind !== 'egg')) return false;
+  const d = await loadGame(g);
+  if (map) return false;
+  game = g;   // create() поставит ту же игру (openMap(g) в app.js)
+  if (kind === 'place') {
+    const i = d.places.findIndex((x) => x.id === id);
+    if (i < 0) return false;
+    mapSheet(placeSheet(d.places[i], i)); return true;
+  }
+  const ei = d.eggs.findIndex((x) => x.id === id);
+  if (ei >= 0) { mapSheet(eggSheet(d.eggs[ei], ei)); return true; }
+  const pi = d.places.findIndex((x) => (x.eggs || []).some((e) => e.id === id));
+  if (pi < 0) return false;
+  mapSheet(placeSheet(d.places[pi], pi)); return true;
+}
+
 // Знакомство (js/tour.js): пролёт к месту на карте игры и карточка на половине экрана; ползунок «игра ⇄ жизнь» — тем же setInlineX
 export async function tourOpen(id, dur = 2200) {
   if (!map && opening) await opening.catch(() => null);
@@ -2320,3 +2361,59 @@ export function retheme() {
   if (k !== styleKey) { styleKey = k; map.setStyle(STYLE[k], { diff: false }); } // style.load → addLayers
 }
 export function relang() { if (map) { renderChips(); renderCards(); } }
+
+// ───── Прогрев (Игорь 23.11.2026: «пока показывается код, карта должна догрузиться — сначала “Игра”, потом “Жизнь”») ─────
+// Вызывается из app.js (window.SB.prewarmMap) на Главной в простое и из онбординга. Невидимая карта размером с экран
+// встаёт на стартовый вид «Игры», дожидается всех плиток (они ложатся в кэш SW и браузера) и убирается; затем то же
+// для «Жизни» (стиль, шрифты, плитки города). Настоящая карта потом берёт всё из кэша. Ничего не показывает.
+const warmed = {};
+let warmStop = null;   // настоящая карта открылась — невидимая уступает ей канал (плитки, что уже пришли, остаются в кэше)
+function warmView(style, view, ms = 25000) {
+  return new Promise((ok) => {
+    const box = document.createElement('div');
+    box.setAttribute('aria-hidden', 'true');
+    box.style.cssText = `position:fixed;left:0;top:0;width:${innerWidth}px;height:${innerHeight}px;visibility:hidden;pointer-events:none;z-index:-1;contain:strict`;
+    document.body.appendChild(box);
+    let m = null, tm = 0;
+    const end = (r) => { clearTimeout(tm); warmStop = null; try { m?.remove(); } catch { } box.remove(); ok(r); };
+    tm = setTimeout(() => end(false), ms);
+    warmStop = () => end(false);
+    try {
+      m = new window.maplibregl.Map({ container: box, style, center: view.center, zoom: view.zoom, interactive: false, attributionControl: false,
+        fadeDuration: 0, transformRequest: (url) => { const u = tileUrl(url); return u ? { url: u } : { url }; } });
+      m.on('styleimagemissing', blankImage(m));
+      m.on('error', () => { });
+      m.once('idle', () => end(true));
+    } catch { end(false); }
+  });
+}
+const WARM_KEY = 'sb.warm', WARM_TTL = 7 * 864e5;
+// отметка «плитки этой игры в кэше SW» — только если SW уже управлял страницей
+function warmMark(g) { if (!navigator.serviceWorker?.controller) return; try { const o = JSON.parse(localStorage.getItem(WARM_KEY) || '{}'); o[g] = Date.now(); localStorage.setItem(WARM_KEY, JSON.stringify(o)); } catch { } }
+async function warmFresh(g) {
+  try {
+    const t = JSON.parse(localStorage.getItem(WARM_KEY) || '{}')[g];
+    return !!t && Date.now() - t < WARM_TTL && !!navigator.serviceWorker?.controller && await caches.has('tiles-v1');
+  } catch { return false; }
+}
+export function prewarm(g = 'gta6') {
+  return (warmed[g] ||= (async () => {
+    const r = { game: false, life: false };
+    let d;
+    try { [d] = await Promise.all([loadGame(g), loadLib(), loadGtadb(g).catch(() => null)]); } catch { delete warmed[g]; return r; }
+    const real = { center: [d.center[1], d.center[0]], zoom: d.zoom - 0.6 };
+    // карта уже открыта — «Игру» она грузит сама, «Жизнь» греет её «запасная карта» (ghostPrep)
+    if (map || opening) { r.game = r.life = true; r.byMap = true; return r; }
+    // плитки уже лежат в кэше SW (прогрев или карта были за последние 7 дней) — невидимая карта не нужна: она только
+    // отняла бы процессор у настоящей, если человек сразу идёт на карту (тёплый старт 0,45 → 1,2 с, 23.11.2026)
+    if (await warmFresh(g)) { r.game = r.life = true; r.cached = true; return r; }
+    if (GAME_MAP[g] && !approx(g)) {
+      const gp = d.places.filter((p) => p.gm && p.gm[2] < 2);
+      const mid = (k) => gp.map((p) => p.gm[k]).sort((a, b) => a - b)[Math.floor(gp.length / 2)] || 0;
+      r.game = await warmView(gameStyleFor(g), { center: G2M(mid(0), mid(1)), zoom: 3.6 });
+    } else r.game = GAME_MAP[g] ? await warmView(gameStyleFor(g), real) : true;
+    r.life = map || opening ? true : await warmView(STYLE[themeKey()], real);
+    if (r.game && r.life) warmMark(g);
+    return r;
+  })());
+}
