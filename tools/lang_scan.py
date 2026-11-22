@@ -39,7 +39,10 @@ def _proper():
     f = ROOT / "tools" / "names_ru.json"
     ru = json.loads(f.read_text("utf-8")) if f.exists() else {}
     names = sorted({k for k, v in ru.items() if k == v} | set(PROPER_EXTRA), key=len, reverse=True)
-    return re.compile("|".join(re.escape(n) for n in names) + r"|«[^»]*»")
+    # + цепочка слов с заглавной, связанных of / on / the / and / a / is (Walk of Fame, Larios on the Beach, Love Is a Long Road):
+    # имя собственное; английская фраза из обычных слов цепочку рвёт («home in the show») и ловится стоп-словами
+    chain = r"\b(?!(?:Open|Close|Back|Next|Tap|Swipe|Share|Search|Watch|Unlock|Try|Sign|Log|Get|Go|Save|Start|Continue|Cancel|Done|Show|Hide|Find|Add|Remove|Buy|Subscribe|Restore|Learn|See|View)\b)[A-Z][\w'’.&-]*(?: (?:[A-Z][\w'’.&-]*|of|on|the|and|a|is|in|at|de|del))* [A-Z][\w'’.&-]*"
+    return re.compile("|".join(re.escape(n) for n in names) + r"|«[^»]*»|" + chain)
 PROPER = _proper()
 # строчное английское слово в названии/адресе = пояснение («building», «former», «near»): в русском интерфейсе его надо перевести
 _LOW = re.compile(r"(?<![\w'’&.-])[a-z]{3,}(?![\w'’-])")
