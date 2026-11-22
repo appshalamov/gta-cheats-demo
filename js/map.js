@@ -6,8 +6,9 @@
 // пиктограммы типа места, доступа и точности совпадения, короткие подписи на языке устройства.
 // Свои клики обрабатываем здесь через атрибут data-mp (app.js их не трогает).
 
-import { t, L as tr, getLang } from './i18n.js';
+import { t, L as tr, getLang, rn, ra, rg, rp } from './i18n.js';
 import { GTA6 } from './config.js';
+import { lifeStyle, LIFE_VARIANTS } from './mapstyle.js';
 
 const COLORS = { confirmed: '#22c3d9', likely: '#f5b942', speculative: '#9a8cab', egg: '#f472b6', gtadb: '#8b93a1' };
 const GAMES = {
@@ -32,6 +33,9 @@ let wantMode = mode;     // что выбрал человек; у игры бе
 // После выхода (19.11.2026) карта игры включается флагом GTA6.map = 'live' (js/config.js, tools/gta6_switch.py) — плитки вышедшей
 // игры с нашего хостинга. «Леонида» остаётся запасной: GTA6.map = 'approx' или ?leonida в адресе (сравнить и откатить без выкладки).
 const LEONIDA = new URLSearchParams(location.search).has('leonida');
+// Карта GTA 6 из вышедшей игры (22.11.2026): набор «day» — карта паузы игры (gtadb.org, CC BY 4.0, © Rockstar Games), зум до зданий.
+// Прежняя карта сообщества yanis18 — запасная: ?yanis в адресе (сравнить и откатить без выкладки).
+const TILES6 = new URLSearchParams(location.search).has('yanis') ? { tiles: 'yanis18', maxz: 5 } : { tiles: GTA6.tiles, maxz: GTA6.maxz };
 const GAME_MAP = { gta5: true, gta6: GTA6.map === 'live' && !LEONIDA ? true : BETA ? 'approx' : false };
 // игра уже вышла, а точной карты ещё нет — честная подпись «в ближайшие дни» вместо «в день выхода»
 const OUT6 = () => Date.now() >= new Date('2026-11-19T00:00:00').getTime();
@@ -79,7 +83,7 @@ function leonidaStyle() {
   return {
     version: 8, glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
     sources: {
-      omt: { type: 'vector', url: 'https://tiles.openfreemap.org/planet', attribution: '≈ GTA 6 по мотивам Флориды · © OpenStreetMap · OpenFreeMap' },
+      omt: { type: 'vector', url: 'https://tiles.openfreemap.org/planet', attribution: `≈ GTA 6 ${getLang() === 'ru' ? 'по мотивам Флориды' : 'based on Florida'} · © OpenStreetMap · OpenFreeMap` },
       regions: { type: 'geojson', data: fc([]) },   // вымышленные названия регионов не показываем (решение Игоря №15, 16.10.2026)
     },
     layers: [
@@ -121,10 +125,11 @@ function leonidaStyle() {
 }
 const gameStyle = (g) => ({
   version: 8, glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
-  sources: { gtamap: { type: 'raster', tiles: [`https://gtadb-tile.invalid/${g}/{z}/{x}/{y}`], tileSize: 256, minzoom: 2, maxzoom: g === 'gta6' ? GTA6.maxz + 2 : 8,
-    attribution: g === 'gta6' && !COMMUNITY6 ? '© Rockstar Games' : `${g === 'gta6' ? '≈ yanis · ' : ''}gtadb.org (CC BY 4.0) · © Rockstar Games` } },
-  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': g === 'gta5' ? '#1b1f23' : '#0e0f12' } },
-    { id: 'gtamap', type: 'raster', source: 'gtamap', paint: { 'raster-fade-duration': 150, ...(g === 'gta6' && COMMUNITY6 ? { 'raster-saturation': -0.35, 'raster-brightness-max': 0.8, 'raster-contrast': 0.1 } : { 'raster-saturation': -0.6, 'raster-brightness-max': 0.7, 'raster-contrast': 0.15 }) } }],
+  sources: { gtamap: { type: 'raster', tiles: [`https://gtadb-tile.invalid/${g}/{z}/{x}/{y}`], tileSize: 256, minzoom: 2, maxzoom: g === 'gta6' ? TILES6.maxz + 2 : 8,
+    attribution: `${g === 'gta6' && COMMUNITY6 ? '≈ yanis · ' : ''}gtadb.org (CC BY 4.0) · © Rockstar Games` } },
+  // карта из игры GTA 6 — в родных цветах (как в меню паузы), фон — цвет моря этой карты, чтобы края без плиток не чернели
+  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': g === 'gta5' ? '#1b1f23' : COMMUNITY6 ? '#0e0f12' : '#2f90b0' } },
+    { id: 'gtamap', type: 'raster', source: 'gtamap', paint: { 'raster-fade-duration': 150, ...(g === 'gta6' ? (COMMUNITY6 ? { 'raster-saturation': -0.35, 'raster-brightness-max': 0.8, 'raster-contrast': 0.1 } : {}) : { 'raster-saturation': -0.6, 'raster-brightness-max': 0.7, 'raster-contrast': 0.15 }) } }],
 });
 const gameStyleFor = (g) => (approx(g) ? leonidaStyle() : gameStyle(g));
 function tileUrl(url) {   // https://gtadb-tile.invalid/gta5/6/40/52 → плитка gtadb z−2 в репозитории на GitHub
@@ -147,7 +152,15 @@ const sfItem = (url) => {
   const m = BETA && /\/photos\/6\/(L\d+),ig\.jpg$/.exec(url || ''), box = m && SF[m[1]];
   return box ? { url: `${ASSETS}official/6/${m[1]}.jpg`, box, fb: url } : null;
 };   // GTA 6 (yanis) не переносили: карта выключена
-const STYLE = { dark: 'https://tiles.openfreemap.org/styles/dark', light: 'https://tiles.openfreemap.org/styles/positron' };
+// «Жизнь» — реальный мир в цветах карты GTA 6 (js/mapstyle.js, 22.11.2026). ?life=day|night|neon — сравнить варианты,
+// ?life=ofm — прежние стили OpenFreeMap (откат без выкладки). LIFE — вариант для светлой и тёмной темы приложения.
+const LIFE_Q = new URLSearchParams(location.search).get('life');
+const LIFE = { light: 'day', dark: 'day' };
+const OFM = { dark: 'https://tiles.openfreemap.org/styles/dark', light: 'https://tiles.openfreemap.org/styles/positron' };
+const STYLE = {
+  get dark() { return LIFE_Q === 'ofm' ? OFM.dark : lifeStyle(LIFE_VARIANTS.includes(LIFE_Q) ? LIFE_Q : LIFE.dark); },
+  get light() { return LIFE_Q === 'ofm' ? OFM.light : lifeStyle(LIFE_VARIANTS.includes(LIFE_Q) ? LIFE_Q : LIFE.light); },
+};
 
 // ───── короткие подписи к значкам на многих языках (остальное понимается по картинке) ─────
 const W = {
@@ -360,7 +373,7 @@ const cred = (c) => {
   if (uiLang() !== 'ru') for (const [re, to] of CRED_EN) s = s.replace(re, to);
   return s;
 };
-const realShort = (p) => String(p.n || '').split(/,| \(/)[0] || p.n || '';
+const realShort = (p) => String(rn(p)).split(/,| \(/)[0] || rn(p);
 const themeKey = () => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
 // Тексты мест (почему похоже, совет, интересно…) есть по-русски; у ~950 полей «en» в данных пока тоже русский текст.
 // Пока перевода нет, вне русского интерфейса такой блок не показываем, а не показываем русский (тест 21.10.2026).
@@ -513,8 +526,8 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
 // GTA 5 — набор «radar»: карта из меню паузы игры (тёмная суша, светлые дороги) — просьба Игоря 14.10.2026 «как в GTA».
 // GTA 6: набор плиток с нашего хостинга (GTA6.tiles). yanis18 — карта сообщества (gtadb «yanis,18»), сверена с постером Rockstar;
 // взята по решению Игоря 18.11.2026 («утечку берём… перед тем как брать — проверь»), до карты из вышедшей игры.
-export const COMMUNITY6 = /yanis/i.test(GTA6.tiles);
-const GMAP = { gta5: { v: 5, key: 'V', set: 'radar', z: 4 }, gta6: { v: 6, key: 'VI', set: GTA6.tiles, z: Math.min(4, GTA6.maxz) } };
+export const COMMUNITY6 = /yanis/i.test(TILES6.tiles);
+const GMAP = { gta5: { v: 5, key: 'V', set: 'radar', z: 4 }, gta6: { v: 6, key: 'VI', set: TILES6.tiles, z: Math.min(4, TILES6.maxz) } };
 function gameBlock(gm, addr, region, gid, ref = {}) {
   if (!GAME_MAP[game]) return `<div class="mp-ingame mp-ig-soon"><span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))}</small><b>${esc(soon6())}</b></span></div>`;
   const at = `data-k="${ref.k || ''}" data-i="${ref.i ?? ''}"`;
@@ -554,13 +567,13 @@ function placeSheet(p, i) {
   const dist = distLabel(p);
   const media = (p.m || []).map(ytLink).filter(Boolean);
   return `
-    ${peekHead(realShort(p), p.a || p.n)}
-    ${heroBox('p' + i, p.pairs, gameList(p), realList(p), { g: GAMES[game]?.title || '', r: p.n }, { pano: panoLink(p.lat, p.lon, p.view) })}
+    ${peekHead(realShort(p), ra(p) || rn(p))}
+    ${heroBox('p' + i, p.pairs, gameList(p), realList(p), { g: GAMES[game]?.title || '', r: rn(p) }, { pano: panoLink(p.lat, p.lon, p.view) })}
     <div class="mp-names">
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(GAMES[game]?.title || '')}</b><small>${esc(tr(GAMES[game]?.place || {}))}</small></div></div>
-      <a class="mp-nm r mp-nm-link" href="${mapsLink(p.lat, p.lon, p.n)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(p.n)}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(p.n)}</b>${p.a ? `<small>${esc(p.a)}</small>` : ''}</div><span class="mp-nm-go">${IC.nav}</span></a>
+      <a class="mp-nm r mp-nm-link" href="${mapsLink(p.lat, p.lon, p.n)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(rn(p))}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(rn(p))}</b>${p.a ? `<small>${esc(ra(p))}</small>` : ''}</div><span class="mp-nm-go">${IC.nav}</span></a>
     </div>
-    ${gameBlock(p.gm, p.ga, p.r, '', { k: 'p', i, real: [p.n, p.a].filter(Boolean).join(' · ') })}
+    ${gameBlock(p.gm, p.ga, p.r, '', { k: 'p', i, real: [rn(p), ra(p)].filter(Boolean).join(' · ') })}
     ${playerBlock(p.gc)}
     ${BETA ? eggBlocks(p) : ''}
     <div class="mp-picto">
@@ -589,7 +602,7 @@ function nearbyRow(p, i) {
   const pic = (q) => q.pr?.thumb || q.pg?.thumb || q.pr?.file || q.pg?.file || q.pairs?.[0]?.r?.url || '';
   return `<div class="mp-near"><b class="mp-near-t">${IC.pin}<span>${esc(w('nearby'))}</span></b><div class="mp-near-row">${near.map(([k, d]) => {
     const q = all[k], img = pic(q);
-    return `<button class="mp-near-c" data-mp="near" data-i="${k}">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="mp-ch-ic">${IC.pin}</span>`}<span><b>${esc(q.g || q.n)}</b><small>${esc(fmtKm(d))} · ${esc(q.n)}</small></span></button>`;
+    return `<button class="mp-near-c" data-mp="near" data-i="${k}">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="mp-ch-ic">${IC.pin}</span>`}<span><b>${esc(rg(q) || rn(q))}</b><small>${esc(fmtKm(d))} · ${esc(rn(q))}</small></span></button>`;
   }).join('')}</div></div>`;
 }
 function eggSheet(e, i) {
@@ -598,11 +611,11 @@ function eggSheet(e, i) {
     ? `<button class="mp-cta mp-cta-yt" data-mp="yt" data-v="${yt[0].id}" data-t="${yt[0].t}" data-l="${esc(yt[0].label)}">${IC.play}<span>${esc(w('seen'))} · ${esc(yt[0].label.split(' · ')[1] || '')}</span></button>`
     : `<a class="mp-cta" href="${panoLink(e.lat, e.lon, e.view)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>`;
   return `
-    ${peekHead(txt(e.t), (e.p || '').split(',')[0], true)}
-    ${heroBox('e' + i, e.pairs, gameList(e), realList(e), { g: txt(e.t), r: (e.p || '').split(',')[0] }, { egg: true })}
+    ${peekHead(txt(e.t), rp(e).split(',')[0], true)}
+    ${heroBox('e' + i, e.pairs, gameList(e), realList(e), { g: txt(e.t), r: rp(e).split(',')[0] }, { egg: true })}
     <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><h2>${esc(txt(e.t))}</h2></div></div>
-    ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(e.p.split(',')[0])}</b><small>${esc(e.p.split(',').slice(1).join(',').trim())}</small></div></div>` : ''}
-    ${gameBlock(e.gm, e.ga, '', '', { k: 'e', i, real: e.p || '' })}
+    ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(rp(e).split(',')[0])}</b><small>${esc(rp(e).split(',').slice(1).join(',').trim())}</small></div></div>` : ''}
+    ${gameBlock(e.gm, e.ga, '', '', { k: 'e', i, real: rp(e) })}
     <div class="mp-picto"><span class="mp-pic">${meter(e.cf)}<small>${esc(w(e.cf || 'likely'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel(e)}</small></span>` : ''}</div>
     <div class="mp-acts">${cta}
       <a class="mp-ib" href="${mapsLink(e.lat, e.lon, e.p)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}">${IC.nav}</a>
@@ -1390,7 +1403,12 @@ function legendSheet() {
     ${row(ref, T('Отсылка: место съёмок', 'Reference: filming location'), T('самого места из игры в жизни нет', 'the game place itself does not exist'))}
     ${row(q, T('Пасхалка без места', 'Easter egg without a place'), T('только на карте игры', 'only on the game map'))}
     ${row(`<svg viewBox="-13 -13 26 26" width="28" height="28"><circle r="4.5" fill="${COLORS.gtadb}"/></svg>`, T('Точка сообщества', 'Community point'), T('видна только вблизи', 'shown when zoomed in'))}
-    </div><div class="lg-fills">${c('c')}<span>${esc(T('подтверждено', 'confirmed'))}</span>${c('l')}<span>${esc(T('вероятно', 'likely'))}</span>${c('s')}<span>${esc(T('догадка', 'guess'))}</span></div>`;
+    </div><div class="lg-fills">${c('c')}<span>${esc(T('подтверждено', 'confirmed'))}</span>${c('l')}<span>${esc(T('вероятно', 'likely'))}</span>${c('s')}<span>${esc(T('догадка', 'guess'))}</span></div>
+    <p class="lg-src">${esc(game === 'gta6' && !COMMUNITY6
+      ? T('Карта игры — меню паузы GTA 6 (gtadb.org, CC BY 4.0; © Rockstar Games). Реальная карта — OpenStreetMap и OpenFreeMap в цветах карты GTA 6.',
+        'Game map: the GTA 6 pause-menu map (gtadb.org, CC BY 4.0; © Rockstar Games). Real map: OpenStreetMap and OpenFreeMap in GTA 6 map colors.')
+      : T('Карта игры — gtadb.org (CC BY 4.0; © Rockstar Games). Реальная карта — OpenStreetMap и OpenFreeMap в цветах карты GTA.',
+        'Game map: gtadb.org (CC BY 4.0; © Rockstar Games). Real map: OpenStreetMap and OpenFreeMap in GTA map colors.'))}</p>`;
 }
 const PICK_ALIAS = { 'cl-pt': 'places', 'eggs-ref': 'eggs', 'gl-col': 'gl' };
 function addLayers() {
@@ -2244,6 +2262,32 @@ export async function focus(g, kind, id) {
   setTimeout(() => document.querySelector(`#sheet-body [data-mp="fav"][data-id="${CSS.escape(id)}"]`)?.closest('.mp-eggblk')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 450);
   return true;
 }
+
+// Знакомство (js/tour.js): пролёт к месту на карте игры и карточка на половине экрана; ползунок «игра ⇄ жизнь» — тем же setInlineX
+export async function tourOpen(id, dur = 2200) {
+  if (!map && opening) await opening.catch(() => null);
+  if (!map) return false;
+  if (game !== 'gta6') await setGame('gta6');
+  const d = await loadGame(game);
+  const i = d.places.findIndex((x) => x.id === id);
+  if (i < 0) return false;
+  if (mode !== 'game' && GAME_MAP[game]) {
+    await setMode('game');
+    await new Promise((r) => { const t = setTimeout(r, 4000); map.once('idle', () => { clearTimeout(t); r(); }); });
+  }
+  const c = ll(d.places[i]); if (!c) return false;
+  const zoom = Math.max(map.getZoom(), tilesGame() ? 6.5 : 14.5);
+  await new Promise((res) => {
+    const t = setTimeout(res, dur + 900);
+    map.once('moveend', () => { clearTimeout(t); res(); });
+    if (dur) map.flyTo({ center: c, zoom, duration: dur, offset: camOffset('half'), curve: 1.3 });
+    else map.easeTo({ center: c, zoom, duration: 0, offset: camOffset('half') });
+  });
+  openPlace(i, false, 'half');
+  return true;
+}
+export const tourSlide = (st, v) => setInlineX(st, v);
+export const tourMode = () => mode;
 
 // где я на этой карте: в реальном мире — как есть, на карте игры — пересчитано по опорным точкам (та же логика, что переход)
 function meAt() {

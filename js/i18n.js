@@ -15,6 +15,12 @@ const T = {
     // онбординг — 32 §3.1, §3.7 и концепт v11 (без «Чит-коды — бесплатно»: решение №14, файл 31 главнее)
     w_title: 'Secret Base: карта и чит-коды', w_sub: 'Места из игр в реальной жизни. Сдвиньте ползунок: кадр игры и та же улица сегодня.', start: 'Начать', next: 'Дальше',
     w_f1: 'Коды с кнопками вашего контроллера и озвучкой', w_f2: 'Сравнение «в игре и в жизни» на карте', w_f3: 'Фото мест из жизни и виды 360°', w_f4: 'И GTA 5: карта мест и все коды. Коды других частей — скоро',
+    w_map: 'Карта', w_map_s: 'Места из GTA 6 на карте настоящего Майами', w_codes: 'Чит-коды', w_codes_s: 'Кнопки вашего контроллера и озвучка',
+    w_more: 'Коды GTA 5 тоже здесь, других частей — скоро',
+    onb_skip: 'Пропустить', onb_next: 'Дальше', onb_of: '{n} из {m}', onb_fly: 'Ocean Drive из трейлера GTA 6',
+    onb_slide: 'Потяните ползунок: слева игра, справа жизнь', onb_real: 'Нажмите — увидите это место в Майами',
+    onb_free: 'Дальше сами: 20 секунд на любые места', onb_free_pro: 'Дальше сами: смотрите любые места',
+    onb_code1: 'Самый популярный код. Нажмите', onb_code2: 'Вводите в этом порядке', st_tour: 'Показать знакомство',
     w_note: 'Неофициальное приложение. Не связано с Rockstar Games и Take-Two Interactive.',
     ob_game_sub: 'Покажем места и коды этой игры. Сменить можно в любой момент.', ob_plat_sub: 'Покажем коды с кнопками вашего контроллера.',
     ob_watch: 'Просто смотрю', ob_watch_s: 'без приставки, сразу на карту', ob_release: '19 ноября',
@@ -57,6 +63,7 @@ const T = {
     about_text: 'Secret Base — неофициальное приложение. Оно не связано с Rockstar Games и Take-Two Interactive и не одобрено ими. GTA и другие названия — торговые марки их владельцев, здесь они используются только для описания. Приложение не изменяет игру и не вмешивается в её файлы: это справочник кодов и карта реальных мест.',
     share_app_text: 'Secret Base: карта и чит-коды. Места из игр в реальной жизни',
     select_game: 'Выберите игру', select_platform: 'Выберите платформу',
+    sw_title: 'Игра и платформа', sw_plat: 'Платформа для кодов', sw_soon: 'Скоро: {g}. Только коды', sw_aria: 'Игра и платформа: {g}, {p}. Изменить',
     // пейвол — Ресерч 31 §4.5, тексты дословно; ни слова о деньгах авторов (tools/check_code.py)
     pw_h_trial_end: 'Пробные 3 дня закончились', pw_l_trial_end: 'Коды, карта GTA 5 и GTA 6 и места из игр в реальном мире — в Pro',
     pw_h_map: 'Карта — в Pro', pw_l_map: 'В пробные дни открыты коды. Карта, места из жизни и сравнение — в Pro',
@@ -78,6 +85,17 @@ const T = {
     pw_try: 'Попробовать 3 дня бесплатно', pw_try_on: 'Pro открыт на 3 дня — карта и все места', st_pro_free3: 'Бесплатные 3 дня, до {d}', pw_fine: 'Неофициальное приложение, не связано с Rockstar Games. Цена с налогами вашей страны.', pw_fine_np: 'Неофициальное приложение, не связано с Rockstar Games.',
     pw_acct: 'Почту укажете на странице оплаты, пароль придумаете после. Pro откроется на любом устройстве.', pw_acct_in: 'Pro будет в аккаунте {e}',
     pay_test_on: 'Тестовая оплата Stripe включена', pay_test_off: 'Тестовая оплата выключена', pw_test: 'Тестовый режим Stripe: деньги не списываются. Карта 4242 4242 4242 4242, любой срок и код.',
+    pw_promo_q: 'Есть промокод?', pw_promo_ph: 'Промокод', pw_promo_apply: 'Применить', pw_promo_ok: 'Промокод применён', pw_promo_clear: 'Убрать',
+    pw_promo_trial: 'Код {c}: {n} Pro за {p}', pw_promo_free: 'Код {c}: {n} Pro бесплатно, без карты',
+    pw_cta_trial: '{n} за {p}, затем {f}',
+    pw_after_trial_year: 'Сегодня {p}. С {d} — {f} в год, продлевается, пока не отмените. Отменить можно в любой момент в один тап',
+    pw_after_trial_month: 'Сегодня {p}. С {d} — {f} в месяц, продлевается, пока не отмените. Отменить можно в любой момент в один тап',
+    pw_free_cta: 'Открыть Pro на {n}', pw_free_after: 'Без карты и без оплаты. Через {n} доступ закончится сам', pw_free_email: 'Почта — для входа на других устройствах',
+    pw_promo_done: 'Pro открыт на {n}', pw_promo_linked: 'Pro по промокоду добавлен к аккаунту {e}. Войдите, чтобы открыть его',
+    pw_promo_bad: 'Такого промокода нет', pw_promo_exp: 'Срок этого промокода закончился', pw_promo_full: 'Активации этого промокода закончились',
+    pw_promo_used: 'Этот промокод уже использован с этой почты или на этом устройстве',
+    pay_h: 'Оплата', pay_loading: 'Загружаем форму оплаты…', pay_secure: 'Оплата через Stripe прямо в приложении. Данные карты к нам не попадают',
+    pay_sum_year: 'Год Pro — {p}. Продлевается раз в год, пока не отмените', pay_sum_month: 'Месяц Pro — {p}. Продлевается раз в месяц, пока не отмените', pay_sum_pass: '3 месяца Pro — {p}. Один платёж, без продления',
     pay_open: 'Открываем оплату…', pay_ok: 'Оплата прошла, Pro включён', pay_pending: 'Оплата ещё подтверждается. Pro включится сам — загляните через минуту',
     pay_cancel: 'Оплата отменена, деньги не списаны', pay_err: 'Не получилось подтвердить оплату. Нажмите «Восстановить покупку»', pay_err_net: 'Нет связи с сервером оплаты. Попробуйте ещё раз',
     pay_nopay: 'В вашей стране оплата пока не принимается', pay_restored: 'Pro восстановлен', pay_none: 'В этом аккаунте нет активного Pro',
@@ -118,6 +136,12 @@ const T = {
     map_error: 'The map didn\'t load. Check your connection and open the map again.', map_offline: 'You\'re offline — the map and photos will load when you\'re back online. Codes work offline.',
     w_title: 'Secret Base: map & cheat codes', w_sub: 'Game places in real life. Move the slider: the game shot and the same street today.', start: 'Start', next: 'Next',
     w_f1: "Codes with your controller's buttons and voice playback", w_f2: 'In the game and in real life, compared on the map', w_f3: 'Real-life photos of places and 360° views', w_f4: 'Plus GTA 5: the map and every code. Codes for other games are coming',
+    w_map: 'Map', w_map_s: 'GTA 6 places on the real Miami map', w_codes: 'Cheat codes', w_codes_s: 'Your controller buttons, read aloud',
+    w_more: 'GTA 5 codes are here too, other games coming soon',
+    onb_skip: 'Skip', onb_next: 'Next', onb_of: '{n} of {m}', onb_fly: 'Ocean Drive from the GTA 6 trailer',
+    onb_slide: 'Drag the slider: game left, life right', onb_real: 'Tap to see this place in Miami',
+    onb_free: 'Your turn: 20 seconds to explore', onb_free_pro: 'Your turn: explore any place',
+    onb_code1: 'The most popular code. Tap it', onb_code2: 'Enter it in this order', st_tour: 'Replay the intro',
     w_note: 'Unofficial app. Not affiliated with Rockstar Games or Take-Two Interactive.',
     ob_game_sub: "We'll show places and codes for this game. You can switch anytime.", ob_plat_sub: "We'll show codes with your controller's buttons.",
     ob_watch: 'Just exploring', ob_watch_s: 'no console, straight to the map', ob_release: 'November 19',
@@ -160,6 +184,7 @@ const T = {
     about_text: 'Secret Base is an unofficial app. It is not affiliated with or endorsed by Rockstar Games or Take-Two Interactive. GTA and other names are trademarks of their owners and are used here for description only. The app does not modify the game or touch its files: it is a code reference and a map of real places.',
     share_app_text: 'Secret Base: map & cheat codes. Game places in real life',
     select_game: 'Select game', select_platform: 'Select platform',
+    sw_title: 'Game and platform', sw_plat: 'Platform for codes', sw_soon: 'Coming soon: {g}. Codes only', sw_aria: 'Game and platform: {g}, {p}. Change',
     pw_h_trial_end: 'Your 3-day trial has ended', pw_l_trial_end: 'Codes, the GTA 5 and GTA 6 map and game places in the real world are in Pro',
     pw_h_map: 'The map is in Pro', pw_l_map: 'During the trial, codes are open. The map, real-life places and the comparison are in Pro',
     pw_h_pro: 'Pro', pw_l_pro: 'Codes, the GTA 5 and GTA 6 map and game places in the real world',
@@ -180,6 +205,17 @@ const T = {
     pw_try: 'Try 3 days free', pw_try_on: 'Pro is on for 3 days — the map and every place', st_pro_free3: 'Free 3 days, until {d}', pw_fine: "Unofficial app, not affiliated with Rockstar Games. Price includes your country's taxes.", pw_fine_np: 'Unofficial app, not affiliated with Rockstar Games.',
     pw_acct: 'Enter your email at checkout and create a password after. Pro opens on any device.', pw_acct_in: 'Pro will be on {e}',
     pay_test_on: 'Stripe test payments on', pay_test_off: 'Test payments off', pw_test: 'Stripe test mode: no money is taken. Card 4242 4242 4242 4242, any date and CVC.',
+    pw_promo_q: 'Have a promo code?', pw_promo_ph: 'Promo code', pw_promo_apply: 'Apply', pw_promo_ok: 'Promo code applied', pw_promo_clear: 'Remove',
+    pw_promo_trial: 'Code {c}: {n} of Pro for {p}', pw_promo_free: 'Code {c}: {n} of Pro free, no card',
+    pw_cta_trial: '{n} for {p}, then {f}',
+    pw_after_trial_year: 'Today {p}. From {d}: {f} a year, renews until you cancel. Cancel anytime in one tap',
+    pw_after_trial_month: 'Today {p}. From {d}: {f} a month, renews until you cancel. Cancel anytime in one tap',
+    pw_free_cta: 'Unlock Pro for {n}', pw_free_after: 'No card, no payment. Access simply ends after {n}', pw_free_email: 'Email — to sign in on other devices',
+    pw_promo_done: 'Pro is on for {n}', pw_promo_linked: 'Promo Pro was added to {e}. Sign in to use it',
+    pw_promo_bad: 'No such promo code', pw_promo_exp: 'This promo code has expired', pw_promo_full: 'This promo code has run out',
+    pw_promo_used: 'This code was already used with this email or on this device',
+    pay_h: 'Checkout', pay_loading: 'Loading checkout…', pay_secure: 'Paid via Stripe right in the app. We never see your card details',
+    pay_sum_year: 'Pro for a year — {p}. Renews yearly until you cancel', pay_sum_month: 'Pro for a month — {p}. Renews monthly until you cancel', pay_sum_pass: 'Pro for 3 months — {p}. One payment, no renewal',
     pay_open: 'Opening checkout…', pay_ok: 'Payment done, Pro is on', pay_pending: 'Payment is still being confirmed. Pro turns on by itself in a minute',
     pay_cancel: 'Payment cancelled, nothing was charged', pay_err: "Couldn't confirm the payment. Tap Restore purchase", pay_err_net: "Can't reach the payment server. Try again",
     pay_nopay: "Payments aren't accepted in your country yet", pay_restored: 'Pro restored', pay_none: 'No active Pro on this account',
@@ -240,4 +276,10 @@ export function tn(n, key) {
 }
 export function t(key) { return (T[lang] && T[lang][key]) ?? T.ru[key] ?? key; }
 // Текст из данных: {ru, en} или строка
+// Имя и адрес реального места (data/map: n, a — латиницей; nr, ar — по-русски, где в названии есть пояснения: «бывший…», «и»…).
+// Имена собственные остаются латиницей; ссылку в Карты строим по n (английское — лучше ищется).
+export const rn = (o) => (o ? (lang === 'ru' && o.nr) || o.n || '' : '');
+export const ra = (o) => (o ? (lang === 'ru' && o.ar) || o.a || '' : '');
+export const rg = (o) => { const v = o ? (lang === 'ru' && o.gr) || o.g : ''; return typeof v === 'string' ? v : ''; };   // игровое имя места (gr — русское пояснение)
+export const rp = (o) => { const v = o ? (lang === 'ru' && o.pn) || o.p : ''; return typeof v === 'string' ? v : ''; };   // реальное место пасхалки (pn — по-русски; pr занято реальным фото)
 export function L(v) { if (v == null) return ''; return typeof v === 'string' ? v : (v[lang] ?? v.ru ?? v.en ?? ''); }

@@ -152,7 +152,7 @@ body.ready #main { opacity: 1; }
 /* стеклянная капсула 62 поверх контента (экраны этапа 2, .a-tabs.glass); геометрию высоты каркаса не трогает:
    капсула стоит внутри полосы --tabbar-h + --safe-b, на которую рассчитаны отступы списков, карты и шторок */
 .tabbar { position: absolute; left: 10px; right: 10px; bottom: max(8px, calc(var(--safe-b) - 8px)); height: 62px; padding: 0 5px; display: flex; align-items: center; z-index: 5;
-  border-radius: 31px; background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  border-radius: 31px; background: var(--glass-dense-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
   backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
 .tabbar.no-pill .tab-pill { opacity: 0; }
 /* подложка под активной вкладкой */
@@ -277,6 +277,44 @@ body.in-ob #onboarding { display: flex; }
 .ob-panel .opts { margin-top: 16px; }
 .ob-cta { margin-top: 18px; }
 .ob-fine { margin-top: 10px; text-align: center; font-size: 12px; line-height: 1.4; color: var(--text-3); }
+/* приветствие 22.11.2026: логотип и «Secret Base» в одной строке, два раздела — «Карта» и «Чит-коды» */
+.ob-brand { display: flex; align-items: center; gap: 12px; }
+.ob-brand img { flex: none; width: 44px; height: 44px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); }
+.ob-brand h1 { font-size: 30px; }
+.ob-sec { display: flex; gap: 12px; align-items: flex-start; margin-top: 18px; }
+.ob-sec-ic { flex: none; width: 24px; height: 24px; margin-top: 2px; color: var(--accent); }
+.ob-sec-ic svg { width: 24px; height: 24px; }
+.ob-sec b { display: block; font-size: 21px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+.ob-sec small { display: block; margin-top: 3px; font-size: 15px; line-height: 1.35; color: var(--text-2); }
+.ob-more { margin-top: 14px; font-size: 13px; line-height: 1.4; color: var(--text-3); }
+
+/* ───── знакомство (js/tour.js): окно-подсветка, полосы-заслонки, пузырь, «палец». Двигаются только transform и opacity ───── */
+#tour { position: fixed; inset: 0; z-index: 35; pointer-events: none; }
+#tour .tr-spot { position: fixed; left: 0; top: 0; border-radius: 22px; opacity: 0; transition: opacity .25s ease;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 85%, transparent), 0 0 0 200vmax rgba(8,8,12,.55); }
+#tour.dim .tr-spot.on { opacity: 1; }
+#tour .tr-blk { position: fixed; left: 0; top: 0; width: 0; height: 0; }
+#tour.block .tr-blk { pointer-events: auto; }
+#tour .tr-bub { position: fixed; left: 16px; right: 16px; top: 0; max-width: 420px; margin: 0 auto; padding: 14px 16px 10px; border-radius: 20px;
+  background: #1d1c22; color: #fff; box-shadow: 0 12px 32px -8px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.08); pointer-events: auto;
+  opacity: 0; transition: opacity .22s ease; }
+#tour .tr-bub.in { opacity: 1; }
+#tour .tr-txt { font-size: 17px; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; }
+#tour .tr-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+#tour .tr-n { flex: 1; font-size: 13px; color: rgba(255,255,255,.55); font-variant-numeric: tabular-nums; }
+#tour .tr-row button { min-height: 40px; padding: 0 12px; border-radius: 12px; font-size: 15px; font-weight: 600; }
+#tour .tr-skip { color: rgba(255,255,255,.7); }
+#tour .tr-next { color: #16151a; background: var(--accent); }
+#tour .tr-finger { position: fixed; left: 0; top: 0; width: 44px; height: 44px; border-radius: 50%; opacity: 0; transition: opacity .18s ease;
+  background: rgba(255,255,255,.35); box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 6px 18px rgba(0,0,0,.35); will-change: transform; }
+#tour .tr-finger.on { opacity: 1; }
+#tour.out { opacity: 0; transition: opacity .2s ease; }
+#tour.out * { pointer-events: none !important; }
+.tr-ring { animation: tr-ring 1s ease-out 2; }
+@keyframes tr-ring { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent); } to { box-shadow: 0 0 0 14px transparent; } }
+.combo [data-i] { transition: transform .18s ease; }
+.combo .tr-lit { transform: scale(1.14); box-shadow: 0 0 0 2px var(--accent); }
+@media (prefers-reduced-motion: reduce) { #tour *, .combo [data-i] { transition: none !important; } .tr-ring { animation: none; box-shadow: 0 0 0 3px var(--accent); } }
 
 /* ───── пейвол (экран 10 этапа 2): «вид» эпохи во весь экран, стеклянная панель снизу ───── */
 #paywall { position: fixed; left: 0; right: 0; top: 0; height: var(--app-h, 100dvh); z-index: var(--z-paywall); display: flex; flex-direction: column; overflow: hidden auto; overscroll-behavior: contain;
@@ -396,7 +434,7 @@ body.in-ob #onboarding { display: flex; }
 #map-lock.done .ml-veil { opacity: 1; pointer-events: auto; }
 .ml-box { position: absolute; left: 16px; right: 16px; bottom: calc(var(--tabbar-h) + var(--safe-b) + 16px); pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 12px;
   padding: 18px 18px 16px; border-radius: 28px; text-align: center;
-  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  background: var(--glass-dense-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
   backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
 .ml-ic { width: 44px; height: 44px; padding: 12px; border-radius: 14px; color: var(--text); background: color-mix(in srgb, var(--text) 8%, transparent); }
 .ml-box b { font-size: 18px; font-weight: 700; line-height: 1.3; }
@@ -415,7 +453,7 @@ body.in-ob #onboarding { display: flex; }
 .ins-t { flex: 1; display: flex; flex-direction: column; font-size: 14px; }
 .ins-t small { color: var(--text-2); font-size: 12.5px; }
 .ins-btn { padding: 8px 14px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 14px; }
-.ins-x { width: 28px; height: 28px; padding: 6px; color: var(--text-2); flex: none; }
+.ins-x { width: 44px; height: 44px; margin: -8px -8px -8px -4px; padding: 14px; color: var(--text-2); flex: none; }
 
 @media (min-width: 700px) and (min-height: 560px) {
   /* на компьютере — в рамке телефона, удобно для записи демо. min-height: телефон в ландшафте (852×393) рамку не получает (QA 20.11.2026) */
@@ -1075,6 +1113,7 @@ body[data-sheet="half"] .map-fabs, body[data-sheet="full"] .map-fabs { opacity: 
 .lg-row small { display: block; color: var(--text-2); font-size: 13px; }
 .lg-fills { display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; color: var(--text-2); font-size: 13px; }
 .lg-fills span { margin-right: 10px; }
+.lg-src { margin: 14px 0 0; color: var(--text-3, var(--text-2)); font-size: 12px; line-height: 1.4; }
 .lg-row svg, .lg-fills svg { width: 28px !important; height: 28px !important; flex: none; display: block; }
 
 
@@ -1106,3 +1145,31 @@ img.img-fail { visibility: hidden; }
 .au .btn-primary[disabled] { opacity: .5; }
 .au-lnk { min-height: 44px; font-size: 14px; color: var(--text-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--text-2) 50%, transparent); }
 .au .btn-ghost { margin-top: 0; }
+/* свой промокод на пейволе и оплата внутри приложения (22.11.2026) */
+.pw-promo-l { display: block; min-height: 44px; margin: 4px auto 0; padding: 0 12px; background: none; border: 0; color: var(--text-2); font: inherit; font-size: 14px;
+  text-decoration: underline; text-underline-offset: 3px; }
+.pw-promo { display: flex; gap: 8px; margin-top: 10px; }
+.pw-promo .au-in { flex: 1; min-width: 0; height: 48px; text-transform: uppercase; letter-spacing: .04em; }
+.pw-promo .au-in::placeholder { text-transform: none; letter-spacing: 0; }
+.pw-promo-go { flex: none; height: 48px; padding: 0 16px; border-radius: 16px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-size: 15px; font-weight: 600; }
+.pw-promo-on { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 14.5px; line-height: 1.35; color: var(--text); }
+.pw-promo-on svg { flex: none; width: 16px; height: 16px; color: var(--accent); }
+.pw-promo-on span { flex: 1; }
+.pw-promo-on button { flex: none; min-height: 44px; padding: 0 4px; background: none; border: 0; color: var(--text-2); font: inherit; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+.pw-email { margin-top: 10px; }
+.pw-pay-h { display: flex; align-items: center; gap: 4px; margin-left: -10px; }
+.pw-pay-h h2 { margin: 0; font-size: 22px; font-weight: 700; }
+.pw-pay-back { display: grid; place-items: center; width: 44px; height: 44px; background: none; border: 0; color: var(--text); }
+.pw-pay-back svg { width: 22px; height: 22px; }
+.pw-pay-sum { margin-top: 4px; font-size: 14px; line-height: 1.4; color: var(--text-2); }
+.pw-embed { position: relative; margin-top: 12px; border-radius: 18px; overflow: hidden; background: white; min-height: 140px; }
+.pw-embed-wait { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; font-size: 14px; color: dimgray; }
+/* низкие экраны (iPhone SE 375×667): пейвол целиком, ссылки «Восстановить / Условия / Конфиденциальность» видны (QA 21.11) */
+@media (max-height: 720px) {
+  #paywall { padding-top: calc(var(--safe-t) + 52px); }
+  .pw-panel { padding: 16px 14px 2px; border-radius: 30px; }
+  .pw-title { font-size: 25px; }
+  .pw-feat { margin-top: 10px; gap: 5px; } .pw-feat li { font-size: 14px; }
+  .plans { margin-top: 12px; gap: 6px; } .plan { min-height: 52px; padding: 6px 14px; }
+  .pw-cta { margin-top: 10px; }
+}

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex"><title>Secret Base</title>
+<style>html,body{margin:0;height:100%;background:#1c1b20;color:#cfd5e0;font:16px/1.4 -apple-system,system-ui,sans-serif}a{color:#ff5fa2}main{padding:32px 20px}</style>
+<script>
+// GitHub Pages отдаёт этот файл на любой несуществующий адрес. Ссылки креаторов (js/ref.js):
+//   sbgta.app/КОД                     → /?r=КОД
+//   sbgta.app/КОД/<игра>/<место>?v=…  → /s/<игра>/<игра>-<место>.html?r=КОД&v=…   (старый вид ссылок до 20.11.2026)
+//   /s/<игра>/<место>.html (страницы нет) → /?open=place:<игра>:<место>&r=…        (место в приложении, код не теряется)
+// Остальное — на главную. Старый адрес appshalamov.github.io/gta-cheats-demo/… GitHub сам переводит сюда с тем же путём.
+(function () {
+  var q = new URLSearchParams(location.search), out = new URLSearchParams();
+  var parts = location.pathname.split('/').filter(Boolean).map(function (x) { try { return decodeURIComponent(x); } catch (e) { return x; } });
+  var code = String(q.get('r') || q.get('ref') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20);
+  var v = String(q.get('v') || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 24);
+  var to = '/';
+  var DIRS = ['beta', 'mvp', 'v3', 'design', 'promo', 'img', 'js', 'css', 'data', 'icons', 'fonts', 'media', 'vendor', 'server', 'tools'];
+  var W = /^gta[0-9a-z]{1,4}$/;
+  if (parts[0] === 's' && parts.length >= 3 && W.test(parts[1])) {
+    var id = parts[2].replace(/\.html?$/, ''), key = /^db-/.test(id) ? 'db:' + parts[1] + ':' + id.slice(3) : 'place:' + parts[1] + ':' + id;
+    out.set('open', key);
+  } else if (parts.length && DIRS.indexOf(parts[0]) >= 0) {
+    to = /^(beta|mvp|v3)$/.test(parts[0]) ? '/' + parts[0] + '/' : '/';
+    code = '';
+  } else if (parts.length && /^[A-Za-z0-9]{3,20}$/.test(parts[0])) {
+    code = parts[0].toUpperCase();
+    if (parts.length >= 3 && W.test(parts[1].toLowerCase())) {
+      var w = parts[1].toLowerCase(), slug = parts[2].replace(/\.html?$/, '').toLowerCase();
+      to = '/s/' + w + '/' + (slug.indexOf(w + '-') === 0 || /^db-/.test(slug) ? slug : w + '-' + slug) + '.html';
+    }
+  }
+  if (code.length >= 3) out.set('r', code);
+  if (code.length >= 3 && v) out.set('v', v);
+  var s = out.toString();
+  location.replace(to + (s ? '?' + s : ''));
+})();
+</script>
+</head><body><main><p>Secret Base — <a href="/">sbgta.app</a></p></main></body></html>
