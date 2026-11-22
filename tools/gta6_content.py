@@ -114,7 +114,7 @@ def existing_ids():
 def process(folder, dry):
     folder = pathlib.Path(folder)
     have_p, have_e = existing_ids()
-    errs, places, eggs = [], [], []
+    errs, places, eggs, enrich = [], [], [], []
     # места*.json и пасхалки*.json (второй проход агента — пасхалки_2.json и т. п.); уже слитые id пропускаются
     jobs = [(f, "place", have_p, places) for f in sorted(folder.glob("места*.json"))] + \
            [(f, "egg", have_e, eggs) for f in sorted(folder.glob("пасхалки*.json"))]
@@ -129,8 +129,11 @@ def process(folder, dry):
                 print(f"  пропуск {tag}: слух/догадка"); continue
             if rid in have or any(x["id"] == rid for x in out):
                 continue   # уже в данных — повторный запуск по той же папке безопасен
-            if it.get("dup_of"):   # агент нашёл совпадение с имеющимся местом/пасхалкой/точкой gtadb — не плодим дубль
-                print(f"  дубль {tag} → {it['dup_of']}"); continue
+            if it.get("dup_of"):   # агент нашёл совпадение с имеющимся местом/пасхалкой/точкой gtadb — не плодим дубль,
+                print(f"  дубль {tag} → {it['dup_of']}")   # а дописываем новые факты из игры к имеющемуся месту (enrich)
+                if kind == "place":
+                    enrich.append(it)
+                continue
             if len({urllib.parse.urlparse(u).netloc.replace("www.", "") for u in it.get("sources", [])}) < 2:
                 errs.append(f"{tag}: меньше 2 источников с разных сайтов"); continue
             addr = it.get("real_address") or it.get("real_place") or ""
@@ -179,11 +182,53 @@ def process(folder, dry):
                                 ("game_image_url", ""), ("commons_file", "")):
                     rec.setdefault(k, dflt)
             out.append(rec)
-    return errs, places, eggs
+    return errs, places, eggs, enrich
+
+
+# в «Где в игре» и шапке карточки игровых регионов не пишем (решение Игоря №15, тест names_scan)
+NAMES15 = ("Rockstar Games", "Ambrosia", "Leonida", "Vice City", "Los Santos")
+
+
+def enrich_places(enrich, dry):
+    """Дубли: имя в игре → aliases, «где в игре» (миссии, как найти) → game_media, источник → sources.
+    Пишем в locations_gta6.json и в правки_вручную.json/fix (finalize не откатит). Повторный запуск ничего не дублирует."""
+    f = DATA / "locations_gta6.json"
+    L = json.loads(f.read_text("utf-8"))
+    by = {x["id"]: x for x in L}
+    man = json.loads(MANUAL.read_text("utf-8"))
+    fix = man.setdefault("gta6", {}).setdefault("fix", {})
+    n = 0
+    for it in enrich:
+        tid = str(it["dup_of"]).split()[0]
+        r = by.get(tid)
+        if not r:
+            print(f"  ! дубль {it['id']}: {tid} не место (пасхалка или точка gtadb) — не дописываю"); continue
+        ch = {}
+        al = list(r.get("aliases") or [])
+        gname = (it.get("game_name") or "").strip()
+        if gname and gname not in al and gname != r.get("game_name") and not any(w in gname for w in NAMES15):
+            ch["aliases"] = al + [gname]
+        gm = list(r.get("game_media") or [])
+        add = [m for m in (it.get("game_media") or []) if m not in gm and not any(w in m for w in NAMES15)]
+        if add:
+            ch["game_media"] = gm + add
+        src = list(r.get("sources") or [])
+        new_src = [u for u in (it.get("sources") or []) if u.startswith("http") and u not in src][:1]
+        if new_src:
+            ch["sources"] = src + new_src
+        if ch:
+            n += 1
+            r.update(ch)
+            fix[tid] = {**fix.get(tid, {}), **ch}
+    if n and not dry:
+        f.write_text(json.dumps(L, ensure_ascii=False, indent=1), "utf-8")
+        MANUAL.write_text(json.dumps(man, ensure_ascii=False, indent=1), "utf-8")
+    print(f"дописано к имеющимся местам: {n}" + (" (проверка)" if dry else ""))
 
 
 def merge(folder, dry=False):
-    errs, places, eggs = process(folder, dry)
+    errs, places, eggs, enrich = process(folder, dry)
+    enrich_places(enrich, dry)
     print(f"места: {len(places)}, пасхалки: {len(eggs)}" + (" (проверка, без записи)" if dry else ""))
     if errs:
         print("НЕ ВОШЛО:\n  " + "\n  ".join(errs))
