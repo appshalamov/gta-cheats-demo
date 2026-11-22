@@ -301,7 +301,9 @@ export function credit(c) {
     .replace(/gtadb\.org\s+and contributors/i, gdb).replace(/автор не указан|author unknown/g, unk)
     .replace(/\s*\((CC[^)]*)\)/, ' · $1').replace(/\s*·\s*Wikimedia(?: Commons)?\s*$/i, '');
   const parts = s.split(/\s*·\s*/).filter(Boolean);
-  if (parts.length > 1) parts[0] = parts[0].replace(/\s+(?:from|\/)\s.*$/, '');   // «Ken Lund from Reno, Nevada, USA» → «Ken Lund»
+  if (parts.length > 1) parts[0] = parts[0].replace(/\s+(?:from|\/)\s.*$/, '')   // «Ken Lund from Reno, Nevada, USA» → «Ken Lund»
+    .replace(/^(?:The original uploader was|Photograph by|Photo:?|User:)\s*/i, '').replace(/\s+at (?:English Wikipedia|en\.wikipedia)\.?$/i, '')
+    .replace(/\s*\(Tagzania user ID: \d+\)/i, '').replace(/\s*\([\d.,]+\s*million[^)]*\)/i, '').replace(/\s+(?:—|-)\s+[^,]*would appreciate.*$/i, '').replace(/\s+This photo was taken.*$/i, '');
   return `${ph}: ${parts.join(', ')}`;
 }
 export function L(v) { if (v == null) return ''; return typeof v === 'string' ? v : (v[lang] ?? v.ru ?? v.en ?? ''); }
