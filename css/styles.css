@@ -277,6 +277,44 @@ body.in-ob #onboarding { display: flex; }
 .ob-panel .opts { margin-top: 16px; }
 .ob-cta { margin-top: 18px; }
 .ob-fine { margin-top: 10px; text-align: center; font-size: 12px; line-height: 1.4; color: var(--text-3); }
+/* приветствие 22.11.2026: логотип и «Secret Base» в одной строке, два раздела — «Карта» и «Чит-коды» */
+.ob-brand { display: flex; align-items: center; gap: 12px; }
+.ob-brand img { flex: none; width: 44px; height: 44px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); }
+.ob-brand h1 { font-size: 30px; }
+.ob-sec { display: flex; gap: 12px; align-items: flex-start; margin-top: 18px; }
+.ob-sec-ic { flex: none; width: 24px; height: 24px; margin-top: 2px; color: var(--accent); }
+.ob-sec-ic svg { width: 24px; height: 24px; }
+.ob-sec b { display: block; font-size: 21px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+.ob-sec small { display: block; margin-top: 3px; font-size: 15px; line-height: 1.35; color: var(--text-2); }
+.ob-more { margin-top: 14px; font-size: 13px; line-height: 1.4; color: var(--text-3); }
+
+/* ───── знакомство (js/tour.js): окно-подсветка, полосы-заслонки, пузырь, «палец». Двигаются только transform и opacity ───── */
+#tour { position: fixed; inset: 0; z-index: 35; pointer-events: none; }
+#tour .tr-spot { position: fixed; left: 0; top: 0; border-radius: 22px; opacity: 0; transition: opacity .25s ease;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 85%, transparent), 0 0 0 200vmax rgba(8,8,12,.55); }
+#tour.dim .tr-spot.on { opacity: 1; }
+#tour .tr-blk { position: fixed; left: 0; top: 0; width: 0; height: 0; }
+#tour.block .tr-blk { pointer-events: auto; }
+#tour .tr-bub { position: fixed; left: 16px; right: 16px; top: 0; max-width: 420px; margin: 0 auto; padding: 14px 16px 10px; border-radius: 20px;
+  background: #1d1c22; color: #fff; box-shadow: 0 12px 32px -8px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.08); pointer-events: auto;
+  opacity: 0; transition: opacity .22s ease; }
+#tour .tr-bub.in { opacity: 1; }
+#tour .tr-txt { font-size: 17px; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; }
+#tour .tr-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+#tour .tr-n { flex: 1; font-size: 13px; color: rgba(255,255,255,.55); font-variant-numeric: tabular-nums; }
+#tour .tr-row button { min-height: 40px; padding: 0 12px; border-radius: 12px; font-size: 15px; font-weight: 600; }
+#tour .tr-skip { color: rgba(255,255,255,.7); }
+#tour .tr-next { color: #16151a; background: var(--accent); }
+#tour .tr-finger { position: fixed; left: 0; top: 0; width: 44px; height: 44px; border-radius: 50%; opacity: 0; transition: opacity .18s ease;
+  background: rgba(255,255,255,.35); box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 6px 18px rgba(0,0,0,.35); will-change: transform; }
+#tour .tr-finger.on { opacity: 1; }
+#tour.out { opacity: 0; transition: opacity .2s ease; }
+#tour.out * { pointer-events: none !important; }
+.tr-ring { animation: tr-ring 1s ease-out 2; }
+@keyframes tr-ring { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent); } to { box-shadow: 0 0 0 14px transparent; } }
+.combo [data-i] { transition: transform .18s ease; }
+.combo .tr-lit { transform: scale(1.14); box-shadow: 0 0 0 2px var(--accent); }
+@media (prefers-reduced-motion: reduce) { #tour *, .combo [data-i] { transition: none !important; } .tr-ring { animation: none; box-shadow: 0 0 0 3px var(--accent); } }
 
 /* ───── пейвол (экран 10 этапа 2): «вид» эпохи во весь экран, стеклянная панель снизу ───── */
 #paywall { position: fixed; left: 0; right: 0; top: 0; height: var(--app-h, 100dvh); z-index: var(--z-paywall); display: flex; flex-direction: column; overflow: hidden auto; overscroll-behavior: contain;
