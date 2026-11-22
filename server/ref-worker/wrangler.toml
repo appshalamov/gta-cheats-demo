@@ -5,7 +5,8 @@ name = "sb-ref"
 main = "worker.js"
 compatibility_date = "2026-11-01"
 workers_dev = true
-routes = [{ pattern = "ref.sbgta.app", custom_domain = true }]
+# ref.sbgta.app с 22.11.2026 обслуживает пересыльщик sb-edge (Cloudflare app.shalamov, cheats-pwa-stripe/server/edge-worker) → сюда,
+# на sb-ref.pay-worker.workers.dev. Свой custom domain не объявляем, чтобы deploy не пытался забрать домен.
 
 [[d1_databases]]
 binding = "DB"
