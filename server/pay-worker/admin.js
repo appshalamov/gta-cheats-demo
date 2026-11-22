@@ -50,7 +50,7 @@ const api = async (path, body) => {
   const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error || r.status); return d;
 };
 const ERR = { auth: 'Неверный пароль', bad_code: 'Код — 3–30 латинских букв и цифр', bad_days: 'Дней — от 1 до 3650', bad_price: 'Цена — от 0 до 100 $', bad_expires: 'Неверная дата' };
-const day = (ms) => ms ? new Date(ms).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }) : 'бессрочно';
+const day = (ms) => ms ? new Date(ms).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : 'бессрочно';
 const when = (ms) => new Date(ms).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const terms = (p) => p.kind === 'free' ? p.days + ' дн. Pro без карты' : '$' + (p.price_cents / 100).toFixed(2) + ' сразу, ' + p.days + ' дн., потом полная цена';
 const ST = { ok: 'выдан', started: 'открыл оплату', paid: 'оплачен' };
