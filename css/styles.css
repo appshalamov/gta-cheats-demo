@@ -1113,6 +1113,7 @@ body[data-sheet="half"] .map-fabs, body[data-sheet="full"] .map-fabs { opacity: 
 .lg-row small { display: block; color: var(--text-2); font-size: 13px; }
 .lg-fills { display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; color: var(--text-2); font-size: 13px; }
 .lg-fills span { margin-right: 10px; }
+.lg-src { margin: 14px 0 0; color: var(--text-3, var(--text-2)); font-size: 12px; line-height: 1.4; }
 .lg-row svg, .lg-fills svg { width: 28px !important; height: 28px !important; flex: none; display: block; }
 
 
