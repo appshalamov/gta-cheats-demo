@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Русские названия и адреса реальных мест (21.11.2026, «языки не смешивать»): в data/map/<игра>.json у мест и пасхалок,
-где в n / a (реальное), g (игровое) и p (реальное место пасхалки) есть английские пояснения («former…», «and…»), появляются nr / ar / gr / pr из tools/names_ru.json (англ. строка → русская;
+где в n / a (реальное), g (игровое) и p (реальное место пасхалки) есть английские пояснения («former…», «and…»), появляются nr / ar / gr / pn из (pr занято реальным фото — не трогать) tools/names_ru.json (англ. строка → русская;
 имена собственные в ней — латиницей). Приложение показывает их в русском интерфейсе (js/i18n.js rn/ra).
 build_map.py вызывает apply() перед записью; отдельно: python3 tools/names_ru.py — дописать в готовые файлы.
 Новые места с пояснениями ловит tools/lang_scan.py (статика): добавьте строку в names_ru.json и запустите этот скрипт.
@@ -14,8 +14,10 @@ def apply(data):
     n = 0
     for k in ("places", "eggs"):
         for p in data.get(k) or []:
-            for f, fr in (("n", "nr"), ("a", "ar"), ("g", "gr"), ("p", "pr")):
+            for f, fr in (("n", "nr"), ("a", "ar"), ("g", "gr"), ("p", "pn")):
                 v = p.get(f)
+                if fr in p and not isinstance(p[fr], str):   # предохранитель: чужое поле (фото, объект) не трогаем
+                    raise SystemExit(f"names_ru: поле {fr} у {p.get('id')} занято не текстом — выберите другое имя поля")
                 if isinstance(v, str) and v in RU and RU[v] != v:
                     p[fr] = RU[v]; n += 1
                 elif fr in p and not (isinstance(v, str) and v in RU):
