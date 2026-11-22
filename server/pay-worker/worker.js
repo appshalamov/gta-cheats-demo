@@ -543,7 +543,9 @@ async function route(env, req) {
     if (!env.ADMIN_TOKEN || !m || !safeEq(m[1], env.ADMIN_TOKEN)) throw new HttpError(401, 'auth');
     const b = await body(), out = {};
     if (!(await cfg(env, 'whsec')) || b.force) {
-      const wh = await stripe(env, 'POST', '/v1/webhook_endpoints', { url: url.origin + '/webhook', enabled_events: Object.fromEntries(EVENTS.map((e, i) => [i, e])), description: 'Secret Base Pro' });
+      const old = await cfg(env, 'webhook_id');   // пересоздание (смена ключа или версии API) — старый вебхук удалить, чтобы события не шли дважды
+      if (old && b.force) await stripe(env, 'DELETE', '/v1/webhook_endpoints/' + old).catch(() => { });
+      const wh = await stripe(env, 'POST', '/v1/webhook_endpoints', { url: url.origin + '/webhook', enabled_events: Object.fromEntries(EVENTS.map((e, i) => [i, e])), description: 'Secret Base Pro', ...(env.STRIPE_VERSION ? { api_version: env.STRIPE_VERSION } : {}) });
       await setCfg(env, 'whsec', wh.secret); await setCfg(env, 'webhook_id', wh.id); out.webhook = wh.id;
     }
     const pc = await stripe(env, 'POST', '/v1/billing_portal/configurations', {
