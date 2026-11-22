@@ -1596,10 +1596,9 @@ function prefetchNear() {
 function mapSheet(html, want) {
   ogTags();
   ghostPrep();   // запасная карта — сразу на это место в другом мире
-  const back = backToChooser && chooserHtml; backToChooser = false;
-  ctx.openSheet(html, 'sheet-map', back ? () => setTimeout(() => {
-    if (document.body.dataset.tab === 'map' && !document.getElementById('sheet-layer')?.classList.contains('open')) ctx.openSheet(back, 'sheet-map', null, snapOpt('half'));
-  }, 120) : null, snapOpt(want));
+  // Игорь 22.11.2026: закрыл карточку, выбранную из «Здесь несколько точек», — карта, а не снова список точек
+  backToChooser = false;
+  ctx.openSheet(html, 'sheet-map', null, snapOpt(want));
   syncMedia(document.getElementById('sheet-body'));
 }
 // нажатие по карте ждёт 250 мс: если за это время началось второе касание (двойной тап или «тап и тяни» —

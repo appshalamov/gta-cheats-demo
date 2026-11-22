@@ -7,13 +7,13 @@ import * as pay from './pay.js';
 import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
 import { I, platformIcon, comboHTML, btn, balanceCombos } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
-import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
+import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
 // ───────── хранилище ─────────
 const KEY = 'cheats.v1';
 // pro / proPlan / proUntil — демо-покупка на устройстве; trialStart — первое открытие (пробный 72 часа, 31 §4.2);
 // linkKeys — места, открытые по ссылке «поделиться»: видны и без Pro (31 §4.2, «одна вещь из ссылки»)
-const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google' };
+const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google', ftUntil: 0 };
 const store = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { }
@@ -70,15 +70,20 @@ const paidUntil = () => (acc.P?.pro_kind === 'work' ? 0 : until(acc.P?.pro_until
 // оплата не включена для всех, «Оформить» Pro не даёт (Игорь 19.11.2026: «пропустило в карту без оплаты»)
 const demoPay = () => { try { return /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || localStorage.getItem('sb.demopay') === '1' || localStorage.getItem('sb.demo') === '1'; } catch { return false; } };
 const demoPro = () => !pay.enabled() && demoPay() && !!store.pro;
-function hasPro() { const now = Date.now(); return demoPro() || pay.proActive() || paidUntil() > now || workUntil() > now; }
+// «Попробовать 3 дня бесплатно» на пейволе (Игорь 22.11.2026): полный доступ с картой на 72 часа, один раз на устройство
+const freeUntil = () => store.ftUntil || 0;
+const canTryFree = () => !store.ftUntil && !hasPaid();
+function hasPaid() { const now = Date.now(); return demoPro() || pay.proActive() || paidUntil() > now || workUntil() > now; }
+function hasPro() { const now = Date.now(); return freeUntil() > now || demoPro() || pay.proActive() || paidUntil() > now || workUntil() > now; }
 function proKind() {
   const now = Date.now();
   if (pay.proActive()) return pay.pro().plan || 'year';
   if (demoPro()) return store.proPlan || 'year';
   if (paidUntil() > now) return acc.P.pro_kind || 'year';
-  return workUntil() > now ? 'work' : null;
+  if (workUntil() > now) return 'work';
+  return freeUntil() > now ? 'free' : null;
 }
-function proEnds() { const k = proKind(); return k === 'work' ? workUntil() : pay.proActive() ? pay.pro().until : demoPro() ? store.proUntil : paidUntil(); }
+function proEnds() { const k = proKind(); return k === 'free' ? freeUntil() : k === 'work' ? workUntil() : pay.proActive() ? pay.pro().until : demoPro() ? store.proUntil : paidUntil(); }
 const trialEnd = () => (acc.P?.trial_until ? until(acc.P.trial_until) : (store.trialStart || Date.now()) + PAYWALL.trialHours * HOUR);
 function access() { return hasPro() ? 'pro' : Date.now() < trialEnd() ? 'trial' : 'locked'; }
 const isLocked = () => access() === 'locked';
@@ -362,8 +367,8 @@ const POPULAR = {
   gta6: ['g6_money', 'g6_armor', 'g6_max_ammo', 'g6_weather', 'g6_inf_ammo', 'g6_boomazoom', 'g6_focus', 'g6_no_reload'],   // настоящие коды GTA 6 (18.11.2026)
 };
 const liveGames = () => GAMES.filter((g) => g.status !== 'soon');
-// на Главной — только GTA 6 (и прошлая часть, если её выбрали в Настройках): прошлые игры не на виду (Игорь 20.11.2026)
-const heroGames = () => liveGames().filter((g) => g.id === 'gta6' || g.id === store.game);
+// на Главной — все вышедшие части, GTA 6 первой (Игорь 22.11.2026: «GTA 5 оставить на главном экране — у многих ещё нет GTA 6»)
+const heroGames = () => liveGames();
 const mapPlaceName = (gid) => ({ gta6: t('place_gta6'), gta5: t('place_gta5') }[gid] || '');
 
 function miniCheat(c) {
@@ -382,10 +387,39 @@ function placeCard(o, opt = {}) {
   return `<div class="pcard" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
     ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pc-ph">${o.kind === 'egg' ? I.egg : I[catIcon(o.c)]}</span>`}
     <span class="pc-grad"></span>
-    <span class="pc-tags">${o.kind === 'egg' ? `<i class="tag-egg">${t('map_egg')}</i>` : `<i class="conf conf-${o.cf}">${t('conf_' + o.cf)}</i>`}${opt.game ? `<i class="tag-game">${GAMES.find((g) => g.id === o.game)?.title || ''}</i>` : ''}</span>
+    <span class="pc-tags">${isNew(o) ? `<i class="tag-new">${t('news_new')}</i>` : ''}${o.kind === 'egg' ? `<i class="tag-egg">${t('map_egg')}</i>` : `<i class="conf conf-${o.cf}">${t('conf_' + o.cf)}</i>`}${opt.game ? `<i class="tag-game">${GAMES.find((g) => g.id === o.game)?.title || ''}</i>` : ''}</span>
     <button class="pc-fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="${esc(t('save'))}">${fav ? I.heartFill : I.heart}</button>
     <span class="pc-txt"><b>${esc(realName(o))}</b>${o.kind === 'egg' ? (realSub(o) ? `<small>${esc(realSub(o))}</small>` : '') : `<small>${I.pin}${esc(cityOf(o) || realSub(o))}</small>`}</span>
   </div>`;
+}
+// ── «Новое» на Главной: карточка новости в стиле ленты; подробности — в шторке, источник подписью без ссылки ──
+function newsDate(d) {
+  const days = Math.floor((Date.now() - Date.parse(d + 'T00:00:00Z')) / 864e5);
+  if (days <= 0) return t('news_today');
+  if (days === 1) return t('news_yday');
+  return new Date(d + 'T12:00:00Z').toLocaleDateString(getLang(), { day: 'numeric', month: 'long' });
+}
+function newsCard(n) {
+  const img = n.img ? imgUrl(n.img.thumb || n.img.file) : '';
+  return `<div class="pcard ncard" data-action="open-news" data-id="${esc(n.id)}" role="button" tabindex="0">
+    ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pc-ph">${I.egg}</span>`}
+    <span class="pc-grad"></span>
+    <span class="pc-tags"><i class="tag-new">${esc(newsDate(n.date))}</i></span>
+    <span class="pc-txt"><b>${esc(L(n.t))}</b><small>${esc((n.src || []).join(', '))}</small></span>
+  </div>`;
+}
+async function openNews(id) {
+  const n = (await loadNews()).find((x) => x.id === id); if (!n) return;
+  const img = n.img ? imgUrl(n.img.file) : '';
+  const src = n.src || [];
+  openSheet(`<div class="news-sheet">
+    ${img ? `<figure class="ns-img"><img src="${esc(img)}" alt="" decoding="async">${n.img.credit && !OWN_ART ? `<figcaption>${esc(n.img.credit)}</figcaption>` : ''}</figure>` : ''}
+    <small class="ns-date">${esc(newsDate(n.date))}</small>
+    <h2>${esc(L(n.t))}</h2>
+    <p>${esc(L(n.d))}</p>
+    ${src.length ? `<p class="ns-src">${esc(t(src.length > 1 ? 'news_srcs' : 'news_src'))}: ${esc(src.join(', '))}</p>` : ''}
+    ${n.key ? `<button class="btn-primary" data-action="open-place" data-key="${esc(n.key)}">${I.pin}<span>${esc(t('news_on_map'))}</span></button>` : ''}
+  </div>`, 'news');
 }
 // строка места (Поиск, Избранное): фото, настоящее место (решение №15, без игрового названия), адрес, точность — строкой, без рамки-карточки
 function placeRow(o, opt = {}) {
@@ -477,11 +511,13 @@ async function renderHub() {
   const popular = (POPULAR[store.game] || []).map((id) => list.find((c) => c.id === id)).filter(Boolean);
   const places = pd ? featured(pd, 'place', 14) : [];
   const eggs = pd ? featured(pd, 'egg', 12) : [];
+  const news = (await loadNews()).filter((n) => n.game === store.game).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 12);
   const favPreview = await favItems();
   if (my !== hubSeq) return;
   renderHero();
   box.innerHTML = `
     ${forecastBanner()}
+    ${news.length ? hubSection(t('hub_news'), t('hub_news_sub'), '', `<div class="hscroll">${news.map(newsCard).join('')}</div>`) : ''}
     ${hubSection(t('hub_cheats'), L(PLATFORMS[store.platform]), `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
         <span class="ct-ic">${I[c.icon]}</span><span class="ct-t"><b>${L(c)}</b><small>${tn(list.filter((x) => x.category === c.id).length, 'n_codes')}</small></span></button>`).join('')}</div>`)}
@@ -530,7 +566,8 @@ function moveInk() {
 
 // Карта открывается одним общим обещанием: два одновременных open() создавали карту дважды.
 let mapOpening = null;
-function openMap(preferGame = store.game) {
+// вкладка «Карта» — только GTA 6 (Игорь 22.11.2026); место другой игры из карточки открывается в своей игре (ui.mapHold)
+function openMap(preferGame = ui.mapHold || 'gta6') {
   // та же логика, что в map.js open(): игра из настроек приложения переключает карту, если её там поменяли
   if (preferGame !== ui.mapPrefer) { ui.mapPrefer = preferGame; ui.mapGame = preferGame; applySkin(); }
   if (!mapOpening) mapOpening = mapMod().then((m) => m.open(mapCtx(), preferGame).then(() => m)).catch((e) => { mapOpening = null; toast(t('map_error')); throw e; });
@@ -542,6 +579,7 @@ async function openOnMap(key) {
   const { kind, game: g, id } = parseKey(key);
   closeSheet();
   if (!canOpenPlace(key)) { openPaywall(mapPw()); return; }
+  ui.mapHold = g;
   if (!mapOpening) openMap(g);
   ui.tab = 'map'; renderAll();
   ui.mapGame = g; applySkin();   // карта откроет место в его игре (focus) — скин за ней
@@ -689,7 +727,7 @@ function proCardHTML() {
   const a = access(), kind = proKind(), end = proEnds(), d = end ? dlong(end) : '';
   const renew = a === 'pro' && kind === 'pass' && end - Date.now() < 7 * DAY;
   const ended = a === 'pro' && pay.proActive() && pay.pro()?.cancel;   // подписка отменена: Pro до конца оплаченного срока, без продления
-  const sub = a === 'pro' ? (d ? tf(ended ? 'st_pro_cancelled' : { work: 'st_pro_work', pass: 'st_pro_pass', month: 'st_pro_month' }[kind] || 'st_pro_year', { d }) : '')
+  const sub = a === 'pro' ? (d ? tf(ended ? 'st_pro_cancelled' : { work: 'st_pro_work', pass: 'st_pro_pass', month: 'st_pro_month', free: 'st_pro_free3' }[kind] || 'st_pro_year', { d }) : '')
     : a === 'trial' ? tf('trial_left', { t: trialLeft() }) : tf('st_pro_free', { p: usd(zone().year) });
   return `<button class="pro-card${a === 'pro' ? ' on' : ''}" data-action="${a === 'pro' && !renew ? 'noop' : 'paywall'}">
       ${pic(HERO[store.game]?.banners[0], 'pro-photo', 860, 676, true)}
@@ -700,14 +738,83 @@ function proCardHTML() {
 // аккаунт (вход через Google): покупка Pro привязана к нему и восстанавливается на любом устройстве входом
 function acctHTML() {
   if (!pay.enabled()) return '';
-  if (!pay.signedIn()) return `<div class="group">${row('acct-in', I.users, t('acct_in'))}${row('acct-code', I.link, t('acct_code'))}</div>`;
-  const p = pay.pro();
+  if (!pay.signedIn()) return `<div class="group">${row('acct-email', I.users, t('acct_email_in'))}${row('acct-in', I.users, t('acct_in'))}${row('acct-code', I.link, t('acct_code'))}</div>`;
+  const p = pay.pro(), u = pay.user() || {};
   return `<div class="group">
-      <div class="row row-static"><span class="row-ic">${I.users}</span><span class="row-l">${esc(pay.user()?.email || '')}</span><span class="row-v">${t('acct_google')}</span></div>
+      <div class="row row-static"><span class="row-ic">${I.users}</span><span class="row-l">${esc(u.email || '')}</span><span class="row-v">${u.google ? t('acct_google') : ''}</span></div>
+      ${row('acct-setpw', I.link, t(u.has_pw ? 'au_chpw' : 'au_setpw_row'))}
       ${p?.manage ? row('acct-portal', I.wallet, t('acct_portal'), p?.cancel && p.active ? esc(tf('acct_cancelled', { d: dlong(p.until) })) : '') : ''}
       ${row('acct-pair', I.link, t('acct_pair'))}
       ${row('acct-out', I.close, t('acct_out'), '', false)}
     </div>`;
+}
+// ───────── вход по почте (20.11.2026): оплата без входа → пароль после оплаты; вход паролем; код на почту ─────────
+// mode: 'setpw' — сразу после оплаты (почта из Stripe, можно «Позже»); 'chpw' — сменить; 'login' — почта+пароль; 'code' — код на почту
+function authSheet(mode, o = {}) {
+  const u = pay.user() || {}, h = pay.hint() || {};
+  const email = esc(o.email || u.email || h.email || '');
+  const inp = (id, type, ph, val = '', ac = '') => `<input class="au-in" id="${id}" type="${type}" placeholder="${esc(ph)}" value="${val}" autocomplete="${ac}" ${type === 'email' ? 'inputmode="email" autocapitalize="off" spellcheck="false"' : ''}>`;
+  let body;
+  if (mode === 'setpw' || mode === 'chpw') {
+    body = `<h2 class="pick-t">${t(mode === 'setpw' ? 'au_setpw_h' : 'au_chpw')}</h2>
+      ${mode === 'setpw' ? `<p class="au-p">${t('au_setpw_p')}</p>` : ''}
+      <input type="email" id="au-user" value="${email}" autocomplete="username" readonly class="au-in au-ro">
+      ${mode === 'chpw' && u.has_pw ? inp('au-old', 'password', t('au_old'), '', 'current-password') : ''}
+      ${inp('au-pw', 'password', t('au_pw'), '', 'new-password')}
+      <button type="button" class="btn-primary" data-action="au-setpw">${t('au_save')}</button>
+      ${mode === 'setpw' ? `<button type="button" class="btn-ghost" data-action="au-later">${t('au_later')}</button>` : ''}`;
+  } else if (mode === 'login') {
+    body = `<h2 class="pick-t">${t('au_login_h')}</h2>
+      <p class="au-p">${o.note ? esc(o.note) : t('au_login_p')}</p>
+      ${inp('au-email', 'email', t('au_email'), email, 'username')}
+      ${inp('au-pw', 'password', t('au_pw_in'), '', 'current-password')}
+      <button type="button" class="btn-primary" data-action="au-login">${t('au_go')}</button>
+      <button type="button" class="au-lnk" data-action="au-forgot">${t('au_forgot')}</button>
+      <button type="button" class="au-lnk" data-action="acct-in">${t('au_google')}</button>`;
+  } else {
+    const sent = !!o.sent;
+    body = `<h2 class="pick-t">${t('au_code_h')}</h2>
+      <p class="au-p">${t(sent ? 'au_sent' : 'au_code_p')}</p>
+      ${inp('au-email', 'email', t('au_email'), email, 'username')}
+      ${sent ? inp('au-code', 'text', t('au_code'), '', 'one-time-code').replace('type="text"', 'type="text" inputmode="numeric" maxlength="6"') + inp('au-pw', 'password', t('au_newpw'), '', 'new-password') : ''}
+      <button type="button" class="btn-primary" data-action="${sent ? 'au-verify' : 'au-send'}">${t(sent ? 'au_go' : 'au_send')}</button>
+      ${sent ? `<button type="button" class="au-lnk" data-action="au-send">${t('au_resend')}</button>` : ''}`;
+  }
+  openSheet(`<form class="au" data-mode="${mode}" novalidate>${body}</form>`, 'sheet-au');
+  setTimeout(() => { const f = [...document.querySelectorAll('#sheet-body .au input:not([readonly])')].find((x) => !x.value); try { f?.focus({ preventScroll: true }); } catch { } }, 350);
+}
+const auVal = (id) => ($('#' + id)?.value || '').trim();
+function auDone(msg) { closeSheet(); onAccess(); renderAll(); if (pay.proActive()) closePaywall(); if (msg) toast(msg); }
+function auErr(e) {
+  toast(t(e.status === 429 ? 'acct_code_slow' : e.code === 'weak_password' ? 'au_weak' : e.code === 'bad_login' ? 'au_bad_login'
+    : e.code === 'bad_old' ? 'au_bad_old' : e.code === 'email_off' ? 'au_mail_off' : e.code === 'bad_email' ? 'au_bad_email' : e.code === 'ticket' ? 'acct_code_bad' : 'pay_err_net'));
+}
+document.addEventListener('submit', (e) => { if (e.target.closest('form.au')) e.preventDefault(); });
+document.addEventListener('keydown', (e) => { if (e.key !== 'Enter' || !e.target.closest?.('form.au input')) return; e.preventDefault(); e.target.closest('form.au').querySelector('.btn-primary')?.click(); });
+async function auAction(a, el) {
+  el.disabled = true;
+  try {
+    if (a === 'au-setpw') {
+      const pw = auVal('au-pw'); if (pw.length < 8) { toast(t('au_weak')); return; }
+      await pay.setPassword(pw, auVal('au-old')); auDone(t('au_saved'));
+    } else if (a === 'au-later') { auDone(); }
+    else if (a === 'au-login') {
+      const em = auVal('au-email'), pw = auVal('au-pw'); if (!em || !pw) { toast(t('au_fill')); return; }
+      await pay.login(em, pw); auDone(pay.proActive() ? t('pay_restored') : tf('acct_hi', { e: pay.user()?.email || '' }));
+    } else if (a === 'au-forgot') { authSheet('code', { email: auVal('au-email') }); }
+    else if (a === 'au-send') {
+      const em = auVal('au-email'); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { toast(t('au_bad_email')); return; }
+      await pay.emailCode(em); authSheet('code', { email: em, sent: true });
+    } else if (a === 'au-verify') {
+      const em = auVal('au-email'), code = auVal('au-code').replace(/\D/g, ''), pw = auVal('au-pw');
+      if (code.length !== 6) { toast(t('acct_code_bad')); return; }
+      if (pw && pw.length < 8) { toast(t('au_weak')); return; }
+      await pay.emailVerify(em, code, pw || null);
+      auDone(pay.proActive() ? t('pay_restored') : tf('acct_hi', { e: pay.user()?.email || '' }));
+      if (!pw && !pay.user()?.has_pw) setTimeout(() => authSheet('setpw'), 400);
+    }
+  } catch (e) { auErr(e); }
+  finally { el.disabled = false; }
 }
 // в каких картах открывать место (Игорь 15.10.2026: «Google по умолчанию, в настройках — Apple, потом любые другие»).
 // Новая карта — строка здесь и ветка в mapsLink (map.js); наружу — только карты (правило «не уводить из приложения»).
@@ -1144,6 +1251,7 @@ function paywallPanel(st) {
     : `<div class="plans">${card('year', tf('pw_year', { p: usd(Z.year) }), tf('pw_year_s', { m: usd(Math.round(Z.year / 12 * 100) / 100) }), t('pw_best'))}${card('pass', tf('pw_pass', { p: usd(Z.pass) }), t('pw_pass_s'))}</div>
       ${Z.month ? `<button class="pw-month${plan === 'month' ? ' on' : ''}" data-action="plan" data-v="month" aria-pressed="${plan === 'month'}">${esc(tf('pw_month', { p: usd(Z.month) }))}</button>` : ''}
       <button class="btn-primary pw-cta" data-action="buy">${t(pay.enabled() ? 'pw_cta_pay' : 'pw_cta')}</button>
+      ${canTryFree() && st !== 'renew' ? `<button class="pw-try" data-action="try-free">${t('pw_try')}</button>` : ''}
       ${pay.enabled() ? `<p class="pw-acct">${esc(pay.signedIn() ? tf('pw_acct_in', { e: pay.user()?.email || '' }) : t('pw_acct'))}</p>` : ''}`;
   return `<h1 class="pw-title${head.length > 24 ? ' pw-long' : ''}">${esc(head)}</h1>
     <p class="pw-lead">${esc(lead)}</p>
@@ -1222,7 +1330,7 @@ function welcomeHTML() {
   return `<span class="ob-mark"><img src="icons/favicon.svg" alt="" width="40" height="40"></span>
     <h1>${t('w_title')}</h1>
     <p class="ob-lead">${t('w_sub')}</p>
-    <ul class="ob-ticks">${['w_f1', 'w_f2', 'w_f3'].map((k) => `<li>${I.check}<span><b>${t(k)}</b></span></li>`).join('')}</ul>
+    <ul class="ob-ticks">${['w_f1', 'w_f2', 'w_f3', 'w_f4'].map((k) => `<li>${I.check}<span><b>${t(k)}</b></span></li>`).join('')}</ul>
     ${access() === 'trial' ? `<div class="o-trial">${I.clock}<span>${esc(tf('trial_left', { t: trialLeft() }))}</span></div>` : ''}
     <button class="btn-primary ob-cta" data-action="ob-start">${t('next')}</button>
     <p class="ob-fine">${t('w_note')}</p>`;
@@ -1346,6 +1454,7 @@ document.addEventListener('click', async (e) => {
   switch (a) {
     case 'tab': {
       const tab = el.dataset.tab; haptic();
+      if (tab === 'map') ui.mapHold = null;   // своя вкладка карты — снова GTA 6
       el.classList.remove('bounce'); void el.offsetWidth; el.classList.add('bounce');
       if (tab === ui.tab) { // повторное нажатие — наверх, как в iOS
         if (tab === 'map') { mapMod().then((m) => m.refit()); break; }
@@ -1397,6 +1506,7 @@ document.addEventListener('click', async (e) => {
       if (v === store.game) break;
       haptic(); changeGame(v); break;
     }
+    case 'open-news': haptic(); openNews(el.dataset.id); break;
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
     case 'fav-place': {
       e.stopPropagation(); toggleFavPlace(el.dataset.key);
@@ -1430,26 +1540,35 @@ document.addEventListener('click', async (e) => {
     case 'about': openAbout(); break;
     case 'rate': toast(t('rated')); break;
     case 'reset': {   // «Начать заново»: демо-Pro снят, настройки и избранное — по умолчанию; срок пробного прежний
-      ui.stopPlay?.(); Object.assign(store, { ...DEFAULTS, lang: store.lang, theme: store.theme, trialStart: store.trialStart || Date.now(), linkKeys: [] }); save();   // пробный НЕ начинается заново (QA 20.11.2026: «Начать заново» давал ещё 72 ч)
+      ui.stopPlay?.(); Object.assign(store, { ...DEFAULTS, lang: store.lang, theme: store.theme, trialStart: store.trialStart || Date.now(), ftUntil: store.ftUntil, linkKeys: [] }); save();   // пробный НЕ начинается заново (QA 20.11.2026: «Начать заново» давал ещё 72 ч)
       Object.assign(mapLock, { t0: 0, paywall: false }); clearInterval(mapLock.timer); mapLock.timer = 0;
       closeSheet(); closePaywall(); $('#install').classList.remove('show'); lastAccess = access(); showOnboarding(); renderMapLock(); break;
     }
     case 'paywall': haptic(); closeSheet(); openPaywall(el.dataset.pw || ''); break;
+    case 'try-free':
+      haptic();
+      if (!canTryFree()) break;
+      store.ftUntil = Date.now() + 3 * DAY; save();
+      closePaywall(); toast(t('pw_try_on')); onAccess(); renderAll();
+      break;
     case 'plan': plan = v; haptic(); openPaywall(pwSt); $('#paywall .pw-close').classList.add('show'); break;
     case 'buy':
       haptic();
       if (!pay.enabled() && !demoPay()) { toast(t('pay_soon')); break; }
       if (!pay.enabled()) { demoBuy(); closePaywall(); toast(t('pro_unlocked')); onAccess(); renderAll(); break; }
-      el.disabled = true; toast(t(pay.signedIn() ? 'pay_open' : 'acct_open'));
+      el.disabled = true; toast(t('pay_open'));
       pay.checkout(plan).catch((e) => { el.disabled = false; toast(t(e.code === 'nopay' ? 'pay_nopay' : 'pay_err_net')); });
       break;
     case 'restore':   // «Восстановить покупку»: вход через Google (покупка привязана к аккаунту) или сверка со Stripe
       haptic();
-      if (!pay.signedIn()) { toast(t('acct_open')); pay.signIn(); break; }
+      if (!pay.signedIn()) { closePaywall(); setTimeout(() => authSheet('login'), 250); break; }   // шторка — над приложением, не под пейволом
       pay.refresh(true).then(() => { onAccess(); renderAll(); toast(t(pay.proActive() ? 'pay_restored' : 'pay_none')); if (pay.proActive()) closePaywall(); })
         .catch(() => toast(t('pay_err_net')));
       break;
     case 'acct-in': haptic(); toast(t('acct_open')); pay.signIn(); break;
+    case 'acct-email': haptic(); authSheet('login'); break;
+    case 'acct-setpw': haptic(); authSheet(pay.user()?.has_pw ? 'chpw' : 'setpw'); break;
+    case 'au-setpw': case 'au-later': case 'au-login': case 'au-forgot': case 'au-send': case 'au-verify': haptic(); auAction(a, el); break;
     case 'acct-out': haptic(); pay.signOut().then(() => { onAccess(); renderAll(); toast(t('acct_bye')); }); break;
     case 'acct-portal': haptic(); toast(t('pay_open')); pay.portal().catch(() => toast(t('pay_err_net'))); break;
     case 'acct-pair': haptic(); pay.pairCode().then((c) => toast(tf('acct_pair_code', { c: c.slice(0, 3) + ' ' + c.slice(3) }))).catch(() => toast(t('pay_err_net'))); break;
@@ -1503,7 +1622,8 @@ addEventListener('resize', () => scrollToCat(ui.cat, false));
 // итог возврата из Google / Stripe / портала — одной строкой
 function payToast(R) {
   if (!R) return;
-  if (R.paid === 'ok') { toast(t('pay_ok')); closePaywall(); return; }
+  if (R.paid === 'ok') { toast(t('pay_ok')); closePaywall(); if (R.fresh) setTimeout(() => authSheet('setpw'), 2000); return; }
+  if (R.paid === 'login') { closePaywall(); authSheet('login', { email: R.email, note: tf('au_linked', { e: R.email }) }); return; }
   if (R.paid === 'pending') { toast(t('pay_pending')); return; }
   if (R.paid === 'cancel') { toast(t('pay_cancel')); return; }
   if (R.paid === 'error') { toast(t('pay_err')); return; }

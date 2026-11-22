@@ -52,6 +52,17 @@
 #map-games .mg-mode button { flex-direction: row; gap: 8px; padding: 0 20px; border-radius: 28px; color: var(--accent-ink, #1b1206); }
 #map-games .mg-mode button svg { width: 22px; height: 22px; color: currentColor; }
 #map-games .mg-mode button b { font-size: 16px; font-weight: 800; white-space: nowrap; }
+/* Игорь 22.11.2026: «Жизнь | Игра» — наверх, на место прежних вкладок GTA 5 | GTA 6: капсула на всю ширину, обе стороны видны,
+   выбранная подсвечена (как были вкладки игр). Нажатие — тот же data-mp="mode". */
+#map-games .mg-mode { position: static; flex: 1; width: auto; min-width: 0; height: 52px; padding: 4px; gap: 4px; border-radius: 26px;
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); box-shadow: var(--glass-regular-hi), var(--glass-regular-shadow);
+  backdrop-filter: var(--glass-regular-filter); -webkit-backdrop-filter: var(--glass-regular-filter); }
+#map-games .mg-games + .mg-mode { margin-left: 6px; }
+#map-games .mg-mode button, #map-games .mg-mode button.on { display: flex; flex: 1; flex-direction: row; align-items: center; justify-content: center; gap: 6px;
+  height: auto; min-height: 44px; padding: 0 12px; border-radius: 22px; color: var(--text-2, var(--text)); background: none; }
+#map-games .mg-mode button svg { width: 18px; height: 18px; color: currentColor; }
+#map-games .mg-mode button b { font-size: 15px; font-weight: 750; }
+#map-games .mg-mode button.on { color: var(--accent-ink, #1b1206); background: var(--accent); box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 40%, transparent); }
 
 /* ───── чипы слоёв: видимая капсула 40 на стекле, зона нажатия 44 ───── */
 .map-chips { top: calc(var(--safe-t) + 66px); gap: 4px; padding: 0 10px; }

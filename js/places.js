@@ -112,11 +112,22 @@ export function searchPlaces(d, q, filter = {}) {
     .map((x) => x.o);
 }
 
-// для ленты на Главной: подтверждённые и с фото — первыми
+// «Новое»: dt — дата, когда место/пасхалку добавили (YYYY-MM-DD, из поля found в данных); свежее 7 дней — первым в ленте
+export const NEW_DAYS = 7;
+export const isNew = (o) => !!o.dt && (Date.now() - Date.parse(o.dt + 'T00:00:00Z')) / 864e5 < NEW_DAYS;
+// для ленты на Главной: новое, затем подтверждённые и с фото
 export function featured(d, kind = 'place', n = 12) {
   const list = (kind === 'egg' ? d.eggs : d.places).filter(hasPhoto);
   const rank = { confirmed: 0, likely: 1, speculative: 2 };
-  return list.slice().sort((a, b) => (rank[a.cf] ?? 3) - (rank[b.cf] ?? 3) || !!b.pr - !!a.pr).slice(0, n);
+  return list.slice().sort((a, b) => isNew(b) - isNew(a) || (isNew(a) && isNew(b) ? String(b.dt).localeCompare(String(a.dt)) : 0)
+    || (rank[a.cf] ?? 3) - (rank[b.cf] ?? 3) || !!b.pr - !!a.pr).slice(0, n);
+}
+
+// Новости и инфоповоды (data/news.json): заголовок, дата, кадр, источник — без ссылок наружу
+let newsP = null;
+export function loadNews() {
+  if (!newsP) newsP = fetch('data/news.json').then((r) => (r.ok ? r.json() : { items: [] })).then((d) => d.items || []).catch(() => []);
+  return newsP;
 }
 
 export const lang = () => getLang();
