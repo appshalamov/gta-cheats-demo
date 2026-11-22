@@ -10,7 +10,7 @@ const T = {
     n_places: 'место|места|мест', n_codes: 'код|кода|кодов', n_days: 'день|дня|дней', w_in_days: 'через {n}',
     pass_cat: 'Категория', pass_plat: 'Платформа',
     hub_foot: 'Неофициальное приложение. Не связано с Rockstar Games и Take-Two Interactive.', see_all: 'Все', open_map: 'Карта', go_map: 'Открыть карту', codes_n: 'кодов',
-    place_gta6: 'Майами', place_gta5: 'Лос-Анджелес', skin_skip: 'Нажмите, чтобы пропустить', map_find_hint: 'Место на карте', photo_nf: 'Фото не загрузилось', copy_fail: 'Не удалось скопировать — выделите код и скопируйте вручную', place_nf: 'Место по ссылке не найдено — возможно, ссылка устарела',
+    place_gta6: 'Майами', place_gta5: 'Лос-Анджелес', skin_skip: 'Нажмите, чтобы пропустить', map_find_hint: 'Место на карте', photo_nf: 'Фото не загрузилось', a_fit: 'Показать всю карту', a_locate: 'Где я', a_clear: 'Очистить', a_haptics: 'Виброотклик', copy_fail: 'Не удалось скопировать — выделите код и скопируйте вручную', place_nf: 'Место по ссылке не найдено — возможно, ссылка устарела',
     map_error: 'Карта не загрузилась. Проверьте сеть и откройте карту ещё раз.', map_offline: 'Нет сети — карта и фото загрузятся, когда она появится. Коды работают и без сети.',
     // онбординг — 32 §3.1, §3.7 и концепт v11 (без «Чит-коды — бесплатно»: решение №14, файл 31 главнее)
     w_title: 'Secret Base: карта и чит-коды', w_sub: 'Места из игр в реальной жизни. Сдвиньте ползунок: кадр игры и та же улица сегодня.', start: 'Начать', next: 'Дальше',
@@ -132,7 +132,7 @@ const T = {
     n_places: 'place|places', n_codes: 'code|codes', n_days: 'day|days', w_in_days: 'in {n}',
     pass_cat: 'Category', pass_plat: 'Platform',
     hub_foot: 'Unofficial app. Not affiliated with Rockstar Games or Take-Two Interactive.', see_all: 'All', open_map: 'Map', go_map: 'Open map', codes_n: 'codes',
-    place_gta6: 'Miami', place_gta5: 'Los Angeles', skin_skip: 'Tap to skip', map_find_hint: 'Place on the map', photo_nf: 'Photo didn\'t load', copy_fail: 'Couldn\'t copy — select the code and copy it manually', place_nf: 'Place from the link not found — the link may be outdated',
+    place_gta6: 'Miami', place_gta5: 'Los Angeles', skin_skip: 'Tap to skip', map_find_hint: 'Place on the map', photo_nf: 'Photo didn\'t load', a_fit: 'Show the whole map', a_locate: 'My location', a_clear: 'Clear', a_haptics: 'Haptics', copy_fail: 'Couldn\'t copy — select the code and copy it manually', place_nf: 'Place from the link not found — the link may be outdated',
     map_error: 'The map didn\'t load. Check your connection and open the map again.', map_offline: 'You\'re offline — the map and photos will load when you\'re back online. Codes work offline.',
     w_title: 'Secret Base: map & cheat codes', w_sub: 'Game places in real life. Move the slider: the game shot and the same street today.', start: 'Start', next: 'Next',
     w_f1: "Codes with your controller's buttons and voice playback", w_f2: 'In the game and in real life, compared on the map', w_f3: 'Real-life photos of places and 360° views', w_f4: 'Plus GTA 5: the map and every code. Codes for other games are coming',

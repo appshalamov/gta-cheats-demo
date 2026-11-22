@@ -944,7 +944,7 @@ function renderSettings() {
       <div class="row row-static"><span class="row-ic">${I.globe}</span><span class="row-l">${t('st_maps')}</span>
         <span class="mini-seg">${MAPS_APPS.map(([k, n]) => `<button class="${(store.mapsApp || 'google') === k ? 'on' : ''}" data-action="maps-app" data-v="${k}">${n}</button>`).join('')}</span></div>
       <div class="row row-static"><span class="row-ic">${I.vibe}</span><span class="row-l">${t('st_haptic')}</span>
-        <button class="switch${store.haptic ? ' on' : ''}" data-action="haptic-toggle" aria-label="haptics"><i></i></button></div>
+        <button class="switch${store.haptic ? ' on' : ''}" data-action="haptic-toggle" aria-label="${esc(t('a_haptics'))}"><i></i></button></div>
     </div>
     <div class="group">
       ${row('tour', I.map, t('st_tour'))}
@@ -989,6 +989,7 @@ function renderAll() {
   $('#search-input').placeholder = t('search_ph');
   document.querySelectorAll('.tab-l').forEach((s) => { s.textContent = t('tab_' + s.dataset.k); });
   document.querySelectorAll('[data-t]').forEach((s) => { s.textContent = t(s.dataset.t); });
+  document.querySelectorAll('[data-ta]').forEach((s) => s.setAttribute('aria-label', t(s.dataset.ta)));   // подписи кнопок-значков для VoiceOver на языке интерфейса (QA 22.11)
   renderHome(); renderSearch(); renderFavs(); renderSettings();
   maybeCodesTour();
 }
@@ -1495,18 +1496,18 @@ function backGuard() {
     if (document.getElementById('mp-viewer')?.classList.contains('open')) { again(); return; }
     const cr = document.getElementById('cr');
     if (cr && !cr.hidden && crLoaded) { crMod().then((m) => m.back?.()).catch(() => { }); again(); return; }
+    if (document.getElementById('tour')) { import('./tour.js').then((m) => m.skip()); again(); return; }   // тур раньше шторки (QA 22.11)
     if ($('#sheet-layer').classList.contains('open')) { closeSheet(); again(); return; }
     const pw = $('#paywall');
     if (pw.classList.contains('open')) { if (pw.querySelector('.pw-close.show')) closePaywall(); again(); return; }
     if (document.body.classList.contains('in-ob')) { again(); return; }
-    if (document.getElementById('tour')) { import('./tour.js').then((m) => m.skip()); again(); return; }
     if (ui.tab !== 'home') { ui.tab = 'home'; renderAll(); again(); }
   });
 }
 function closePaywall() {
   pay.closeInApp(); promoUi = '';
   $('#paywall').classList.remove('open');
-  if (store.tourMap && !store.tourCodes && ui.tab === 'map' && store.onboarded) { ui.tab = 'home'; renderAll(); return; }   // после пейвола — Главная и одна анимация кодов
+  if (store.tourMap && !store.tourCodes && ui.tab === 'map' && store.onboarded) { closeSheet(); ui.tab = 'home'; renderAll(); return; }   // после пейвола — Главная и одна анимация кодов; карточку места закрыть (QA 22.11: оставалась поверх Главной и тур кодов не начинался)
   maybeInstallHint();
 }
 // демо-покупка: срок как у настоящей (пропуск до 19.11 считается с 19.11 — 31 §4.4); настоящая — Paddle / покупки Apple (сервер)
@@ -1834,7 +1835,7 @@ document.addEventListener('click', async (e) => {
       pay.refresh(true).then(() => { onAccess(); renderAll(); toast(t(pay.proActive() ? 'pay_restored' : 'pay_none')); if (pay.proActive()) closePaywall(); })
         .catch(() => toast(t('pay_err_net')));
       break;
-    case 'acct-in': haptic(); toast(t('acct_open')); pay.signIn(); break;
+    case 'acct-in': haptic(); toast(t('acct_open')); pay.signIn().then((ok) => { if (ok === false) toast(t('pay_err_net')); }); break;
     case 'acct-email': haptic(); authSheet('login'); break;
     case 'acct-setpw': haptic(); authSheet(pay.user()?.has_pw ? 'chpw' : 'setpw'); break;
     case 'au-setpw': case 'au-later': case 'au-login': case 'au-forgot': case 'au-send': case 'au-verify': haptic(); auAction(a, el); break;
@@ -1954,6 +1955,8 @@ document.addEventListener('visibilitychange', () => {
     store.onboarded = true; save(); if (location.hash) history.replaceState(null, '', location.pathname + location.search); window.SB.openCreator('admin');
   }
   else if (!store.onboarded) showOnboarding();
+  // перезагрузка посреди знакомства на карте (QA 22.11: тур и анимация кодов пропадали навсегда) — продолжить с карты
+  else if (!store.tourMap) { document.body.classList.add('in-tour'); ui.tab = 'map'; renderAll(); startMapTour(); }
   backGuard();
   document.body.classList.add('ready');
   requestAnimationFrame(guardTabbar);
