@@ -1740,7 +1740,7 @@ document.addEventListener('click', async (e) => {
       pay.refresh(true).then(() => { onAccess(); renderAll(); toast(t(pay.proActive() ? 'pay_restored' : 'pay_none')); if (pay.proActive()) closePaywall(); })
         .catch(() => toast(t('pay_err_net')));
       break;
-    case 'acct-in': haptic(); toast(t('acct_open')); pay.signIn(); break;
+    case 'acct-in': haptic(); toast(t('acct_open')); pay.signIn().then((ok) => { if (ok === false) toast(t('pay_err_net')); }); break;
     case 'acct-email': haptic(); authSheet('login'); break;
     case 'acct-setpw': haptic(); authSheet(pay.user()?.has_pw ? 'chpw' : 'setpw'); break;
     case 'au-setpw': case 'au-later': case 'au-login': case 'au-forgot': case 'au-send': case 'au-verify': haptic(); auAction(a, el); break;
