@@ -474,7 +474,11 @@ function hubSection(title, sub, action, body, extra = '') {
 }
 
 // ── верх Главной: фото эпохи (листание пальцем, без автопрокрутки), вкладки мира, город, поиск ──
-const placeCounts = {}; // число мест по играм — когда данные карты уже загружены
+// число мест по играм — из загруженных данных карты; помним между запусками (sb.pc), чтобы герой сразу писал
+// «299 places» у другой игры, не качая её 330 КБ (23.11.2026)
+const placeCounts = new Proxy((() => { try { return JSON.parse(localStorage.getItem('sb.pc') || '{}'); } catch { return {}; } })(), {
+  set(o, k, v) { o[k] = v; try { localStorage.setItem('sb.pc', JSON.stringify(o)); } catch { } return true; },
+});
 let heroKey = '';
 function worldTab(x) {
   const on = x.id === store.game;
@@ -625,7 +629,18 @@ let mapOpening = null;
 // вкладка «Карта» открывает карту выбранной игры: GTA 5 → Лос-Анджелес, GTA 6 → Майами (Игорь 22.11.2026: «выбрал GTA 5,
 // перешёл в карты — Майами, это грубая ошибка»); место другой игры из карточки открывается в своей игре (ui.mapHold)
 const MAP_OF = (g) => (MAP_GAMES.includes(g) ? g : 'gta6');
+// превью карты в момент тапа (до загрузки map.js и maplibre): снимок стартового вида с мерцанием; map.js (phShow/phHide)
+// подхватывает этот же элемент и убирает его, когда плитки легли
+const mapPhUrl = (g) => { let m = 'game'; try { if (localStorage.getItem('secret.map.mode') === 'real') m = 'life'; } catch { } return `${location.pathname.includes('/beta/') ? '../' : ''}img/ui/map-ph/${m}-${g}.webp`; };
+function mapPlaceholder(g) {
+  const box = $('#map');
+  if (!box || box.querySelector('.map-ph, canvas')) return;
+  const el = document.createElement('div'); el.className = 'map-ph'; el.setAttribute('aria-hidden', 'true');
+  el.style.backgroundImage = `url(${mapPhUrl(g)})`;
+  box.prepend(el); box.classList.add('loading', 'has-ph');
+}
 function openMap(preferGame = ui.mapHold || MAP_OF(store.game)) {
+  if (!mapOpening) mapPlaceholder(preferGame);
   // та же логика, что в map.js open(): игра из настроек приложения переключает карту, если её там поменяли
   if (preferGame !== ui.mapPrefer) { ui.mapPrefer = preferGame; ui.mapGame = preferGame; applySkin(); }
   if (!mapOpening) mapOpening = mapMod().then((m) => m.open(mapCtx(), preferGame).then(() => { ui.mapReady = true; return m; })).catch((e) => { mapOpening = null; toast(t('map_error')); throw e; });
@@ -1944,7 +1959,7 @@ document.addEventListener('visibilitychange', () => {
   requestAnimationFrame(guardTabbar);
   // карта «Игра», потом «Жизнь» — прогрев в простое, пока человек на Главной: вкладка карты откроется без ожидания
   // прогрев — как только показано главное фото Главной (не ждём остальных картинок): к тапу по карте она уже в пути
-  if (store.onboarded) afterHero(() => window.SB.prewarmMap(), 600);
+  if (store.onboarded) afterHero(() => { new Image().src = mapPhUrl(MAP_OF(store.game)); window.SB.prewarmMap(); }, 600);
   // фото эпох для офлайна — когда канал свободен: карта открылась и плитки легли (+6 с) или через 45 с без карты
   addEventListener('sb:map-idle', () => setTimeout(warmUI, 6000), { once: true });
   afterFirstScreen(warmUI, 45000);

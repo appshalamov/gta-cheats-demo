@@ -433,3 +433,15 @@ mark.hl { background: none; color: var(--accent); font-weight: 750; } /* сов�
   transform: translateX(-100%); animation: sk-sweep 1.25s ease-in-out infinite; }
 .pw-photo:has(img.ok)::before { display: none; }
 @media (prefers-reduced-motion: reduce) { .pw-photo::before { animation: none; transform: none; } }
+/* каркас Главной до запуска (index.html #boot): только у прошедших знакомство; приложение проявляется поверх, каркас уходит следом */
+#boot { display: none; }
+html.boot-home #boot { display: block; position: fixed; left: 0; right: 0; top: 0; height: var(--app-h, 100dvh); overflow: hidden; pointer-events: none; background: var(--bg); }
+body.ready #boot { visibility: hidden; transition: visibility 0s .35s; }
+#boot .bt-hero { height: calc(var(--safe-t) + 300px); }
+#boot .bt-search { height: 50px; margin: -25px 16px 0; border-radius: 25px; }
+#boot .bt-h { height: 20px; width: 38%; margin: 28px 16px 14px; border-radius: 8px; }
+#boot .bt-row { display: flex; gap: 12px; padding: 0 16px; }
+#boot .bt-row .sk-box { flex: 0 0 236px; height: 164px; border-radius: 22px; }
+#boot .bt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px; }
+#boot .bt-grid .sk-box { height: 92px; border-radius: 18px; }
+#boot .bt-tab { position: absolute; left: 10px; right: 10px; bottom: max(8px, calc(var(--safe-b) - 8px)); height: 62px; border-radius: 31px; }

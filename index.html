@@ -55,12 +55,21 @@
   <link rel="modulepreload" href="js/api.js">
   <link rel="modulepreload" href="js/demo-data.js">
   <!-- данные выбранной игры и первое фото Главной — до того, как приложение их попросит -->
+  <script>try{var st=JSON.parse(localStorage.getItem('cheats.v1')||'{}'),th=st.theme||'dark';if(th=='auto')th=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=th;if(st.onboarded)document.documentElement.classList.add('boot-home')}catch(e){}</script>
   <script>try{var g=(JSON.parse(localStorage.getItem('cheats.v1')||'{}').game)||'gta6';if(!/^[a-z0-9]{3,12}$/.test(g))g='gta6';var m=g=='gta6'||g=='gta5';
   [['data/'+g+'.json','fetch','high'],['data/news.json','fetch','low']].concat(m?[['data/map/'+g+'.json','fetch','low'],['img/ui/'+g+'/'+g+'-banner-01.avif','image','high']]:[]).forEach(function(x){var l=document.createElement('link');l.rel='preload';l.as=x[1];l.href=x[0];if(x[1]=='fetch')l.crossOrigin='anonymous';else l.type='image/avif';l.setAttribute('fetchpriority',x[2]);document.head.appendChild(l)})}catch(e){}</script>
 </head>
 <body>
   <!-- Онбординг: обещание → игра → платформа (32 §3.7) -->
   <div id="onboarding"></div>
+
+  <!-- Каркас Главной до запуска приложения (23.11.2026): виден, как только загрузились стили; приложение проявляется поверх -->
+  <div id="boot" aria-hidden="true">
+    <div class="bt-hero sk-photo"></div><div class="bt-search sk-box"></div>
+    <div class="bt-h sk-box"></div><div class="bt-row"><div class="sk-box"></div><div class="sk-box"></div></div>
+    <div class="bt-h sk-box"></div><div class="bt-grid"><div class="sk-box"></div><div class="sk-box"></div><div class="sk-box"></div><div class="sk-box"></div></div>
+    <div class="bt-tab sk-box"></div>
+  </div>
 
   <!-- Основное приложение -->
   <main id="main">
