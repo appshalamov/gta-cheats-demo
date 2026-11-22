@@ -40,6 +40,14 @@ export function uaClass(ua) {
   if (/Windows/.test(ua)) return 'win';
   return 'other';
 }
+// IP человека. С 22.11.2026 sbgta.app на Cloudflare другого аккаунта: ref.sbgta.app обслуживает пересыльщик sb-edge
+// (cheats-pwa-stripe/server/edge-worker), и CF-Connecting-IP — его адрес. Настоящий — в X-SB-IP, верим только при
+// X-SB-Proxy == PROXY_SECRET (тот же секрет, что у sb-pay). Прямые запросы на workers.dev — как раньше.
+function clientIp(env, req) {
+  const h = req.headers;
+  if (env.PROXY_SECRET && h.get('X-SB-Proxy') === env.PROXY_SECRET && h.get('X-SB-IP')) return h.get('X-SB-IP');
+  return h.get('CF-Connecting-IP') || '0';
+}
 async function body(req) { try { return JSON.parse(await req.text() || '{}') || {}; } catch { return {}; } }
 const one = (env, sql, ...a) => env.DB.prepare(sql).bind(...a).first();
 const run = (env, sql, ...a) => env.DB.prepare(sql).bind(...a).run();
@@ -64,7 +72,7 @@ async function attribute(env, dev, code, via, v, extra = {}) {
 async function hit(env, req, b) {
   const d = b.d; if (!okDev(d)) return bad('bad_device');
   const sa = b.sa ? 1 : 0, t = now();
-  const ip_h = await sha(env, 'ip:' + (req.headers.get('CF-Connecting-IP') || '0')), ua_c = uaClass(req.headers.get('User-Agent'));
+  const ip_h = await sha(env, 'ip:' + (clientIp(env, req))), ua_c = uaClass(req.headers.get('User-Agent'));
   let dev = await one(env, 'SELECT * FROM devices WHERE id = ?', d);
   if (!dev) {
     await run(env, 'INSERT OR IGNORE INTO devices (id, ip_h, ua_c, standalone, first_at, seen_at) VALUES (?, ?, ?, ?, ?, ?)', d, ip_h, ua_c, sa, t, t);
@@ -118,7 +126,7 @@ async function creator(env, req, b) {
     const want = okCode(normCode(b.code)) ? normCode(b.code) : (normCode(nick).slice(0, 8) || 'SB');
     const email = String(b.email || '').trim().toLowerCase();
     const email_h = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) ? await sha(env, 'e:' + email) : null;
-    const ip_h = await sha(env, 'ip:' + (req.headers.get('CF-Connecting-IP') || '0'));
+    const ip_h = await sha(env, 'ip:' + (clientIp(env, req)));
     const c = await one(env, 'SELECT * FROM creators WHERE code = ?', want);
     if (!c) { const r = await run(env, 'INSERT OR IGNORE INTO creators (code, nick, email_h, ip_h, created_at) VALUES (?, ?, ?, ?, ?)', want, nick, email_h, ip_h, t); if (r.meta?.changes) code = want; }
     else if (email_h && c.email_h === email_h) code = want;   // тот же человек со второго хранилища (Safari ⇄ «на экране Домой»)
@@ -222,7 +230,7 @@ export default {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
     if (p === '/health') return json({ ok: true });
     if (env.RL_IP && req.method === 'POST') {
-      const { success } = await env.RL_IP.limit({ key: req.headers.get('CF-Connecting-IP') || '0' });
+      const { success } = await env.RL_IP.limit({ key: clientIp(env, req) });
       if (!success) return bad('rate_limited', 429);
     }
     try {

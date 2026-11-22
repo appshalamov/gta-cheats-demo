@@ -82,6 +82,7 @@ def main():
     data = {
         "game": "gta6",
         "source": "Прогноз: коды GTA 5 + ожидаемые эффекты. Подтверждённых кодов GTA 6 на 14.10.2026 нет.",
+        "source_en": "Forecast: GTA 5 codes + expected effects. No confirmed GTA 6 codes as of 2026-10-14.",
         "updated": "2026-10-14",
         "confidenceLabels": CONF,
         "cheats": out,

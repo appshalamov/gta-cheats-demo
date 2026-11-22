@@ -6,6 +6,13 @@
 //   POST /auth/exchange {ticket} → {token, user}           одноразовый билет (10 минут) → сессия приложения
 //   POST /auth/pair (Bearer) → {code}; POST /auth/pair/redeem {code} → {token}   вход кодом на другом устройстве
 //   POST /auth/logout (Bearer)
+// Вход по почте (20.11.2026): покупка без входа → почта из Stripe → пароль после оплаты.
+//   POST /checkout/guest {plan, return} → {url}                     оплата без аккаунта: почту человек вводит в Stripe
+//   POST /claim/guest {session_id} → {token?, need_login?, …/me}    после оплаты: аккаунт по почте из Stripe (один раз на оплату)
+//   POST /auth/login {email, password} → {token}                    вход паролем (ограничение попыток)
+//   POST /auth/password (Bearer) {password, old?}                   придумать / сменить пароль
+//   POST /auth/email/code {email} → {ok}; POST /auth/email/verify {email, code, password?} → {token}   код на почту: «забыли пароль» и «восстановить покупку»
+//   Письма: Cloudflare Email Sending (привязка EMAIL); адреса @sbgta.test не отправляются — код лежит в «исходящих» для тестов (GET /admin/outbox)
 // Оплата:
 //   GET  /me[?sync=1] (Bearer) → {user, pro, prices, country}       Pro — только по данным Stripe (вебхук или прямой запрос)
 //   POST /checkout {plan, return} (Bearer) → {url}                   Stripe Checkout (Apple Pay — сам Stripe)
@@ -107,7 +114,7 @@ async function useTicket(env, kind, t) {
   if (!row || row.expires < now()) throw new HttpError(400, 'ticket');
   return row.user_id;
 }
-const pubUser = (u) => ({ email: u.email, name: u.name || '' });
+const pubUser = (u) => ({ email: u.email, name: u.name || '', has_pw: !!u.pw, google: !!u.google_sub });
 
 async function ensureCustomer(env, u) {
   if (u.customer_id) return u.customer_id;
@@ -115,6 +122,38 @@ async function ensureCustomer(env, u) {
   await env.DB.prepare('UPDATE users SET customer_id = ? WHERE id = ?').bind(c.id, u.id).run();
   u.customer_id = c.id;
   return c.id;
+}
+
+// ───────── пароли: PBKDF2-SHA256 (WebCrypto в Workers — не больше 100 000 итераций), соль 16 байт ─────────
+const PW_ITER = 100000;
+async function pbkdf2(pw, salt, iter) {
+  const key = await crypto.subtle.importKey('raw', ENC.encode(pw), 'PBKDF2', false, ['deriveBits']);
+  return b64u(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: iter }, key, 256));
+}
+async function hashPw(pw) { const salt = crypto.getRandomValues(new Uint8Array(16)); return `pbkdf2$${PW_ITER}$${b64u(salt)}$${await pbkdf2(pw, salt, PW_ITER)}`; }
+async function checkPw(pw, stored) {
+  const [alg, it, salt, h] = String(stored || '').split('$');
+  if (alg !== 'pbkdf2' || !h) return false;
+  return safeEq(await pbkdf2(pw, Uint8Array.from(b64uDecode(salt), (c) => c.charCodeAt(0)), Number(it)), h);
+}
+const okPw = (pw) => typeof pw === 'string' && pw.length >= 8 && pw.length <= 200;
+const normEmail = (e) => String(e || '').trim().toLowerCase();
+const okEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && e.length <= 200;
+const byEmail = (env, email) => env.DB.prepare('SELECT * FROM users WHERE email = ? ORDER BY created LIMIT 1').bind(email).first();
+// ограничение попыток: счётчик неудач в D1 (таблица fails), окно в минутах
+async function tooMany(env, key, limit, minutes) { return ((await env.DB.prepare('SELECT COUNT(*) n FROM fails WHERE k = ? AND at > ?').bind(key, now() - minutes * 60e3).first())?.n || 0) >= limit; }
+async function addFail(env, ...keys) {
+  await env.DB.batch([...keys.map((k) => env.DB.prepare('INSERT INTO fails (k, at) VALUES (?, ?)').bind(k, now())), env.DB.prepare('DELETE FROM fails WHERE at < ?').bind(now() - 6 * 3600e3)]);
+}
+const ipOf = (req) => req.headers.get('CF-Connecting-IP') || 'x';
+
+// ───────── письма: Cloudflare Email Sending; @sbgta.test и тестовый режим без привязки — в «исходящие» (D1 config), не наружу ─────────
+async function sendMail(env, to, subject, text) {
+  const dry = to.endsWith('@sbgta.test');   // тестовые адреса не уходят наружу никогда
+  if (dry) { await setCfg(env, 'outbox:' + to, JSON.stringify({ subject, text, at: now() })); return 'outbox'; }
+  if (!env.EMAIL) throw new HttpError(503, 'email_off');
+  await env.EMAIL.send({ to, from: { email: env.MAIL_FROM || 'no-reply@sbgta.app', name: 'Secret Base' }, subject, text });
+  return 'sent';
 }
 
 // ───────── доступ Pro ─────────
@@ -140,7 +179,7 @@ function passUntil(env, createdSec) {
 async function saveCheckout(env, cs) {
   const paid = cs.status === 'complete' && (cs.payment_status === 'paid' || cs.payment_status === 'no_payment_required');
   if (!paid) return false;
-  const uid = cs.client_reference_id || cs.metadata?.user_id;
+  const uid = cs.client_reference_id || cs.metadata?.user_id || null;   // без входа — null: аккаунт найдётся по покупателю (/claim/guest)
   if (cs.customer && uid) await env.DB.prepare('UPDATE users SET customer_id = COALESCE(customer_id, ?) WHERE id = ?').bind(cs.customer, uid).run();
   if (cs.mode === 'subscription') {
     const s = typeof cs.subscription === 'object' && cs.subscription ? cs.subscription : await stripe(env, 'GET', '/v1/subscriptions/' + cs.subscription);
@@ -155,7 +194,19 @@ async function saveCheckout(env, cs) {
 }
 // сверка со Stripe: подписки и пропуски покупателя (вход на новом устройстве, ?sync=1 после портала)
 async function syncCustomer(env, u) {
-  if (!u.customer_id) {   // купил раньше с этим же email — найдём покупателя
+  if (u.email_ok) {   // почта подтверждена: все покупатели Stripe с этой почтой (покупки без входа создают нового покупателя каждый раз)
+    const found = await stripe(env, 'GET', '/v1/customers', { email: u.email, limit: 20 });
+    for (const c of found.data || []) {
+      if (c.id === u.customer_id) continue;
+      await env.DB.prepare('UPDATE ents SET user_id = ? WHERE customer_id = ? AND user_id IS NULL').bind(u.id, c.id).run();
+      const subs = await stripe(env, 'GET', '/v1/subscriptions', { customer: c.id, status: 'all', limit: 20 });
+      for (const s of subs.data || []) await saveSub(env, s, u.id);
+      const css = await stripe(env, 'GET', '/v1/checkout/sessions', { customer: c.id, limit: 20 });
+      for (const cs of css.data || []) if (cs.mode === 'payment') await saveCheckout(env, { ...cs, client_reference_id: u.id });
+      if (!u.customer_id || (subs.data || []).some((s) => ACTIVE.includes(s.status))) { u.customer_id = c.id; await env.DB.prepare('UPDATE users SET customer_id = ? WHERE id = ?').bind(c.id, u.id).run(); }
+    }
+  }
+  if (!u.customer_id && u.email_ok) {   // купил раньше с этим же email — найдём покупателя
     const found = await stripe(env, 'GET', '/v1/customers', { email: u.email, limit: 10 });
     for (const c of found.data || []) {
       const subs = await stripe(env, 'GET', '/v1/subscriptions', { customer: c.id, status: 'all', limit: 20 });
@@ -192,15 +243,15 @@ async function checkoutUrl(env, req, u, plan, ret, ticket, lang) {
   if (noPay(env, country)) throw new HttpError(403, 'nopay');
   const pr = prices(env, country);
   if (!pr[plan]) throw new HttpError(400, 'bad_plan');
-  const customer = await ensureCustomer(env, u);
+  const customer = u ? await ensureCustomer(env, u) : null;   // без входа: почту человек вводит в Stripe, покупатель создаётся там
   const sub = plan !== 'pass';
-  const meta = { user_id: u.id, plan, zone: String(pr.zone) };
+  const meta = { ...(u ? { user_id: u.id } : { guest: '1' }), plan, zone: String(pr.zone) };
   // Managed Payments: Stripe — продавец (merchant of record), сам считает и платит налоги/VAT; нужен tax_code товара
   const mp = String(env.MANAGED_PAYMENTS || '') === '1';
   const cs = await stripe(env, 'POST', '/v1/checkout/sessions', {
     mode: sub ? 'subscription' : 'payment',
-    customer,
-    client_reference_id: u.id,
+    ...(customer ? { customer } : (sub ? {} : { customer_creation: 'always' })),
+    ...(u ? { client_reference_id: u.id } : {}),
     success_url: withParams(ret, { paid: '{CHECKOUT_SESSION_ID}', login: ticket }),
     cancel_url: withParams(ret, { paid: 'cancel', login: ticket }),
     line_items: { 0: { quantity: 1, price_data: { currency: 'usd', tax_behavior: env.TAX_BEHAVIOR || 'inclusive', unit_amount: Math.round(pr[plan] * 100), product_data: { name: NAMES[plan], ...(mp ? { tax_code: env.TAX_CODE || 'txcd_10103000' } : {}) }, ...(sub ? { recurring: { interval: plan } } : {}) } } },
@@ -296,12 +347,16 @@ async function googleCallback(env, req, url) {
   if (!issOk || c.aud !== env.GOOGLE_CLIENT_ID || c.exp * 1000 < now() || !c.sub || !c.email || c.email_verified === false) return redirect(withParams(st.return_url, { login: 'error' }));
   const email = String(c.email).toLowerCase();
   let u = await env.DB.prepare('SELECT * FROM users WHERE google_sub = ?').bind(c.sub).first();
+  if (!u) {   // покупал без входа с этой же почтой — тот же аккаунт (почту подтвердил Google)
+    const same = await env.DB.prepare('SELECT * FROM users WHERE email = ? AND google_sub IS NULL ORDER BY created LIMIT 1').bind(email).first();
+    if (same) { await env.DB.prepare('UPDATE users SET google_sub = ?, name = COALESCE(name, ?), email_ok = 1, last_login = ? WHERE id = ?').bind(c.sub, c.name || '', now(), same.id).run(); u = { ...same, google_sub: c.sub, email_ok: 1 }; }
+  }
   if (!u) {
-    u = { id: crypto.randomUUID(), google_sub: c.sub, email, name: c.name || '', customer_id: null };
-    await env.DB.prepare('INSERT INTO users (id, google_sub, email, name, created, last_login) VALUES (?, ?, ?, ?, ?, ?)').bind(u.id, c.sub, email, u.name, now(), now()).run();
+    u = { id: crypto.randomUUID(), google_sub: c.sub, email, name: c.name || '', customer_id: null, email_ok: 1 };
+    await env.DB.prepare('INSERT INTO users (id, google_sub, email, name, created, last_login, email_ok) VALUES (?, ?, ?, ?, ?, ?, 1)').bind(u.id, c.sub, email, u.name, now(), now()).run();
   } else {
-    await env.DB.prepare('UPDATE users SET email = ?, name = ?, last_login = ? WHERE id = ?').bind(email, c.name || u.name, now(), u.id).run();
-    Object.assign(u, { email, name: c.name || u.name });
+    await env.DB.prepare('UPDATE users SET email = ?, name = ?, last_login = ?, email_ok = 1 WHERE id = ?').bind(email, c.name || u.name, now(), u.id).run();
+    Object.assign(u, { email, name: c.name || u.name, email_ok: 1 });
   }
   await syncCustomer(env, u).catch((e) => console.log('sync', e.code || e.message));
   const ticket = await newTicket(env, 'login', u.id, 10 * 60e3);
@@ -367,6 +422,93 @@ async function route(env, req) {
     if ((await proOf(env, u)).sub && b.plan !== 'pass') throw new HttpError(409, 'has_sub');   // вторую подписку не продаём — управление в портале
     return json({ url: await checkoutUrl(env, req, u, String(b.plan || ''), okReturn(env, b.return || ''), null, b.lang) });
   }
+  if (p === '/checkout/guest' && M === 'POST') {   // оплата без входа
+    const b = await body();
+    return json({ url: await checkoutUrl(env, req, null, String(b.plan || ''), okReturn(env, b.return || ''), null, b.lang) });
+  }
+  if (p === '/claim/guest' && M === 'POST') {   // вернулся из оплаты без входа: аккаунт по почте из Stripe
+    const b = await body(), id = String(b.session_id || '');
+    if (!/^cs_[A-Za-z0-9_]+$/.test(id)) throw new HttpError(400, 'bad_session');
+    const cs = await stripe(env, 'GET', '/v1/checkout/sessions/' + id, { expand: { 0: 'subscription' } });
+    if (cs.created * 1000 < now() - DAY) throw new HttpError(403, 'old_session');
+    const email = normEmail(cs.customer_details?.email || cs.customer_email);
+    const cust = typeof cs.customer === 'object' ? cs.customer?.id : cs.customer;
+    if (!(await saveCheckout(env, cs))) return json({ paid: false });   // ещё не оплачено (банк думает) — приложение спросит ещё раз
+    if (!email || !cust) throw new HttpError(502, 'no_email');
+    let u = await env.DB.prepare('SELECT * FROM users WHERE customer_id = ?').bind(cust).first() || await byEmail(env, email), fresh = false;
+    if (!u) {
+      u = { id: crypto.randomUUID(), google_sub: null, email, name: cs.customer_details?.name || '', customer_id: cust, pw: null, email_ok: 0 };
+      await env.DB.prepare('INSERT INTO users (id, email, name, customer_id, created, last_login) VALUES (?, ?, ?, ?, ?, ?)').bind(u.id, email, u.name, cust, now(), now()).run();
+      fresh = true;
+    } else if (!u.customer_id) { await env.DB.prepare('UPDATE users SET customer_id = ? WHERE id = ?').bind(cust, u.id).run(); u.customer_id = cust; }
+    await env.DB.prepare('UPDATE ents SET user_id = ? WHERE customer_id = ? AND (user_id IS NULL OR user_id = ?)').bind(u.id, cust, u.id).run();
+    // сессию выдаём один раз на оплату и только «чистому» аккаунту: новый, или без пароля/Google и без чужих покупок.
+    // Иначе (почта уже с паролем/Google или с прежними покупками) — покупка привязана, человек входит своим способом.
+    const first = await env.DB.prepare('INSERT OR IGNORE INTO events (id, type, created) VALUES (?, ?, ?) RETURNING id').bind('claim:' + cs.id, 'claim', now()).first();
+    const other = (await env.DB.prepare('SELECT COUNT(*) n FROM ents WHERE user_id = ? AND customer_id IS NOT ?').bind(u.id, cust).first())?.n || 0;
+    const me = await meOf(env, req, u);
+    if (first && (fresh || (!u.pw && !u.google_sub && !other))) return json({ paid: true, token: await newSession(env, u.id), new_account: !u.pw, ...me });
+    return json({ paid: true, need_login: true, email: u.email, has_pw: !!u.pw, google: !!u.google_sub });
+  }
+  if (p === '/auth/login' && M === 'POST') {   // почта + пароль
+    const b = await body(), email = normEmail(b.email), ip = ipOf(req);
+    if (await tooMany(env, 'login:' + email, 10, 15) || await tooMany(env, 'loginip:' + ip, 40, 15)) throw new HttpError(429, 'slow_down');
+    const u = okEmail(email) ? await env.DB.prepare('SELECT * FROM users WHERE email = ? AND pw IS NOT NULL ORDER BY created LIMIT 1').bind(email).first() : null;
+    if (!u || !(await checkPw(String(b.password || ''), u.pw))) { await addFail(env, 'login:' + email, 'loginip:' + ip); throw new HttpError(401, 'bad_login'); }
+    await env.DB.prepare('UPDATE users SET last_login = ? WHERE id = ?').bind(now(), u.id).run();
+    return json({ token: await newSession(env, u.id), ...(await meOf(env, req, u)) });
+  }
+  if (p === '/auth/password' && M === 'POST') {   // придумать (после оплаты) или сменить пароль
+    const u = await needUser(env, req), b = await body();
+    if (!okPw(b.password)) throw new HttpError(400, 'weak_password');
+    if (u.pw && !(await checkPw(String(b.old || ''), u.pw))) {
+      if (await tooMany(env, 'pwchg:' + u.id, 10, 15)) throw new HttpError(429, 'slow_down');
+      await addFail(env, 'pwchg:' + u.id); throw new HttpError(403, 'bad_old');
+    }
+    await env.DB.prepare('UPDATE users SET pw = ?, pw_at = ? WHERE id = ?').bind(await hashPw(b.password), now(), u.id).run();
+    u.pw = 'set';
+    return json({ ok: true, ...(await meOf(env, req, u)) });
+  }
+  if (p === '/auth/email/code' && M === 'POST') {   // код на почту: «забыли пароль», «восстановить покупку»
+    const b = await body(), email = normEmail(b.email), ip = ipOf(req);
+    if (!okEmail(email)) throw new HttpError(400, 'bad_email');
+    if (await tooMany(env, 'code:' + email, 5, 60) || await tooMany(env, 'codeip:' + ip, 30, 60)) throw new HttpError(429, 'slow_down');
+    await addFail(env, 'code:' + email, 'codeip:' + ip);   // считаем каждую отправку
+    let u = await byEmail(env, email);
+    if (!u) {   // аккаунта нет, но покупка с этой почтой в Stripe есть — заведём аккаунт
+      const found = await stripe(env, 'GET', '/v1/customers', { email, limit: 1 }).catch(() => ({ data: [] }));
+      if (found.data?.length) {
+        u = { id: crypto.randomUUID(), email, customer_id: found.data[0].id };
+        await env.DB.prepare('INSERT INTO users (id, email, name, customer_id, created) VALUES (?, ?, ?, ?, ?)').bind(u.id, email, found.data[0].name || '', u.customer_id, now()).run();
+      }
+    }
+    if (!u) return json({ ok: true });   // не говорим, есть ли такая почта
+    const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1e6).padStart(6, '0');
+    await newTicket(env, 'email', u.id, 15 * 60e3, email + '|' + code);
+    const ru = b.lang === 'ru';
+    const how = await sendMail(env, email, ru ? `Код входа в Secret Base: ${code}` : `Your Secret Base sign-in code: ${code}`,
+      ru ? `Ваш код входа: ${code}\n\nОн действует 15 минут. Если вы не запрашивали код, просто игнорируйте это письмо.\n\nSecret Base — https://sbgta.app/`
+        : `Your sign-in code: ${code}\n\nIt is valid for 15 minutes. If you did not request it, ignore this email.\n\nSecret Base — https://sbgta.app/`);
+    return json({ ok: true, ...(how === 'outbox' ? { outbox: true } : {}) });
+  }
+  if (p === '/auth/email/verify' && M === 'POST') {
+    const b = await body(), email = normEmail(b.email), code = String(b.code || '').replace(/\D/g, ''), ip = ipOf(req);
+    if (await tooMany(env, 'verify:' + email, 8, 15) || await tooMany(env, 'verifyip:' + ip, 40, 15)) throw new HttpError(429, 'slow_down');
+    let uid;
+    try { if (code.length !== 6) throw new HttpError(400, 'ticket'); uid = await useTicket(env, 'email', email + '|' + code); }
+    catch (e) { await addFail(env, 'verify:' + email, 'verifyip:' + ip); throw e; }
+    if (b.password != null && !okPw(b.password)) throw new HttpError(400, 'weak_password');
+    await env.DB.prepare('UPDATE users SET email_ok = 1, last_login = ?' + (b.password ? ', pw = ?, pw_at = ?' : '') + ' WHERE id = ?')
+      .bind(...(b.password ? [now(), await hashPw(b.password), now(), uid] : [now(), uid])).run();
+    const u = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(uid).first();
+    await syncCustomer(env, u).catch((e) => console.log('sync', e.code || e.message));
+    return json({ token: await newSession(env, uid), ...(await meOf(env, req, u)) });
+  }
+  if (p === '/admin/outbox' && M === 'GET') {   // тесты: последнее «письмо» на адрес @sbgta.test
+    const m = /^Bearer\s+(.+)$/.exec(req.headers.get('Authorization') || '');
+    if (!env.ADMIN_TOKEN || !m || !safeEq(m[1], env.ADMIN_TOKEN)) throw new HttpError(401, 'auth');
+    return json(JSON.parse((await cfg(env, 'outbox:' + normEmail(url.searchParams.get('email')))) || '{}'));
+  }
   if (p === '/claim' && M === 'POST') {
     const u = await needUser(env, req), b = await body();
     const id = String(b.session_id || '');
@@ -401,7 +543,9 @@ async function route(env, req) {
     if (!env.ADMIN_TOKEN || !m || !safeEq(m[1], env.ADMIN_TOKEN)) throw new HttpError(401, 'auth');
     const b = await body(), out = {};
     if (!(await cfg(env, 'whsec')) || b.force) {
-      const wh = await stripe(env, 'POST', '/v1/webhook_endpoints', { url: url.origin + '/webhook', enabled_events: Object.fromEntries(EVENTS.map((e, i) => [i, e])), description: 'Secret Base Pro' });
+      const old = await cfg(env, 'webhook_id');   // пересоздание (смена ключа или версии API) — старый вебхук удалить, чтобы события не шли дважды
+      if (old && b.force) await stripe(env, 'DELETE', '/v1/webhook_endpoints/' + old).catch(() => { });
+      const wh = await stripe(env, 'POST', '/v1/webhook_endpoints', { url: url.origin + '/webhook', enabled_events: Object.fromEntries(EVENTS.map((e, i) => [i, e])), description: 'Secret Base Pro', ...(env.STRIPE_VERSION ? { api_version: env.STRIPE_VERSION } : {}) });
       await setCfg(env, 'whsec', wh.secret); await setCfg(env, 'webhook_id', wh.id); out.webhook = wh.id;
     }
     const pc = await stripe(env, 'POST', '/v1/billing_portal/configurations', {

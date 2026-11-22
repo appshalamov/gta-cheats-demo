@@ -101,7 +101,7 @@ export const PAYWALL = {
 // Рефералка (js/ref.js, сервер server/ref-worker): закрепление по ссылке и статистика креатора. api: null — выключено.
 export const REF = { api: 'https://ref.sbgta.app' };
 
-export const PAY = { api: 'https://pay.sbgta.app', test: true };   // test: true — оплата только у включивших ?paytest=1; live — test: false
+export const PAY = { api: 'https://pay.sbgta.app', test: false };   // боевая оплата для всех с 22.11.2026 (Stripe «MR DALLARS» → «Secret Base»); test: true — только у включивших ?paytest=1
 
 // ───────── креаторский раздел: режимы и закрытый доступ (Дизайн Secret Base/08 MVP/08 ТЗ §1, §2) ─────────
 // Режим площадки: 'beta' — закрытый доступ по приглашениям, суммы «предварительные», выплат нет; 'live' — боевой (сервер).

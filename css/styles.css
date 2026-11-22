@@ -320,6 +320,9 @@ body.in-ob #onboarding { display: flex; }
 .pw-month { display: block; width: 100%; min-height: 44px; margin-top: 2px; font-size: 14px; font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums;
   text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--text-2) 50%, transparent); }
 .pw-month.on { color: var(--accent); text-decoration-color: currentColor; }
+/* «Попробовать 3 дня бесплатно» — вторая кнопка под главной (22.11.2026) */
+.pw-try { display: block; width: 100%; min-height: 50px; margin-top: 10px; border-radius: 25px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-size: 16px; font-weight: 650; }
+.pw-try:active { transform: scale(.98); }
 .pw-gift { display: flex; align-items: flex-start; gap: 10px; margin-top: 14px; font-size: 15px; line-height: 1.3; }
 .pw-gift svg { flex: none; width: 20px; height: 20px; color: var(--accent); }
 .pw-gift b { font-weight: 700; }
@@ -393,8 +396,8 @@ body.in-ob #onboarding { display: flex; }
 .ins-btn { padding: 8px 14px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 14px; }
 .ins-x { width: 28px; height: 28px; padding: 6px; color: var(--text-2); flex: none; }
 
-@media (min-width: 700px) {
-  /* на компьютере — в рамке телефона, удобно для записи демо */
+@media (min-width: 700px) and (min-height: 560px) {
+  /* на компьютере — в рамке телефона, удобно для записи демо. min-height: телефон в ландшафте (852×393) рамку не получает (QA 20.11.2026) */
   body { background: radial-gradient(60% 60% at 50% 40%, color-mix(in srgb, var(--accent) 12%, var(--bg)), color-mix(in srgb, var(--bg) 70%, #000)); }
   :root[data-theme="light"] body { background: radial-gradient(60% 60% at 50% 40%, color-mix(in srgb, var(--accent) 12%, var(--bg)), var(--card-2)); }
   #main, #onboarding, #paywall, #sheet-layer { left: 50%; right: auto; width: 393px; transform: translateX(-50%); top: 50%; bottom: auto; height: min(852px, 100vh); margin-top: max(-426px, -50vh); border-radius: 44px; overflow: hidden; box-shadow: 0 0 0 10px #0e0d10, 0 30px 90px rgba(0,0,0,.6); background: var(--bg); }
@@ -568,7 +571,7 @@ body.in-ob #onboarding { display: flex; }
 .mpv-cap { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 20px; text-align: center; color: #fff; }
 .mpv-cap b { font-size: 16px; }
 .mpv-cap small { font-size: 11.5px; color: rgba(255,255,255,.6); }
-@media (min-width: 700px) { #mp-viewer { left: 50%; right: auto; width: 393px; transform: translateX(-50%); top: 50%; bottom: auto; height: min(852px, 100vh); margin-top: max(-426px, -50vh); border-radius: 44px; } }
+@media (min-width: 700px) and (min-height: 560px) { #mp-viewer { left: 50%; right: auto; width: 393px; transform: translateX(-50%); top: 50%; bottom: auto; height: min(852px, 100vh); margin-top: max(-426px, -50vh); border-radius: 44px; } }
 .mc-d { border-style: dashed; }
 .mc-dot { width: 8px; height: 8px; border-radius: 50%; background: #8b93a1; }
 .mp-acts { display: flex; gap: 8px; margin: 2px 0 14px; }
@@ -1062,3 +1065,23 @@ body[data-sheet="half"] .map-fabs, body[data-sheet="full"] .map-fabs { opacity: 
 .sheet { bottom: var(--kb, 0px); max-height: calc(var(--app-h, 100dvh) - var(--kb, 0px) - var(--safe-t) - 24px); transition-property: transform, bottom; }
 .kb-open .sheet-body { padding-bottom: 16px; }
 .kb-open #sheet-layer.snap .sheet { bottom: var(--kb, 0px); }
+
+/* Фото не загрузилось (нет сети, 404): без значка битой картинки — тёмный фон с подписью (QA 20.11.2026) */
+img.img-fail { visibility: hidden; }
+.img-fail-box { position: relative; }
+.img-fail-box::after { content: attr(data-nf); position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: var(--text-2); font-size: 13px; text-align: center; pointer-events: none; white-space: nowrap; }
+
+/* вход по почте (20.11.2026): шторки «Придумайте пароль», «Вход по почте», «Код на почту» */
+.au { display: flex; flex-direction: column; gap: 12px; padding-bottom: 8px; }
+.au .pick-t { margin-bottom: 0; }
+.au-p { margin: 0; font-size: 15px; line-height: 1.45; color: var(--text-2); }
+.au-in { width: 100%; height: 52px; border-radius: 16px; padding: 0 16px; font: inherit; font-size: 16px; color: var(--text); caret-color: var(--accent); outline: none;
+  -webkit-user-select: text; user-select: text; -webkit-appearance: none; appearance: none;
+  background: var(--glass-regular-bg); border: 1px solid var(--glass-regular-edge); transition: border-color var(--d-fast); }
+.au-in::placeholder { color: var(--text-3); }
+.au-in:focus { border-color: color-mix(in srgb, var(--accent) 70%, transparent); }
+.au-ro { color: var(--text-2); }
+.au .btn-primary, .au .btn-ghost { width: 100%; }
+.au .btn-primary[disabled] { opacity: .5; }
+.au-lnk { min-height: 44px; font-size: 14px; color: var(--text-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--text-2) 50%, transparent); }
+.au .btn-ghost { margin-top: 0; }

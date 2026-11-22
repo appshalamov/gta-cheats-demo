@@ -1,12 +1,15 @@
 -- Secret Base — аккаунты (вход через Google) и оплата Stripe. D1 (SQLite). Применить: wrangler d1 execute sb-pay --file schema.sql
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,               -- свой id (uuid)
-  google_sub TEXT UNIQUE NOT NULL,   -- id пользователя Google
-  email TEXT NOT NULL,
+  google_sub TEXT UNIQUE,            -- id пользователя Google (если входил через Google)
+  email TEXT NOT NULL,               -- в нижнем регистре
   name TEXT,
   customer_id TEXT,                  -- покупатель Stripe (cus_…)
   created INTEGER NOT NULL,
-  last_login INTEGER
+  last_login INTEGER,
+  pw TEXT,                           -- пароль: pbkdf2$<итерации>$<соль>$<хэш>, только хэш
+  pw_at INTEGER,
+  email_ok INTEGER NOT NULL DEFAULT 0 -- почта подтверждена (Google или код из письма); только тогда ищем покупки по почте
 );
 CREATE INDEX IF NOT EXISTS users_email ON users(email);
 CREATE INDEX IF NOT EXISTS users_customer ON users(customer_id);

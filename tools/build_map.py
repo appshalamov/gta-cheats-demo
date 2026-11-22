@@ -635,6 +635,7 @@ def build(game, cfg):
             "_gtadb": it.get("gtadb_id") or "",
             "_gxy": it.get("game_xy"), "_gaddr": it.get("game_addr"), "_ggid": it.get("game_gid"),
             "_hadr": 1 if isinstance(it.get("photo_real"), dict) and banned_real(it["photo_real"]) else 0,
+            "dt": it.get("found", ""),   # дата добавления (20.11.2026): свежее 7 дней — первым в ленте и с меткой «Новое»
         }
         places.append({k: v for k, v in place.items() if v not in (None, "", [], {"ru": "", "en": ""})})
     skipped = []
@@ -662,6 +663,7 @@ def build(game, cfg):
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"), "gg": gal(it, game, "game_gallery", 4),
             "_gxy": it.get("game_xy"), "_ggid": it.get("game_gid"), "_pair": bool(it.get("pair_photos")),
             "rk": {"prototype": "p", "reference": "r"}.get(it.get("real_kind"), "") or auto_rk(it),   # точка в жизни: прообраз / отсылка
+            **({"dt": it["found"]} if it.get("found") else {}),
         })
     if skipped:
         print(f"  пасхалки не в приложение: {len(skipped)} — " + ", ".join(skipped[:6]) + (" …" if len(skipped) > 6 else ""))
@@ -742,6 +744,7 @@ def build(game, cfg):
     sf = source_frames(game)
     if sf:
         data["sf"] = sf
+    import names_ru; names_ru.apply(data)   # nr / ar — русские названия мест с пояснениями (21.11.2026)
     (OUT / f"{game}.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), "utf-8")
     (OUT / f"gtadb_{game}.json").write_text(json.dumps({"game": cfg["gtadb"], "points": pts, **({"sf": sf} if sf else {})}, ensure_ascii=False, separators=(",", ":")), "utf-8")
     print(f"{game}: мест {len(places)} ({pf.name if pf else '—'}), с парой для сравнения {sum(1 for x in places if x.get('pairs'))}, пасхалок отдельно {len(eggs)}, точек gtadb {len(pts)} · без дублей: {rep_}")

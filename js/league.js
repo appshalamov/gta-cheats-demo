@@ -2440,4 +2440,6 @@ export async function openCreator(id = 'league', args = {}) { await load(); retu
 export async function becomePartner() { await load(); if (isPartner()) return push('league', {}); loginSheet(); }
 /** Сброс кэша профиля (смена языка, вход) — хаб перерисуется */
 export async function refresh() { await load(true); return renderHub(); }
+// «назад» системы (app.js): закрыть верхний экран раздела; false — раздел не открыт
+export function back() { if (!stack.length) return false; pop(); return true; }
 export function relang() { renderHub(); if (stack.length) rerender(); }
