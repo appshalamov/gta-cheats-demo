@@ -1022,6 +1022,12 @@ button.mp-ingame { width: 100%; padding: 0; text-align: left; font: inherit; cur
 #sheet-layer.snap.open[data-snap="full"] { background: rgba(0,0,0,.35); pointer-events: auto; }
 #sheet-layer.snap .sheet { pointer-events: auto; bottom: calc(var(--tabbar-h) + var(--safe-b));
   max-height: calc(var(--app-h, 100dvh) - var(--safe-t) - var(--tabbar-h) - var(--safe-b) - 16px); transition: transform .32s cubic-bezier(.2,.9,.25,1); }
+/* QA 22.11: низ шторки (в полоске и половине он уходит вниз за край) не ложится полупрозрачным слоем на нижнюю панель —
+   слой обрезан по её верхнему краю. Во весь экран и с клавиатурой шторка стоит выше панели целиком — там не режем. */
+body:not(.kb-open) #sheet-layer.snap:not([data-snap="full"]) { --cut: calc(var(--tabbar-h) + var(--safe-b));
+  clip-path: inset(0 0 var(--cut) 0);   /* clip-path — и для касаний: панель под обрезкой нажимается */
+  -webkit-mask-image: linear-gradient(to top, transparent var(--cut), #000 calc(var(--cut) + 20px));
+  mask-image: linear-gradient(to top, transparent var(--cut), #000 calc(var(--cut) + 20px)); }   /* строка у края тает, а не режется */
 #sheet-layer.snap:not(.open) .sheet { transform: translateY(calc(100% + var(--tabbar-h) + var(--safe-b) + 20px)) !important; }
 #sheet-layer.snap .sheet-body { padding-bottom: 22px; }
 #sheet-layer.snap:not([data-snap="full"]) .sheet-body { overflow-y: hidden; }
