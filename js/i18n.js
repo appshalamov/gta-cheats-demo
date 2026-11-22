@@ -6,7 +6,7 @@
 const T = {
   ru: {
     hub_cheats: 'Коды', hub_popular: 'Популярные', hub_places: 'Места', hub_places_sub: 'Одно место — в игре и в жизни', hub_eggs: 'Пасхалки',
-    hub_eggs_sub: 'Отсылки к реальным людям и событиям', hub_news: 'Новое', hub_news_sub: 'Новости, находки и места после выхода игры', news_src: 'Источник', news_srcs: 'Источники', news_new: 'Новое', news_on_map: 'Показать на карте', news_today: 'сегодня', news_yday: 'вчера', hub_favs: 'Избранное', hub_live: 'Коды проверены', hub_forecast: 'Прогноз кодов GTA 6',
+    hub_eggs_sub: 'Отсылки к реальным людям и событиям', hub_news: 'Новости', hub_news_sub: 'Новости, находки и места после выхода игры', hub_newmap: 'Новое на карте', hub_newmap_sub: 'Свежие места, новое первым', upd_now: 'обновлено только что', upd_min: 'обновлено {n} мин назад', upd_h: 'обновлено {n} ч назад', upd_d: 'обновлено {n} дн. назад', on_map: 'На карте', feed_empty: 'Пока пусто — загляните позже', news_src: 'Источник', news_srcs: 'Источники', news_new: 'Новое', news_on_map: 'Показать на карте', news_today: 'сегодня', news_yday: 'вчера', hub_favs: 'Избранное', hub_live: 'Коды проверены', hub_forecast: 'Прогноз кодов GTA 6',
     n_places: 'место|места|мест', n_codes: 'код|кода|кодов', n_days: 'день|дня|дней', w_in_days: 'через {n}',
     pass_cat: 'Категория', pass_plat: 'Платформа',
     hub_foot: 'Неофициальное приложение. Не связано с Rockstar Games и Take-Two Interactive.', see_all: 'Все', open_map: 'Карта', go_map: 'Открыть карту', codes_n: 'кодов',
@@ -131,7 +131,7 @@ const T = {
   },
   en: {
     hub_cheats: 'Codes', hub_popular: 'Popular', hub_places: 'Places', hub_places_sub: 'One place, in the game and in real life', hub_eggs: 'Easter eggs',
-    hub_eggs_sub: 'Nods to real people and events', hub_news: 'New', hub_news_sub: 'News, finds and places since launch', news_src: 'Source', news_srcs: 'Sources', news_new: 'New', news_on_map: 'Show on map', news_today: 'today', news_yday: 'yesterday', hub_favs: 'Favorites', hub_live: 'Codes verified', hub_forecast: 'GTA 6 code forecast',
+    hub_eggs_sub: 'Nods to real people and events', hub_news: 'News', hub_news_sub: 'News, finds and places since launch', hub_newmap: 'New on the map', hub_newmap_sub: 'Latest places first', upd_now: 'updated just now', upd_min: 'updated {n} min ago', upd_h: 'updated {n} h ago', upd_d: 'updated {n} d ago', on_map: 'On map', feed_empty: 'Nothing here yet — check back soon', news_src: 'Source', news_srcs: 'Sources', news_new: 'New', news_on_map: 'Show on map', news_today: 'today', news_yday: 'yesterday', hub_favs: 'Favorites', hub_live: 'Codes verified', hub_forecast: 'GTA 6 code forecast',
     n_places: 'place|places', n_codes: 'code|codes', n_days: 'day|days', w_in_days: 'in {n}',
     pass_cat: 'Category', pass_plat: 'Platform',
     hub_foot: 'Unofficial app. Not affiliated with Rockstar Games or Take-Two Interactive.', see_all: 'All', open_map: 'Map', go_map: 'Open map', codes_n: 'codes',

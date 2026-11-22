@@ -163,7 +163,14 @@ def run(base, out, vp="iph393"):
             ctx, pg = page(lang, {"onboarded": True, "installHint": True, "g6": 1, "lang": lang, "trialStart": now})
             ready(pg); flow(pg, "Главная")
             pg.mouse.wheel(0, 2500); pg.wait_for_timeout(600); pg.mouse.wheel(0, -2500)
-            flow(pg, "новость"); click(pg, '[data-action="news"]', 900) or click(pg, '.news-card', 900); close_all(pg)
+            flow(pg, "новость"); click(pg, '[data-action="open-news"]', 900) or click(pg, '[data-action="news"]', 900) or click(pg, '.news-card', 900); close_all(pg)
+            # разделы Главной (23.11.2026): «Все» новости (+ шторка новости), пасхалки, новое на карте
+            for v in ("news", "eggs", "newmap"):
+                flow(pg, f"раздел {v}")
+                if click(pg, f'[data-action="open-feed"][data-v="{v}"]', 900):
+                    pg.mouse.wheel(0, 2500); pg.wait_for_timeout(500)
+                    if v == "news" and click(pg, '#feed-body [data-action="open-news"]', 900): close_all(pg)
+                    click(pg, '#view-feed [data-action="back-home"]', 500)
             flow(pg, "коды"); click(pg, '[data-action="open-cheats"]', 800)
             for i in range(3):
                 flow(pg, f"шторка кода {i}")

@@ -399,3 +399,11 @@ a.row:active { background: color-mix(in srgb, var(--text) 6%, transparent); }
 .row.pro-row .row-v { width: 22px; height: 22px; color: var(--accent); }
 .st-reset { margin-top: 22px; }
 .st-reset .row-l, .st-reset .row-ic { color: var(--danger); }
+/* Экран «Все»: новости, пасхалки, новое на карте (23.11.2026) */
+.feed-list { padding: 4px 16px calc(var(--tabbar-h, 84px) + 24px); }
+.feed-upd { margin: 4px 0 6px; font-size: 13px; color: var(--text-3); }
+.nrow .nr-th { width: 96px; height: 54px; border-radius: 12px; }
+.nrow .pr-t b, .erow .pr-t b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.nr-date { color: var(--accent) !important; font-weight: 650; font-size: 12px !important; }
+.er-map { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 36px; padding: 0 12px; border-radius: 18px; font-size: 13px; font-weight: 650; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.er-map svg { width: 16px; height: 16px; }

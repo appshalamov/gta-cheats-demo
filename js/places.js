@@ -8,7 +8,7 @@ export const MAP_GAMES = ['gta6', 'gta5'];
 
 export async function loadPlaces(game) {
   if (!cache[game]) {
-    cache[game] = fetch(`data/map/${game}.json`).then((r) => r.json()).then((d) => {
+    cache[game] = fetch(`data/map/${game}.json`, { cache: 'no-cache' }).then((r) => r.json()).then((d) => {
       d.places.forEach((p) => { p.kind = 'place'; p.game = game; });
       d.eggs.forEach((e) => { e.kind = 'egg'; e.game = game; });
       // часть пасхалок лежит внутри карточки места (p.eggs) — добавляем их в общий список
@@ -124,10 +124,31 @@ export function featured(d, kind = 'place', n = 12) {
 }
 
 // Новости и инфоповоды (data/news.json): заголовок, дата, кадр, источник — без ссылок наружу
-let newsP = null;
-export function loadNews() {
-  if (!newsP) newsP = fetch('data/news.json').then((r) => (r.ok ? r.json() : { items: [] })).then((d) => d.items || []).catch(() => []);
+// «В реальном времени» (23.11.2026): данные берутся из сети (SW data/* — сначала сеть, без сети — кэш), cache: 'no-cache'
+// сверяет с сервером мимо HTTP-кэша браузера; при возврате в приложение app.js зовёт loadNews(true) / refreshPlaces().
+let newsP = null, newsMeta = { updated: '', fetched: 0 };
+export function loadNews(force = false) {
+  if (!newsP || force) {
+    const prev = newsP;
+    newsP = fetch('data/news.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((d) => { newsMeta = { updated: d.updated || '', fetched: Date.now() }; return d.items || []; })
+      .catch(() => (prev || Promise.resolve([])));
+  }
   return newsP;
+}
+export const newsUpdated = () => newsMeta.updated;   // ISO-время сборки ленты (tools/build_news.py)
+// перечитать места и пасхалки игры с сервера (возврат в приложение); старые данные остаются, если сети нет
+export async function refreshPlaces(game) {
+  const old = cache[game];
+  delete cache[game];
+  const d = await loadPlaces(game);
+  if (!d.places.length && old) { cache[game] = old; return old; }
+  return d;
+}
+// «Новое на карте»: места с датой добавления, свежее первым
+export function newOnMap(d, kind = 'place', n = 0) {
+  const list = (kind === 'egg' ? d.eggs : d.places).filter((o) => o.dt).sort((a, b) => String(b.dt).localeCompare(String(a.dt)) || hasPhoto(b) - hasPhoto(a));
+  return n ? list.slice(0, n) : list;
 }
 
 export const lang = () => getLang();

@@ -8,7 +8,7 @@ import * as ref from './ref.js';
 import { t, tn, L, setLang, getLang, SPEAK, credit } from './i18n.js';
 import { I, platformIcon, comboHTML, btn, balanceCombos } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
-import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
+import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, newsUpdated, refreshPlaces, newOnMap, hasPhoto, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
 // ───────── хранилище ─────────
 const KEY = 'cheats.v1';
@@ -389,6 +389,65 @@ function placeCard(o, opt = {}) {
     <span class="pc-txt"><b>${esc(realName(o))}</b>${o.kind === 'egg' ? (realSub(o) ? `<small>${esc(realSub(o))}</small>` : '') : `<small>${I.pin}${esc(cityOf(o) || realSub(o))}</small>`}</span>
   </div>`;
 }
+// ── Разделы «Новости», «Новое на карте», «Пасхалки» (Игорь 23.11.2026: «чтобы видели новости и события в реальном времени») ──
+// подпись кадра — коротко «© Rockstar Games» на любом языке (без «официальный скриншот …»: русский в EN)
+const creditShort = (c) => String(c || '').split('·')[0].trim();
+function agoText(iso) {
+  const ms = Date.parse(iso || ''); if (!ms) return '';
+  const m = Math.max(0, Math.round((Date.now() - ms) / 6e4));
+  if (m < 1) return t('upd_now');
+  if (m < 60) return tf('upd_min', { n: m });
+  const h = Math.round(m / 60); if (h < 24) return tf('upd_h', { n: h });
+  return tf('upd_d', { n: Math.round(h / 24) });
+}
+const newsOf = async () => (await loadNews()).filter((n) => n.game === store.game).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+const eggsNewFirst = (pd) => pd.eggs.slice().sort((a, b) => isNew(b) - isNew(a) || String(b.dt || '').localeCompare(String(a.dt || '')) || hasPhoto(b) - hasPhoto(a));
+// строка новости на экране «Все»: кадр, дата, заголовок, источник; тап — шторка
+function newsRow(n) {
+  const img = n.img ? imgUrl(n.img.thumb || n.img.file) : '';
+  return `<div class="prow nrow" data-action="open-news" data-id="${esc(n.id)}" role="button" tabindex="0">
+    <span class="pr-th nr-th">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${I.egg}</span>`}</span>
+    <span class="pr-t"><small class="nr-date">${esc(newsDate(n.date))}</small><b>${esc(L(n.t))}</b><small>${esc((n.src || []).join(', '))}</small></span>
+  </div>`;
+}
+// строка пасхалки: кадр, название, настоящее место, кнопка «На карте»
+function eggRow(o) {
+  const key = placeKey(o), img = thumbOf(o, 'game');
+  return `<div class="prow erow" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
+    <span class="pr-th">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${I.egg}</span>`}</span>
+    <span class="pr-t">${isNew(o) ? `<small class="nr-date">${esc(t('news_new'))}</small>` : ''}<b>${esc(L(o.t))}</b><small>${esc(realName(o))}</small></span>
+    <button class="er-map" data-action="open-place" data-key="${esc(key)}">${I.pin}<span>${esc(t('on_map'))}</span></button>
+  </div>`;
+}
+let feedSeq = 0;
+async function renderFeed() {
+  if (ui.tab !== 'feed') return;
+  const my = ++feedSeq, k = ui.feed || 'news';
+  $('#feed-title').textContent = t({ news: 'hub_news', eggs: 'hub_eggs', newmap: 'hub_newmap' }[k] || 'hub_news');
+  let html = '';
+  if (k === 'news') {
+    const list = await newsOf(), ago = agoText(newsUpdated());
+    html = (ago ? `<p class="feed-upd">${esc(ago)}</p>` : '') + list.map(newsRow).join('');
+  } else if (MAP_GAMES.includes(store.game)) {
+    const pd = await loadPlaces(store.game);
+    html = k === 'eggs' ? eggsNewFirst(pd).map(eggRow).join('') : newOnMap(pd).map((o) => placeRow(o)).join('');
+  }
+  if (my !== feedSeq) return;
+  $('#feed-body').innerHTML = html || `<div class="empty">${esc(t('feed_empty'))}</div>`;
+}
+// возврат в приложение и каждые 10 минут на виду: свежие новости (и места — не чаще раза в 30 минут), перерисовать разделы
+let liveAt = Date.now(), placesAt = Date.now();
+async function liveRefresh(force = false) {
+  if (document.visibilityState !== 'visible' || (!force && Date.now() - liveAt < 5 * 6e4)) return;
+  liveAt = Date.now();
+  const jobs = [loadNews(true)];
+  if (MAP_GAMES.includes(store.game) && Date.now() - placesAt > 30 * 6e4) { placesAt = Date.now(); jobs.push(refreshPlaces(store.game)); }
+  await Promise.all(jobs).catch(() => { });
+  if (ui.tab === 'home') renderHub(); else if (ui.tab === 'feed') renderFeed();
+}
+document.addEventListener('visibilitychange', () => liveRefresh());
+setInterval(() => liveRefresh(), 10 * 6e4);
+
 // ── «Новое» на Главной: карточка новости в стиле ленты; подробности — в шторке, источник подписью без ссылки ──
 function newsDate(d) {
   const days = Math.floor((Date.now() - Date.parse(d + 'T00:00:00Z')) / 864e5);
@@ -498,23 +557,27 @@ async function renderHub() {
   if (my !== hubSeq) return;
   const list = cheats();
   const popular = (POPULAR[store.game] || []).map((id) => list.find((c) => c.id === id)).filter(Boolean);
-  const places = pd ? featured(pd, 'place', 14) : [];
-  const eggs = pd ? featured(pd, 'egg', 12) : [];
-  const news = (await loadNews()).filter((n) => n.game === store.game).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 12);
+  const freshIds = new Set(pd ? newOnMap(pd).map((o) => o.id) : []);
+  const places = pd ? featured(pd, 'place', 14 + freshIds.size).filter((o) => !freshIds.has(o.id)).slice(0, 14) : [];
+  const eggs = pd ? eggsNewFirst(pd).filter(hasPhoto).slice(0, 12) : [];
+  const fresh = pd ? newOnMap(pd, 'place', 12) : [];
+  const news = (await newsOf()).slice(0, 12);
+  const more = (v) => `<button class="hub-more" data-action="open-feed" data-v="${v}">${t('see_all')}${I.chevron}</button>`;
   const favPreview = await favItems();
   if (my !== hubSeq) return;
   renderHero();
   box.innerHTML = `
     ${forecastBanner()}
-    ${news.length ? hubSection(t('hub_news'), t('hub_news_sub'), '', `<div class="hscroll">${news.map(newsCard).join('')}</div>`) : ''}
+    ${news.length ? hubSection(t('hub_news'), esc(agoText(newsUpdated())), more('news'), `<div class="hscroll" data-sec="news">${news.map(newsCard).join('')}</div>`) : ''}
+    ${fresh.length ? hubSection(t('hub_newmap'), t('hub_newmap_sub'), more('newmap'), `<div class="hscroll" data-sec="newmap">${fresh.map((o) => placeCard(o)).join('')}</div>`) : ''}
     ${hubSection(t('hub_cheats'), `<button class="hub-plat" data-action="switch">${esc(L(PLATFORMS[store.platform]))}<i class="gsw-chev">${I.chevron}</i></button>`, `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
         <span class="ct-ic">${I[c.icon]}</span><span class="ct-t"><b>${L(c)}</b><small>${tn(list.filter((x) => x.category === c.id).length, 'n_codes')}</small></span></button>`).join('')}</div>`)}
     ${popular.length ? hubSection(t('hub_popular'), '', '', `<div class="hscroll">${popular.map(miniCheat).join('')}</div>`) : ''}
     ${places.length ? hubSection(t('hub_places'), t('hub_places_sub'), `<button class="hub-more" data-action="tab" data-tab="map">${t('open_map')}${I.chevron}</button>`,
       `<div class="hscroll">${places.map((o) => placeCard(o)).join('')}</div>`) : ''}
-    ${eggs.length ? hubSection(t('hub_eggs'), t('hub_eggs_sub'), `<button class="hub-more" data-action="search-browse" data-type="eggs">${t('see_all')}${I.chevron}</button>`,
-      `<div class="hscroll">${eggs.map((o) => placeCard(o)).join('')}</div>`) : ''}
+    ${eggs.length ? hubSection(t('hub_eggs'), t('hub_eggs_sub'), more('eggs'),
+      `<div class="hscroll" data-sec="eggs">${eggs.map((o) => placeCard(o)).join('')}</div>`) : ''}
     ${favCount ? hubSection(t('hub_favs'), '', `<button class="hub-more" data-action="tab" data-tab="fav">${t('see_all')}${I.chevron}</button>`,
       `<div class="hscroll">${favPreview.slice(0, 10).map((x) => (x.kind ? placeCard(x, { game: x.game !== store.game }) : miniCheat(x))).join('')}</div>`) : ''}
     <div class="hub-foot">${t('hub_foot')}</div>`;
@@ -865,7 +928,7 @@ function renderAll() {
   const swAria = tf('sw_aria', { g: game().title, p: L(PLATFORMS[store.platform]) });
   ['#plat-btn', '#plat-btn2'].forEach((sel) => { const b = $(sel); if (!b) return; b.innerHTML = swHTML; b.setAttribute('aria-label', swAria); });
   const tabs = [...document.querySelectorAll('.tab')];
-  const tabOf = ui.tab === 'cheats' ? 'home' : ui.tab; // «Все читы» — экран внутри Главной
+  const tabOf = ui.tab === 'cheats' || ui.tab === 'feed' ? 'home' : ui.tab; // «Все читы» и «Все» разделов — экраны внутри Главной
   tabs.forEach((b) => b.classList.toggle('on', b.dataset.tab === tabOf));
   const ti = tabs.findIndex((b) => b.dataset.tab === tabOf);
   $('#tabbar').style.setProperty('--i', Math.max(0, ti));
@@ -882,7 +945,7 @@ function renderAll() {
   document.querySelectorAll('.tab-l').forEach((s) => { s.textContent = t('tab_' + s.dataset.k); });
   document.querySelectorAll('[data-t]').forEach((s) => { s.textContent = t(s.dataset.t); });
   document.querySelectorAll('[data-ta]').forEach((s) => s.setAttribute('aria-label', t(s.dataset.ta)));   // подписи кнопок-значков для VoiceOver на языке интерфейса (QA 22.11)
-  renderHome(); renderSearch(); renderFavs(); renderSettings();
+  renderHome(); renderFeed(); renderSearch(); renderFavs(); renderSettings();
   maybeCodesTour();
 }
 
@@ -1637,6 +1700,11 @@ document.addEventListener('click', async (e) => {
       ui.tab = 'cheats'; renderAll(); setTimeout(() => scrollToCat(ui.cat, false), 0); break;
     }
     case 'back-home': haptic(); ui.tab = 'home'; renderAll(); break;
+    case 'open-feed': haptic(); ui.feed = el.dataset.v || 'news'; ui.tab = 'feed'; renderAll(); { const b = $('#feed-body'); if (b) b.scrollTop = 0; } break;
+    case 'hub-game': {
+      if (v === store.game) break;
+      haptic(); changeGame(v); break;
+    }
     case 'open-news': haptic(); openNews(el.dataset.id); break;
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
     case 'fav-place': {
