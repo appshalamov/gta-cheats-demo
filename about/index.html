@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Secret Base</title>
+  <meta name="description" content="Места из GTA 6 и GTA 5 в реальной жизни: карта, сравнение «в игре ⇄ в жизни» и чит-коды с кнопками вашего контроллера.">
+  <meta property="og:title" content="Secret Base — места из GTA в реальной жизни">
+  <meta property="og:description" content="Карта настоящих мест, сравнение «в игре ⇄ в жизни» и чит-коды для GTA 6 и GTA 5.">
+  <meta property="og:image" content="https://sbgta.app/s/og/site.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://sbgta.app/about/"><meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#1c1b20">
+  <link rel="icon" href="../icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+  <link rel="preload" href="../fonts/onest.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="about.css?v=1">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="https://sbgta.app/" aria-label="SBgta.app"><img src="../icons/brand-mark.svg" alt=""><span>SBgta.app</span></a>
+  <nav class="lang" aria-label="Язык / Language"><button data-lang="ru">RU</button><button data-lang="en">EN</button></nav>
+</header>
+
+<main>
+<!-- 1. Первый экран -->
+<section class="s hero dark" id="top">
+  <div class="hero-text">
+    <h1 data-i="h1"></h1>
+    <p class="lead" data-i="lead"></p>
+    <div class="acts">
+      <a class="b b-main" href="https://sbgta.app/" data-i="open"></a>
+      <a class="b b-line js-pdf" href="Secret-Base-presentation-RU.pdf" download data-i="pdf"></a>
+      <a class="b b-line js-wa" href="https://wa.me/17473448896" target="_blank" rel="noopener" data-i="contact"></a>
+    </div>
+    <div class="qr-line"><img class="qr" src="img/qr.svg" alt="QR sbgta.app"><p data-i="qr"></p></div>
+  </div>
+  <figure class="hero-cmp">
+    <div class="cmp" id="cmp-hero" data-k="0"></div>
+    <figcaption class="cap" id="cap-hero"></figcaption>
+  </figure>
+</section>
+
+<!-- 2. Установка -->
+<section class="s light" id="install">
+  <h2 data-i="ins_h"></h2>
+  <p class="sub" data-i="ins_sub"></p>
+  <ol class="steps">
+    <li><span class="num">1</span><img data-src="img/install-2-{l}.jpg" alt=""><p data-i="ins1"></p></li>
+    <li><span class="num">2</span><img data-src="img/install-3-{l}.jpg" alt=""><p data-i="ins2"></p></li>
+    <li><span class="num">3</span><img data-src="img/install-4-{l}.jpg" alt=""><p data-i="ins3"></p></li>
+    <li><span class="num">4</span><img data-src="img/install-5-{l}.jpg" alt=""><p data-i="ins4"></p></li>
+  </ol>
+  <p class="note" data-i="ins_other"></p>
+</section>
+
+<!-- 3. Сравнение -->
+<section class="s dark" id="compare">
+  <div class="split">
+    <div class="split-text">
+      <h2 data-i="cmp_h"></h2>
+      <p class="sub" data-i="cmp_sub"></p>
+      <div class="pairs" id="pairs" role="tablist"></div>
+    </div>
+    <figure class="big-cmp">
+      <div class="cmp" id="cmp-big"></div>
+      <figcaption class="cap" id="cap-big"></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 4. Утверждение -->
+<section class="s pink statement">
+  <h2 data-i="st_h"></h2>
+  <p data-i="st_p"></p>
+</section>
+
+<!-- 5. Места и карта -->
+<section class="s light" id="places">
+  <h2 data-i="pl_h"></h2>
+  <p class="sub" data-i="pl_sub"></p>
+  <div class="tiles" id="tiles"></div>
+  <div class="map-wrap">
+    <div class="map-tabs" id="map-tabs"><button data-c="mia" class="on" data-i="mia"></button><button data-c="la" data-i="la"></button><button data-c="keys" data-i="keys"></button></div>
+    <div class="map" id="map"><p class="map-wait" data-i="map_wait"></p></div>
+    <div class="map-info" id="map-info"><p data-i="map_hint"></p></div>
+  </div>
+</section>
+
+<!-- 6. Что внутри -->
+<section class="s dark" id="inside">
+  <h2 data-i="in_h"></h2>
+  <div class="inside">
+    <div class="feat">
+      <h3 data-i="f1_h"></h3><p data-i="f1_p"></p>
+      <h3 data-i="f2_h"></h3><p data-i="f2_p"></p>
+      <h3 data-i="f3_h"></h3><p data-i="f3_p"></p>
+      <h3 data-i="f4_h"></h3><p data-i="f4_p"></p>
+    </div>
+    <div class="code" id="code">
+      <div class="code-head">
+        <div class="seg" id="code-pick"></div>
+        <div class="seg" id="plat-pick"></div>
+      </div>
+      <p class="code-name" id="code-name"></p>
+      <p class="code-hold" id="code-hold"></p>
+      <div class="combo" id="combo"></div>
+      <button class="b b-main say" id="say"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span data-i="say"></span></button>
+      <p class="code-src" id="code-src"></p>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Кому и ссылка -->
+<section class="s light" id="who">
+  <div class="split">
+    <div class="split-text">
+      <h2 data-i="who_h"></h2>
+      <dl class="who">
+        <dt data-i="w1"></dt><dd data-i="w1p"></dd>
+        <dt data-i="w2"></dt><dd data-i="w2p"></dd>
+        <dt data-i="w3"></dt><dd data-i="w3p"></dd>
+        <dt data-i="w4"></dt><dd data-i="w4p"></dd>
+      </dl>
+    </div>
+    <div class="link-demo">
+      <h3 data-i="ln_h"></h3>
+      <p data-i="ln_p"></p>
+      <div class="chat">
+        <div class="bubble">
+          <span class="og" id="og-img"></span>
+          <b id="og-title"></b>
+          <span>sbgta.app</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Финал -->
+<section class="s dark final" id="end">
+  <div class="final-text">
+    <h2 data-i="end_h"></h2>
+    <p class="lead" data-i="end_p"></p>
+    <p class="stores" data-i="stores"></p>
+    <div class="acts">
+      <a class="b b-main" href="https://sbgta.app/" data-i="open"></a>
+      <a class="b b-line js-pdf" href="Secret-Base-presentation-RU.pdf" download data-i="pdf"></a>
+      <a class="b b-line js-wa" href="https://wa.me/17473448896" target="_blank" rel="noopener" data-i="contact"></a>
+    </div>
+    <p class="phone"><span data-i="wa"></span> <a class="js-wa" href="https://wa.me/17473448896" target="_blank" rel="noopener">+1 (747) 344-8896</a></p>
+  </div>
+  <div class="final-qr"><img src="img/qr.svg" alt="QR sbgta.app"><b>sbgta.app</b></div>
+  <p class="disc" data-i="disc"></p>
+</section>
+</main>
+
+<div class="ov" id="ov" hidden>
+  <div class="ov-box" role="dialog" aria-modal="true">
+    <button class="ov-x" id="ov-x" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="cmp" id="cmp-ov"></div>
+    <div class="ov-body">
+      <h3 id="ov-name"></h3>
+      <p class="ov-city" id="ov-city"></p>
+      <div class="acts">
+        <a class="b b-main" id="ov-open" data-i="open_place"></a>
+        <a class="b b-line" id="ov-maps" target="_blank" rel="noopener" data-i="maps"></a>
+      </div>
+      <p class="cap" id="ov-cap"></p>
+    </div>
+  </div>
+</div>
+
+<script src="about.js?v=1"></script>
+</body>
+</html>
