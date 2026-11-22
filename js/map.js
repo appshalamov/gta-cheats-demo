@@ -2286,6 +2286,38 @@ export async function tourOpen(id, dur = 2200) {
   openPlace(i, false, 'half');
   return true;
 }
+// Прогрев карты, пока человек смотрит код в знакомстве (Игорь 23.11.2026: «пока первый код показывался, карта должна догрузиться:
+// сначала игровая, потом реальная»). Невидимая карта MapLibre за краем экрана: стиль и плитки «Игры» — Майами целиком и место
+// знакомства, затем «Жизни» у того же места; после — убирается (плитки остаются в кэше браузера и SW). Повторный вызов безопасен.
+let warm = null;
+export function prewarmMap(g = 'gta6', placeId = '') {
+  if (warm) return warm;
+  if (map || !navigator.onLine) return Promise.resolve(false);
+  warm = (async () => {
+    const [d] = await Promise.all([loadGame(g), loadLib()]);
+    if (map || !window.maplibregl) return false;
+    const el = document.createElement('div');
+    el.setAttribute('aria-hidden', 'true');
+    el.style.cssText = `position:fixed;top:0;left:${-innerWidth - 64}px;width:${innerWidth}px;height:${innerHeight}px;pointer-events:none;contain:strict`;
+    document.body.appendChild(el);
+    const idle = (m, ms) => new Promise((r) => { const t = setTimeout(r, ms); m.once('idle', () => { clearTimeout(t); r(); }); });
+    const p = d.places.find((x) => x.id === placeId);
+    const sv = startView(d);
+    const w = new window.maplibregl.Map({ container: el, style: GAME_MAP[g] ? gameStyleFor(g) : STYLE[themeKey()], center: sv.center, zoom: sv.zoom,
+      interactive: false, attributionControl: false, fadeDuration: 0, transformRequest: (url) => { const u = tileUrl(url); return u ? { url: u } : { url }; } });
+    w.on('error', () => { }); w.on('styleimagemissing', blankImage(w));
+    try {
+      await idle(w, 9000);
+      if (GAME_MAP[g] && p?.gm && !approx(g)) { w.jumpTo({ center: G2M(p.gm[0], p.gm[1]), zoom: 6.5 }); await idle(w, 6000); }
+      if (p) {
+        w.setStyle(STYLE[themeKey()], { diff: false });
+        w.jumpTo({ center: [p.lon, p.lat], zoom: 14.5 }); await idle(w, 9000);
+      }
+    } finally { w.remove(); el.remove(); }
+    return true;
+  })().catch(() => false);
+  return warm;
+}
 export const tourSlide = (st, v) => setInlineX(st, v);
 export const tourMode = () => mode;
 
