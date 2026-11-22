@@ -49,6 +49,17 @@ def local(ph):
     return {'f': '../' + f, 't': '../' + (ph.get('thumb') or f), 'c': c}
 
 
+def tips(p):
+    """совет по-русски и по-английски; «английский» текст на кириллице (перевода ещё нет) не берём"""
+    t = p.get('tip') or {}
+    out = {}
+    if t.get('ru'):
+        out['ru'] = t['ru']
+    if t.get('en') and not re.search(r'[А-Яа-яЁё]{3,}', t['en']):
+        out['en'] = t['en']
+    return out
+
+
 def og(g, pid):
     f = sorted((ROOT / 's' / 'og' / g).glob(f'{pid}.*.jpg'))
     return f'../s/og/{g}/{f[-1].name}' if f else ''
@@ -75,7 +86,8 @@ def main():
         en = NAME.get(k) or short(p['n'])
         top.append({'k': k, 'g': g, 'en': en, 'ru': NAME.get(k) or (short(p['nr']) if p.get('nr') else en),
                     'city': CITY.get(k) or city(p, g) or REGION[g]['en'], 'game': gm, 'real': rl, 'hero': k in HERO,
-                    'lat': p['lat'], 'lon': p['lon'], 'og': og(g, p['id'])})
+                    'lat': p['lat'], 'lon': p['lon'], 'og': og(g, p['id']),
+                    'ac': p.get('ac', ''), 'cf': p.get('cf', ''), 'tip': tips(p)})
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text(json.dumps({'dots': dots, 'top': top}, ensure_ascii=False, separators=(',', ':')))
     print(f'about/places.json: {len(dots)} точек, {len(top)} плашек, {OUT.stat().st_size // 1024} КБ')
