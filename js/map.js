@@ -8,6 +8,7 @@
 
 import { t, L as tr, getLang } from './i18n.js';
 import { GTA6 } from './config.js';
+import { lifeStyle, LIFE_VARIANTS } from './mapstyle.js';
 
 const COLORS = { confirmed: '#22c3d9', likely: '#f5b942', speculative: '#9a8cab', egg: '#f472b6', gtadb: '#8b93a1' };
 const GAMES = {
@@ -32,6 +33,9 @@ let wantMode = mode;     // что выбрал человек; у игры бе
 // После выхода (19.11.2026) карта игры включается флагом GTA6.map = 'live' (js/config.js, tools/gta6_switch.py) — плитки вышедшей
 // игры с нашего хостинга. «Леонида» остаётся запасной: GTA6.map = 'approx' или ?leonida в адресе (сравнить и откатить без выкладки).
 const LEONIDA = new URLSearchParams(location.search).has('leonida');
+// Карта GTA 6 из вышедшей игры (22.11.2026): набор «day» — карта паузы игры (gtadb.org, CC BY 4.0, © Rockstar Games), зум до зданий.
+// Прежняя карта сообщества yanis18 — запасная: ?yanis в адресе (сравнить и откатить без выкладки).
+const TILES6 = new URLSearchParams(location.search).has('yanis') ? { tiles: 'yanis18', maxz: 5 } : { tiles: GTA6.tiles, maxz: GTA6.maxz };
 const GAME_MAP = { gta5: true, gta6: GTA6.map === 'live' && !LEONIDA ? true : BETA ? 'approx' : false };
 // игра уже вышла, а точной карты ещё нет — честная подпись «в ближайшие дни» вместо «в день выхода»
 const OUT6 = () => Date.now() >= new Date('2026-11-19T00:00:00').getTime();
@@ -121,10 +125,11 @@ function leonidaStyle() {
 }
 const gameStyle = (g) => ({
   version: 8, glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
-  sources: { gtamap: { type: 'raster', tiles: [`https://gtadb-tile.invalid/${g}/{z}/{x}/{y}`], tileSize: 256, minzoom: 2, maxzoom: g === 'gta6' ? GTA6.maxz + 2 : 8,
-    attribution: g === 'gta6' && !COMMUNITY6 ? '© Rockstar Games' : `${g === 'gta6' ? '≈ yanis · ' : ''}gtadb.org (CC BY 4.0) · © Rockstar Games` } },
-  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': g === 'gta5' ? '#1b1f23' : '#0e0f12' } },
-    { id: 'gtamap', type: 'raster', source: 'gtamap', paint: { 'raster-fade-duration': 150, ...(g === 'gta6' && COMMUNITY6 ? { 'raster-saturation': -0.35, 'raster-brightness-max': 0.8, 'raster-contrast': 0.1 } : { 'raster-saturation': -0.6, 'raster-brightness-max': 0.7, 'raster-contrast': 0.15 }) } }],
+  sources: { gtamap: { type: 'raster', tiles: [`https://gtadb-tile.invalid/${g}/{z}/{x}/{y}`], tileSize: 256, minzoom: 2, maxzoom: g === 'gta6' ? TILES6.maxz + 2 : 8,
+    attribution: `${g === 'gta6' && COMMUNITY6 ? '≈ yanis · ' : ''}gtadb.org (CC BY 4.0) · © Rockstar Games` } },
+  // карта из игры GTA 6 — в родных цветах (как в меню паузы), фон — цвет моря этой карты, чтобы края без плиток не чернели
+  layers: [{ id: 'bg', type: 'background', paint: { 'background-color': g === 'gta5' ? '#1b1f23' : COMMUNITY6 ? '#0e0f12' : '#2f90b0' } },
+    { id: 'gtamap', type: 'raster', source: 'gtamap', paint: { 'raster-fade-duration': 150, ...(g === 'gta6' ? (COMMUNITY6 ? { 'raster-saturation': -0.35, 'raster-brightness-max': 0.8, 'raster-contrast': 0.1 } : {}) : { 'raster-saturation': -0.6, 'raster-brightness-max': 0.7, 'raster-contrast': 0.15 }) } }],
 });
 const gameStyleFor = (g) => (approx(g) ? leonidaStyle() : gameStyle(g));
 function tileUrl(url) {   // https://gtadb-tile.invalid/gta5/6/40/52 → плитка gtadb z−2 в репозитории на GitHub
@@ -147,7 +152,15 @@ const sfItem = (url) => {
   const m = BETA && /\/photos\/6\/(L\d+),ig\.jpg$/.exec(url || ''), box = m && SF[m[1]];
   return box ? { url: `${ASSETS}official/6/${m[1]}.jpg`, box, fb: url } : null;
 };   // GTA 6 (yanis) не переносили: карта выключена
-const STYLE = { dark: 'https://tiles.openfreemap.org/styles/dark', light: 'https://tiles.openfreemap.org/styles/positron' };
+// «Жизнь» — реальный мир в цветах карты GTA 6 (js/mapstyle.js, 22.11.2026). ?life=day|night|neon — сравнить варианты,
+// ?life=ofm — прежние стили OpenFreeMap (откат без выкладки). LIFE — вариант для светлой и тёмной темы приложения.
+const LIFE_Q = new URLSearchParams(location.search).get('life');
+const LIFE = { light: 'day', dark: 'day' };
+const OFM = { dark: 'https://tiles.openfreemap.org/styles/dark', light: 'https://tiles.openfreemap.org/styles/positron' };
+const STYLE = {
+  get dark() { return LIFE_Q === 'ofm' ? OFM.dark : lifeStyle(LIFE_VARIANTS.includes(LIFE_Q) ? LIFE_Q : LIFE.dark); },
+  get light() { return LIFE_Q === 'ofm' ? OFM.light : lifeStyle(LIFE_VARIANTS.includes(LIFE_Q) ? LIFE_Q : LIFE.light); },
+};
 
 // ───── короткие подписи к значкам на многих языках (остальное понимается по картинке) ─────
 const W = {
@@ -513,8 +526,8 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
 // GTA 5 — набор «radar»: карта из меню паузы игры (тёмная суша, светлые дороги) — просьба Игоря 14.10.2026 «как в GTA».
 // GTA 6: набор плиток с нашего хостинга (GTA6.tiles). yanis18 — карта сообщества (gtadb «yanis,18»), сверена с постером Rockstar;
 // взята по решению Игоря 18.11.2026 («утечку берём… перед тем как брать — проверь»), до карты из вышедшей игры.
-export const COMMUNITY6 = /yanis/i.test(GTA6.tiles);
-const GMAP = { gta5: { v: 5, key: 'V', set: 'radar', z: 4 }, gta6: { v: 6, key: 'VI', set: GTA6.tiles, z: Math.min(4, GTA6.maxz) } };
+export const COMMUNITY6 = /yanis/i.test(TILES6.tiles);
+const GMAP = { gta5: { v: 5, key: 'V', set: 'radar', z: 4 }, gta6: { v: 6, key: 'VI', set: TILES6.tiles, z: Math.min(4, TILES6.maxz) } };
 function gameBlock(gm, addr, region, gid, ref = {}) {
   if (!GAME_MAP[game]) return `<div class="mp-ingame mp-ig-soon"><span class="mp-ig-txt"><small>${IC.game}${esc(w('whereGame'))}</small><b>${esc(soon6())}</b></span></div>`;
   const at = `data-k="${ref.k || ''}" data-i="${ref.i ?? ''}"`;
