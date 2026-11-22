@@ -133,18 +133,13 @@
   --scrim-photo-bottom: linear-gradient(180deg, rgba(0,0,0,0) 52%, var(--bg) 100%);
   --brand-tile: linear-gradient(180deg, #27252c, #18171c);
 }
-:root, :root[data-skin="gta6"] {
+:root, :root[data-skin="gta6"], :root[data-skin="gta5"] {
   --accent: #ff8aa0;
   --accent-2: #ff6683;
   --accent-ink: #2b0d16;
   --accent-soft: rgba(255,138,160,0.16);
 }
-:root[data-skin="gta5"] {
-  --accent: #f4ad3d;
-  --accent-2: #f29f1b;
-  --accent-ink: #2a1800;
-  --accent-soft: rgba(244,173,61,0.16);
-}
+/* GTA 5 — те же розовые кнопки, что у GTA 6 (Игорь 22.11.2026): свой акцент у gta5 убран, берётся общий */
 :root[data-skin="gta4"] {
   --accent: #e3c48a;
   --accent-2: #dcb56d;
@@ -207,17 +202,11 @@
   --glass-thick-shadow: 0 -10px 40px rgba(0,0,0,.35);
   --scrim-modal: rgba(0,0,0,.3);
 }
-:root[data-theme="light"]:not([data-skin]), :root[data-theme="light"][data-skin="gta6"] {
+:root[data-theme="light"]:not([data-skin]), :root[data-theme="light"][data-skin="gta6"], :root[data-theme="light"][data-skin="gta5"] {
   --accent: #c2385c;
   --accent-2: #aa3151;
   --accent-ink: #ffffff;
   --accent-soft: rgba(194,56,92,0.1);
-}
-:root[data-theme="light"][data-skin="gta5"] {
-  --accent: #975700;
-  --accent-2: #784500;
-  --accent-ink: #ffffff;
-  --accent-soft: rgba(151,87,0,0.1);
 }
 :root[data-theme="light"][data-skin="gta4"] {
   --accent: #8a6420;
