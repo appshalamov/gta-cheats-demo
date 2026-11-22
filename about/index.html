@@ -1,23 +1,23 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Secret Base</title>
-  <meta name="description" content="Места из GTA 6 и GTA 5 в реальной жизни: карта, сравнение «в игре ⇄ в жизни» и чит-коды с кнопками вашего контроллера.">
-  <meta property="og:title" content="Secret Base — места из GTA в реальной жизни">
-  <meta property="og:description" content="Карта настоящих мест, сравнение «в игре ⇄ в жизни» и чит-коды для GTA 6 и GTA 5.">
+  <title>Secret Base — GTA places in real life</title>
+  <meta name="description" content="A guide to the world of GTA in real life: about 500 places across Miami and Los Angeles, in game ⇄ real life comparison, cheat codes. Unofficial app.">
+  <meta property="og:title" content="Secret Base — GTA places in real life">
+  <meta property="og:description" content="A guide to the world of GTA in real life: about 500 places, in game ⇄ real life comparison, cheat codes.">
   <meta property="og:image" content="https://sbgta.app/s/og/site.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
   <meta property="og:url" content="https://sbgta.app/about/"><meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#1c1b20">
   <link rel="icon" href="../icons/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
   <link rel="preload" href="../fonts/onest.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="about.css?v=1">
+  <link rel="stylesheet" href="about.css?v=2">
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="https://sbgta.app/" aria-label="SBgta.app"><img src="../icons/brand-mark.svg" alt=""><span>SBgta.app</span></a>
+  <a class="brand" href="https://sbgta.app/"><img src="../icons/brand-mark.svg" alt=""><span>Secret Base</span></a>
   <nav class="lang" aria-label="Язык / Language"><button data-lang="ru">RU</button><button data-lang="en">EN</button></nav>
 </header>
 
@@ -27,105 +27,126 @@
   <div class="hero-text">
     <h1 data-i="h1"></h1>
     <p class="lead" data-i="lead"></p>
+    <p class="roles"><span data-i="roles_l"></span> <a href="#player" data-i="r1"></a> <a href="#creator" data-i="r2"></a> <a href="#traveler" data-i="r3"></a></p>
     <div class="acts">
-      <a class="b b-main" href="https://sbgta.app/" data-i="open"></a>
-      <a class="b b-line js-pdf" href="Secret-Base-presentation-RU.pdf" download data-i="pdf"></a>
-      <a class="b b-line js-wa" href="https://wa.me/17473448896" target="_blank" rel="noopener" data-i="contact"></a>
+      <a class="b b-main" href="https://sbgta.app/" data-i="b_open"></a>
+      <a class="b b-line js-pdf" href="Secret-Base-presentation-EN.pdf" download data-i="b_pdf"></a>
+      <a class="b b-line js-wa" href="https://wa.me/17473448896" target="_blank" rel="noopener" data-i="b_contact"></a>
     </div>
-    <div class="qr-line"><img class="qr" src="img/qr.svg" alt="QR sbgta.app"><p data-i="qr"></p></div>
+    <div class="qr-line"><img class="qr" src="img/qr.svg" alt="QR sbgta.app"><p data-i="qr_p"></p></div>
   </div>
   <figure class="hero-cmp">
-    <div class="cmp" id="cmp-hero" data-k="0"></div>
-    <figcaption class="cap" id="cap-hero"></figcaption>
+    <div class="cmp" id="cmp-hero"></div>
+    <figcaption class="cap"><span id="cap-hero"></span> <span data-i="disc_s"></span></figcaption>
   </figure>
 </section>
 
 <!-- 2. Установка -->
 <section class="s light" id="install">
   <h2 data-i="ins_h"></h2>
-  <p class="sub" data-i="ins_sub"></p>
+  <p class="sub" data-i="ins_p"></p>
   <ol class="steps">
     <li><span class="num">1</span><img data-src="img/install-2-{l}.jpg" alt=""><p data-i="ins1"></p></li>
     <li><span class="num">2</span><img data-src="img/install-3-{l}.jpg" alt=""><p data-i="ins2"></p></li>
     <li><span class="num">3</span><img data-src="img/install-4-{l}.jpg" alt=""><p data-i="ins3"></p></li>
     <li><span class="num">4</span><img data-src="img/install-5-{l}.jpg" alt=""><p data-i="ins4"></p></li>
   </ol>
-  <p class="note" data-i="ins_other"></p>
+  <div class="ins-foot"><p class="note" data-i="ins_n"></p><div class="deck-only qr-mini"><img src="img/qr.svg" alt=""><b>sbgta.app</b></div></div>
 </section>
 
-<!-- 3. Сравнение -->
+<!-- 3. Один жест -->
 <section class="s dark" id="compare">
   <div class="split">
     <div class="split-text">
       <h2 data-i="cmp_h"></h2>
-      <p class="sub" data-i="cmp_sub"></p>
+      <p class="sub" data-i="cmp_p"></p>
+      <p class="pick" data-i="cmp_pick"></p>
       <div class="pairs" id="pairs" role="tablist"></div>
     </div>
     <figure class="big-cmp">
       <div class="cmp" id="cmp-big"></div>
+      <div class="deck-only minis"><div class="cmp" id="cmp-m1"></div><div class="cmp" id="cmp-m2"></div></div>
       <figcaption class="cap" id="cap-big"></figcaption>
     </figure>
   </div>
 </section>
 
-<!-- 4. Утверждение -->
+<!-- 4. Города списаны с настоящих -->
 <section class="s pink statement">
   <h2 data-i="st_h"></h2>
-  <p data-i="st_p"></p>
+  <p class="st-p" data-i="st_p"></p>
+  <p class="st-q" data-i="st_q"></p>
+  <p class="st-roles"><a href="#player" data-i="st_r1"></a><a href="#creator" data-i="st_r2"></a><a href="#traveler" data-i="st_r3"></a></p>
 </section>
 
-<!-- 5. Места и карта -->
-<section class="s light" id="places">
-  <h2 data-i="pl_h"></h2>
-  <p class="sub" data-i="pl_sub"></p>
-  <div class="tiles" id="tiles"></div>
-  <div class="map-wrap">
-    <div class="map-tabs" id="map-tabs"><button data-c="mia" class="on" data-i="mia"></button><button data-c="la" data-i="la"></button><button data-c="keys" data-i="keys"></button></div>
-    <div class="map" id="map"><p class="map-wait" data-i="map_wait"></p></div>
-    <div class="map-info" id="map-info"><p data-i="map_hint"></p></div>
+<!-- 5. Игроку -->
+<section class="s light role" id="player">
+  <div class="r-head">
+    <h2 data-i="pl_h"></h2>
+    <p class="sub" data-i="pl_p"></p>
   </div>
-</section>
-
-<!-- 6. Что внутри -->
-<section class="s dark" id="inside">
-  <h2 data-i="in_h"></h2>
-  <div class="inside">
-    <div class="feat">
-      <h3 data-i="f1_h"></h3><p data-i="f1_p"></p>
-      <h3 data-i="f2_h"></h3><p data-i="f2_p"></p>
-      <h3 data-i="f3_h"></h3><p data-i="f3_p"></p>
-      <h3 data-i="f4_h"></h3><p data-i="f4_p"></p>
-    </div>
+  <div class="r-demo">
+    <p class="try" data-i="pl_try"></p>
     <div class="code" id="code">
-      <div class="code-head">
-        <div class="seg" id="code-pick"></div>
-        <div class="seg" id="plat-pick"></div>
-      </div>
+      <div class="code-head"><div class="seg" id="code-pick"></div><div class="seg" id="plat-pick"></div></div>
       <p class="code-name" id="code-name"></p>
       <p class="code-hold" id="code-hold"></p>
       <div class="combo" id="combo"></div>
       <button class="b b-main say" id="say"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span data-i="say"></span></button>
-      <p class="code-src" id="code-src"></p>
+    </div>
+    <div class="shots">
+      <figure><img data-src="img/shots/p1-{l}.jpg" alt=""><figcaption data-i="pl_s1"></figcaption></figure>
+      <figure><img data-src="img/shots/p2-{l}.jpg" alt=""><figcaption data-i="pl_s2"></figcaption></figure>
+    </div>
+  </div>
+  <div class="r-list">
+    <dl class="feats">
+      <div><dt data-i="pl1_h"></dt><dd data-i="pl1_p"></dd></div>
+      <div><dt data-i="pl2_h"></dt><dd data-i="pl2_p"></dd></div>
+      <div><dt data-i="pl3_h"></dt><dd data-i="pl3_p"></dd></div>
+      <div><dt data-i="pl4_h"></dt><dd data-i="pl4_p"></dd></div>
+      <div><dt data-i="pl5_h"></dt><dd data-i="pl5_p"></dd></div>
+    </dl>
+    <p class="src" data-i="pl_src"></p>
+  </div>
+</section>
+
+<!-- 6. Путешественнику -->
+<section class="s dark" id="traveler">
+  <h2 data-i="tr_h"></h2>
+  <p class="sub" data-i="tr_p"></p>
+  <p class="try" data-i="tr_try"></p>
+  <div class="tiles" id="tiles"></div>
+  <div class="fav-row"><b data-i="tr_fav"></b><div class="fav-list" id="fav-list"></div></div>
+  <div class="map-wrap">
+    <div class="map-tabs" id="map-tabs"><button data-c="mia" class="on" data-i="mia"></button><button data-c="la" data-i="la"></button><button data-c="keys" data-i="keys"></button></div>
+    <div class="map" id="map"><p class="map-wait" data-i="map_wait"></p></div>
+    <div class="map-info" id="map-info"><p data-i="tr_map"></p></div>
+  </div>
+  <div class="tr-grid">
+    <dl class="feats two">
+      <div><dt data-i="tr1_h"></dt><dd data-i="tr1_p"></dd></div>
+      <div><dt data-i="tr2_h"></dt><dd data-i="tr2_p"></dd></div>
+      <div><dt data-i="tr3_h"></dt><dd data-i="tr3_p"></dd></div>
+      <div><dt data-i="tr4_h"></dt><dd data-i="tr4_p"></dd></div>
+      <div><dt data-i="tr5_h"></dt><dd data-i="tr5_p"></dd></div>
+      <div><dt data-i="tr6_h"></dt><dd data-i="tr6_p"></dd></div>
+    </dl>
+    <div class="shots">
+      <figure><img data-src="img/shots/t1-{l}.jpg" alt=""><figcaption data-i="tr_s1"></figcaption></figure>
+      <figure><img data-src="img/shots/t2-{l}.jpg" alt=""><figcaption data-i="tr_s2"></figcaption></figure>
     </div>
   </div>
 </section>
 
-<!-- 7. Кому и ссылка -->
-<section class="s light" id="who">
-  <div class="split">
-    <div class="split-text">
-      <h2 data-i="who_h"></h2>
-      <dl class="who">
-        <dt data-i="w1"></dt><dd data-i="w1p"></dd>
-        <dt data-i="w2"></dt><dd data-i="w2p"></dd>
-        <dt data-i="w3"></dt><dd data-i="w3p"></dd>
-        <dt data-i="w4"></dt><dd data-i="w4p"></dd>
-      </dl>
-    </div>
-    <div class="link-demo">
-      <h3 data-i="ln_h"></h3>
-      <p data-i="ln_p"></p>
+<!-- 7. Автору роликов -->
+<section class="s light" id="creator">
+  <div class="cr-grid">
+    <div class="cr-chat">
+      <p class="try" data-i="cr_try"></p>
+      <div class="pairs dark-ink" id="cr-pick"></div>
       <div class="chat">
+        <p class="msg" data-i="cr_msg"></p>
         <div class="bubble">
           <span class="og" id="og-img"></span>
           <b id="og-title"></b>
@@ -133,21 +154,77 @@
         </div>
       </div>
     </div>
+    <div class="cr-text">
+      <h2 data-i="cr_h"></h2>
+      <p class="sub" data-i="cr_p"></p>
+      <dl class="feats">
+        <div><dt data-i="cr1_h"></dt><dd data-i="cr1_p"></dd></div>
+        <div><dt data-i="cr2_h"></dt><dd data-i="cr2_p"></dd></div>
+        <div><dt data-i="cr3_h"></dt><dd data-i="cr3_p"></dd></div>
+        <div><dt data-i="cr4_h"></dt><dd data-i="cr4_p"></dd></div>
+      </dl>
+    </div>
+  </div>
+  <div class="cr-soon">
+    <h3 data-i="cr_soon"></h3>
+    <dl class="feats three">
+      <div><dt data-i="cr5_h"></dt><dd data-i="cr5_p"></dd></div>
+      <div class="pay"><dt data-i="cr6_h"></dt><dd data-i="cr6_p"></dd></div>
+      <div><dt data-i="cr7_h"></dt><dd data-i="cr7_p"></dd></div>
+    </dl>
+  </div>
+  <figure class="scheme">
+    <div class="sch-video"><img src="../img/map/gta6/gta6-colony-hotel_real.jpg" alt=""><span class="sch-link">sbgta.app/s/gta6/…</span></div>
+    <svg class="sch-path" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M2 40 C 60 40, 120 10, 196 22"/><circle cx="196" cy="22" r="4"/></svg>
+    <div class="sch-phone"><img data-src="img/place-colony-{l}.jpg" alt=""></div>
+    <figcaption data-i="cr_sch"></figcaption>
+  </figure>
+</section>
+
+<!-- 8. Гид пополняется -->
+<section class="s dark" id="grows">
+  <h2 data-i="nw_h"></h2>
+  <p class="sub" data-i="nw_p"></p>
+  <ol class="flow">
+    <li><span class="num">1</span><span class="draw" id="draw-1"></span><h3 data-i="nw1_h"></h3><p data-i="nw1_p"></p></li>
+    <li><span class="num">2</span><span class="draw" id="draw-2"></span><h3 data-i="nw2_h"></h3><p data-i="nw2_p"></p></li>
+    <li><span class="num">3</span><span class="draw" id="draw-3"></span><h3 data-i="nw3_h"></h3><p data-i="nw3_p"></p></li>
+  </ol>
+  <div class="nw-grid">
+    <div>
+      <h3 data-i="nw_last"></h3>
+      <ul class="news" id="news"></ul>
+      <div class="ugc">
+        <span class="draw" id="draw-4"></span>
+        <div><h3 data-i="nw4_h"></h3><p id="nw4_p"></p></div>
+      </div>
+    </div>
+    <figure class="shot-one"><img data-src="img/shots/n1-{l}.jpg" alt=""><figcaption data-i="nw_s1"></figcaption></figure>
   </div>
 </section>
 
-<!-- 8. Финал -->
+<!-- 9. Сегодня и скоро -->
+<section class="s light" id="now">
+  <h2 data-i="now_h"></h2>
+  <div class="now">
+    <div><h3 data-i="now_l"></h3><ul id="now-list"></ul></div>
+    <div class="soon"><h3 data-i="soon_l"></h3><ul id="soon-list"></ul></div>
+  </div>
+</section>
+
+<!-- 10. Финал -->
 <section class="s dark final" id="end">
   <div class="final-text">
     <h2 data-i="end_h"></h2>
     <p class="lead" data-i="end_p"></p>
-    <p class="stores" data-i="stores"></p>
+    <p class="stores" data-i="end_s"></p>
+    <p class="b2b" data-i="end_b2b"></p>
     <div class="acts">
-      <a class="b b-main" href="https://sbgta.app/" data-i="open"></a>
-      <a class="b b-line js-pdf" href="Secret-Base-presentation-RU.pdf" download data-i="pdf"></a>
-      <a class="b b-line js-wa" href="https://wa.me/17473448896" target="_blank" rel="noopener" data-i="contact"></a>
+      <a class="b b-main" href="https://sbgta.app/" data-i="b_open"></a>
+      <a class="b b-line js-pdf" href="Secret-Base-presentation-EN.pdf" download data-i="b_pdf"></a>
+      <a class="b b-line js-wa" href="https://wa.me/17473448896" target="_blank" rel="noopener" data-i="b_contact"></a>
     </div>
-    <p class="phone"><span data-i="wa"></span> <a class="js-wa" href="https://wa.me/17473448896" target="_blank" rel="noopener">+1 (747) 344-8896</a></p>
+    <p class="phone"><span>WhatsApp</span> <a class="js-wa" href="https://wa.me/17473448896" target="_blank" rel="noopener">+1 (747) 344-8896</a></p>
   </div>
   <div class="final-qr"><img src="img/qr.svg" alt="QR sbgta.app"><b>sbgta.app</b></div>
   <p class="disc" data-i="disc"></p>
@@ -156,20 +233,22 @@
 
 <div class="ov" id="ov" hidden>
   <div class="ov-box" role="dialog" aria-modal="true">
-    <button class="ov-x" id="ov-x" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <button class="ov-x" id="ov-x" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <div class="cmp" id="cmp-ov"></div>
     <div class="ov-body">
-      <h3 id="ov-name"></h3>
+      <div class="ov-title"><h3 id="ov-name"></h3><button class="heart" id="ov-fav" aria-pressed="false"></button></div>
       <p class="ov-city" id="ov-city"></p>
+      <p class="ov-meta" id="ov-meta"></p>
+      <p class="ov-tip" id="ov-tip"></p>
       <div class="acts">
-        <a class="b b-main" id="ov-open" data-i="open_place"></a>
-        <a class="b b-line" id="ov-maps" target="_blank" rel="noopener" data-i="maps"></a>
+        <a class="b b-main" id="ov-open" data-i="m_app"></a>
+        <a class="b b-line" id="ov-maps" target="_blank" rel="noopener" data-i="m_maps"></a>
       </div>
       <p class="cap" id="ov-cap"></p>
     </div>
   </div>
 </div>
 
-<script src="about.js?v=1"></script>
+<script src="about.js?v=2"></script>
 </body>
 </html>
