@@ -30,6 +30,28 @@ LATIN_OK = re.compile(r"Wikimedia Commons|CC BY(?:-SA)?(?: \d\.\d)?|Public domai
                       r"Bank of Liberty|Bay of \w+|Hall of Fame|Isle of \w+|Port of \w+|Museum of [\w ]+|"
                       r"University of [\w ]+|Church of [\w ]+|Statue of \w+|City of \w+|Pier \d+|"
                       r"\bThe [A-Z][\w'’]*(?: [A-Z][\w'’]*)*", re.U)
+# имена собственные со служебными словами (of / and / the / on): реальные места, бренды, игры, художники. Плюс все строки
+# tools/names_ru.json, где перевод = оригиналу (имя переводить не нужно), и текст в «ёлочках» (вывеска, цитата, название).
+PROPER_EXTRA = ["Ocarina of Time", "Know Your Meme", "Gons and Audet", "Bank of America", "Toyota of Downtown LA",
+                "Everglades on the Bay", "Brickell on the River", "Quantum on the Bay", "Zak the Baker", "Jack of Hearts",
+                "King of Diamonds", "Adrienne Arsht Center for the Performing Arts", "Hobbs Milford", "Duke of Wellington", "loanDepot park"]
+def _proper():
+    f = ROOT / "tools" / "names_ru.json"
+    ru = json.loads(f.read_text("utf-8")) if f.exists() else {}
+    names = sorted({k for k, v in ru.items() if k == v} | set(PROPER_EXTRA), key=len, reverse=True)
+    # + цепочка слов с заглавной, связанных of / on / the / and / a / is (Walk of Fame, Larios on the Beach, Love Is a Long Road):
+    # имя собственное; английская фраза из обычных слов цепочку рвёт («home in the show») и ловится стоп-словами
+    chain = r"\b(?!(?:Open|Close|Back|Next|Tap|Swipe|Share|Search|Watch|Unlock|Try|Sign|Log|Get|Go|Save|Start|Continue|Cancel|Done|Show|Hide|Find|Add|Remove|Buy|Subscribe|Restore|Learn|See|View)\b)[A-Z][\w'’.&-]*(?: (?:[A-Z][\w'’.&-]*|of|on|the|and|a|is|in|at|de|del))* [A-Z][\w'’.&-]*"
+    return re.compile("|".join(re.escape(n) for n in names) + r"|«[^»]*»|" + chain)
+PROPER = _proper()
+# строчное английское слово в названии/адресе = пояснение («building», «former», «near»): в русском интерфейсе его надо перевести
+_LOW = re.compile(r"(?<![\w'’&.-])[a-z]{3,}(?![\w'’-])")
+_LOW_OK = {"del", "des", "von", "van", "der", "les", "los", "las", "dos", "via", "mia", "ave", "blvd"}
+def _descr(v):
+    t = LATIN_OK.sub("", PROPER.sub("", v))
+    return bool(EN_STOP.search(t)) or any(w not in _LOW_OK for w in _LOW.findall(t))
+# переключатель языка подписан на своём языке (как у всех сайтов): «Русская версия» в английском режиме — не утечка
+EN_OK = re.compile(r"^Русская версия$")
 CREDIT = re.compile(r"(?:Фото|Photo|Кадр|Frame)\s*:[^\n]*|[^\n]*\b(?:CC BY|CC0|Public domain|Wikimedia)[^\n]*", re.I)
 
 OBSERVER = r"""
@@ -228,11 +250,11 @@ def run(base, out, vp="iph393"):
     leaks = {"en": [], "ru": []}
     for s, where in found["en"].items():
         t = CREDIT.sub("", s)
-        if CYR.search(t):
+        if CYR.search(t) and not EN_OK.match(t.strip()):
             leaks["en"].append({"text": s[:200], "where": where})
     for s, where in found["ru"].items():
         if not CYR.search(s) and len(s) < 4: continue
-        t = LATIN_OK.sub("", CREDIT.sub("", s))
+        t = LATIN_OK.sub("", PROPER.sub("", CREDIT.sub("", s)))
         m = EN_STOP.search(t)
         if m and not re.fullmatch(r"[A-Z0-9 _\-]+", m.group(0)):
             leaks["ru"].append({"text": s[:200], "where": where, "word": m.group(0)})
@@ -277,9 +299,9 @@ def static_checks():
         d = json.loads((ROOT / "data" / "map" / f"{g}.json").read_text("utf-8"))
         for k in ("places", "eggs"):
             for p in d.get(k) or []:
-                for f in ("n", "a"):
+                for f in ("n", "a", "g", "p"):
                     v = p.get(f)
-                    if isinstance(v, str) and v not in ru_names and EN_STOP.search(LATIN_OK.sub("", v)):
+                    if isinstance(v, str) and v not in ru_names and _descr(v):
                         bad.append({"file": f"data/map/{g}.json", "issue": f"нет русского имени (tools/names_ru.json): {p.get('id')}.{f} = {v[:60]}"})
     for fp in sorted((ROOT / "data").rglob("*.json")):
         if fp.name.startswith("._"): continue

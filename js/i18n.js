@@ -280,4 +280,6 @@ export function t(key) { return (T[lang] && T[lang][key]) ?? T.ru[key] ?? key; }
 // Имена собственные остаются латиницей; ссылку в Карты строим по n (английское — лучше ищется).
 export const rn = (o) => (o ? (lang === 'ru' && o.nr) || o.n || '' : '');
 export const ra = (o) => (o ? (lang === 'ru' && o.ar) || o.a || '' : '');
+export const rg = (o) => { const v = o ? (lang === 'ru' && o.gr) || o.g : ''; return typeof v === 'string' ? v : ''; };   // игровое имя места (gr — русское пояснение)
+export const rp = (o) => { const v = o ? (lang === 'ru' && o.pn) || o.p : ''; return typeof v === 'string' ? v : ''; };   // реальное место пасхалки (pn — по-русски; pr занято реальным фото)
 export function L(v) { if (v == null) return ''; return typeof v === 'string' ? v : (v[lang] ?? v.ru ?? v.en ?? ''); }

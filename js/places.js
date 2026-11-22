@@ -1,7 +1,7 @@
 // Места и пасхалки из data/map/<game>.json — для Главной, Поиска и Избранного.
 // Сама карта (js/map.js) грузит те же файлы отдельно; здесь только чтение и поиск.
 
-import { L, getLang, rn, ra } from './i18n.js';
+import { L, getLang, rn, ra, rg, rp } from './i18n.js';
 
 const cache = {};
 export const MAP_GAMES = ['gta6', 'gta5'];
@@ -54,16 +54,16 @@ export const catLabel = (c) => (CAT_LABELS[c] ? L(CAT_LABELS[c]) : c || '');
 export const catIcon = (c) => CAT_LABELS[c]?.icon || 'pin'; // id значка из I (js/icons.js)
 export const CONF = ['confirmed', 'likely', 'speculative'];
 
-export const titleOf = (o) => (o.kind === 'egg' ? L(o.t) : o.g || '');
+export const titleOf = (o) => (o.kind === 'egg' ? L(o.t) : rg(o));
 // у пасхалки место в жизни — первая часть адреса без пояснений («Piru United Methodist Church — прообраз …», «(Оаху)»):
 // пояснения в данных по-русски и с игровыми названиями (тест 21.10.2026: русский текст на Главной в английском интерфейсе)
-export const realOf = (o) => (o.kind === 'egg' ? (o.p || '').split(',')[0].split(' — ')[0].replace(/\s*\([^)]*[А-Яа-яЁё][^)]*\)/g, '').trim() : rn(o));
+export const realOf = (o) => (o.kind === 'egg' ? rp(o).split(',')[0].split(' — ')[0].replace(/\s*\([^)]*[А-Яа-яЁё][^)]*\)/g, '').trim() : rn(o));
 // Решение Игоря №15: на карточках мест (Главная, Поиск, Избранное) крупно — настоящее место, как в карточке карты
 // (map.js realShort: до первой запятой или скобки); игровое название не показываем. Мелко — адрес (место) или город (пасхалка).
 export const realName = (o) => { const r = realOf(o); return (o.kind === 'egg' ? r : r.split(/,| \(/)[0].trim()) || r || catLabel(o.c); };
 export const realSub = (o) => (o.kind === 'egg' ? cityOf(o) : ra(o) || cityOf(o));
 export function cityOf(o) {
-  const parts = String(o.kind === 'egg' ? o.p : o.a || '').split(',').map((s) => s.trim()).filter(Boolean);
+  const parts = String(o.kind === 'egg' ? rp(o) : ra(o)).split(',').map((s) => s.trim()).filter(Boolean);
   const st = parts.findIndex((s) => /^(FL|CA)\b/.test(s));
   if (st > 0) return parts[st - 1];
   return parts.length > 1 ? parts[parts.length - 2] : '';
@@ -86,7 +86,7 @@ function hay(o) {
   if (!o._hay) {
     o._hay = norm(o.kind === 'egg'
       ? [o.t?.ru, o.t?.en, o.d?.ru, o.d?.en, o.p].join(' ')
-      : [o.g, o.r, o.n, o.a, o.c, catLabel(o.c), CAT_LABELS[o.c]?.en, o.s?.ru, o.s?.en].join(' '));
+      : [o.g, o.gr, o.r, o.n, o.nr, o.a, o.c, catLabel(o.c), CAT_LABELS[o.c]?.en, o.s?.ru, o.s?.en].join(' '));
   }
   return o._hay;
 }
