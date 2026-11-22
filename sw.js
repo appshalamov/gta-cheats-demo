@@ -106,8 +106,13 @@ async function uiTrim(c) {   // не больше UI_MAX картинок: са�
   for (const k of ks.slice(0, Math.max(0, n))) await c.delete(k);
 }
 // данные: сразу из кэша (если есть), в фоне — свежие с сервера в кэш; нет в кэше — из сети (и в кэш)
+// фоновая проверка свежести — не на каждый запрос: тот же файл просят и предзагрузка, и приложение, и карта
+// (WebKit 23.11.2026: data/map 265 КБ качался дважды на каждом запуске). Данные карты — раз в 30 мин, остальное — раз в минуту.
+const revAt = {};
+const revDue = (u) => { const now = Date.now(), gap = /\/data\/map\//.test(u) ? 30 * 6e4 : 6e4; if (now - (revAt[u] || 0) < gap) return false; revAt[u] = now; return true; };
 async function data(req, ev) {
   const hit = await (await shell()).match(req, { ignoreSearch: true });
+  if (hit && !revDue(new URL(req.url).pathname)) return hit;
   // есть в кэше — отдаём, а свежую версию берём с проверкой на сервере (no-cache); нет — обычный запрос
   // (HTTP-кэш браузера свежий 10 мин: без лишней проверки по сети, на 3G это ~0,6 с)
   const net = fetch(req, hit ? { cache: 'no-cache' } : undefined).then((r) => {
