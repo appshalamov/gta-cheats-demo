@@ -1245,14 +1245,27 @@ function paywallPanel(st) {
   const head = st === 'renew' ? tf('pw_h_renew', { d: dlong(proEnds()) }) : t('pw_h_' + (st === 'link' ? 'pro' : st));
   const lead = st === 'renew' ? tf('pw_l_renew', { p: usd(Z.pass), y: usd(Z.year) }) : t('pw_l_' + (st === 'link' ? 'pro' : st));
   if (!Z.month && plan === 'month') plan = 'year';
-  const card = (id, title, sub, best) => `<button class="plan pw-plan${plan === id ? ' on' : ''}" data-action="plan" data-v="${id}" aria-pressed="${plan === id}">
-      <span class="plan-n"><b>${esc(title)}${best ? `<em>${esc(best)}</em>` : ''}</b><small>${esc(sub)}</small></span></button>`;
+  // Пейвол по чек-листу конверсии (скилл paywall-konversiya, 22.11.2026): год выбран сразу и это видно (кружок с галочкой,
+  // заливка, рамка 2 px); цена списания — крупно справа, «в месяц» — мельче; на кнопке — действие и цена выбранного срока;
+  // под кнопкой — что будет дальше (автопродление или разовый платёж); «3 дня бесплатно» — рядом, с честным «без карты».
+  const anchor = Z.month ? Z.month * 12 : Z.pass * 4, save = Math.round((1 - Z.year / anchor) * 100);
+  const P = {
+    year: { n: t('pw_n_year'), s: tf('pw_year_s', { m: usd(Math.round(Z.year / 12 * 100) / 100) }), p: Z.year, u: t('pw_u_year'), best: tf('pw_best', { n: save }) },
+    pass: { n: t('pw_n_pass'), s: t('pw_pass_s'), p: Z.pass, u: t('pw_u_pass') },
+    month: Z.month ? { n: t('pw_n_month'), s: t('pw_month_s'), p: Z.month, u: t('pw_u_month') } : null,
+  };
+  const card = (id) => { const c = P[id]; if (!c) return ''; const on = plan === id;
+    return `<button class="plan pw-plan pw-${id}${on ? ' on' : ''}" data-action="plan" data-v="${id}" role="radio" aria-checked="${on}">
+      <span class="pw-radio" aria-hidden="true">${I.check}</span>
+      <span class="plan-n"><b>${esc(c.n)}${c.best ? `<em>${esc(c.best)}</em>` : ''}</b><small>${esc(c.s)}</small></span>
+      <span class="plan-p"><b>${usd(c.p)}</b><small>${esc(c.u)}</small></span></button>`; };
+  const cur = P[plan] || P.year;
   const buy = st === 'nopay'
     ? `<button class="btn-primary pw-cta" data-action="pw-partner">${t('pw_partner')}</button>`
-    : `<div class="plans">${card('year', tf('pw_year', { p: usd(Z.year) }), tf('pw_year_s', { m: usd(Math.round(Z.year / 12 * 100) / 100) }), t('pw_best'))}${card('pass', tf('pw_pass', { p: usd(Z.pass) }), t('pw_pass_s'))}</div>
-      ${Z.month ? `<button class="pw-month${plan === 'month' ? ' on' : ''}" data-action="plan" data-v="month" aria-pressed="${plan === 'month'}">${esc(tf('pw_month', { p: usd(Z.month) }))}</button>` : ''}
-      <button class="btn-primary pw-cta" data-action="buy">${t(pay.enabled() ? 'pw_cta_pay' : 'pw_cta')}</button>
-      ${canTryFree() && st !== 'renew' ? `<button class="pw-try" data-action="try-free">${t('pw_try')}</button>` : ''}
+    : `<div class="plans" role="radiogroup" aria-label="${esc(t('pw_plans'))}">${card('year')}${card('pass')}${card('month')}</div>
+      <button class="btn-primary pw-cta" data-action="buy">${esc(tf('pw_cta_' + plan, { p: usd(cur.p) }))}</button>
+      <p class="pw-after">${I.lock}<span>${esc(t('pw_after_' + plan))}</span></p>
+      ${canTryFree() && st !== 'renew' ? `<button class="pw-try" data-action="try-free"><b>${t('pw_try')}</b><small>${t('pw_try_s')}</small></button>` : ''}
       ${pay.enabled() ? `<p class="pw-acct">${esc(pay.signedIn() ? tf('pw_acct_in', { e: pay.user()?.email || '' }) : t('pw_acct'))}</p>` : ''}`;
   return `<h1 class="pw-title${head.length > 24 ? ' pw-long' : ''}">${esc(head)}</h1>
     <p class="pw-lead">${esc(lead)}</p>
