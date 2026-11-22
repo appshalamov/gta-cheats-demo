@@ -1924,7 +1924,7 @@ document.addEventListener('visibilitychange', () => {
     // первый раз — после прогрева карты (её файлы уже в HTTP-кэше, установка не качает их второй раз) или когда карта
     // открылась и легла, но не позже 20 с после первого экрана
     if (hadController) reg();
-    else { swAfterWarm = reg; addEventListener('sb:map-idle', reg, { once: true }); afterFirstScreen(reg, 20000); }
+    else { swAfterWarm = reg; addEventListener('sb:map-idle', () => setTimeout(reg, 4000), { once: true }); afterFirstScreen(reg, 20000); }   // не в момент, когда «запасная карта» грузит «Жизнь»
   }
   if (window.speechSynthesis) speechSynthesis.getVoices();
   // пробный доступ: 72 часа с первого открытия на устройстве (если сервер не дал trial_until)
@@ -1961,7 +1961,7 @@ document.addEventListener('visibilitychange', () => {
   // прогрев — как только показано главное фото Главной (не ждём остальных картинок): к тапу по карте она уже в пути
   if (store.onboarded) afterHero(() => { new Image().src = mapPhUrl(MAP_OF(store.game)); window.SB.prewarmMap(); }, 600);
   // фото эпох для офлайна — когда канал свободен: карта открылась и плитки легли (+6 с) или через 45 с без карты
-  addEventListener('sb:map-idle', () => setTimeout(warmUI, 6000), { once: true });
+  addEventListener('sb:map-idle', () => setTimeout(warmUI, 10000), { once: true });
   afterFirstScreen(warmUI, 45000);
   checkTrialEnd();
   // таймер пробного: строка «ещё …» и конец пробного без перезапуска
