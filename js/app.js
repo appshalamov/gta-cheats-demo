@@ -102,6 +102,7 @@ const zone = () => PAYWALL.zones[PAYWALL.countries[country()] || 1];
 // оплата не принимается (Россия, Беларусь) — только по стране профиля, не по языку
 const noPay = () => PAYWALL.noPay.includes(String(acc.P?.country || '').toUpperCase());
 const usd = (v) => '$' + v.toFixed(2).replace('.', getLang() === 'ru' ? ',' : '.');
+const usdS = (v) => (Number.isInteger(v) ? '$' + v : usd(v));   // цена промокода: «$1», а не «$1,00»
 function dlong(ms) {
   const d = new Date(ms), o = { day: 'numeric', month: 'long' };
   if (d.getFullYear() !== new Date().getFullYear()) o.year = 'numeric';
@@ -1255,7 +1256,7 @@ function pwValues() {
     .concat(PAYWALL.scouts > 0 ? [tf('pw_scouts', { n: PAYWALL.scouts, m: 0 })] : []);
 }
 // честный текст триала по промокоду (скилл paywall-konversiya): сегодня $X, с такого-то числа — полная цена, продление, отмена
-const trialAfter = (tr, pl, full) => tf('pw_after_trial_' + pl, { p: usd(tr.price), f: usd(full), d: dlong(Date.now() + tr.days * DAY) });
+const trialAfter = (tr, pl, full) => tf('pw_after_trial_' + pl, { p: usdS(tr.price), f: usd(full), d: dlong(Date.now() + tr.days * DAY) });
 // оплата внутри приложения (22.11.2026): панель пейвола превращается в форму Stripe (Embedded Checkout, Managed Payments).
 // Запасной путь — страница Stripe, как раньше (Stripe.js не загрузился, старый сервер).
 async function payInApp(pl) {
@@ -1302,7 +1303,7 @@ function paywallPanel(st) {
   if (tr) P.pass = null;
   const cur = P[plan] || P.year;
   const pn = promo ? tn(promo.days, 'n_days') : '';
-  const promoOn = promo ? `<p class="pw-promo-on">${I.check}<span>${esc(tf(tr ? 'pw_promo_trial' : 'pw_promo_free', { c: promo.code, n: pn, p: usd(promo.price) }))}</span><button type="button" data-action="promo-clear">${t('pw_promo_clear')}</button></p>` : '';
+  const promoOn = promo ? `<p class="pw-promo-on">${I.check}<span>${esc(tf(tr ? 'pw_promo_trial' : 'pw_promo_free', { c: promo.code, n: pn, p: usdS(promo.price) }))}</span><button type="button" data-action="promo-clear">${t('pw_promo_clear')}</button></p>` : '';
   // «Есть промокод?» — тихая строка под кнопкой; поле раскрывается по тапу (код вводится здесь, а не на странице Stripe)
   const promoRow = !pay.enabled() || st === 'renew' || promo ? '' : promoUi === 'open'
     ? `<div class="pw-promo"><input id="pw-code" class="au-in" type="text" value="${esc(promoTyped)}" placeholder="${esc(t('pw_promo_ph'))}" autocapitalize="characters" autocomplete="off" spellcheck="false" enterkeyhint="go" aria-label="${esc(t('pw_promo_ph'))}"><button type="button" class="pw-promo-go" data-action="promo-apply">${t('pw_promo_apply')}</button></div>`
@@ -1316,7 +1317,7 @@ function paywallPanel(st) {
     ? `<button class="btn-primary pw-cta" data-action="pw-partner">${t('pw_partner')}</button>`
     : `<div class="plans" role="radiogroup" aria-label="${esc(t('pw_plans'))}">${card('year')}${card('pass')}${card('month')}</div>
       ${promoOn}
-      <button class="btn-primary pw-cta" data-action="buy">${esc(tr ? tf('pw_cta_trial', { n: pn, p: usd(tr.price), f: usd(cur.p) }) : tf('pw_cta_' + plan, { p: usd(cur.p) }))}</button>
+      <button class="btn-primary pw-cta" data-action="buy">${esc(tr ? tf('pw_cta_trial', { n: pn, p: usdS(tr.price), f: usd(cur.p) }) : tf('pw_cta_' + plan, { p: usd(cur.p) }))}</button>
       <p class="pw-after">${I.lock}<span>${esc(tr ? trialAfter(tr, plan, cur.p) : t('pw_after_' + plan))}</span></p>
       ${promoRow}
       ${canTryFree() && st !== 'renew' && !tr ? `<button class="pw-try" data-action="try-free"><b>${t('pw_try')}</b><small>${t('pw_try_s')}</small></button>` : ''}
