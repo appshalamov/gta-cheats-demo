@@ -569,8 +569,10 @@ function moveInk() {
 
 // Карта открывается одним общим обещанием: два одновременных open() создавали карту дважды.
 let mapOpening = null;
-// вкладка «Карта» — только GTA 6 (Игорь 22.11.2026); место другой игры из карточки открывается в своей игре (ui.mapHold)
-function openMap(preferGame = ui.mapHold || 'gta6') {
+// вкладка «Карта» открывает карту выбранной игры: GTA 5 → Лос-Анджелес, GTA 6 → Майами (Игорь 22.11.2026: «выбрал GTA 5,
+// перешёл в карты — Майами, это грубая ошибка»); место другой игры из карточки открывается в своей игре (ui.mapHold)
+const MAP_OF = (g) => (MAP_GAMES.includes(g) ? g : 'gta6');
+function openMap(preferGame = ui.mapHold || MAP_OF(store.game)) {
   // та же логика, что в map.js open(): игра из настроек приложения переключает карту, если её там поменяли
   if (preferGame !== ui.mapPrefer) { ui.mapPrefer = preferGame; ui.mapGame = preferGame; applySkin(); }
   if (!mapOpening) mapOpening = mapMod().then((m) => m.open(mapCtx(), preferGame).then(() => m)).catch((e) => { mapOpening = null; toast(t('map_error')); throw e; });

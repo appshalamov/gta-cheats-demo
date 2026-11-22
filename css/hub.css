@@ -351,3 +351,7 @@ mark.hl { background: none; color: var(--accent); font-weight: 750; } /* сов�
 .news-sheet p { margin: 0; line-height: 1.5; color: var(--text-2, var(--text)); }
 .news-sheet .ns-src { font-size: 13px; color: var(--muted, var(--text-2)); }
 .news-sheet .btn-primary { margin-top: 6px; }
+
+/* Игорь 22.11.2026: «если тяну страницу вверх — картинка ужасно подтягивается». На Главной фото героя у верхнего края:
+   резиновый отскок iOS отрывал его от края и показывал пустоту. Отскок на Главной выключен — страница стоит у края. */
+#home-body.scroll { overscroll-behavior-y: none; }
