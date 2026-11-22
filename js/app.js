@@ -1402,9 +1402,10 @@ function backGuard() {
     const cr = document.getElementById('cr');
     if (cr && !cr.hidden && crLoaded) { crMod().then((m) => m.back?.()).catch(() => { }); again(); return; }
     if (document.getElementById('tour')) { import('./tour.js').then((m) => m.skip()); again(); return; }   // тур раньше шторки (QA 22.11)
-    if ($('#sheet-layer').classList.contains('open')) { closeSheet(); again(); return; }
+    // пейвол лежит поверх шторки: «назад» закрывает сначала его (QA 22.11 круг 2: закрывалась карточка под пейволом)
     const pw = $('#paywall');
     if (pw.classList.contains('open')) { if (pw.querySelector('.pw-close.show')) closePaywall(); again(); return; }
+    if ($('#sheet-layer').classList.contains('open')) { closeSheet(); again(); return; }
     if (document.body.classList.contains('in-ob')) { again(); return; }
     if (ui.tab !== 'home') { ui.tab = 'home'; renderAll(); again(); }
   });
@@ -1600,6 +1601,9 @@ document.addEventListener('click', async (e) => {
         if (tab === 'search') $('#search-input').focus();
         break;
       }
+      // ушли с карты — карточка места не остаётся висеть над другой вкладкой, отложенный тап по карте отменяем
+      // (Игорь 22.11.2026: «между картами назад-вперёд — двойные попапы открываются и перезакрываются»)
+      if (ui.tab === 'map') { mapMod().then((m) => m.cancelTap?.()).catch(() => { }); if ($('#sheet').classList.contains('sheet-map') && $('#sheet-layer').classList.contains('open')) closeSheet(); }
       ui.tab = tab; renderAll(); // клавиатуру поиска не открываем сами: сначала видны фильтры и подборки
       break;
     }
