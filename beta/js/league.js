@@ -755,7 +755,8 @@ const isOpen = () => mode() === 'live' || (R?.open_at && today() >= R.open_at);
 const hasAccess = () => isOpen() || !!P?.invited;
 const verifiedAcc = () => (P?.accounts || []).find((a) => a.status === 'verified');
 const workingAcc = () => [...(P?.accounts || [])].reverse().find((a) => a.status === 'pending' || a.status === 'failed');
-const link = (code, world, id, v) => `${APP.domain}/${code}${world ? `/${world}/${slugOf(id, world)}` : ''}${v ? `?v=${v}` : ''}`;
+// ссылка креатора — в основное приложение (рефералка js/ref.js в корне сайта; профиль /beta/ и корня — одно хранилище sbgta.app)
+const link = (code, world, id, v) => (world ? `${APP.domain}/s/${world}/${id}.html?r=${code}${v ? `&v=${v}` : ''}` : `${APP.domain}/?r=${code}`);
 const daysTo = (iso) => Math.max(0, Math.ceil((new Date(iso + 'T00:00:00') - new Date()) / 864e5));
 
 async function load(force = false) {

@@ -18,10 +18,18 @@
   a { color: var(--accent); } ul { padding-left: 20px; }
   hr { border: 0; border-top: 1px solid color-mix(in srgb, var(--text) 18%, transparent); margin: 40px 0; }
   .back { display: inline-block; margin-bottom: 12px; text-decoration: none; }
+  .lg { display: none; } html:not([data-l]) .lg, html[data-l="en"] .lg[lang="en"], html[data-l="ru"] .lg[lang="ru"] { display: block; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; } .top .back { margin: 0; }
+  .sw { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-size: 15px; }
+  html:not([data-l]) .sw { display: none; }
 </style>
+<script>(()=>{let l='';try{l=new URLSearchParams(location.search).get('lang')||JSON.parse(localStorage.getItem('cheats.v1')||'{}').lang||''}catch(e){}
+if(l!=='ru'&&l!=='en')l=/^(ru|uk|be|kk)/i.test(navigator.language||'')?'ru':'en';const set=(x)=>{document.documentElement.dataset.l=x;document.documentElement.lang=x;};set(l);
+document.addEventListener('click',(e)=>{const a=e.target.closest('[data-to]');if(a){e.preventDefault();set(a.dataset.to);scrollTo(0,0);}});})();</script>
 </head>
 <body>
-<a class="back" href="./">← Secret Base</a>
+<div class="top"><a class="back" href="./">← Secret Base</a><span><a class="sw lg" lang="en" href="?lang=ru" data-to="ru">Русская версия</a><a class="sw lg" lang="ru" href="?lang=en" data-to="en">English version</a></span></div>
+<div class="lg" lang="en">
 <h1>Terms of Use</h1>
 <p class="muted">Effective: November 19, 2026</p>
 
@@ -48,19 +56,19 @@
 
 <h2>Changes and contact</h2>
 <p>We may update these terms and will change the date above when we do. Questions: <a href="mailto:loveminesgame@gmail.com">loveminesgame@gmail.com</a>. See also the <a href="privacy.html">Privacy Policy</a>.</p>
-
-<hr>
-
-<h1 lang="ru">Условия использования</h1>
+</div>
+<div class="lg" lang="ru">
+<h1>Условия использования</h1>
 <div lang="ru">
 <p class="muted">Действуют с 19 ноября 2026 г.</p>
 <p>Secret Base — неофициальное фанатское приложение, не связано с Rockstar Games и Take-Two Interactive. Реальные места показаны для справки: уважайте частную собственность и местные законы.</p>
 <h2>Pro</h2>
-<p>Годовая и месячная подписки продлеваются автоматически в конце срока, пока вы их не отмените; цена видна до оплаты. Пропуск на 3 месяца — разовый платёж без продления, действует 3 месяца с даты покупки или с даты выхода игры, если она позже. Продажу оформляет Link (Stripe) как продавец (merchant of record) и сам рассчитывает налоги; в цене налоги уже учтены.</p>
+<p>Годовая и месячная подписки продлеваются автоматически в конце срока, пока вы их не отмените; цена видна до оплаты. Пропуск на 3 месяца — разовый платёж без продления, действует 3 месяца с даты покупки или с даты выхода игры, если она позже. Продажу оформляет Link (Stripe) как официальный продавец и сам рассчитывает налоги; в цене налоги уже учтены.</p>
 <h2>Отмена и возврат</h2>
 <p>Отменить подписку можно в любой момент: Настройки → Управлять подпиской. После отмены Pro работает до конца оплаченного срока, новых списаний не будет. Если с покупкой что-то не так — напишите в течение 14 дней на <a href="mailto:loveminesgame@gmail.com">loveminesgame@gmail.com</a>, рассмотрим возврат. Права потребителя по законам вашей страны сохраняются.</p>
 <h2>Ответственность</h2>
 <p>Приложение предоставляется «как есть». Если платную функцию закроем — вернём деньги за неиспользованную часть оплаченного срока. Вопросы — <a href="mailto:loveminesgame@gmail.com">loveminesgame@gmail.com</a>. См. также <a href="privacy.html">Политику конфиденциальности</a>.</p>
+</div>
 </div>
 </body>
 </html>

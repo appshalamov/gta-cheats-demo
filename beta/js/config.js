@@ -6,7 +6,7 @@ export const APP = {
   shortName: 'Secret Base',
   version: '0.3.1 demo',
   // домен ссылок креаторов домен/КОД/мир/место?v=<ролик> — ЗАГЛУШКА: настоящий покупает и вписывает feature/foundation
-  domain: 'secretbase.example',
+  domain: 'sbgta.app',
 };
 
 // icon — id значка из I (js/icons.js), не эмодзи

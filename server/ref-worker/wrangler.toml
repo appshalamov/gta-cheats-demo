@@ -1,0 +1,24 @@
+# Secret Base — рефералка (Cloudflare Worker + D1). Аккаунт Cloudflare — тот же, что у оплаты (loveminesgame, зона sbgta.app).
+# Секреты — только `sh cf.sh secret put …` (IP_SALT, ADMIN_TOKEN), в git их нет. Worker оплаты (sb-pay) не меняется:
+# сюда он подключён только как service binding PAY — для проверки оплаты по /me.
+name = "sb-ref"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+# ref.sbgta.app с 22.11.2026 обслуживает пересыльщик sb-edge (Cloudflare app.shalamov, cheats-pwa-stripe/server/edge-worker) → сюда,
+# на sb-ref.pay-worker.workers.dev. Свой custom domain не объявляем, чтобы deploy не пытался забрать домен.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sb-ref"
+database_id = "4060bacd-3de7-4542-89ff-1993dae5c164"
+
+[[services]]
+binding = "PAY"
+service = "sb-pay"
+
+# лимит запросов с одного IP (POST): 60 в минуту
+[[ratelimits]]
+name = "RL_IP"
+namespace_id = "2001"
+simple = { limit = 60, period = 60 }
