@@ -1403,7 +1403,12 @@ function legendSheet() {
     ${row(ref, T('Отсылка: место съёмок', 'Reference: filming location'), T('самого места из игры в жизни нет', 'the game place itself does not exist'))}
     ${row(q, T('Пасхалка без места', 'Easter egg without a place'), T('только на карте игры', 'only on the game map'))}
     ${row(`<svg viewBox="-13 -13 26 26" width="28" height="28"><circle r="4.5" fill="${COLORS.gtadb}"/></svg>`, T('Точка сообщества', 'Community point'), T('видна только вблизи', 'shown when zoomed in'))}
-    </div><div class="lg-fills">${c('c')}<span>${esc(T('подтверждено', 'confirmed'))}</span>${c('l')}<span>${esc(T('вероятно', 'likely'))}</span>${c('s')}<span>${esc(T('догадка', 'guess'))}</span></div>`;
+    </div><div class="lg-fills">${c('c')}<span>${esc(T('подтверждено', 'confirmed'))}</span>${c('l')}<span>${esc(T('вероятно', 'likely'))}</span>${c('s')}<span>${esc(T('догадка', 'guess'))}</span></div>
+    <p class="lg-src">${esc(game === 'gta6' && !COMMUNITY6
+      ? T('Карта игры — меню паузы GTA 6 (gtadb.org, CC BY 4.0; © Rockstar Games). Реальная карта — OpenStreetMap и OpenFreeMap в цветах карты GTA 6.',
+        'Game map: the GTA 6 pause-menu map (gtadb.org, CC BY 4.0; © Rockstar Games). Real map: OpenStreetMap and OpenFreeMap in GTA 6 map colors.')
+      : T('Карта игры — gtadb.org (CC BY 4.0; © Rockstar Games). Реальная карта — OpenStreetMap и OpenFreeMap в цветах карты GTA.',
+        'Game map: gtadb.org (CC BY 4.0; © Rockstar Games). Real map: OpenStreetMap and OpenFreeMap in GTA map colors.'))}</p>`;
 }
 const PICK_ALIAS = { 'cl-pt': 'places', 'eggs-ref': 'eggs', 'gl-col': 'gl' };
 function addLayers() {
