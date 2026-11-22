@@ -2,7 +2,7 @@
 // места, лента) — сначала сеть, но не дольше 3 с, затем кэш; остальные (карта, коды) — сразу из кэша и в фоне обновить
 // (23.11.2026: на слабой сети Главная ждала 1–2 МБ данных при каждом запуске). Плитки карты (своя карта игры и OpenFreeMap) — свой кэш, переживает обновления приложения.
 // При изменении файлов оболочки поднимите VERSION.
-const VERSION = 'v116';
+const VERSION = 'v117';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/tokens.css', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css', 'css/map-glass.css', 'css/skin.css', 'css/league.css',
   'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/mapstyle.js', 'js/places.js', 'js/skin.js', 'js/league.js', 'js/api.js', 'js/demo-data.js', 'js/pay.js', 'js/ref.js', 'js/tour.js',
