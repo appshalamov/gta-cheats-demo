@@ -54,10 +54,11 @@
   <link rel="modulepreload" href="js/ref.js">
   <link rel="modulepreload" href="js/api.js">
   <link rel="modulepreload" href="js/demo-data.js">
-  <!-- данные выбранной игры и первое фото Главной — до того, как приложение их попросит -->
+  <!-- коды выбранной игры и первое фото Главной — до того, как приложение их попросит (ленту и места приложение просит
+       «в реальном времени», cache: no-cache — их предзагрузка качалась бы второй раз) -->
   <script>try{var st=JSON.parse(localStorage.getItem('cheats.v1')||'{}'),th=st.theme||'dark';if(th=='auto')th=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=th;if(st.onboarded)document.documentElement.classList.add('boot-home')}catch(e){}</script>
   <script>try{var g=(JSON.parse(localStorage.getItem('cheats.v1')||'{}').game)||'gta6';if(!/^[a-z0-9]{3,12}$/.test(g))g='gta6';var m=g=='gta6'||g=='gta5';
-  [['data/'+g+'.json','fetch','high'],['data/news.json','fetch','low']].concat(m?[['data/map/'+g+'.json','fetch','low'],['img/ui/'+g+'/'+g+'-banner-01.avif','image','high']]:[]).forEach(function(x){var l=document.createElement('link');l.rel='preload';l.as=x[1];l.href=x[0];if(x[1]=='fetch')l.crossOrigin='anonymous';else l.type='image/avif';l.setAttribute('fetchpriority',x[2]);document.head.appendChild(l)})}catch(e){}</script>
+  [['data/'+g+'.json','fetch','high']].concat(m?[['img/ui/'+g+'/'+g+'-banner-01.avif','image','high']]:[]).forEach(function(x){var l=document.createElement('link');l.rel='preload';l.as=x[1];l.href=x[0];if(x[1]=='fetch')l.crossOrigin='anonymous';else l.type='image/avif';l.setAttribute('fetchpriority',x[2]);document.head.appendChild(l)})}catch(e){}</script>
 </head>
 <body>
   <!-- Онбординг: обещание → игра → платформа (32 §3.7) -->
@@ -104,6 +105,14 @@
       <div id="home-banner"></div>
       <nav class="segs" id="segs"></nav>
       <div class="pager" id="pager"></div>
+    </section>
+
+    <!-- Все новости / пасхалки / новое на карте (открывается с Главной, 23.11.2026) -->
+    <section class="view" id="view-feed">
+      <header class="hdr hdr-stack">
+        <div class="hdr-row"><button class="back-btn" data-action="back-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg><span data-t="tab_home">Главная</span></button><h1 id="feed-title"></h1></div>
+      </header>
+      <div class="scroll feed-list" id="feed-body"></div>
     </section>
 
     <section class="view" id="view-search">

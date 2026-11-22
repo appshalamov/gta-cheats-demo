@@ -26,6 +26,10 @@ OUT = ROOT / "data" / "map"
 IMG_OUT = ROOT / "img" / "map"
 _OVR = DATA / "правки_вручную.json"
 OWN_FIRST = (json.loads(_OVR.read_text("utf-8")) if _OVR.exists() else {}).get("пара_своя_первой") or {}
+# Английские «как посетить» и «интересное» (22.11.2026): id места → {visit_tips, trivia}. Поле в исходной записи сильнее;
+# файл переживает пересборку finalize. Перевод — агентами, см. данные/_перевод_en/.
+_TR = DATA / "переводы_en.json"
+TRANSLATIONS = json.loads(_TR.read_text("utf-8")) if _TR.exists() else {}
 
 GAMES = {
     "gta6": {"center": [25.79, -80.21], "zoom": 10, "places": ["locations_gta6.json", "_сырьё/canonical_locations_gta6.json"],
@@ -613,6 +617,9 @@ def build(game, cfg):
     pf, ef = first_existing(cfg["places"]), first_existing(cfg["eggs"])
     places, eggs = [], []
     for i, it in enumerate(json.loads(pf.read_text("utf-8")) if pf else []):
+        tr = TRANSLATIONS.get(it.get("id") or "")
+        if tr:
+            it = {**it, **{k: v for k, v in tr.items() if v and not it.get(k)}}
         lat, lon = num(it.get("lat")), num(it.get("lon"))
         if lat is None or lon is None:
             continue

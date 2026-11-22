@@ -70,8 +70,8 @@ def main():
                 base = f"img/map/{g}/news/"
                 for sub, w, h, q in SIZES:
                     to_webp(fp, ROOT / base / sub / f"{nid}.webp", w, h, q)
-                rec["img"] = {"file": f"{base}{nid}.webp", "thumb": f"{base}t/{nid}.webp",
-                              "credit": n.get("credit") or "© Rockstar Games · официальный скриншот"}
+                # подпись — без языка («© Rockstar Games»): «официальный скриншот …» давал русский в EN (23.11.2026)
+                rec["img"] = {"file": f"{base}{nid}.webp", "thumb": f"{base}t/{nid}.webp", "credit": "© Rockstar Games"}
         if n.get("key"):
             kind, kg, kid = n["key"].split(":", 2)
             if kg not in places:
@@ -87,7 +87,9 @@ def main():
         print("СТОП build_news:\n  " + "\n  ".join(errs))
         sys.exit(1)
     out.sort(key=lambda x: x["date"], reverse=True)
-    OUT.write_text(json.dumps({"updated": today, "items": out[:mx]}, ensure_ascii=False, separators=(",", ":")), "utf-8")
+    # updated — время сборки (UTC, ISO): в приложении «обновлено N мин назад»
+    stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    OUT.write_text(json.dumps({"updated": stamp, "items": out[:mx]}, ensure_ascii=False, separators=(",", ":")), "utf-8")
     print(f"data/news.json: {len(out[:mx])} новостей, кадров {sum(1 for x in out if 'img' in x)}")
 
 

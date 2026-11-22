@@ -196,8 +196,19 @@
   const nb = (s) => String(s).replace(/ —/g, ' —');   // тире не уходит в начало строки
   const t = (k) => { const v = T[lang][k] ?? T.ru[k] ?? k; return typeof v === 'string' ? nb(v) : v; };
   const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const credit = (s) => lang === 'ru' ? s : String(s).replace(/Трейлер/g, 'Trailer').replace(/официальный скриншот/g, 'official screenshot')
-    .replace(/кадр через/g, 'frame via').replace(/через/g, 'via').replace(/автор не указан/g, 'author unknown');
+  // подпись кадра или фото — то же правило, что credit() в js/i18n.js приложения (23.11.2026): «© Rockstar Games», «Фото: автор, лицензия»
+  const credit = (c) => {
+    let s = String(c || '').replace(/\s+/g, ' ').trim(); if (!s) return '';
+    const own = s.match(/^©\s*(?:\d{4}\s+)?([^·(]+?)\s*(?:·|\(|$)/); if (own) return '© ' + own[1].trim();
+    const [ph, unk, gdb] = lang === 'ru' ? ['Фото', 'автор не указан', 'участники gtadb.org'] : ['Photo', 'unknown author', 'gtadb.org contributors'];
+    s = s.replace(/^(фото|photo):\s*/i, '').replace(/\s*\(L\d+\)/g, '').replace(/gtadb\.org\s+and contributors/i, gdb)
+      .replace(/автор не указан|author unknown/g, unk).replace(/\s*\((CC[^)]*)\)/, ' · $1').replace(/\s*·\s*Wikimedia(?: Commons)?\s*$/i, '');
+    const parts = s.split(/\s*·\s*/).filter(Boolean);
+    if (parts.length > 1) parts[0] = parts[0].replace(/\s+(?:from|\/)\s.*$/, '')   // «Ken Lund from Reno, Nevada, USA» → «Ken Lund»
+      .replace(/^(?:The original uploader was|Photograph by|Photo:?|User:)\s*/i, '').replace(/\s+at (?:English Wikipedia|en\.wikipedia)\.?$/i, '')
+      .replace(/\s*\(Tagzania user ID: \d+\)/i, '').replace(/\s*\([\d.,]+\s*million[^)]*\)/i, '').replace(/\s+(?:—|-)\s+[^,]*would appreciate.*$/i, '').replace(/\s+This photo was taken.*$/i, '');
+    return `${ph}: ${parts.join(', ')}`;
+  };
   const APP = 'https://sbgta.app/';
   const placeUrl = (k) => `${APP}?open=place:${k}`;
   const mapsUrl = (p) => `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lon}`;
@@ -218,7 +229,7 @@
       .forEach(([k, v]) => el.setAttribute(k, v));
     el.tabIndex = 0;
   }
-  const capHTML = (p) => `${esc(t('cap_g'))}: ${esc(credit(p.game.c))}. ${esc(t('cap_r'))}: ${esc(credit(p.real.c))}.`;
+  const capHTML = (p) => [credit(p.game.c), credit(p.real.c)].filter(Boolean).map(esc).join('. ');
   function bindCmp(el) {
     if (!el) return;
     let id = null;

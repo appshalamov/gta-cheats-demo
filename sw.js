@@ -1,8 +1,8 @@
-// Офлайн-кэш. Оболочка — из кэша (быстро). Данные data/*.json — «сразу из кэша, в фоне обновить» (23.11.2026: раньше
-// сначала из сети — на слабой сети Главная ждала 1–2 МБ данных при каждом запуске); новые коды и места приходят
-// со следующего открытия. Плитки карты (своя карта игры и OpenFreeMap) — свой кэш, переживает обновления приложения.
+// Офлайн-кэш. Оболочка — из кэша (быстро). Данные data/*.json: запросы «в реальном времени» (cache: 'no-cache' —
+// места, лента) — сначала сеть, но не дольше 3 с, затем кэш; остальные (карта, коды) — сразу из кэша и в фоне обновить
+// (23.11.2026: на слабой сети Главная ждала 1–2 МБ данных при каждом запуске). Плитки карты (своя карта игры и OpenFreeMap) — свой кэш, переживает обновления приложения.
 // При изменении файлов оболочки поднимите VERSION.
-const VERSION = 'v114';
+const VERSION = 'v116';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/tokens.css', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css', 'css/map-glass.css', 'css/skin.css', 'css/league.css',
   'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/mapstyle.js', 'js/places.js', 'js/skin.js', 'js/league.js', 'js/api.js', 'js/demo-data.js', 'js/pay.js', 'js/ref.js', 'js/tour.js',
@@ -112,6 +112,16 @@ const revAt = {};
 const revDue = (u) => { const now = Date.now(), gap = /\/data\/map\//.test(u) ? 30 * 6e4 : 6e4; if (now - (revAt[u] || 0) < gap) return false; revAt[u] = now; return true; };
 async function data(req, ev) {
   const hit = await (await shell()).match(req, { ignoreSearch: true });
+  // «в реальном времени» (places.js/loadNews: cache 'no-cache'): сначала сеть, но не дольше 3 с — дальше кэш,
+  // а свежая версия ляжет в кэш в фоне (на 3G Главная не ждёт 265 КБ мест, 23.11.2026)
+  if (hit && (req.cache === 'no-cache' || req.cache === 'reload')) {
+    const net = fetch(req).then((r) => {
+      if (r.ok) { const copy = r.clone(); ev.waitUntil(shell().then((c) => c.put(req, copy)).catch(() => { })); }
+      return r;
+    });
+    ev.waitUntil(net.catch(() => { }));
+    return Promise.race([net.then((r) => (r.ok ? r : hit)).catch(() => hit), new Promise((ok) => setTimeout(() => ok(hit), 3000))]);
+  }
   if (hit && !revDue(new URL(req.url).pathname)) return hit;
   // есть в кэше — отдаём, а свежую версию берём с проверкой на сервере (no-cache); нет — обычный запрос
   // (HTTP-кэш браузера свежий 10 мин: без лишней проверки по сети, на 3G это ~0,6 с)

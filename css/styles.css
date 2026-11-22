@@ -441,6 +441,9 @@ body.in-ob #onboarding { display: flex; }
 .ml-bar { display: block; width: 100%; height: 6px; border-radius: 3px; overflow: hidden; background: color-mix(in srgb, var(--text) 16%, transparent); }
 .ml-bar i { display: block; width: 0; height: 100%; border-radius: 3px; background: var(--accent); transition: width .25s linear; }
 #map-lock.done .ml-bar { display: none; }
+/* карточка места открыта — плашка замка не просвечивает сквозь стекло карточки (QA 22.11, роль «карта»: «20 секунд… Открыть Pro» под заголовком места) */
+.ml-box { transition: opacity var(--d-fast, .2s); }
+body[data-sheet] #map-lock .ml-box { opacity: 0; pointer-events: none; }
 
 /* ───── прочее ───── */
 #toast { position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + var(--safe-b) + 18px); transform: translate(-50%, 20px); opacity: 0; z-index: 60; background: var(--card-2); color: var(--text); padding: 10px 18px; border-radius: 999px; font-size: 15px; font-weight: 600; pointer-events: none; transition: .25s; box-shadow: var(--sh-float); white-space: nowrap; }
@@ -608,6 +611,8 @@ body.in-ob #onboarding { display: flex; }
 .mp-src > svg { width: 15px; height: 15px; color: var(--text-3); }
 .mp-src a { color: var(--text-2); }
 .mp-cred { margin-top: 8px; font-size: 11px; line-height: 1.35; color: var(--text-3); }
+/* подписи кадра игры и фото из жизни — каждая своей строкой, один стиль (credit() в i18n.js, 23.11.2026) */
+.mp-cred span, .mpv-credit span, .mpv-credit b { display: block; overflow-wrap: anywhere; }
 .mp-egghead { display: flex; gap: 12px; align-items: center; margin: 2px 0 12px; }
 .mp-eggic { flex: none; width: 48px; height: 48px; padding: 11px; border-radius: 14px; background: color-mix(in srgb, #f472b6 22%, transparent); color: #f472b6; }
 .mp-egghead small { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #f472b6; font-weight: 700; }
@@ -1017,6 +1022,12 @@ button.mp-ingame { width: 100%; padding: 0; text-align: left; font: inherit; cur
 #sheet-layer.snap.open[data-snap="full"] { background: rgba(0,0,0,.35); pointer-events: auto; }
 #sheet-layer.snap .sheet { pointer-events: auto; bottom: calc(var(--tabbar-h) + var(--safe-b));
   max-height: calc(var(--app-h, 100dvh) - var(--safe-t) - var(--tabbar-h) - var(--safe-b) - 16px); transition: transform .32s cubic-bezier(.2,.9,.25,1); }
+/* QA 22.11: низ шторки (в полоске и половине он уходит вниз за край) не ложится полупрозрачным слоем на нижнюю панель —
+   слой обрезан по её верхнему краю. Во весь экран и с клавиатурой шторка стоит выше панели целиком — там не режем. */
+body:not(.kb-open) #sheet-layer.snap:not([data-snap="full"]) { --cut: calc(var(--tabbar-h) + var(--safe-b));
+  clip-path: inset(0 0 var(--cut) 0);   /* clip-path — и для касаний: панель под обрезкой нажимается */
+  -webkit-mask-image: linear-gradient(to top, transparent var(--cut), #000 calc(var(--cut) + 20px));
+  mask-image: linear-gradient(to top, transparent var(--cut), #000 calc(var(--cut) + 20px)); }   /* строка у края тает, а не режется */
 #sheet-layer.snap:not(.open) .sheet { transform: translateY(calc(100% + var(--tabbar-h) + var(--safe-b) + 20px)) !important; }
 #sheet-layer.snap .sheet-body { padding-bottom: 22px; }
 #sheet-layer.snap:not([data-snap="full"]) .sheet-body { overflow-y: hidden; }

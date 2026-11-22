@@ -5,10 +5,10 @@
 import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN_ART, GTA6 } from './config.js';
 import * as pay from './pay.js';
 import * as ref from './ref.js';
-import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
+import { t, tn, L, setLang, getLang, SPEAK, credit } from './i18n.js';
 import { I, platformIcon, comboHTML, btn, balanceCombos } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
-import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, placesNow, newsNow, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
+import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, newsUpdated, refreshPlaces, newOnMap, hasPhoto, placesNow, newsNow, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
 // ───────── хранилище ─────────
 const KEY = 'cheats.v1';
@@ -30,16 +30,11 @@ const data = {}; // gameId -> {cheats, ...}
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const mapMod = () => import('./map.js');
-// экраны креаторов (js/league.js, данные — window.SB.api из js/api.js): хаб «Для авторов» вверху Настроек и слой Лиги
+// экраны креаторов (js/league.js, данные — window.SB.api из js/api.js): раздел «Авторам и партнёрам» — строкой в Настройках,
+// сам хаб открывается отдельным экраном (Fable 23.11.2026, вариант B); слой Лиги
 const crMod = () => import('./league.js');
-let crHub = '';   // последняя разметка хаба — Настройки рисуются сразу, без прыжка
 const crCtx = () => ({ openSheet, closeSheet, toast, haptic, openOnMap, game: () => store.game, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k), onProfile: setProfile });
 let crLoaded = false;   // модуль грузится при первом заходе в Настройки или по вызову экрана креатора — не на старте
-function renderCrHub() {
-  if (!crLoaded && ui.tab !== 'settings') return;
-  crLoaded = true;
-  crMod().then((m) => { m.init(crCtx()); return m.renderHub(); }).then((h) => { crHub = h || ''; }).catch(() => { });
-}
 // вход для сессии карты: кнопка «Ролики об этом месте» в карточке места вызывает window.SB.openPlaceVideos(игра, id места)
 window.SB = window.SB || {};
 // после первого экрана: страница загрузилась, + пауза, + простой браузера (фоновое не мешает Главной)
@@ -402,8 +397,6 @@ const POPULAR = {
   gta6: ['g6_money', 'g6_armor', 'g6_max_ammo', 'g6_weather', 'g6_inf_ammo', 'g6_boomazoom', 'g6_focus', 'g6_no_reload'],   // настоящие коды GTA 6 (18.11.2026)
 };
 const liveGames = () => GAMES.filter((g) => g.status !== 'soon');
-// на Главной — все вышедшие части, GTA 6 первой (Игорь 22.11.2026: «GTA 5 оставить на главном экране — у многих ещё нет GTA 6»)
-const heroGames = () => liveGames();
 const mapPlaceName = (gid) => ({ gta6: t('place_gta6'), gta5: t('place_gta5') }[gid] || '');
 
 function miniCheat(c) {
@@ -427,6 +420,65 @@ function placeCard(o, opt = {}) {
     <span class="pc-txt"><b>${esc(realName(o))}</b>${o.kind === 'egg' ? (realSub(o) ? `<small>${esc(realSub(o))}</small>` : '') : `<small>${I.pin}${esc(cityOf(o) || realSub(o))}</small>`}</span>
   </div>`;
 }
+// ── Разделы «Новости», «Новое на карте», «Пасхалки» (Игорь 23.11.2026: «чтобы видели новости и события в реальном времени») ──
+// подпись кадра — коротко «© Rockstar Games» на любом языке (без «официальный скриншот …»: русский в EN)
+const creditShort = (c) => String(c || '').split('·')[0].trim();
+function agoText(iso) {
+  const ms = Date.parse(iso || ''); if (!ms) return '';
+  const m = Math.max(0, Math.round((Date.now() - ms) / 6e4));
+  if (m < 1) return t('upd_now');
+  if (m < 60) return tf('upd_min', { n: m });
+  const h = Math.round(m / 60); if (h < 24) return tf('upd_h', { n: h });
+  return tf('upd_d', { n: Math.round(h / 24) });
+}
+const newsOf = async () => (await loadNews()).filter((n) => n.game === store.game).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+const eggsNewFirst = (pd) => pd.eggs.slice().sort((a, b) => isNew(b) - isNew(a) || String(b.dt || '').localeCompare(String(a.dt || '')) || hasPhoto(b) - hasPhoto(a));
+// строка новости на экране «Все»: кадр, дата, заголовок, источник; тап — шторка
+function newsRow(n) {
+  const img = n.img ? imgUrl(n.img.thumb || n.img.file) : '';
+  return `<div class="prow nrow" data-action="open-news" data-id="${esc(n.id)}" role="button" tabindex="0">
+    <span class="pr-th nr-th">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${I.egg}</span>`}</span>
+    <span class="pr-t"><small class="nr-date">${esc(newsDate(n.date))}</small><b>${esc(L(n.t))}</b><small>${esc((n.src || []).join(', '))}</small></span>
+  </div>`;
+}
+// строка пасхалки: кадр, название, настоящее место, кнопка «На карте»
+function eggRow(o) {
+  const key = placeKey(o), img = thumbOf(o, 'game');
+  return `<div class="prow erow" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
+    <span class="pr-th">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${I.egg}</span>`}</span>
+    <span class="pr-t">${isNew(o) ? `<small class="nr-date">${esc(t('news_new'))}</small>` : ''}<b>${esc(L(o.t))}</b><small>${esc(realName(o))}</small></span>
+    <button class="er-map" data-action="open-place" data-key="${esc(key)}">${I.pin}<span>${esc(t('on_map'))}</span></button>
+  </div>`;
+}
+let feedSeq = 0;
+async function renderFeed() {
+  if (ui.tab !== 'feed') return;
+  const my = ++feedSeq, k = ui.feed || 'news';
+  $('#feed-title').textContent = t({ news: 'hub_news', eggs: 'hub_eggs', newmap: 'hub_newmap' }[k] || 'hub_news');
+  let html = '';
+  if (k === 'news') {
+    const list = await newsOf(), ago = agoText(newsUpdated());
+    html = (ago ? `<p class="feed-upd">${esc(ago)}</p>` : '') + list.map(newsRow).join('');
+  } else if (MAP_GAMES.includes(store.game)) {
+    const pd = await loadPlaces(store.game);
+    html = k === 'eggs' ? eggsNewFirst(pd).map(eggRow).join('') : newOnMap(pd).map((o) => placeRow(o)).join('');
+  }
+  if (my !== feedSeq) return;
+  $('#feed-body').innerHTML = html || `<div class="empty">${esc(t('feed_empty'))}</div>`;
+}
+// возврат в приложение и каждые 10 минут на виду: свежие новости (и места — не чаще раза в 30 минут), перерисовать разделы
+let liveAt = Date.now(), placesAt = Date.now();
+async function liveRefresh(force = false) {
+  if (document.visibilityState !== 'visible' || (!force && Date.now() - liveAt < 5 * 6e4)) return;
+  liveAt = Date.now();
+  const jobs = [loadNews(true)];
+  if (MAP_GAMES.includes(store.game) && Date.now() - placesAt > 30 * 6e4) { placesAt = Date.now(); jobs.push(refreshPlaces(store.game)); }
+  await Promise.all(jobs).catch(() => { });
+  if (ui.tab === 'home') renderHub(); else if (ui.tab === 'feed') renderFeed();
+}
+document.addEventListener('visibilitychange', () => liveRefresh());
+setInterval(() => liveRefresh(), 10 * 6e4);
+
 // ── «Новое» на Главной: карточка новости в стиле ленты; подробности — в шторке, источник подписью без ссылки ──
 function newsDate(d) {
   const days = Math.floor((Date.now() - Date.parse(d + 'T00:00:00Z')) / 864e5);
@@ -448,7 +500,7 @@ async function openNews(id) {
   const img = n.img ? imgUrl(n.img.file) : '';
   const src = n.src || [];
   openSheet(`<div class="news-sheet">
-    ${img ? `<figure class="ns-img sk-photo">${n.img.thumb ? `<img class="ns-th" src="${esc(imgUrl(n.img.thumb))}" alt="" aria-hidden="true">` : ''}<img src="${esc(img)}" alt="" decoding="async">${n.img.credit && !OWN_ART ? `<figcaption>${esc(t('frame_credit'))}</figcaption>` : ''}</figure>` : ''}
+    ${img ? `<figure class="ns-img sk-photo">${n.img.thumb ? `<img class="ns-th" src="${esc(imgUrl(n.img.thumb))}" alt="" aria-hidden="true">` : ''}<img src="${esc(img)}" alt="" decoding="async">${n.img.credit && !OWN_ART ? `<figcaption>${esc(credit(n.img.credit))}</figcaption>` : ''}</figure>` : ''}
     <small class="ns-date">${esc(newsDate(n.date))}</small>
     <h2>${esc(L(n.t))}</h2>
     <p>${esc(L(n.d))}</p>
@@ -473,20 +525,13 @@ function hubSection(title, sub, action, body, extra = '') {
   return `<section class="hub-sec"><div class="hub-h"><div><h2>${title}</h2>${sub ? `<small>${sub}</small>` : ''}</div>${action || ''}</div>${body}${extra}</section>`;
 }
 
-// ── верх Главной: фото эпохи (листание пальцем, без автопрокрутки), вкладки мира, город, поиск ──
-// число мест по играм — из загруженных данных карты; помним между запусками (sb.pc), чтобы герой сразу писал
-// «299 places» у другой игры, не качая её 330 КБ (23.11.2026)
+// ── верх Главной: фото эпохи (листание пальцем, без автопрокрутки), город, поиск. Игра выбирается только значком в шапке
+// (Игорь 23.11.2026 перечеркнул вкладки «GTA 6 / GTA 5» в герое; GTA 5 — в 2 тапа: значок → карточка игры) ──
+// число мест по играм — из загруженных данных карты; помним между запусками (sb.pc), чтобы подписи («196 мест») были сразу
 const placeCounts = new Proxy((() => { try { return JSON.parse(localStorage.getItem('sb.pc') || '{}'); } catch { return {}; } })(), {
   set(o, k, v) { o[k] = v; try { localStorage.setItem('sb.pc', JSON.stringify(o)); } catch { } return true; },
 });
 let heroKey = '';
-function worldTab(x) {
-  const on = x.id === store.game;
-  let sub;
-  if (x.status === 'forecast') { const d = daysTo(x.release); sub = d > 0 ? t('w_in_days').replace('{n}', tn(d, 'n_days')) : t('released'); }
-  else sub = placeCounts[x.id] != null ? tn(placeCounts[x.id], 'n_places') : t('hub_live');
-  return `<button class="world${on ? ' on' : ''}" data-action="hub-game" data-v="${x.id}" aria-pressed="${on}"><b>${esc(x.title)}${x.status === 'forecast' ? '<i class="new"></i>' : ''}</b><span>${esc(sub)}</span></button>`;
-}
 function heroMeta() {
   const n = placeCounts[store.game];
   return [n != null ? tn(n, 'n_places') : '', cheats().length ? tn(cheats().length, 'n_codes') : ''].filter(Boolean).join(', ');
@@ -498,10 +543,9 @@ function heroHTML() {
     : `<picture class="hero-slide"><source type="image/avif" srcset="${b}.avif"><img src="${b}.webp" alt="" width="860" height="676" decoding="async" fetchpriority="high"></picture>`)).join('') : '';
   return `<div class="hero${h ? '' : ' no-photo'}">
     <div class="hero-track">${slides}</div><span class="hero-scrim"></span>
-    <div class="worlds" id="hero-worlds">${heroGames().map(worldTab).join('')}</div>
     <div class="hero-city"><h2${(h ? L(h.city) : g.title).length > 8 ? ' class="long"' : ''}>${esc(h ? L(h.city) : g.title)}</h2><p id="hero-meta">${esc(heroMeta())}</p></div>
     ${h && h.banners.length > 1 ? `<div class="hero-dots">${h.banners.map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>` : ''}
-    ${h && !OWN_ART ? `<span class="hero-credit">${esc(t('frame_credit'))}</span>` : ''}
+    ${h && !OWN_ART ? `<span class="hero-credit">${esc(credit('© Rockstar Games'))}</span>` : ''}
   </div>
   <button class="hub-search" data-action="tab" data-tab="search">${I.search}<span>${esc(t('search_ph'))}</span></button>
   <div class="hub-trial" id="hub-trial"></div>`;
@@ -517,8 +561,7 @@ function renderHero() {
   const key = store.game + '|' + getLang();
   if (key !== heroKey) { heroKey = key; $('#home-hero').innerHTML = heroHTML(); bindHero(); renderTrialLine(); return; }
   // данные догрузились — меняем только подписи, фото и положение листания не трогаем
-  const w = $('#hero-worlds'), m = $('#hero-meta');
-  if (w) w.innerHTML = heroGames().map(worldTab).join('');
+  const m = $('#hero-meta');
   if (m) m.textContent = heroMeta();
 }
 function bindHero() {
@@ -570,22 +613,27 @@ const skRow = (cls = '', n = 3) => `<div class="hscroll sk-row" aria-hidden="tru
 function paintHub(box, isMap, pd, newsAll, favPreview) {
   const list = cheats();
   const popular = (POPULAR[store.game] || []).map((id) => list.find((c) => c.id === id)).filter(Boolean);
-  const places = pd ? featured(pd, 'place', 14) : [];
-  const eggs = pd ? featured(pd, 'egg', 12) : [];
+  // разделы «Новости / Новое на карте / Пасхалки» с кнопками «Все» (выпуск 23.11); без данных — скелетоны тех же размеров
+  const freshIds = new Set(pd ? newOnMap(pd).map((o) => o.id) : []);
+  const places = pd ? featured(pd, 'place', 14 + freshIds.size).filter((o) => !freshIds.has(o.id)).slice(0, 14) : [];
+  const eggs = pd ? eggsNewFirst(pd).filter(hasPhoto).slice(0, 12) : [];
+  const fresh = pd ? newOnMap(pd, 'place', 12) : [];
   const news = newsAll ? newsAll.filter((n) => n.game === store.game).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 12) : null;
   const favCount = store.favs.length + store.favPlaces.length;
+  const more = (v) => `<button class="hub-more" data-action="open-feed" data-v="${v}">${t('see_all')}${I.chevron}</button>`;
   const placesBtn = `<button class="hub-more" data-action="tab" data-tab="map">${t('open_map')}${I.chevron}</button>`;
-  const eggsBtn = `<button class="hub-more" data-action="search-browse" data-type="eggs">${t('see_all')}${I.chevron}</button>`;
+  const noPd = isMap && !pd;
   box.innerHTML = `
     ${forecastBanner()}
-    ${!news ? hubSection(t('hub_news'), t('hub_news_sub'), '', skRow(' ncard')) : news.length ? hubSection(t('hub_news'), t('hub_news_sub'), '', `<div class="hscroll">${news.map(newsCard).join('')}</div>`) : ''}
+    ${!news ? hubSection(t('hub_news'), '', more('news'), skRow(' ncard')) : news.length ? hubSection(t('hub_news'), esc(agoText(newsUpdated())), more('news'), `<div class="hscroll" data-sec="news">${news.map(newsCard).join('')}</div>`) : ''}
+    ${noPd ? hubSection(t('hub_newmap'), t('hub_newmap_sub'), more('newmap'), skRow()) : fresh.length ? hubSection(t('hub_newmap'), t('hub_newmap_sub'), more('newmap'), `<div class="hscroll" data-sec="newmap">${fresh.map((o) => placeCard(o)).join('')}</div>`) : ''}
     ${hubSection(t('hub_cheats'), `<button class="hub-plat" data-action="switch">${esc(L(PLATFORMS[store.platform]))}<i class="gsw-chev">${I.chevron}</i></button>`, `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
         <span class="ct-ic">${I[c.icon]}</span><span class="ct-t"><b>${L(c)}</b><small>${tn(list.filter((x) => x.category === c.id).length, 'n_codes')}</small></span></button>`).join('')}</div>`)}
     ${popular.length ? hubSection(t('hub_popular'), '', '', `<div class="hscroll">${popular.map(miniCheat).join('')}</div>`) : ''}
-    ${isMap && !pd ? hubSection(t('hub_places'), t('hub_places_sub'), placesBtn, skRow()) + hubSection(t('hub_eggs'), t('hub_eggs_sub'), eggsBtn, skRow()) : ''}
+    ${noPd ? hubSection(t('hub_places'), t('hub_places_sub'), placesBtn, skRow()) + hubSection(t('hub_eggs'), t('hub_eggs_sub'), more('eggs'), skRow()) : ''}
     ${places.length ? hubSection(t('hub_places'), t('hub_places_sub'), placesBtn, `<div class="hscroll">${places.map((o) => placeCard(o)).join('')}</div>`) : ''}
-    ${eggs.length ? hubSection(t('hub_eggs'), t('hub_eggs_sub'), eggsBtn, `<div class="hscroll">${eggs.map((o) => placeCard(o)).join('')}</div>`) : ''}
+    ${eggs.length ? hubSection(t('hub_eggs'), t('hub_eggs_sub'), more('eggs'), `<div class="hscroll" data-sec="eggs">${eggs.map((o) => placeCard(o)).join('')}</div>`) : ''}
     ${favCount ? hubSection(t('hub_favs'), '', `<button class="hub-more" data-action="tab" data-tab="fav">${t('see_all')}${I.chevron}</button>`,
       favPreview ? `<div class="hscroll">${favPreview.slice(0, 10).map((x) => (x.kind ? placeCard(x, { game: x.game !== store.game }) : miniCheat(x))).join('')}</div>` : skRow()) : ''}
     <div class="hub-foot">${t('hub_foot')}</div>`;
@@ -822,19 +870,17 @@ function toggleFavPlace(key) {
 function row(action, icon, label, value = '', chevron = true) {
   return `<button class="row" data-action="${action}"><span class="row-ic">${icon}</span><span class="row-l">${label}</span><span class="row-v">${value}</span>${chevron ? `<span class="row-chev">${I.chevron}</span>` : ''}</button>`;
 }
-// карточка Pro в Настройках (концепт v11 settings): без Pro — что внутри и цена года; в пробном — остаток;
-// с Pro — срок; пропуск за 7 дней до конца — тап открывает пейвол renew
-function proCardHTML() {
+// строка Pro в Настройках (Fable 23.11.2026, вариант B: без фото, но заметнее остальных строк): без Pro — что внутри и цена года;
+// в пробном — остаток; с Pro — срок; пропуск за 7 дней до конца — тап открывает пейвол renew. Класс pro-card — для тестов.
+function proRowHTML() {
   const a = access(), kind = proKind(), end = proEnds(), d = end ? dlong(end) : '';
   const renew = a === 'pro' && kind === 'pass' && end - Date.now() < 7 * DAY;
   const ended = a === 'pro' && pay.proActive() && pay.pro()?.cancel;   // подписка отменена: Pro до конца оплаченного срока, без продления
   const sub = a === 'pro' ? (d ? tf(ended ? 'st_pro_cancelled' : { work: 'st_pro_work', pass: 'st_pro_pass', month: 'st_pro_month', free: 'st_pro_free3' }[kind] || 'st_pro_year', { d }) : '')
-    : a === 'trial' ? tf('trial_left', { t: trialLeft() }) : tf('st_pro_free', { p: usd(zone().year) });
-  return `<button class="pro-card${a === 'pro' ? ' on' : ''}" data-action="${a === 'pro' && !renew ? 'noop' : 'paywall'}">
-      ${pic(HERO[store.game]?.banners[0], 'pro-photo', 860, 676, true)}
-      <span class="pro-txt"><b>${a === 'pro' ? t('st_pro_on') : t('st_pro')}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</span>
-      <span class="pro-end">${a === 'pro' && !renew ? I.check : I.chevron}</span>
-    </button>`;
+    : a === 'trial' ? tf('trial_left', { t: trialLeft() }) : tf('st_pro_row', { p: usd(zone().year) });
+  const done = a === 'pro' && !renew;
+  return `<button class="row pro-card pro-row${a === 'pro' ? ' on' : ''}" data-action="${done ? 'noop' : 'paywall'}"><span class="row-ic">${I.crown}</span>
+    <span class="row-l">${a === 'pro' ? t('st_pro_on') : t('st_pro')}${sub ? `<small>${esc(sub)}</small>` : ''}</span>${done ? `<span class="row-v">${I.check}</span>` : `<span class="row-chev">${I.chevron}</span>`}</button>`;
 }
 // аккаунт (вход через Google): покупка Pro привязана к нему и восстанавливается на любом устройстве входом
 function acctHTML() {
@@ -926,36 +972,40 @@ async function auAction(a, el) {
 // в каких картах открывать место (Игорь 15.10.2026: «Google по умолчанию, в настройках — Apple, потом любые другие»).
 // Новая карта — строка здесь и ветка в mapsLink (map.js); наружу — только карты (правило «не уводить из приложения»).
 const MAPS_APPS = [['google', 'Google'], ['apple', 'Apple']];
+// Настройки по смыслу (Игорь 23.11.2026: «каша»): Pro и аккаунт → игра → приложение → карты → помощь и условия → авторам →
+// начать заново. У группы свой заголовок, строки одного вида (значок, подпись, значение или переключатель), зоны нажатия от 44.
+// Вариант B по решению Fable (Варианты A и B — «Настройки и подписи (23.11.2026)/»): Pro строкой, авторы — строкой с отдельным экраном.
+const stGroup = (title, body, cls = '') => body ? `<section class="st-sec${cls ? ' ' + cls : ''}"><h3 class="st-h">${esc(title)}</h3>${body}</section>` : '';
+const segRow = (icon, label, items, cur, action) => `<div class="row row-static"><span class="row-ic">${icon}</span><span class="row-l">${esc(label)}</span>
+  <span class="mini-seg" role="radiogroup" aria-label="${esc(label)}">${items.map(([k, n]) => `<button class="${cur === k ? 'on' : ''}" role="radio" aria-checked="${cur === k}" data-action="${action}" data-v="${k}">${esc(n)}</button>`).join('')}</span></div>`;
+const linkRow = (href, icon, label) => `<a class="row" href="${href}"><span class="row-ic">${icon}</span><span class="row-l">${esc(label)}</span><span class="row-v"></span><span class="row-chev">${I.chevron}</span></a>`;
 function renderSettings() {
-  const g = game();
+  const g = game(), lg = getLang();
   const th = { dark: t('th_dark'), light: t('th_light'), auto: t('th_auto') };
+  const acct = acctHTML().replace(/^<div class="group">|<\/div>$/g, '');
+  const authors = window.Capacitor?.isNativePlatform?.() ? ''   // в iOS-сборке раздела нет (07 §2.2)
+    : `<div class="group">${row('creators', I.video, `${t('st_creators_row')}<small class="one">${esc(t(noPay() ? 'st_creators_sub_np' : 'st_creators_sub'))}</small>`)}</div>`;
   $('#settings-body').innerHTML = `
-    <div id="cr-hub" class="cr-hub"${crHub ? '' : ' hidden'}>${crHub}</div>
-    ${proCardHTML()}
-    ${acctHTML()}
-    <div class="group">
-      ${row('switch', platformIcon(store.platform), t('sw_title'), esc(`${g.title}, ${L(PLATFORMS[store.platform])}`))}
-    </div>
-    <div class="group">
-      <div class="row row-static"><span class="row-ic">${I.moon}</span><span class="row-l">${t('st_theme')}</span>
-        <span class="mini-seg">${['dark', 'light', 'auto'].map((k) => `<button class="${store.theme === k ? 'on' : ''}" data-action="theme" data-v="${k}">${th[k]}</button>`).join('')}</span></div>
-      <div class="row row-static"><span class="row-ic">${I.globe}</span><span class="row-l">${t('st_lang')}</span>
-        <span class="mini-seg">${[['ru', 'RU'], ['en', 'EN']].map(([k, n]) => `<button class="${getLang() === k ? 'on' : ''}" data-action="lang" data-v="${k}">${n}</button>`).join('')}</span></div>
-      <div class="row row-static"><span class="row-ic">${I.globe}</span><span class="row-l">${t('st_maps')}</span>
-        <span class="mini-seg">${MAPS_APPS.map(([k, n]) => `<button class="${(store.mapsApp || 'google') === k ? 'on' : ''}" data-action="maps-app" data-v="${k}">${n}</button>`).join('')}</span></div>
+    ${stGroup(t('st_g_account'), `<div class="group">${proRowHTML()}${acct}</div>`)}
+    ${stGroup(t('st_g_game'), `<div class="group">
+      ${row('switch', platformIcon(store.platform), t('st_codes_for'), esc(`${g.title}, ${L(PLATFORMS[store.platform])}`))}
+      ${row('howto', I.info, t('st_howto'))}</div>`)}
+    ${stGroup(t('st_g_app'), `<div class="group">
+      ${segRow(I.globe, t('st_lang'), [['ru', 'RU'], ['en', 'EN']], lg, 'lang')}
+      ${segRow(I.moon, t('st_theme'), ['dark', 'light', 'auto'].map((k) => [k, th[k]]), store.theme, 'theme')}
       <div class="row row-static"><span class="row-ic">${I.vibe}</span><span class="row-l">${t('st_haptic')}</span>
-        <button class="switch${store.haptic ? ' on' : ''}" data-action="haptic-toggle" aria-label="${esc(t('a_haptics'))}"><i></i></button></div>
-    </div>
-    <div class="group">
+        <button class="switch${store.haptic ? ' on' : ''}" data-action="haptic-toggle" role="switch" aria-checked="${!!store.haptic}" aria-label="${esc(t('st_haptic'))}"><i></i></button></div></div>`)}
+    ${stGroup(t('st_g_maps'), `<div class="group">${segRow(I.pin, t('st_maps_open'), MAPS_APPS, store.mapsApp || 'google', 'maps-app')}</div>`)}
+    ${stGroup(t('st_g_help'), `<div class="group">
       ${row('tour', I.map, t('st_tour'))}
-      ${row('howto', I.info, t('st_howto'))}
       ${row('share-app', I.share, t('st_share_app'))}
       ${row('rate', I.star, t('st_rate'))}
-      ${row('about', I.info, t('st_about'))}
-    </div>
-    <div class="group">${row('reset', I.reset, t('st_reset'), '', false)}</div>
+      ${linkRow(`terms.html?lang=${lg}`, I.doc, t('pw_terms'))}
+      ${linkRow(`privacy.html?lang=${lg}`, I.shield, t('pw_privacy'))}
+      ${row('about', I.home, t('st_about'))}</div>`)}
+    ${stGroup(t('st_g_authors'), authors)}
+    <div class="group st-reset">${row('reset', I.reset, t('st_reset'), '', false)}</div>
     <p class="ver">${t('hub_foot')}<br>${esc(APP.shortName)}, v${esc(APP.version)}</p>`;
-  renderCrHub();
 }
 
 function updateFavBadge(pulse = false) {
@@ -973,7 +1023,7 @@ function renderAll() {
   const swAria = tf('sw_aria', { g: game().title, p: L(PLATFORMS[store.platform]) });
   ['#plat-btn', '#plat-btn2'].forEach((sel) => { const b = $(sel); if (!b) return; b.innerHTML = swHTML; b.setAttribute('aria-label', swAria); });
   const tabs = [...document.querySelectorAll('.tab')];
-  const tabOf = ui.tab === 'cheats' ? 'home' : ui.tab; // «Все читы» — экран внутри Главной
+  const tabOf = ui.tab === 'cheats' || ui.tab === 'feed' ? 'home' : ui.tab; // «Все читы» и «Все» разделов — экраны внутри Главной
   tabs.forEach((b) => b.classList.toggle('on', b.dataset.tab === tabOf));
   const ti = tabs.findIndex((b) => b.dataset.tab === tabOf);
   $('#tabbar').style.setProperty('--i', Math.max(0, ti));
@@ -990,7 +1040,7 @@ function renderAll() {
   document.querySelectorAll('.tab-l').forEach((s) => { s.textContent = t('tab_' + s.dataset.k); });
   document.querySelectorAll('[data-t]').forEach((s) => { s.textContent = t(s.dataset.t); });
   document.querySelectorAll('[data-ta]').forEach((s) => s.setAttribute('aria-label', t(s.dataset.ta)));   // подписи кнопок-значков для VoiceOver на языке интерфейса (QA 22.11)
-  renderHome(); renderSearch(); renderFavs(); renderSettings();
+  renderHome(); renderFeed(); renderSearch(); renderFavs(); renderSettings();
   maybeCodesTour();
 }
 
@@ -1328,7 +1378,7 @@ function openCodeLock(c) { openSheet(codeLockHTML(c), 'sheet-detail sheet-lock')
 // ───────── карта без Pro: 10 секунд показа за запуск, потом размытие и замок (концепт v11 map:trial; 31 §4.2) ─────────
 // Замок — слой поверх вкладки «Карта» (js/map.js не трогаем); шторка места из ссылки открывается над ним.
 const MAP_DEMO = 20000;   // демо карты в пробном: 20 с (Игорь 20.11.2026: «15–20 секунд, а не как сейчас»)
-const mapLock = { t0: 0, timer: 0, paywall: false, pausedAt: 0 };
+const mapLock = { t0: 0, seen: 0, timer: 0, paywall: false, pausedAt: 0 };
 const mapPw = () => (access() === 'trial' ? 'map' : workEnded() ? '' : 'trial_end');
 function renderMapLock() {
   let el = $('#map-lock');
@@ -1338,11 +1388,17 @@ function renderMapLock() {
   }
   if (!el) { el = document.createElement('div'); el.id = 'map-lock'; $('#view-map').appendChild(el); }
   el.hidden = false;
-  if (!mapLock.t0) mapLock.t0 = Date.now();
+  // 20 с считаются с момента, когда карта видна, а не с тапа по вкладке: на iPhone карта грузится 10–16 с
+  // и живого показа оставалось ~10 с (QA 22.11, роль «карта»)
+  // карта не загрузилась за 12 с (плохая сеть) — отсчёт всё равно идёт, демо не бесконечное
+  if (!mapLock.seen) mapLock.seen = Date.now();
+  const mapShown = () => (!!window.__gtaMap && !document.getElementById('map')?.classList.contains('loading')) || Date.now() - mapLock.seen > 12000;
+  if (!mapLock.t0 && mapShown()) mapLock.t0 = Date.now();
   el.innerHTML = `<div class="ml-veil"></div><div class="ml-box"><span class="ml-ic">${I.lock}</span><b id="ml-t"></b><span class="ml-bar"><i id="ml-bar"></i></span>
     <button class="btn-primary" data-action="paywall" data-pw="${mapPw()}">${t('open_pro')}</button></div>`;
   const tick = () => {
-    const left = Math.max(0, MAP_DEMO - (Date.now() - mapLock.t0)), done = !left;
+    if (!mapLock.t0 && mapShown()) mapLock.t0 = Date.now();
+    const left = mapLock.t0 ? Math.max(0, MAP_DEMO - (Date.now() - mapLock.t0)) : MAP_DEMO, done = !left;
     el.classList.toggle('done', done);
     $('#ml-t').textContent = t(done ? 'map_locked' : 'map10');
     $('#ml-bar').style.width = ((1 - left / MAP_DEMO) * 100).toFixed(1) + '%';
@@ -1352,7 +1408,7 @@ function renderMapLock() {
     }
   };
   tick();
-  if (!mapLock.timer && Date.now() - mapLock.t0 < MAP_DEMO) mapLock.timer = setInterval(tick, 250);
+  if (!mapLock.timer && (!mapLock.t0 || Date.now() - mapLock.t0 < MAP_DEMO)) mapLock.timer = setInterval(tick, 250);
 }
 
 // ───────── пейвол: только платные тарифы, 6 состояний (Ресерч 31 §4.5; концепт v11 paywall) ─────────
@@ -1497,9 +1553,10 @@ function backGuard() {
     const cr = document.getElementById('cr');
     if (cr && !cr.hidden && crLoaded) { crMod().then((m) => m.back?.()).catch(() => { }); again(); return; }
     if (document.getElementById('tour')) { import('./tour.js').then((m) => m.skip()); again(); return; }   // тур раньше шторки (QA 22.11)
-    if ($('#sheet-layer').classList.contains('open')) { closeSheet(); again(); return; }
+    // пейвол лежит поверх шторки: «назад» закрывает сначала его (QA 22.11 круг 2: закрывалась карточка под пейволом)
     const pw = $('#paywall');
     if (pw.classList.contains('open')) { if (pw.querySelector('.pw-close.show')) closePaywall(); again(); return; }
+    if ($('#sheet-layer').classList.contains('open')) { closeSheet(); again(); return; }
     if (document.body.classList.contains('in-ob')) { again(); return; }
     if (ui.tab !== 'home') { ui.tab = 'home'; renderAll(); again(); }
   });
@@ -1528,7 +1585,7 @@ function obDefaultPlatform(gameId) {
 function welcomeHTML() {
   const sec = (ic, k) => `<div class="ob-sec"><span class="ob-sec-ic">${ic}</span><span><b>${t(k)}</b><small>${t(k + '_s')}</small></span></div>`;
   return `<div class="ob-brand"><img src="icons/favicon.svg" alt="" width="44" height="44"><h1>Secret Base</h1></div>
-    ${sec(I.map, 'w_map')}${sec(I.gamepad, 'w_codes')}
+    ${sec(I.gamepad, 'w_codes')}${sec(I.map, 'w_map')}
     <p class="ob-more">${t('w_more')}</p>
     ${access() === 'trial' ? `<div class="o-trial">${I.clock}<span>${esc(tf('trial_left', { t: trialLeft() }))}</span></div>` : ''}
     <button class="btn-primary ob-cta" data-action="ob-start">${t('next')}</button>
@@ -1560,19 +1617,46 @@ function renderOnboarding(dir = 0) {
 // ───────── знакомство на карте и с кодами (js/tour.js; Игорь 22.11.2026, сценарий «Гибрид») ─────────
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const tourCtx = () => ({ t, tf, haptic, setSnap, reduced: reducedMotion(), pro: access() === 'pro',
-  codeId: (POPULAR[store.game] || [])[0] || 'g6_money' });
+  codeId: (POPULAR[store.game] || [])[0] || 'g6_money', isFav: (id) => store.favs.includes(id) });
 let codesBusy = false;
-async function startMapTour(replay = false) {
+async function startMapTour(replay = false, after = false) {
   document.body.classList.add('in-tour');
   if (mapLock.t0 && !mapLock.pausedAt) mapLock.pausedAt = Date.now();   // повтор из Настроек: показ стоит, не сбрасывается
   renderMapLock();
   let r = 'error';
-  try { r = await (await import('./tour.js')).mapTour(tourCtx()); } catch { }
+  try { r = await (await import('./tour.js')).mapTour({ ...tourCtx(), ...(after ? { base: 3, total: 6 } : {}) }); } catch { }
   store.tourMap = true; save();
   document.body.classList.remove('in-tour');
   if (mapLock.pausedAt) { mapLock.t0 += Date.now() - mapLock.pausedAt; mapLock.pausedAt = 0; }
-  if (r === 'nomap' || replay) { ui.tab = 'home'; renderAll(); }   // нет карты — сразу к кодам; повтор — карта и коды подряд
+  if (r === 'nomap') { ui.tab = 'home'; renderAll(); }   // нет карты (нет сети) — на Главную
   else renderMapLock();
+}
+// Игорь 23.11.2026: знакомство начинается с кодов — Главная → популярный код (кнопки, «Озвучить») → «в Избранное» → карта Майами
+// (пролёт, ползунок «игра ⇄ жизнь», «Где в жизни»). Пока идёт шаг с кодом, карта прогревается: сначала «Игра», потом «Жизнь».
+// «Пропустить» на шаге кодов — сразу карта и 20 с показа, без подсказок карты.
+async function startTour(replay = false) {
+  document.body.classList.add('in-tour');
+  if (!store.tourCodes || replay) {
+    if (ui.tab !== 'home') { closeSheet(); ui.tab = 'home'; renderAll(); }
+    let r = 'error';
+    try {
+      const tm = await import('./tour.js');
+      // прогрев карты: общий window.SB.prewarmMap (сессия скорости, perf/skeleton-23-11), без него — свой из js/map.js
+      if (window.SB?.prewarmMap) Promise.resolve(window.SB.prewarmMap('gta6')).catch(() => { });
+      else mapMod().then((m) => m.prewarmMap?.('gta6', tm.PLACE)).catch(() => { });
+      r = await tm.codesFirst(tourCtx());
+    } catch { }
+    store.tourCodes = true; save();
+    closeSheet();
+    if (r === 'skip') {
+      store.tourMap = true; save();
+      document.body.classList.remove('in-tour');
+      ui.tab = 'map'; renderAll(); return;
+    }
+    await new Promise((ok) => setTimeout(ok, 320));   // шторка уехала — потом вкладка «Карта»
+  }
+  ui.tab = 'map'; renderAll();
+  await startMapTour(replay, true);
 }
 function maybeCodesTour() {
   if (codesBusy || !store.tourMap || store.tourCodes || ui.tab !== 'home' || !store.onboarded) return;
@@ -1606,13 +1690,13 @@ function obPickThen(el, fn) {
 async function finishOnboarding(tab = 'home') {
   store.game = ui.obGame; store.platform = ui.obPlatform; store.onboarded = true; save();
   try { await loadGame(store.game); } catch { /* нет сети при первом запуске — данные подгрузятся позже, не держим на онбординге */ }
-  const tour = tab === 'map' && !store.tourMap;
+  const tour = !store.tourMap;
   if (tour) document.body.classList.add('in-tour');   // 20 с показа карты стоят, пока идёт знакомство
   document.body.classList.remove('in-ob');
-  ui.tab = tab; ui.cat = DEFAULT_CATEGORY;
+  ui.tab = tour ? 'home' : tab; ui.cat = DEFAULT_CATEGORY;   // знакомство начинается на Главной с кода (23.11.2026)
   renderAll();
-  if (tour) startMapTour();
-  if (tab === 'home') maybeInstallHint();   // на карте подсказка закрыла бы замок карты
+  if (tour) startTour();
+  else if (tab === 'home') maybeInstallHint();   // на карте подсказка закрыла бы замок карты
   checkTrialEnd();
 }
 
@@ -1695,6 +1779,9 @@ document.addEventListener('click', async (e) => {
         if (tab === 'search') $('#search-input').focus();
         break;
       }
+      // ушли с карты — карточка места не остаётся висеть над другой вкладкой, отложенный тап по карте отменяем
+      // (Игорь 22.11.2026: «между картами назад-вперёд — двойные попапы открываются и перезакрываются»)
+      if (ui.tab === 'map') { mapMod().then((m) => m.cancelTap?.()).catch(() => { }); if ($('#sheet').classList.contains('sheet-map') && $('#sheet-layer').classList.contains('open')) closeSheet(); }
       ui.tab = tab; renderAll(); // клавиатуру поиска не открываем сами: сначала видны фильтры и подборки
       break;
     }
@@ -1745,6 +1832,7 @@ document.addEventListener('click', async (e) => {
       ui.tab = 'cheats'; renderAll(); setTimeout(() => scrollToCat(ui.cat, false), 0); break;
     }
     case 'back-home': haptic(); ui.tab = 'home'; renderAll(); break;
+    case 'open-feed': haptic(); ui.feed = el.dataset.v || 'news'; ui.tab = 'feed'; renderAll(); { const b = $('#feed-body'); if (b) b.scrollTop = 0; } break;
     case 'hub-game': {
       if (v === store.game) break;
       haptic(); changeGame(v); break;
@@ -1780,12 +1868,13 @@ document.addEventListener('click', async (e) => {
     case 'lang': store.lang = v; save(); setLang(v); renderAll(); mapMod().then((m) => m.relang()); if (crLoaded) crMod().then((m) => m.relang()).catch(() => { }); break;
     case 'haptic-toggle': store.haptic = !store.haptic; save(); haptic(); renderSettings(); break;
     case 'howto': openHowto(); break;
-    case 'tour': haptic(); closeSheet(); store.tourCodes = false; save(); ui.tab = 'map'; renderAll(); startMapTour(true); break;
+    case 'tour': haptic(); closeSheet(); startTour(true); break;
     case 'about': openAbout(); break;
+    case 'creators': haptic(); window.SB.openCreator('hub'); break;
     case 'rate': toast(t('rated')); break;
     case 'reset': {   // «Начать заново»: демо-Pro снят, настройки и избранное — по умолчанию; срок пробного прежний
       ui.stopPlay?.(); Object.assign(store, { ...DEFAULTS, lang: store.lang, theme: store.theme, trialStart: store.trialStart || Date.now(), ftUntil: store.ftUntil, linkKeys: [] }); save();   // пробный НЕ начинается заново (QA 20.11.2026: «Начать заново» давал ещё 72 ч)
-      Object.assign(mapLock, { t0: 0, paywall: false }); clearInterval(mapLock.timer); mapLock.timer = 0;
+      Object.assign(mapLock, { t0: 0, seen: 0, paywall: false }); clearInterval(mapLock.timer); mapLock.timer = 0;
       closeSheet(); closePaywall(); $('#install').classList.remove('show'); lastAccess = access(); showOnboarding(); renderMapLock(); break;
     }
     case 'paywall': haptic(); closeSheet(); openPaywall(el.dataset.pw || ''); break;
@@ -1956,7 +2045,7 @@ document.addEventListener('visibilitychange', () => {
   }
   else if (!store.onboarded) showOnboarding();
   // перезагрузка посреди знакомства на карте (QA 22.11: тур и анимация кодов пропадали навсегда) — продолжить с карты
-  else if (!store.tourMap) { document.body.classList.add('in-tour'); ui.tab = 'map'; renderAll(); startMapTour(); }
+  else if (!store.tourMap) startTour();   // с кода, если до него не дошли; иначе — карта
   backGuard();
   document.body.classList.add('ready');
   requestAnimationFrame(guardTabbar);
