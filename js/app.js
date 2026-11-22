@@ -14,7 +14,7 @@ import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, fea
 const KEY = 'cheats.v1';
 // pro / proPlan / proUntil — демо-покупка на устройстве; trialStart — первое открытие (пробный 72 часа, 31 §4.2);
 // linkKeys — места, открытые по ссылке «поделиться»: видны и без Pro (31 §4.2, «одна вещь из ссылки»)
-const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google', ftUntil: 0, tourMap: false, tourCodes: false };
+const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google', ftUntil: 0, tourMap: false, tourCodes: false, platByGame: {} };
 const store = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { }
@@ -521,7 +521,7 @@ async function renderHub() {
   box.innerHTML = `
     ${forecastBanner()}
     ${news.length ? hubSection(t('hub_news'), t('hub_news_sub'), '', `<div class="hscroll">${news.map(newsCard).join('')}</div>`) : ''}
-    ${hubSection(t('hub_cheats'), L(PLATFORMS[store.platform]), `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
+    ${hubSection(t('hub_cheats'), `<button class="hub-plat" data-action="switch">${esc(L(PLATFORMS[store.platform]))}<i class="gsw-chev">${I.chevron}</i></button>`, `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
         <span class="ct-ic">${I[c.icon]}</span><span class="ct-t"><b>${L(c)}</b><small>${tn(list.filter((x) => x.category === c.id).length, 'n_codes')}</small></span></button>`).join('')}</div>`)}
     ${popular.length ? hubSection(t('hub_popular'), '', '', `<div class="hscroll">${popular.map(miniCheat).join('')}</div>`) : ''}
@@ -537,7 +537,7 @@ async function renderHub() {
 // Все читы (экран внутри Главной)
 function renderCheats() {
   const g = game();
-  $('#home-title').textContent = L(g.header);
+  $('#home-title').textContent = t('hub_cheats');
   $('#home-banner').innerHTML = forecastBanner();
   $('#segs').innerHTML = CATEGORIES.map((c) => `<button class="seg${c.id === ui.cat ? ' on' : ''}" data-action="cat" data-cat="${c.id}">${L(c)}</button>`).join('') + '<span class="seg-ink"></span>';
   $('#pager').innerHTML = CATEGORIES.map((cat) => {
@@ -832,8 +832,7 @@ function renderSettings() {
     ${proCardHTML()}
     ${acctHTML()}
     <div class="group">
-      ${row('pick-game', I.gamepad, t('st_game'), esc(g.title))}
-      ${row('pick-platform', platformIcon(store.platform), t('st_platform'), L(PLATFORMS[store.platform]))}
+      ${row('switch', platformIcon(store.platform), t('sw_title'), esc(`${g.title}, ${L(PLATFORMS[store.platform])}`))}
     </div>
     <div class="group">
       <div class="row row-static"><span class="row-ic">${I.moon}</span><span class="row-l">${t('st_theme')}</span>
@@ -867,8 +866,10 @@ function updateFavBadge(pulse = false) {
 // ───────── общая перерисовка ─────────
 function renderAll() {
   applySkin();
-  $('#plat-btn').innerHTML = platformIcon(store.platform);
-  $('#plat-btn2').innerHTML = platformIcon(store.platform);
+  // единый значок «игра + платформа» (Игорь 22.11.2026, решение Fable — вариант A): иконка платформы, название игры, шеврон
+  const swHTML = `${platformIcon(store.platform)}<b>${esc(game().title)}</b><i class="gsw-chev">${I.chevron}</i>`;
+  const swAria = tf('sw_aria', { g: game().title, p: L(PLATFORMS[store.platform]) });
+  ['#plat-btn', '#plat-btn2'].forEach((sel) => { const b = $(sel); if (!b) return; b.innerHTML = swHTML; b.setAttribute('aria-label', swAria); });
   const tabs = [...document.querySelectorAll('.tab')];
   const tabOf = ui.tab === 'cheats' ? 'home' : ui.tab; // «Все читы» — экран внутри Главной
   tabs.forEach((b) => b.classList.toggle('on', b.dataset.tab === tabOf));
@@ -1152,6 +1153,29 @@ function gameListHTML(selected, action, ob = false) {
 function platListHTML(gameId, selected, action) {
   const g = GAMES.find((x) => x.id === gameId);
   return g.platforms.map((p) => optHTML(`${p === selected ? ' on' : ''}`, action, p, platformIcon(p), esc(L(PLATFORMS[p])), g.platformNote?.[p] ? esc(L(g.platformNote[p])) : '')).join('');
+}
+// шторка «Игра и платформа»: две карточки игр (город = карта игры), платформы выбранной игры, будущие части строкой
+function swGameCard(g) {
+  const on = g.id === store.game, h = HERO[g.id], img = h?.banners?.[0];
+  const n = placeCounts[g.id], c = data[g.id]?.cheats?.length;
+  const meta = [n != null ? tn(n, 'n_places') : '', c ? tn(c, 'n_codes') : ''].filter(Boolean).join(', ');
+  return `<button class="gsw-game${on ? ' on' : ''}" data-action="sw-game" data-v="${g.id}" role="radio" aria-checked="${on}">
+    ${img ? `<picture><source type="image/avif" srcset="${img}.avif"><img src="${img}.webp" alt="" loading="lazy" decoding="async"></picture>` : ''}
+    <span class="gsw-scrim"></span><span class="pw-radio" aria-hidden="true">${I.check}</span>
+    <span class="gsw-t"><b>${esc(g.title)}</b><small>${esc(h ? L(h.city) : mapPlaceName(g.id))}</small>${meta ? `<small>${esc(meta)}</small>` : ''}</span></button>`;
+}
+function swPlatsHTML() {
+  const g = game();
+  return g.platforms.map((p) => `<button class="gsw-plat${p === store.platform ? ' on' : ''}" data-action="sw-plat" data-v="${p}" role="radio" aria-checked="${p === store.platform}">
+    <span class="opt-ico">${platformIcon(p)}</span><span class="gsw-pn"><b>${esc(L(PLATFORMS[p]))}</b>${g.platformNote?.[p] ? `<small>${esc(L(g.platformNote[p]))}</small>` : ''}</span></button>`).join('');
+}
+function openSwitch() {
+  const live = GAMES.filter((g) => g.status !== 'soon'), soon = GAMES.filter((g) => g.status === 'soon');
+  openSheet(`<h2 class="pick-t">${t('sw_title')}</h2>
+    <div class="gsw-games" role="radiogroup" aria-label="${esc(t('st_game'))}">${live.map(swGameCard).join('')}</div>
+    <h3 class="gsw-h">${t('sw_plat')}</h3>
+    <div class="gsw-plats" role="radiogroup" aria-label="${esc(t('sw_plat'))}">${swPlatsHTML()}</div>
+    ${soon.length ? `<p class="gsw-soon">${esc(tf('sw_soon', { g: soon.map((g) => g.title).join(', ') }))}</p>` : ''}`, 'sheet-pick sheet-gsw');
 }
 function openPickGame() { openSheet(`<h2 class="pick-t">${t('select_game')}</h2><div class="opts">${gameListHTML(store.game, 'set-game')}</div>`, 'sheet-pick'); }
 function openPickPlatform() { openSheet(`<h2 class="pick-t">${t('select_platform')}</h2><div class="opts">${platListHTML(store.game, store.platform, 'set-platform')}</div>`, 'sheet-pick'); }
@@ -1489,8 +1513,10 @@ function refreshPlaceHearts() { document.querySelectorAll('[data-action=fav-plac
 
 // смена игры приложения (Главная, Настройки): данные грузятся сразу, экран перерисовывается под слоем анимации
 function changeGame(v, fromSheet = false) {
+  store.platByGame = { ...(store.platByGame || {}), [store.game]: store.platform };   // «Телефон» в GTA 5 не теряется после GTA 6
   store.game = v;
-  const g = game(); if (!g.platforms.includes(store.platform)) store.platform = g.platforms[0];
+  const g = game(), pb = store.platByGame[v];
+  if (pb && g.platforms.includes(pb)) store.platform = pb; else if (!g.platforms.includes(store.platform)) store.platform = g.platforms[0];
   save();
   switchTo(v, { prepare: () => loadGame(v), apply: () => { if (fromSheet) closeSheet(); renderAll(); }, haptic });
 }
@@ -1542,7 +1568,18 @@ document.addEventListener('click', async (e) => {
       if (v === store.game) { closeSheet(); break; }   // та же игра — без анимации
       haptic(); changeGame(v, true); break;
     }
-    case 'set-platform': haptic(); store.platform = v; save(); closeSheet(); renderAll(); break;
+    case 'set-platform': haptic(); store.platform = v; store.platByGame = { ...(store.platByGame || {}), [store.game]: v }; save(); closeSheet(); renderAll(); break;
+    case 'switch': haptic(); openSwitch(); break;
+    case 'sw-game': {   // другая игра — отметить сразу, применить и закрыть шторку (Главная, коды, карта, скин)
+      if (v === store.game) break;
+      haptic(); document.querySelectorAll('.gsw-game').forEach((b) => { const on = b === el; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+      setTimeout(() => changeGame(v, true), 220); break;
+    }
+    case 'sw-plat': {
+      haptic(); store.platform = v; store.platByGame = { ...(store.platByGame || {}), [store.game]: v }; save();
+      document.querySelectorAll('.gsw-plat').forEach((b) => { const on = b === el; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+      setTimeout(() => { closeSheet(); renderAll(); }, 160); break;
+    }
     case 'sheet-close': closeSheet(); break;
     case 'open-cheats': {
       // из карточки места на карте («Читы на оружие»): шторку карты закрыть и показать коды игры этого места
