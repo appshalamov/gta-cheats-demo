@@ -5,7 +5,7 @@
 import { APP, CATEGORIES, DEFAULT_CATEGORY, PLATFORMS, GAMES, PAYWALL, HERO, OWN_ART, GTA6 } from './config.js';
 import * as pay from './pay.js';
 import * as ref from './ref.js';
-import { t, tn, L, setLang, getLang, SPEAK } from './i18n.js';
+import { t, tn, L, setLang, getLang, SPEAK, credit } from './i18n.js';
 import { I, platformIcon, comboHTML, btn, balanceCombos } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
 import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
@@ -30,16 +30,11 @@ const data = {}; // gameId -> {cheats, ...}
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const mapMod = () => import('./map.js');
-// экраны креаторов (js/league.js, данные — window.SB.api из js/api.js): хаб «Для авторов» вверху Настроек и слой Лиги
+// экраны креаторов (js/league.js, данные — window.SB.api из js/api.js): раздел «Авторам и партнёрам» — строкой в Настройках,
+// сам хаб открывается отдельным экраном (Fable 23.11.2026, вариант B); слой Лиги
 const crMod = () => import('./league.js');
-let crHub = '';   // последняя разметка хаба — Настройки рисуются сразу, без прыжка
 const crCtx = () => ({ openSheet, closeSheet, toast, haptic, openOnMap, game: () => store.game, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k), onProfile: setProfile });
 let crLoaded = false;   // модуль грузится при первом заходе в Настройки или по вызову экрана креатора — не на старте
-function renderCrHub() {
-  if (!crLoaded && ui.tab !== 'settings') return;
-  crLoaded = true;
-  crMod().then((m) => { m.init(crCtx()); return m.renderHub(); }).then((h) => { crHub = h || ''; }).catch(() => { });
-}
 // вход для сессии карты: кнопка «Ролики об этом месте» в карточке места вызывает window.SB.openPlaceVideos(игра, id места)
 window.SB = window.SB || {};
 window.SB.openPlaceVideos = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.openPlaceVideos(world, placeId); }); };
@@ -371,8 +366,6 @@ const POPULAR = {
   gta6: ['g6_money', 'g6_armor', 'g6_max_ammo', 'g6_weather', 'g6_inf_ammo', 'g6_boomazoom', 'g6_focus', 'g6_no_reload'],   // настоящие коды GTA 6 (18.11.2026)
 };
 const liveGames = () => GAMES.filter((g) => g.status !== 'soon');
-// на Главной — все вышедшие части, GTA 6 первой (Игорь 22.11.2026: «GTA 5 оставить на главном экране — у многих ещё нет GTA 6»)
-const heroGames = () => liveGames();
 const mapPlaceName = (gid) => ({ gta6: t('place_gta6'), gta5: t('place_gta5') }[gid] || '');
 
 function miniCheat(c) {
@@ -417,7 +410,7 @@ async function openNews(id) {
   const img = n.img ? imgUrl(n.img.file) : '';
   const src = n.src || [];
   openSheet(`<div class="news-sheet">
-    ${img ? `<figure class="ns-img"><img src="${esc(img)}" alt="" decoding="async">${n.img.credit && !OWN_ART ? `<figcaption>${esc(n.img.credit)}</figcaption>` : ''}</figure>` : ''}
+    ${img ? `<figure class="ns-img"><img src="${esc(img)}" alt="" decoding="async">${n.img.credit && !OWN_ART ? `<figcaption>${esc(credit(n.img.credit))}</figcaption>` : ''}</figure>` : ''}
     <small class="ns-date">${esc(newsDate(n.date))}</small>
     <h2>${esc(L(n.t))}</h2>
     <p>${esc(L(n.d))}</p>
@@ -442,16 +435,10 @@ function hubSection(title, sub, action, body, extra = '') {
   return `<section class="hub-sec"><div class="hub-h"><div><h2>${title}</h2>${sub ? `<small>${sub}</small>` : ''}</div>${action || ''}</div>${body}${extra}</section>`;
 }
 
-// ── верх Главной: фото эпохи (листание пальцем, без автопрокрутки), вкладки мира, город, поиск ──
+// ── верх Главной: фото эпохи (листание пальцем, без автопрокрутки), город, поиск. Игра выбирается только значком в шапке
+// (Игорь 23.11.2026 перечеркнул вкладки «GTA 6 / GTA 5» в герое; GTA 5 — в 2 тапа: значок → карточка игры) ──
 const placeCounts = {}; // число мест по играм — когда данные карты уже загружены
 let heroKey = '';
-function worldTab(x) {
-  const on = x.id === store.game;
-  let sub;
-  if (x.status === 'forecast') { const d = daysTo(x.release); sub = d > 0 ? t('w_in_days').replace('{n}', tn(d, 'n_days')) : t('released'); }
-  else sub = placeCounts[x.id] != null ? tn(placeCounts[x.id], 'n_places') : t('hub_live');
-  return `<button class="world${on ? ' on' : ''}" data-action="hub-game" data-v="${x.id}" aria-pressed="${on}"><b>${esc(x.title)}${x.status === 'forecast' ? '<i class="new"></i>' : ''}</b><span>${esc(sub)}</span></button>`;
-}
 function heroMeta() {
   const n = placeCounts[store.game];
   return [n != null ? tn(n, 'n_places') : '', cheats().length ? tn(cheats().length, 'n_codes') : ''].filter(Boolean).join(', ');
@@ -461,10 +448,9 @@ function heroHTML() {
   const slides = h ? h.banners.map((b, i) => `<picture class="hero-slide"><source type="image/avif" srcset="${b}.avif"><img src="${b}.webp" alt="" width="860" height="676" decoding="async" ${i ? 'loading="lazy"' : 'fetchpriority="high"'}></picture>`).join('') : '';
   return `<div class="hero${h ? '' : ' no-photo'}">
     <div class="hero-track">${slides}</div><span class="hero-scrim"></span>
-    <div class="worlds" id="hero-worlds">${heroGames().map(worldTab).join('')}</div>
     <div class="hero-city"><h2${(h ? L(h.city) : g.title).length > 8 ? ' class="long"' : ''}>${esc(h ? L(h.city) : g.title)}</h2><p id="hero-meta">${esc(heroMeta())}</p></div>
     ${h && h.banners.length > 1 ? `<div class="hero-dots">${h.banners.map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>` : ''}
-    ${h && !OWN_ART ? `<span class="hero-credit">${esc(t('frame_credit'))}</span>` : ''}
+    ${h && !OWN_ART ? `<span class="hero-credit">${esc(credit('© Rockstar Games'))}</span>` : ''}
   </div>
   <button class="hub-search" data-action="tab" data-tab="search">${I.search}<span>${esc(t('search_ph'))}</span></button>
   <div class="hub-trial" id="hub-trial"></div>`;
@@ -480,8 +466,7 @@ function renderHero() {
   const key = store.game + '|' + getLang();
   if (key !== heroKey) { heroKey = key; $('#home-hero').innerHTML = heroHTML(); bindHero(); renderTrialLine(); return; }
   // данные догрузились — меняем только подписи, фото и положение листания не трогаем
-  const w = $('#hero-worlds'), m = $('#hero-meta');
-  if (w) w.innerHTML = heroGames().map(worldTab).join('');
+  const m = $('#hero-meta');
   if (m) m.textContent = heroMeta();
 }
 function bindHero() {
@@ -727,19 +712,17 @@ function toggleFavPlace(key) {
 function row(action, icon, label, value = '', chevron = true) {
   return `<button class="row" data-action="${action}"><span class="row-ic">${icon}</span><span class="row-l">${label}</span><span class="row-v">${value}</span>${chevron ? `<span class="row-chev">${I.chevron}</span>` : ''}</button>`;
 }
-// карточка Pro в Настройках (концепт v11 settings): без Pro — что внутри и цена года; в пробном — остаток;
-// с Pro — срок; пропуск за 7 дней до конца — тап открывает пейвол renew
-function proCardHTML() {
+// строка Pro в Настройках (Fable 23.11.2026, вариант B: без фото, но заметнее остальных строк): без Pro — что внутри и цена года;
+// в пробном — остаток; с Pro — срок; пропуск за 7 дней до конца — тап открывает пейвол renew. Класс pro-card — для тестов.
+function proRowHTML() {
   const a = access(), kind = proKind(), end = proEnds(), d = end ? dlong(end) : '';
   const renew = a === 'pro' && kind === 'pass' && end - Date.now() < 7 * DAY;
   const ended = a === 'pro' && pay.proActive() && pay.pro()?.cancel;   // подписка отменена: Pro до конца оплаченного срока, без продления
   const sub = a === 'pro' ? (d ? tf(ended ? 'st_pro_cancelled' : { work: 'st_pro_work', pass: 'st_pro_pass', month: 'st_pro_month', free: 'st_pro_free3' }[kind] || 'st_pro_year', { d }) : '')
-    : a === 'trial' ? tf('trial_left', { t: trialLeft() }) : tf('st_pro_free', { p: usd(zone().year) });
-  return `<button class="pro-card${a === 'pro' ? ' on' : ''}" data-action="${a === 'pro' && !renew ? 'noop' : 'paywall'}">
-      ${pic(HERO[store.game]?.banners[0], 'pro-photo', 860, 676, true)}
-      <span class="pro-txt"><b>${a === 'pro' ? t('st_pro_on') : t('st_pro')}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</span>
-      <span class="pro-end">${a === 'pro' && !renew ? I.check : I.chevron}</span>
-    </button>`;
+    : a === 'trial' ? tf('trial_left', { t: trialLeft() }) : tf('st_pro_row', { p: usd(zone().year) });
+  const done = a === 'pro' && !renew;
+  return `<button class="row pro-card pro-row${a === 'pro' ? ' on' : ''}" data-action="${done ? 'noop' : 'paywall'}"><span class="row-ic">${I.crown}</span>
+    <span class="row-l">${a === 'pro' ? t('st_pro_on') : t('st_pro')}${sub ? `<small>${esc(sub)}</small>` : ''}</span>${done ? `<span class="row-v">${I.check}</span>` : `<span class="row-chev">${I.chevron}</span>`}</button>`;
 }
 // аккаунт (вход через Google): покупка Pro привязана к нему и восстанавливается на любом устройстве входом
 function acctHTML() {
@@ -831,36 +814,40 @@ async function auAction(a, el) {
 // в каких картах открывать место (Игорь 15.10.2026: «Google по умолчанию, в настройках — Apple, потом любые другие»).
 // Новая карта — строка здесь и ветка в mapsLink (map.js); наружу — только карты (правило «не уводить из приложения»).
 const MAPS_APPS = [['google', 'Google'], ['apple', 'Apple']];
+// Настройки по смыслу (Игорь 23.11.2026: «каша»): Pro и аккаунт → игра → приложение → карты → помощь и условия → авторам →
+// начать заново. У группы свой заголовок, строки одного вида (значок, подпись, значение или переключатель), зоны нажатия от 44.
+// Вариант B по решению Fable (Варианты A и B — «Настройки и подписи (23.11.2026)/»): Pro строкой, авторы — строкой с отдельным экраном.
+const stGroup = (title, body, cls = '') => body ? `<section class="st-sec${cls ? ' ' + cls : ''}"><h3 class="st-h">${esc(title)}</h3>${body}</section>` : '';
+const segRow = (icon, label, items, cur, action) => `<div class="row row-static"><span class="row-ic">${icon}</span><span class="row-l">${esc(label)}</span>
+  <span class="mini-seg" role="radiogroup" aria-label="${esc(label)}">${items.map(([k, n]) => `<button class="${cur === k ? 'on' : ''}" role="radio" aria-checked="${cur === k}" data-action="${action}" data-v="${k}">${esc(n)}</button>`).join('')}</span></div>`;
+const linkRow = (href, icon, label) => `<a class="row" href="${href}"><span class="row-ic">${icon}</span><span class="row-l">${esc(label)}</span><span class="row-v"></span><span class="row-chev">${I.chevron}</span></a>`;
 function renderSettings() {
-  const g = game();
+  const g = game(), lg = getLang();
   const th = { dark: t('th_dark'), light: t('th_light'), auto: t('th_auto') };
+  const acct = acctHTML().replace(/^<div class="group">|<\/div>$/g, '');
+  const authors = window.Capacitor?.isNativePlatform?.() ? ''   // в iOS-сборке раздела нет (07 §2.2)
+    : `<div class="group">${row('creators', I.video, `${t('st_creators_row')}<small class="one">${esc(t(noPay() ? 'st_creators_sub_np' : 'st_creators_sub'))}</small>`)}</div>`;
   $('#settings-body').innerHTML = `
-    <div id="cr-hub" class="cr-hub"${crHub ? '' : ' hidden'}>${crHub}</div>
-    ${proCardHTML()}
-    ${acctHTML()}
-    <div class="group">
-      ${row('switch', platformIcon(store.platform), t('sw_title'), esc(`${g.title}, ${L(PLATFORMS[store.platform])}`))}
-    </div>
-    <div class="group">
-      <div class="row row-static"><span class="row-ic">${I.moon}</span><span class="row-l">${t('st_theme')}</span>
-        <span class="mini-seg">${['dark', 'light', 'auto'].map((k) => `<button class="${store.theme === k ? 'on' : ''}" data-action="theme" data-v="${k}">${th[k]}</button>`).join('')}</span></div>
-      <div class="row row-static"><span class="row-ic">${I.globe}</span><span class="row-l">${t('st_lang')}</span>
-        <span class="mini-seg">${[['ru', 'RU'], ['en', 'EN']].map(([k, n]) => `<button class="${getLang() === k ? 'on' : ''}" data-action="lang" data-v="${k}">${n}</button>`).join('')}</span></div>
-      <div class="row row-static"><span class="row-ic">${I.globe}</span><span class="row-l">${t('st_maps')}</span>
-        <span class="mini-seg">${MAPS_APPS.map(([k, n]) => `<button class="${(store.mapsApp || 'google') === k ? 'on' : ''}" data-action="maps-app" data-v="${k}">${n}</button>`).join('')}</span></div>
+    ${stGroup(t('st_g_account'), `<div class="group">${proRowHTML()}${acct}</div>`)}
+    ${stGroup(t('st_g_game'), `<div class="group">
+      ${row('switch', platformIcon(store.platform), t('st_codes_for'), esc(`${g.title}, ${L(PLATFORMS[store.platform])}`))}
+      ${row('howto', I.info, t('st_howto'))}</div>`)}
+    ${stGroup(t('st_g_app'), `<div class="group">
+      ${segRow(I.globe, t('st_lang'), [['ru', 'RU'], ['en', 'EN']], lg, 'lang')}
+      ${segRow(I.moon, t('st_theme'), ['dark', 'light', 'auto'].map((k) => [k, th[k]]), store.theme, 'theme')}
       <div class="row row-static"><span class="row-ic">${I.vibe}</span><span class="row-l">${t('st_haptic')}</span>
-        <button class="switch${store.haptic ? ' on' : ''}" data-action="haptic-toggle" aria-label="${esc(t('a_haptics'))}"><i></i></button></div>
-    </div>
-    <div class="group">
+        <button class="switch${store.haptic ? ' on' : ''}" data-action="haptic-toggle" role="switch" aria-checked="${!!store.haptic}" aria-label="${esc(t('st_haptic'))}"><i></i></button></div></div>`)}
+    ${stGroup(t('st_g_maps'), `<div class="group">${segRow(I.pin, t('st_maps_open'), MAPS_APPS, store.mapsApp || 'google', 'maps-app')}</div>`)}
+    ${stGroup(t('st_g_help'), `<div class="group">
       ${row('tour', I.map, t('st_tour'))}
-      ${row('howto', I.info, t('st_howto'))}
       ${row('share-app', I.share, t('st_share_app'))}
       ${row('rate', I.star, t('st_rate'))}
-      ${row('about', I.info, t('st_about'))}
-    </div>
-    <div class="group">${row('reset', I.reset, t('st_reset'), '', false)}</div>
+      ${linkRow(`terms.html?lang=${lg}`, I.doc, t('pw_terms'))}
+      ${linkRow(`privacy.html?lang=${lg}`, I.shield, t('pw_privacy'))}
+      ${row('about', I.home, t('st_about'))}</div>`)}
+    ${stGroup(t('st_g_authors'), authors)}
+    <div class="group st-reset">${row('reset', I.reset, t('st_reset'), '', false)}</div>
     <p class="ver">${t('hub_foot')}<br>${esc(APP.shortName)}, v${esc(APP.version)}</p>`;
-  renderCrHub();
 }
 
 function updateFavBadge(pulse = false) {
@@ -1650,10 +1637,6 @@ document.addEventListener('click', async (e) => {
       ui.tab = 'cheats'; renderAll(); setTimeout(() => scrollToCat(ui.cat, false), 0); break;
     }
     case 'back-home': haptic(); ui.tab = 'home'; renderAll(); break;
-    case 'hub-game': {
-      if (v === store.game) break;
-      haptic(); changeGame(v); break;
-    }
     case 'open-news': haptic(); openNews(el.dataset.id); break;
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
     case 'fav-place': {
@@ -1687,6 +1670,7 @@ document.addEventListener('click', async (e) => {
     case 'howto': openHowto(); break;
     case 'tour': haptic(); closeSheet(); store.tourCodes = false; save(); ui.tab = 'map'; renderAll(); startMapTour(true); break;
     case 'about': openAbout(); break;
+    case 'creators': haptic(); window.SB.openCreator('hub'); break;
     case 'rate': toast(t('rated')); break;
     case 'reset': {   // «Начать заново»: демо-Pro снят, настройки и избранное — по умолчанию; срок пробного прежний
       ui.stopPlay?.(); Object.assign(store, { ...DEFAULTS, lang: store.lang, theme: store.theme, trialStart: store.trialStart || Date.now(), ftUntil: store.ftUntil, linkKeys: [] }); save();   // пробный НЕ начинается заново (QA 20.11.2026: «Начать заново» давал ещё 72 ч)

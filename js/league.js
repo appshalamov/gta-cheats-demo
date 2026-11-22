@@ -8,7 +8,7 @@
 
 import './api.js';
 import { APP, HERO } from './config.js';
-import { getLang, L } from './i18n.js';
+import { getLang, L, credit } from './i18n.js';
 import { I } from './icons.js';
 import { loadPlaces, realOf, thumbOf, placeKey, searchPlaces, featured, imgUrl } from './places.js';
 
@@ -1848,7 +1848,7 @@ async function drawCard(ref, v, k) {
     const h = 700, whole = !/CC0|PUBLIC DOMAIN|CC BY (?!-?SA)/i.test(k.credit) || /BY-SA|GFDL/i.test(k.credit);
     if (whole) { const s = Math.min(W / img.width, h / img.height), dw = img.width * s, dh = img.height * s; g.drawImage(img, (W - dw) / 2, y0 + (h - dh) / 2, dw, dh); }
     else { const s = Math.max(W / img.width, h / img.height), sw = W / s, sh = h / s; g.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, 0, y0, W, h); }
-    g.fillStyle = CARD.muted; g.font = font(500, 26); g.fillText(wrapText(g, tx('card_photo', { c: k.credit }), MAX, 1)[0], X, y0 + h + 44);
+    g.fillStyle = CARD.muted; g.font = font(500, 26); g.fillText(wrapText(g, credit(k.credit), MAX, 1)[0], X, y0 + h + 44);
     yT = y0 + h + 140;
   }
   g.fillStyle = CARD.muted; g.font = font(500, 40); g.fillText(tx('card_cmp'), X, yT);
@@ -2183,6 +2183,8 @@ const SCREENS = {
   payout: { html: payoutHTML, bind: bindPayout },
   feed: { html: async (a) => `<div class="cr-vscr">${await feedHTML(a)}</div>`, bind: bindFeed },
   // без приглашения: вместо денежных экранов — список ожидания (08 §2, задача 2)
+  // раздел «Авторам и партнёрам» отдельным экраном из Настроек (23.11.2026, вариант B) — то же содержимое, что хаб в Настройках
+  hub: { html: async () => `${head(tx('for_authors'))}${body((await hubHTML()).replace(/<div class="cr-hub-h">[^<]*<\/div>/, ''))}` },
   authors: { html: async () => `${head(tx('for_authors'))}${body(`${waitlistHTML()}<p class="cr-p">${esc(tx('gate_p'))}</p>`, '', true)}` },
   partner: { html: async (a) => partnerHTML(a) },
   verify: { html: verifyHTML, bind: bindVerify },
