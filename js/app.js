@@ -1489,7 +1489,9 @@ async function startTour(replay = false) {
     let r = 'error';
     try {
       const tm = await import('./tour.js');
-      mapMod().then((m) => m.prewarmMap?.('gta6', tm.PLACE)).catch(() => { });
+      // прогрев карты: общий window.SB.prewarmMap (сессия скорости, perf/skeleton-23-11), без него — свой из js/map.js
+      if (window.SB?.prewarmMap) Promise.resolve(window.SB.prewarmMap('gta6')).catch(() => { });
+      else mapMod().then((m) => m.prewarmMap?.('gta6', tm.PLACE)).catch(() => { });
       r = await tm.codesFirst(tourCtx());
     } catch { }
     store.tourCodes = true; save();
