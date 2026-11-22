@@ -79,7 +79,9 @@ async function hit(env, req, b) {
     dev = await one(env, 'SELECT * FROM devices WHERE id = ?', d);
   } else await run(env, 'UPDATE devices SET seen_at = ?, standalone = MAX(standalone, ?) WHERE id = ?', t, sa, d);
   const code = normCode(b.r), v = String(b.v || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 24) || null;
-  const valid = okCode(code);
+  // закрепляем и считаем переход только по коду, который сервер знает (зарегистрированный креатор): опечатка или выдуманный код
+  // не должен занять «первое касание» (тестировщики 22.11)
+  const valid = okCode(code) && !!(await one(env, 'SELECT 1 AS x FROM creators WHERE code = ?', code));
   if (!dev.code && sa && t - dev.first_at < 3600e3) {
     // приложение «на экране Домой»: тот же человек недавно открыл ссылку в Safari?
     const p = await one(env, `SELECT c.code, c.device FROM clicks c WHERE c.ip_h = ? AND c.ua_c = ? AND c.at > ? AND c.standalone = 0 ${valid ? 'AND c.code = ?' : ''} ORDER BY c.at DESC LIMIT 1`,

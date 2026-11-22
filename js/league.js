@@ -105,7 +105,8 @@ const S = {
     wd_fee: 'Комиссию способа выплаты платит получатель.', wd_send: 'Отправить заявку', wd_below_h: 'Пока меньше {min}', wd_below_p: 'Доступно {s}. Остаток перейдёт на следующий раунд и сложится с новыми начислениями.',
     wd_ok_h: 'Заявка принята', wd_ok_1: 'Заявка отправлена', wd_ok_2: 'На проверке: первую выплату смотрит человек', wd_ok_3: 'Выплата в раунд {d}', wd_status: 'Статус выплаты: на проверке',
     rf_h: 'Кто пришёл по ссылке', rf_clicks: 'Открыли ссылку', rf_people: 'Новые люди за вами', rf_onb: 'Прошли знакомство', rf_inst: 'Поставили на экран «Домой»', rf_pays: 'Оформили Pro',
-    rf_note: 'За 7 дней: +{n}. Человек закрепляется за вами при первом переходе — навсегда; один человек считается один раз.', rf_off: 'Цифры появятся, когда будет связь с сервером.',
+    ml_invite: 'Приглашайте друзей по ссылке: кто откроет её первым, закрепляется за вами навсегда.',
+    rf_note: 'За 7 дней: +{n}. Один человек считается один раз.', rf_off: 'Цифры появятся, когда будет связь с сервером.',
     ml_code: 'Ваш код', ml_link: 'Общая ссылка', ml_gift: 'Зритель получит это место и +30 дней к первой покупке. Вам — 40% с его покупки после холда 30 дней',
     ml_gift_np: 'Друг получит это место и +30 дней к первой покупке. Вам — 30 дней Pro, когда он купит Pro', my_link_p: 'Моя ссылка',
     ml_cpa: '$15 за приведённого креатора, когда он заработает $50 доли за 90 дней.', ml_pro: 'Рабочий Pro: 14 дней после подтверждения аккаунта площадки и +30 дней за каждый принятый ролик от 1 000 просмотров',
@@ -317,7 +318,8 @@ const S = {
     wd_fee: 'The payout method fee is paid by the recipient.', wd_send: 'Send request', wd_below_h: 'Less than {min} so far', wd_below_p: '{s} available. The rest moves to the next round and adds up with new earnings.',
     wd_ok_h: 'Request received', wd_ok_1: 'Request sent', wd_ok_2: 'In review: a person checks the first payout', wd_ok_3: 'Payout in the {d} round', wd_status: 'Payout status: in review',
     rf_h: 'Who came by your link', rf_clicks: 'Opened the link', rf_people: 'New people for you', rf_onb: 'Finished the intro', rf_inst: 'Added to Home Screen', rf_pays: 'Got Pro',
-    rf_note: 'Last 7 days: +{n}. A person is tied to you on their first visit, for good; each person counts once.', rf_off: 'Numbers will appear once there is a connection to the server.',
+    ml_invite: 'Invite friends with your link: whoever opens it first is tied to you for good.',
+    rf_note: 'Last 7 days: +{n}. Each person counts once.', rf_off: 'Numbers will appear once there is a connection to the server.',
     ml_code: 'Your code', ml_link: 'General link', ml_gift: 'A viewer gets this place and +30 days to their first purchase. You get 40% of their purchase after a 30-day hold',
     ml_gift_np: 'A friend gets this place and +30 days to their first purchase. You get 30 days of Pro when they buy Pro', my_link_p: 'My link',
     ml_cpa: '$15 for a referred creator once they earn $50 of share in 90 days.', ml_pro: 'Working Pro: 14 days after confirming a platform account and +30 days for each accepted video with 1,000+ views',
@@ -1240,16 +1242,14 @@ async function refStatsHTML() {
     <p class="cr-p">${esc(tx('rf_note', { n: num(s.week?.people || 0) }))}</p>`;
 }
 async function mylinkHTML() {
-  const np = noPay() || !isPartner(), l = link(P.ref_code), rs = await refStatsHTML();
+  const l = link(P.ref_code), rs = await refStatsHTML();
   if (!isPartner()) return `${head(tx('my_link_p'))}${body(`<div class="cr-code"><span>${esc(tx('ml_code'))}</span><b>${esc(P.ref_code || '')}</b></div>${field(tx('ml_link'), l, 'https://' + l)}
-    <button class="btn-primary" data-cr="share-link">${I.share}${esc(tx('share'))}</button>${rs}<div class="cr-note">${I.gift}<span>${esc(tx('ml_gift_np'))}</span></div><p class="cr-p">${esc(tx('pd_note'))}</p>
+    <button class="btn-primary" data-cr="share-link">${I.share}${esc(tx('share'))}</button><div class="cr-note">${I.link}<span>${esc(tx('ml_invite'))}</span></div>${rs}
     ${isMinor() ? '' : `<h2 class="cr-h">${esc(tx('hub_player'))}</h2><p class="cr-p">${esc(tx('partner'))}</p><button class="btn-ghost" data-cr="login">${esc(tx('hub_player'))}</button>`}`)}`;
   const acc = (P.accounts || []).map((a) => `<div><b>${esc(PLAT[a.platform])}</b><span class="v">${tag({ verified: 'ok', pending: 'wait', none: '', soon: '' }[a.status], tx('acc_' + a.status))}</span></div>`).join('');
   return `${head(tx('my_link'))}${body(`<div class="cr-code"><span>${esc(tx('ml_code'))}</span><b>${esc(P.ref_code)}</b></div>
     ${field(tx('ml_link'), l, 'https://' + l)}
-    <button class="btn-primary" data-cr="share-link">${I.share}${esc(tx('share'))}</button>${rs}
-    <div class="cr-note">${I.gift}<span>${esc(np ? tx('ml_gift_np') : tx('ml_gift'))}</span></div>
-    ${np ? '' : `<p class="cr-p">${esc(tx('ml_cpa'))}</p>${med()}`}
+    <button class="btn-primary" data-cr="share-link">${I.share}${esc(tx('share'))}</button><div class="cr-note">${I.link}<span>${esc(tx('ml_invite'))}</span></div>${rs}
     <div class="cr-note">${I.star}<span>${esc(tx('ml_pro'))}</span></div>
     <h2 class="cr-h">${esc(tx('ml_acc_h'))}</h2><p class="cr-p">${esc(tx('ml_acc_p', { c: 'SB-' + P.ref_code }))}</p>
     <div class="cr-ledger">${acc}</div>`)}`;
