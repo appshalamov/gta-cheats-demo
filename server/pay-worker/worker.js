@@ -145,12 +145,23 @@ async function tooMany(env, key, limit, minutes) { return ((await env.DB.prepare
 async function addFail(env, ...keys) {
   await env.DB.batch([...keys.map((k) => env.DB.prepare('INSERT INTO fails (k, at) VALUES (?, ?)').bind(k, now())), env.DB.prepare('DELETE FROM fails WHERE at < ?').bind(now() - 6 * 3600e3)]);
 }
-const ipOf = (req) => req.headers.get('CF-Connecting-IP') || 'x';
+// за пересыльщиком (Worker sb-edge на аккаунте app.shalamov, 22.11.2026): адрес и страна покупателя приходят в заголовках,
+// которым верим только с общим секретом PROXY_SECRET; публичный адрес сервера — PUBLIC_ORIGIN (https://pay.sbgta.app)
+const fromProxy = (env, req) => !!env.PROXY_SECRET && safeEq(req.headers.get('X-SB-Proxy') || '', env.PROXY_SECRET);
+const ipOf = (req, env) => (env && fromProxy(env, req) && req.headers.get('X-SB-IP')) || req.headers.get('CF-Connecting-IP') || 'x';
+const countryOf = (env, req) => (fromProxy(env, req) && req.headers.get('X-SB-Country')) || req.cf?.country || '';
+const originOf = (env, url) => env.PUBLIC_ORIGIN || url.origin;
 
 // ───────── письма: Cloudflare Email Sending; @sbgta.test и тестовый режим без привязки — в «исходящие» (D1 config), не наружу ─────────
 async function sendMail(env, to, subject, text) {
   const dry = to.endsWith('@sbgta.test');   // тестовые адреса не уходят наружу никогда
   if (dry) { await setCfg(env, 'outbox:' + to, JSON.stringify({ subject, text, at: now() })); return 'outbox'; }
+  if (env.RESEND_API_KEY) {   // Resend (бесплатно до 3000 писем в месяц), домен sbgta.app подтверждён в Resend
+    const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: env.MAIL_FROM || 'Secret Base <no-reply@sbgta.app>', to: [to], subject, text }) });
+    if (!r.ok) { console.log('resend', r.status, (await r.text()).slice(0, 200)); throw new HttpError(503, 'email_off'); }
+    return 'sent';
+  }
   if (!env.EMAIL) throw new HttpError(503, 'email_off');
   await env.EMAIL.send({ to, from: { email: env.MAIL_FROM || 'no-reply@sbgta.app', name: 'Secret Base' }, subject, text });
   return 'sent';
@@ -231,7 +242,7 @@ async function proOf(env, u) {
   return { active: true, plan: best.plan, until: best.until, status: best.status, cancel: !!best.cancel_at_end, manage: !!u.customer_id, sub: hasSub };
 }
 async function meOf(env, req, u) {
-  const country = req.cf?.country || '';
+  const country = countryOf(env, req);
   return { user: pubUser(u), pro: await proOf(env, u), prices: prices(env, country), country, nopay: noPay(env, country), test: isTest(env) };
 }
 
@@ -239,7 +250,7 @@ async function meOf(env, req, u) {
 const NAMES = { year: 'Secret Base Pro — 1 year', month: 'Secret Base Pro — 1 month', pass: 'Secret Base Pro — 3 months (one payment)' };
 async function checkoutUrl(env, req, u, plan, ret, ticket, lang) {
   if (!PLANS.includes(plan)) throw new HttpError(400, 'bad_plan');
-  const country = req.cf?.country || '';
+  const country = countryOf(env, req);
   if (noPay(env, country)) throw new HttpError(403, 'nopay');
   const pr = prices(env, country);
   if (!pr[plan]) throw new HttpError(400, 'bad_plan');
@@ -325,7 +336,7 @@ async function googleStart(env, req, url) {
   await env.DB.prepare('DELETE FROM auth_states WHERE created < ?').bind(now() - 15 * 60e3).run();
   await env.DB.prepare('INSERT INTO auth_states (state, verifier, return_url, plan, lang, created) VALUES (?, ?, ?, ?, ?, ?)').bind(state, verifier, ret, plan, lang, now()).run();
   const q = new URLSearchParams({
-    client_id: env.GOOGLE_CLIENT_ID, redirect_uri: url.origin + '/auth/google/callback', response_type: 'code', scope: 'openid email profile',
+    client_id: env.GOOGLE_CLIENT_ID, redirect_uri: originOf(env, url) + '/auth/google/callback', response_type: 'code', scope: 'openid email profile',
     state, code_challenge: await sha256(verifier), code_challenge_method: 'S256', prompt: 'select_account', hl: lang,
   });
   return redirect(GOOGLE_AUTH(env) + '?' + q);
@@ -337,7 +348,7 @@ async function googleCallback(env, req, url) {
   if (url.searchParams.get('error') || !url.searchParams.get('code')) return redirect(withParams(st.return_url, { login: 'cancel' }));
   const r = await fetch(GOOGLE_TOKEN(env), {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ code: url.searchParams.get('code'), client_id: env.GOOGLE_CLIENT_ID, client_secret: env.GOOGLE_CLIENT_SECRET || '', redirect_uri: url.origin + '/auth/google/callback', grant_type: 'authorization_code', code_verifier: st.verifier }),
+    body: new URLSearchParams({ code: url.searchParams.get('code'), client_id: env.GOOGLE_CLIENT_ID, client_secret: env.GOOGLE_CLIENT_SECRET || '', redirect_uri: originOf(env, url) + '/auth/google/callback', grant_type: 'authorization_code', code_verifier: st.verifier }),
   });
   const tok = await r.json().catch(() => ({}));
   if (!r.ok || !tok.id_token) { console.log('google token', r.status, tok.error); return redirect(withParams(st.return_url, { login: 'error' })); }
@@ -391,7 +402,7 @@ async function route(env, req) {
   }
   if (p === '/auth/pair/redeem' && M === 'POST') {
     // защита от подбора 6 цифр: 10 попыток в минуту с адреса и 100 в минуту на всех (Cloudflare Rate Limiting)
-    const ip = req.headers.get('CF-Connecting-IP') || 'x';
+    const ip = ipOf(req, env);
     for (const [rl, key] of [[env.RL_IP, 'pair:' + ip], [env.RL_ALL, 'pair:all']]) if (rl && !(await rl.limit({ key })).success) throw new HttpError(429, 'slow_down');
     const since = now() - 10 * 60e3;
     const cnt = async (k) => (await env.DB.prepare('SELECT COUNT(*) n FROM fails WHERE k = ? AND at > ?').bind(k, since).first())?.n || 0;
@@ -451,7 +462,7 @@ async function route(env, req) {
     return json({ paid: true, need_login: true, email: u.email, has_pw: !!u.pw, google: !!u.google_sub });
   }
   if (p === '/auth/login' && M === 'POST') {   // почта + пароль
-    const b = await body(), email = normEmail(b.email), ip = ipOf(req);
+    const b = await body(), email = normEmail(b.email), ip = ipOf(req, env);
     if (await tooMany(env, 'login:' + email, 10, 15) || await tooMany(env, 'loginip:' + ip, 40, 15)) throw new HttpError(429, 'slow_down');
     const u = okEmail(email) ? await env.DB.prepare('SELECT * FROM users WHERE email = ? AND pw IS NOT NULL ORDER BY created LIMIT 1').bind(email).first() : null;
     if (!u || !(await checkPw(String(b.password || ''), u.pw))) { await addFail(env, 'login:' + email, 'loginip:' + ip); throw new HttpError(401, 'bad_login'); }
@@ -470,7 +481,7 @@ async function route(env, req) {
     return json({ ok: true, ...(await meOf(env, req, u)) });
   }
   if (p === '/auth/email/code' && M === 'POST') {   // код на почту: «забыли пароль», «восстановить покупку»
-    const b = await body(), email = normEmail(b.email), ip = ipOf(req);
+    const b = await body(), email = normEmail(b.email), ip = ipOf(req, env);
     if (!okEmail(email)) throw new HttpError(400, 'bad_email');
     if (await tooMany(env, 'code:' + email, 5, 60) || await tooMany(env, 'codeip:' + ip, 30, 60)) throw new HttpError(429, 'slow_down');
     await addFail(env, 'code:' + email, 'codeip:' + ip);   // считаем каждую отправку
@@ -492,7 +503,7 @@ async function route(env, req) {
     return json({ ok: true, ...(how === 'outbox' ? { outbox: true } : {}) });
   }
   if (p === '/auth/email/verify' && M === 'POST') {
-    const b = await body(), email = normEmail(b.email), code = String(b.code || '').replace(/\D/g, ''), ip = ipOf(req);
+    const b = await body(), email = normEmail(b.email), code = String(b.code || '').replace(/\D/g, ''), ip = ipOf(req, env);
     if (await tooMany(env, 'verify:' + email, 8, 15) || await tooMany(env, 'verifyip:' + ip, 40, 15)) throw new HttpError(429, 'slow_down');
     let uid;
     try { if (code.length !== 6) throw new HttpError(400, 'ticket'); uid = await useTicket(env, 'email', email + '|' + code); }
@@ -545,7 +556,7 @@ async function route(env, req) {
     if (!(await cfg(env, 'whsec')) || b.force) {
       const old = await cfg(env, 'webhook_id');   // пересоздание (смена ключа или версии API) — старый вебхук удалить, чтобы события не шли дважды
       if (old && b.force) await stripe(env, 'DELETE', '/v1/webhook_endpoints/' + old).catch(() => { });
-      const wh = await stripe(env, 'POST', '/v1/webhook_endpoints', { url: url.origin + '/webhook', enabled_events: Object.fromEntries(EVENTS.map((e, i) => [i, e])), description: 'Secret Base Pro', ...(env.STRIPE_VERSION ? { api_version: env.STRIPE_VERSION } : {}) });
+      const wh = await stripe(env, 'POST', '/v1/webhook_endpoints', { url: originOf(env, url) + '/webhook', enabled_events: Object.fromEntries(EVENTS.map((e, i) => [i, e])), description: 'Secret Base Pro', ...(env.STRIPE_VERSION ? { api_version: env.STRIPE_VERSION } : {}) });
       await setCfg(env, 'whsec', wh.secret); await setCfg(env, 'webhook_id', wh.id); out.webhook = wh.id;
     }
     const pc = await stripe(env, 'POST', '/v1/billing_portal/configurations', {

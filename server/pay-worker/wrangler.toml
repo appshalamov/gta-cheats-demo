@@ -21,6 +21,9 @@ CANCEL_MODE = "at_period_end"
 # Stripe Managed Payments (решение Игоря 19.11: налоги платит Stripe): 1 — включено; TAX_CODE — код товара для налогов (SaaS, личное пользование)
 # версия API Stripe для всех запросов и вебхука: Managed Payments — только с 2025-03-31.basil (у боевого аккаунта по умолчанию 2023-10-16)
 STRIPE_VERSION = "2025-03-31.basil"
+# публичный адрес сервера (за пересыльщиком sb-edge на app.shalamov) и отправитель писем Resend
+PUBLIC_ORIGIN = "https://pay.sbgta.app"
+MAIL_FROM = "Secret Base <no-reply@sbgta.app>"
 MANAGED_PAYMENTS = "1"
 TAX_CODE = "txcd_10103000"
 # налог внутри цены: покупатель платит ровно цену из приложения (inclusive) или налог сверху (exclusive)
