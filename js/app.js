@@ -14,7 +14,7 @@ import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, fea
 const KEY = 'cheats.v1';
 // pro / proPlan / proUntil — демо-покупка на устройстве; trialStart — первое открытие (пробный 72 часа, 31 §4.2);
 // linkKeys — места, открытые по ссылке «поделиться»: видны и без Pro (31 §4.2, «одна вещь из ссылки»)
-const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google', ftUntil: 0, tourMap: false, tourCodes: false };
+const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google', ftUntil: 0, tourMap: false, tourCodes: false, platByGame: {} };
 const store = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { }
@@ -102,6 +102,7 @@ const zone = () => PAYWALL.zones[PAYWALL.countries[country()] || 1];
 // оплата не принимается (Россия, Беларусь) — только по стране профиля, не по языку
 const noPay = () => PAYWALL.noPay.includes(String(acc.P?.country || '').toUpperCase());
 const usd = (v) => '$' + v.toFixed(2).replace('.', getLang() === 'ru' ? ',' : '.');
+const usdS = (v) => (Number.isInteger(v) ? '$' + v : usd(v));   // цена промокода: «$1», а не «$1,00»
 function dlong(ms) {
   const d = new Date(ms), o = { day: 'numeric', month: 'long' };
   if (d.getFullYear() !== new Date().getFullYear()) o.year = 'numeric';
@@ -521,7 +522,7 @@ async function renderHub() {
   box.innerHTML = `
     ${forecastBanner()}
     ${news.length ? hubSection(t('hub_news'), t('hub_news_sub'), '', `<div class="hscroll">${news.map(newsCard).join('')}</div>`) : ''}
-    ${hubSection(t('hub_cheats'), L(PLATFORMS[store.platform]), `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
+    ${hubSection(t('hub_cheats'), `<button class="hub-plat" data-action="switch">${esc(L(PLATFORMS[store.platform]))}<i class="gsw-chev">${I.chevron}</i></button>`, `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
         <span class="ct-ic">${I[c.icon]}</span><span class="ct-t"><b>${L(c)}</b><small>${tn(list.filter((x) => x.category === c.id).length, 'n_codes')}</small></span></button>`).join('')}</div>`)}
     ${popular.length ? hubSection(t('hub_popular'), '', '', `<div class="hscroll">${popular.map(miniCheat).join('')}</div>`) : ''}
@@ -537,7 +538,7 @@ async function renderHub() {
 // Все читы (экран внутри Главной)
 function renderCheats() {
   const g = game();
-  $('#home-title').textContent = L(g.header);
+  $('#home-title').textContent = t('hub_cheats');
   $('#home-banner').innerHTML = forecastBanner();
   $('#segs').innerHTML = CATEGORIES.map((c) => `<button class="seg${c.id === ui.cat ? ' on' : ''}" data-action="cat" data-cat="${c.id}">${L(c)}</button>`).join('') + '<span class="seg-ink"></span>';
   $('#pager').innerHTML = CATEGORIES.map((cat) => {
@@ -795,6 +796,12 @@ function auErr(e) {
     : e.code === 'bad_old' ? 'au_bad_old' : e.code === 'email_off' ? 'au_mail_off' : e.code === 'bad_email' ? 'au_bad_email' : e.code === 'ticket' ? 'acct_code_bad' : 'pay_err_net'));
 }
 document.addEventListener('submit', (e) => { if (e.target.closest('form.au')) e.preventDefault(); });
+document.addEventListener('input', (e) => { if (e.target.id === 'pw-code') promoTyped = e.target.value; });
+document.addEventListener('keydown', (e) => {   // Enter в поле промокода / почты на пейволе
+  if (e.key !== 'Enter') return;
+  if (e.target.id === 'pw-code') { e.preventDefault(); $('#paywall [data-action=promo-apply]')?.click(); }
+  else if (e.target.id === 'pw-email') { e.preventDefault(); $('#paywall [data-action=promo-redeem]')?.click(); }
+});
 document.addEventListener('keydown', (e) => { if (e.key !== 'Enter' || !e.target.closest?.('form.au input')) return; e.preventDefault(); e.target.closest('form.au').querySelector('.btn-primary')?.click(); });
 async function auAction(a, el) {
   el.disabled = true;
@@ -832,8 +839,7 @@ function renderSettings() {
     ${proCardHTML()}
     ${acctHTML()}
     <div class="group">
-      ${row('pick-game', I.gamepad, t('st_game'), esc(g.title))}
-      ${row('pick-platform', platformIcon(store.platform), t('st_platform'), L(PLATFORMS[store.platform]))}
+      ${row('switch', platformIcon(store.platform), t('sw_title'), esc(`${g.title}, ${L(PLATFORMS[store.platform])}`))}
     </div>
     <div class="group">
       <div class="row row-static"><span class="row-ic">${I.moon}</span><span class="row-l">${t('st_theme')}</span>
@@ -867,8 +873,10 @@ function updateFavBadge(pulse = false) {
 // ───────── общая перерисовка ─────────
 function renderAll() {
   applySkin();
-  $('#plat-btn').innerHTML = platformIcon(store.platform);
-  $('#plat-btn2').innerHTML = platformIcon(store.platform);
+  // единый значок «игра + платформа» (Игорь 22.11.2026, решение Fable — вариант A): иконка платформы, название игры, шеврон
+  const swHTML = `${platformIcon(store.platform)}<b>${esc(game().title)}</b><i class="gsw-chev">${I.chevron}</i>`;
+  const swAria = tf('sw_aria', { g: game().title, p: L(PLATFORMS[store.platform]) });
+  ['#plat-btn', '#plat-btn2'].forEach((sel) => { const b = $(sel); if (!b) return; b.innerHTML = swHTML; b.setAttribute('aria-label', swAria); });
   const tabs = [...document.querySelectorAll('.tab')];
   const tabOf = ui.tab === 'cheats' ? 'home' : ui.tab; // «Все читы» — экран внутри Главной
   tabs.forEach((b) => b.classList.toggle('on', b.dataset.tab === tabOf));
@@ -1153,6 +1161,29 @@ function platListHTML(gameId, selected, action) {
   const g = GAMES.find((x) => x.id === gameId);
   return g.platforms.map((p) => optHTML(`${p === selected ? ' on' : ''}`, action, p, platformIcon(p), esc(L(PLATFORMS[p])), g.platformNote?.[p] ? esc(L(g.platformNote[p])) : '')).join('');
 }
+// шторка «Игра и платформа»: две карточки игр (город = карта игры), платформы выбранной игры, будущие части строкой
+function swGameCard(g) {
+  const on = g.id === store.game, h = HERO[g.id], img = h?.banners?.[0];
+  const n = placeCounts[g.id], c = data[g.id]?.cheats?.length;
+  const meta = [n != null ? tn(n, 'n_places') : '', c ? tn(c, 'n_codes') : ''].filter(Boolean).join(', ');
+  return `<button class="gsw-game${on ? ' on' : ''}" data-action="sw-game" data-v="${g.id}" role="radio" aria-checked="${on}">
+    ${img ? `<picture><source type="image/avif" srcset="${img}.avif"><img src="${img}.webp" alt="" loading="lazy" decoding="async"></picture>` : ''}
+    <span class="gsw-scrim"></span><span class="pw-radio" aria-hidden="true">${I.check}</span>
+    <span class="gsw-t"><b>${esc(g.title)}</b><small>${esc(h ? L(h.city) : mapPlaceName(g.id))}</small>${meta ? `<small>${esc(meta)}</small>` : ''}</span></button>`;
+}
+function swPlatsHTML() {
+  const g = game();
+  return g.platforms.map((p) => `<button class="gsw-plat${p === store.platform ? ' on' : ''}" data-action="sw-plat" data-v="${p}" role="radio" aria-checked="${p === store.platform}">
+    <span class="opt-ico">${platformIcon(p)}</span><span class="gsw-pn"><b>${esc(L(PLATFORMS[p]))}</b>${g.platformNote?.[p] ? `<small>${esc(L(g.platformNote[p]))}</small>` : ''}</span></button>`).join('');
+}
+function openSwitch() {
+  const live = GAMES.filter((g) => g.status !== 'soon'), soon = GAMES.filter((g) => g.status === 'soon');
+  openSheet(`<h2 class="pick-t">${t('sw_title')}</h2>
+    <div class="gsw-games" role="radiogroup" aria-label="${esc(t('st_game'))}">${live.map(swGameCard).join('')}</div>
+    <h3 class="gsw-h">${t('sw_plat')}</h3>
+    <div class="gsw-plats" role="radiogroup" aria-label="${esc(t('sw_plat'))}">${swPlatsHTML()}</div>
+    ${soon.length ? `<p class="gsw-soon">${esc(tf('sw_soon', { g: soon.map((g) => g.title).join(', ') }))}</p>` : ''}`, 'sheet-pick sheet-gsw');
+}
 function openPickGame() { openSheet(`<h2 class="pick-t">${t('select_game')}</h2><div class="opts">${gameListHTML(store.game, 'set-game')}</div>`, 'sheet-pick'); }
 function openPickPlatform() { openSheet(`<h2 class="pick-t">${t('select_platform')}</h2><div class="opts">${platListHTML(store.game, store.platform, 'set-platform')}</div>`, 'sheet-pick'); }
 
@@ -1233,6 +1264,10 @@ function renderMapLock() {
 // renew — до конца пропуска 7 дней; nopay — Россия, Беларусь. Обычный вход (строка пробного, Настройки): до 19.11 —
 // prerelease, после — pro. Ни слова о деньгах авторов (tools/check_code.py). Покупка — демо: Pro на устройстве.
 let plan = 'year';
+// свой промокод на пейволе (22.11.2026): null | { code, kind: 'free'|'trial', days, price }. promoUi 'open' — поле ввода раскрыто
+let promo = null, promoUi = '', promoTyped = '';
+const promoErr = (e) => ({ bad_promo: 'pw_promo_bad', promo_kind: 'pw_promo_bad', promo_plan: 'pw_promo_bad', promo_expired: 'pw_promo_exp', promo_used_up: 'pw_promo_full',
+  promo_used: 'pw_promo_used', slow_down: 'acct_code_slow', bad_email: 'au_bad_email', nopay: 'pay_nopay' }[e?.code] || 'pay_err_net');
 const beforeRelease = () => Date.now() < new Date(PAYWALL.release + 'T00:00:00').getTime();
 function pwResolve(want) {
   if (noPay()) return 'nopay';
@@ -1246,11 +1281,37 @@ function pwValues() {
   return [n5 ? tf('pw_v1', { n: n5, g: gt }) : tf('pw_v1n', { g: gt }), t('pw_v2'), np ? tf('pw_v3', { n: tn(np, 'n_places') }) : t('pw_v3n'), t('pw_v4')]
     .concat(PAYWALL.scouts > 0 ? [tf('pw_scouts', { n: PAYWALL.scouts, m: 0 })] : []);
 }
+// честный текст триала по промокоду (скилл paywall-konversiya): сегодня $X, с такого-то числа — полная цена, продление, отмена
+const trialAfter = (tr, pl, full) => tf('pw_after_trial_' + pl, { p: usdS(tr.price), f: usd(full), d: dlong(Date.now() + tr.days * DAY) });
+// оплата внутри приложения (22.11.2026): панель пейвола превращается в форму Stripe (Embedded Checkout, Managed Payments).
+// Запасной путь — страница Stripe, как раньше (Stripe.js не загрузился, старый сервер).
+async function payInApp(pl) {
+  const pw = $('#paywall'), panel = pw.querySelector('.pw-panel'); if (!panel) return;
+  const Z = zone(), tr = promo?.kind === 'trial' ? promo : null;
+  panel.innerHTML = `<div class="pw-pay">
+    <div class="pw-pay-h"><button type="button" class="pw-pay-back" data-action="pw-pay-back" aria-label="${esc(t('back'))}">${I.back}</button><h2>${t('pay_h')}</h2></div>
+    <p class="pw-pay-sum">${esc(tr ? trialAfter(tr, pl, Z[pl]) : tf('pay_sum_' + pl, { p: usd(Z[pl]) }))}</p>
+    <div class="pw-embed"><p class="pw-embed-wait">${t('pay_loading')}</p><div id="pw-embed"></div></div>
+    <p class="pw-after">${I.lock}<span>${t('pay_secure')}</span></p></div>`;
+  pw.scrollTop = 0;
+  try {
+    await pay.checkoutInApp(pl, { promo: tr?.code, mount: '#pw-embed', onDone: (R) => { if (R.paid === 'ok') promo = null; onAccess(); renderAll(); payToast(R); } });
+    pw.querySelector('.pw-embed-wait')?.remove();
+  } catch (e) {
+    if (!pw.querySelector('.pw-pay')) return;   // уже закрыли
+    if (e.code === 'has_sub') { pay.portal().catch(() => toast(t('pay_err_net'))); return; }
+    if (e.code === 'nopay' || /promo/.test(e.code || '')) { if (/promo/.test(e.code)) promo = null; toast(t(promoErr(e))); openPaywall(pwSt); return; }
+    toast(t('pay_open'));
+    pay.checkout(pl, tr?.code).catch((e2) => { toast(t(promoErr(e2))); openPaywall(pwSt); });
+  }
+}
 function paywallPanel(st) {
   const Z = zone(), g = gift();
   const head = st === 'renew' ? tf('pw_h_renew', { d: dlong(proEnds()) }) : t('pw_h_' + (st === 'link' ? 'pro' : st));
   const lead = st === 'renew' ? tf('pw_l_renew', { p: usd(Z.pass), y: usd(Z.year) }) : t('pw_l_' + (st === 'link' ? 'pro' : st));
   if (!Z.month && plan === 'month') plan = 'year';
+  const tr = promo?.kind === 'trial' ? promo : null, fr = promo?.kind === 'free' ? promo : null;
+  if (tr && plan === 'pass') plan = 'year';   // платный триал — только у подписки
   // Пейвол по чек-листу конверсии (скилл paywall-konversiya, 22.11.2026): год выбран сразу и это видно (кружок с галочкой,
   // заливка, рамка 2 px); цена списания — крупно справа, «в месяц» — мельче; на кнопке — действие и цена выбранного срока;
   // под кнопкой — что будет дальше (автопродление или разовый платёж); «3 дня бесплатно» — рядом, с честным «без карты».
@@ -1265,13 +1326,27 @@ function paywallPanel(st) {
       <span class="pw-radio" aria-hidden="true">${I.check}</span>
       <span class="plan-n"><b>${esc(c.n)}${c.best ? `<em>${esc(c.best)}</em>` : ''}</b><small>${esc(c.s)}</small></span>
       <span class="plan-p"><b>${usd(c.p)}</b><small>${esc(c.u)}</small></span></button>`; };
+  if (tr) P.pass = null;
   const cur = P[plan] || P.year;
-  const buy = st === 'nopay'
+  const pn = promo ? tn(promo.days, 'n_days') : '';
+  const promoOn = promo ? `<p class="pw-promo-on">${I.check}<span>${esc(tf(tr ? 'pw_promo_trial' : 'pw_promo_free', { c: promo.code, n: pn, p: usdS(promo.price) }))}</span><button type="button" data-action="promo-clear">${t('pw_promo_clear')}</button></p>` : '';
+  // «Есть промокод?» — тихая строка под кнопкой; поле раскрывается по тапу (код вводится здесь, а не на странице Stripe)
+  const promoRow = !pay.enabled() || !pay.features().promo || st === 'renew' || promo ? '' : promoUi === 'open'
+    ? `<div class="pw-promo"><input id="pw-code" class="au-in" type="text" value="${esc(promoTyped)}" placeholder="${esc(t('pw_promo_ph'))}" autocapitalize="characters" autocomplete="off" spellcheck="false" enterkeyhint="go" aria-label="${esc(t('pw_promo_ph'))}"><button type="button" class="pw-promo-go" data-action="promo-apply">${t('pw_promo_apply')}</button></div>`
+    : `<button type="button" class="pw-promo-l" data-action="promo-open">${t('pw_promo_q')}</button>`;
+  const buy = fr && st !== 'nopay'
+    ? `${promoOn}
+      ${pay.signedIn() ? '' : `<input id="pw-email" class="au-in pw-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="${esc(t('pw_free_email'))}" aria-label="${esc(t('pw_free_email'))}">`}
+      <button class="btn-primary pw-cta" data-action="promo-redeem">${esc(tf('pw_free_cta', { n: pn }))}</button>
+      <p class="pw-after">${I.lock}<span>${esc(tf('pw_free_after', { n: pn }))}</span></p>`
+    : st === 'nopay'
     ? `<button class="btn-primary pw-cta" data-action="pw-partner">${t('pw_partner')}</button>`
     : `<div class="plans" role="radiogroup" aria-label="${esc(t('pw_plans'))}">${card('year')}${card('pass')}${card('month')}</div>
-      <button class="btn-primary pw-cta" data-action="buy">${esc(tf('pw_cta_' + plan, { p: usd(cur.p) }))}</button>
-      <p class="pw-after">${I.lock}<span>${esc(t('pw_after_' + plan))}</span></p>
-      ${canTryFree() && st !== 'renew' ? `<button class="pw-try" data-action="try-free"><b>${t('pw_try')}</b><small>${t('pw_try_s')}</small></button>` : ''}
+      ${promoOn}
+      <button class="btn-primary pw-cta" data-action="buy">${esc(tr ? tf('pw_cta_trial', { n: pn, p: usdS(tr.price), f: usd(cur.p) }) : tf('pw_cta_' + plan, { p: usd(cur.p) }))}</button>
+      <p class="pw-after">${I.lock}<span>${esc(tr ? trialAfter(tr, plan, cur.p) : t('pw_after_' + plan))}</span></p>
+      ${promoRow}
+      ${canTryFree() && st !== 'renew' && !tr ? `<button class="pw-try" data-action="try-free"><b>${t('pw_try')}</b><small>${t('pw_try_s')}</small></button>` : ''}
       ${pay.enabled() ? `<p class="pw-acct">${esc(pay.signedIn() ? tf('pw_acct_in', { e: pay.user()?.email || '' }) : t('pw_acct'))}</p>` : ''}`;
   return `<h1 class="pw-title${head.length > 24 ? ' pw-long' : ''}">${esc(head)}</h1>
     <p class="pw-lead">${esc(lead)}</p>
@@ -1309,8 +1384,10 @@ function openPaywall(want) {
   pw.querySelector('.pw-close').classList.remove('show');
   setTimeout(() => pw.querySelector('.pw-close')?.classList.add('show'), 900);
   pwThing(pw);
+  // сервер оплаты умеет промокоды и оплату внутри? — узнаём один раз, затем перерисовываем панель (строка «Есть промокод?»)
+  if (pay.enabled() && !pay.features().promo) pay.loadFeatures().then((f) => { if (f.promo && pw.classList.contains('open') && pw.dataset.k === key && !pw.querySelector('.pw-pay')) pw.querySelector('.pw-panel').innerHTML = paywallPanel(st); });
   // живые счётчики: коды GTA 5 — сразу (25 КБ); места — только уже загруженных игр (данные карты 1–2 МБ ради подписи не качаем)
-  if (!data[store.game]) loadGame(store.game).then(() => { if (pw.classList.contains('open') && pw.dataset.k === key) pw.querySelector('.pw-panel').innerHTML = paywallPanel(st); }).catch(() => { });
+  if (!data[store.game]) loadGame(store.game).then(() => { if (pw.classList.contains('open') && pw.dataset.k === key && !pw.querySelector('.pw-pay')) pw.querySelector('.pw-panel').innerHTML = paywallPanel(st); }).catch(() => { });
 }
 // «Назад» браузера и свайп назад в Safari (QA 20.11.2026: уводили со страницы из открытой шторки кода).
 // Над исходной записью истории ставим одну свою ({sbg:1}). «Назад» снимает её — закрываем верхнее (просмотр фото — map.js сам,
@@ -1332,6 +1409,7 @@ function backGuard() {
   });
 }
 function closePaywall() {
+  pay.closeInApp(); promoUi = '';
   $('#paywall').classList.remove('open');
   if (store.tourMap && !store.tourCodes && ui.tab === 'map' && store.onboarded) { ui.tab = 'home'; renderAll(); return; }   // после пейвола — Главная и одна анимация кодов
   maybeInstallHint();
@@ -1489,8 +1567,10 @@ function refreshPlaceHearts() { document.querySelectorAll('[data-action=fav-plac
 
 // смена игры приложения (Главная, Настройки): данные грузятся сразу, экран перерисовывается под слоем анимации
 function changeGame(v, fromSheet = false) {
+  store.platByGame = { ...(store.platByGame || {}), [store.game]: store.platform };   // «Телефон» в GTA 5 не теряется после GTA 6
   store.game = v;
-  const g = game(); if (!g.platforms.includes(store.platform)) store.platform = g.platforms[0];
+  const g = game(), pb = store.platByGame[v];
+  if (pb && g.platforms.includes(pb)) store.platform = pb; else if (!g.platforms.includes(store.platform)) store.platform = g.platforms[0];
   save();
   switchTo(v, { prepare: () => loadGame(v), apply: () => { if (fromSheet) closeSheet(); renderAll(); }, haptic });
 }
@@ -1542,7 +1622,18 @@ document.addEventListener('click', async (e) => {
       if (v === store.game) { closeSheet(); break; }   // та же игра — без анимации
       haptic(); changeGame(v, true); break;
     }
-    case 'set-platform': haptic(); store.platform = v; save(); closeSheet(); renderAll(); break;
+    case 'set-platform': haptic(); store.platform = v; store.platByGame = { ...(store.platByGame || {}), [store.game]: v }; save(); closeSheet(); renderAll(); break;
+    case 'switch': haptic(); openSwitch(); break;
+    case 'sw-game': {   // другая игра — отметить сразу, применить и закрыть шторку (Главная, коды, карта, скин)
+      if (v === store.game) break;
+      haptic(); document.querySelectorAll('.gsw-game').forEach((b) => { const on = b === el; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+      setTimeout(() => changeGame(v, true), 220); break;
+    }
+    case 'sw-plat': {
+      haptic(); store.platform = v; store.platByGame = { ...(store.platByGame || {}), [store.game]: v }; save();
+      document.querySelectorAll('.gsw-plat').forEach((b) => { const on = b === el; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+      setTimeout(() => { closeSheet(); renderAll(); }, 160); break;
+    }
     case 'sheet-close': closeSheet(); break;
     case 'open-cheats': {
       // из карточки места на карте («Читы на оружие»): шторку карты закрыть и показать коды игры этого места
@@ -1613,9 +1704,35 @@ document.addEventListener('click', async (e) => {
       haptic();
       if (!pay.enabled() && !demoPay()) { toast(t('pay_soon')); break; }
       if (!pay.enabled()) { demoBuy(); closePaywall(); toast(t('pro_unlocked')); onAccess(); renderAll(); break; }
-      el.disabled = true; toast(t('pay_open'));
-      pay.checkout(plan).catch((e) => { el.disabled = false; toast(t(e.code === 'nopay' ? 'pay_nopay' : 'pay_err_net')); });
+      el.disabled = true;
+      if (pay.features().embedded) { payInApp(plan); break; }
+      toast(t('pay_open'));   // сервер без встроенной оплаты — страница Stripe, как раньше
+      pay.checkout(plan, promo?.kind === 'trial' ? promo.code : null).catch((e) => { el.disabled = false; toast(t(promoErr(e))); });
       break;
+    case 'pw-pay-back': haptic(); pay.closeInApp(); openPaywall(pwSt); break;
+    case 'promo-open': haptic(); promoUi = 'open'; openPaywall(pwSt); setTimeout(() => { try { $('#pw-code')?.focus({ preventScroll: true }); } catch { } }, 60); break;
+    case 'promo-clear': haptic(); promo = null; promoUi = ''; openPaywall(pwSt); break;
+    case 'promo-apply': {
+      const c = ($('#pw-code')?.value || '').trim(); if (!c) break;
+      haptic(); el.disabled = true;
+      pay.promoCheck(c).then((r) => { promo = r; promoUi = ''; promoTyped = ''; openPaywall(pwSt); toast(t('pw_promo_ok')); })
+        .catch((e) => { el.disabled = false; toast(t(promoErr(e))); });
+      break;
+    }
+    case 'promo-redeem': {   // бесплатный код: Pro без карты; без входа — по почте (дальше «Придумайте пароль», как после оплаты)
+      if (!promo) break;
+      const em = pay.signedIn() ? '' : ($('#pw-email')?.value || '').trim();
+      if (!pay.signedIn() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { toast(t('au_bad_email')); $('#pw-email')?.focus(); break; }
+      haptic(); el.disabled = true;
+      const p0 = promo;
+      pay.promoRedeem(p0.code, em).then((d) => {
+        promo = null; onAccess(); renderAll(); closePaywall();
+        if (d.need_login) { authSheet('login', { email: d.email, note: tf('pw_promo_linked', { e: d.email }) }); return; }
+        toast(tf('pw_promo_done', { n: tn(p0.days, 'n_days') }));
+        if (d.new_account) setTimeout(() => authSheet('setpw'), 1600);
+      }).catch((e) => { el.disabled = false; toast(t(promoErr(e))); });
+      break;
+    }
     case 'restore':   // «Восстановить покупку»: вход через Google (покупка привязана к аккаунту) или сверка со Stripe
       haptic();
       if (!pay.signedIn()) { closePaywall(); setTimeout(() => authSheet('login'), 250); break; }   // шторка — над приложением, не под пейволом
@@ -1715,6 +1832,7 @@ document.addEventListener('visibilitychange', () => {
   ref.boot({ onboarded: () => store.onboarded, payToken: () => (pay.signedIn() ? pay.state().token : null) }).catch(() => { });
   const apiP = import('./api.js').then(() => { const api = window.SB.api; return api && (!api.isMock || api.useProfile || api.mockChosen) ? api.getProfile() : null; }).catch(() => null);
   const ret = pay.handleReturn().catch(() => ({}));
+  pay.loadFeatures();   // что умеет сервер оплаты (промокоды, оплата внутри) — заранее, чтобы пейвол открылся сразу полным
   const [P, R] = await Promise.all([apiP, ret, loadGame(store.game).catch(() => { })]);
   acc.P = P; lastAccess = access();
   renderAll();

@@ -21,8 +21,16 @@
 //   POST /webhook                                                    Stripe: checkout.session.completed, customer.subscription.*, charge.refunded
 //   POST /admin/setup (Bearer ADMIN_TOKEN)                           создать вебхук и конфигурацию портала в Stripe
 // Адрес «?paid=…» в приложении ничего не включает сам: Pro даёт только ответ этого сервера.
+// Оплата внутри приложения (22.11.2026): /checkout и /checkout/guest с { embedded: true } → { client_secret, id, pk } для Stripe Embedded Checkout.
+// Свои промокоды (таблицы promos, promo_uses; админка GET /admin):
+//   POST /promo/check {code, device} → {kind, days, price}     'free' — Pro без карты; 'trial' — $price сразу, days дней, потом подписка
+//   POST /promo/redeem {code, email?, device} (Bearer по желанию) → как /claim/guest   бесплатный код
+//   /checkout… {promo} — платный триал: trial_period_days + разовая позиция в первом счёте
+//   POST /admin/promo {type: free|trial|stripe|off|on, …}; GET /admin/promo → коды и активации
 //
 // Секреты (wrangler secret put): STRIPE_SECRET_KEY, GOOGLE_CLIENT_SECRET, ADMIN_TOKEN. Переменные — wrangler.toml.
+
+import { ADMIN_HTML } from './admin.js';
 
 const ENC = new TextEncoder();
 const now = () => Date.now();
@@ -145,12 +153,23 @@ async function tooMany(env, key, limit, minutes) { return ((await env.DB.prepare
 async function addFail(env, ...keys) {
   await env.DB.batch([...keys.map((k) => env.DB.prepare('INSERT INTO fails (k, at) VALUES (?, ?)').bind(k, now())), env.DB.prepare('DELETE FROM fails WHERE at < ?').bind(now() - 6 * 3600e3)]);
 }
-const ipOf = (req) => req.headers.get('CF-Connecting-IP') || 'x';
+// за пересыльщиком (Worker sb-edge на аккаунте app.shalamov, 22.11.2026): адрес и страна покупателя приходят в заголовках,
+// которым верим только с общим секретом PROXY_SECRET; публичный адрес сервера — PUBLIC_ORIGIN (https://pay.sbgta.app)
+const fromProxy = (env, req) => !!env.PROXY_SECRET && safeEq(req.headers.get('X-SB-Proxy') || '', env.PROXY_SECRET);
+const ipOf = (req, env) => (env && fromProxy(env, req) && req.headers.get('X-SB-IP')) || req.headers.get('CF-Connecting-IP') || 'x';
+const countryOf = (env, req) => (fromProxy(env, req) && req.headers.get('X-SB-Country')) || req.cf?.country || '';
+const originOf = (env, url) => env.PUBLIC_ORIGIN || url.origin;
 
 // ───────── письма: Cloudflare Email Sending; @sbgta.test и тестовый режим без привязки — в «исходящие» (D1 config), не наружу ─────────
 async function sendMail(env, to, subject, text) {
   const dry = to.endsWith('@sbgta.test');   // тестовые адреса не уходят наружу никогда
   if (dry) { await setCfg(env, 'outbox:' + to, JSON.stringify({ subject, text, at: now() })); return 'outbox'; }
+  if (env.RESEND_API_KEY) {   // Resend (бесплатно до 3000 писем в месяц), домен sbgta.app подтверждён в Resend
+    const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: env.MAIL_FROM || 'Secret Base <no-reply@sbgta.app>', to: [to], subject, text }) });
+    if (!r.ok) { console.log('resend', r.status, (await r.text()).slice(0, 200)); throw new HttpError(503, 'email_off'); }
+    return 'sent';
+  }
   if (!env.EMAIL) throw new HttpError(503, 'email_off');
   await env.EMAIL.send({ to, from: { email: env.MAIL_FROM || 'no-reply@sbgta.app', name: 'Secret Base' }, subject, text });
   return 'sent';
@@ -181,6 +200,7 @@ async function saveCheckout(env, cs) {
   if (!paid) return false;
   const uid = cs.client_reference_id || cs.metadata?.user_id || null;   // без входа — null: аккаунт найдётся по покупателю (/claim/guest)
   if (cs.customer && uid) await env.DB.prepare('UPDATE users SET customer_id = COALESCE(customer_id, ?) WHERE id = ?').bind(cs.customer, uid).run();
+  if (cs.metadata?.promo) await promoPaid(env, cs);
   if (cs.mode === 'subscription') {
     const s = typeof cs.subscription === 'object' && cs.subscription ? cs.subscription : await stripe(env, 'GET', '/v1/subscriptions/' + cs.subscription);
     await saveSub(env, s, uid);
@@ -231,38 +251,85 @@ async function proOf(env, u) {
   return { active: true, plan: best.plan, until: best.until, status: best.status, cancel: !!best.cancel_at_end, manage: !!u.customer_id, sub: hasSub };
 }
 async function meOf(env, req, u) {
-  const country = req.cf?.country || '';
+  const country = countryOf(env, req);
   return { user: pubUser(u), pro: await proOf(env, u), prices: prices(env, country), country, nopay: noPay(env, country), test: isTest(env) };
 }
 
 // ───────── Checkout и портал ─────────
 const NAMES = { year: 'Secret Base Pro — 1 year', month: 'Secret Base Pro — 1 month', pass: 'Secret Base Pro — 3 months (one payment)' };
-async function checkoutUrl(env, req, u, plan, ret, ticket, lang) {
+// Checkout Session. o.embedded — оплата внутри приложения (Stripe Embedded Checkout в шторке, ui_mode 'embedded': Managed Payments
+// его поддерживает); иначе — переход на checkout.stripe.com, как раньше. o.promo — платный триал по своему промокоду (kind 'trial'):
+// подписка с trial_period_days + разовая позиция price_cents в первом счёте (списывается сразу), полная цена — после триала.
+async function makeCheckout(env, req, u, plan, ret, ticket, lang, o = {}) {
   if (!PLANS.includes(plan)) throw new HttpError(400, 'bad_plan');
-  const country = req.cf?.country || '';
+  const country = countryOf(env, req);
   if (noPay(env, country)) throw new HttpError(403, 'nopay');
   const pr = prices(env, country);
   if (!pr[plan]) throw new HttpError(400, 'bad_plan');
-  const customer = u ? await ensureCustomer(env, u) : null;   // без входа: почту человек вводит в Stripe, покупатель создаётся там
   const sub = plan !== 'pass';
-  const meta = { ...(u ? { user_id: u.id } : { guest: '1' }), plan, zone: String(pr.zone) };
+  const tp = o.promo && o.promo.kind === 'trial' ? o.promo : null;
+  if (tp && !sub) throw new HttpError(400, 'promo_plan');   // триал — только у подписки (год / месяц)
+  const customer = u ? await ensureCustomer(env, u) : null;   // без входа: почту человек вводит в Stripe, покупатель создаётся там
+  const meta = { ...(u ? { user_id: u.id } : { guest: '1' }), plan, zone: String(pr.zone), ...(tp ? { promo: tp.code } : {}) };
   // Managed Payments: Stripe — продавец (merchant of record), сам считает и платит налоги/VAT; нужен tax_code товара
   const mp = String(env.MANAGED_PAYMENTS || '') === '1';
+  const item = (name, cents, recurring) => ({ quantity: 1, price_data: { currency: 'usd', tax_behavior: env.TAX_BEHAVIOR || 'inclusive', unit_amount: cents, product_data: { name, ...(mp ? { tax_code: env.TAX_CODE || 'txcd_10103000' } : {}) }, ...(recurring ? { recurring: { interval: plan } } : {}) } });
+  const items = { 0: item(NAMES[plan], Math.round(pr[plan] * 100), sub) };
+  if (tp && tp.price_cents > 0) items[1] = item(`Secret Base Pro — ${tp.days}-day access`, tp.price_cents, false);
+  const back = o.embedded
+    ? { ui_mode: 'embedded', return_url: withParams(ret, { paid: '{CHECKOUT_SESSION_ID}', login: ticket }), redirect_on_completion: 'if_required' }
+    : { success_url: withParams(ret, { paid: '{CHECKOUT_SESSION_ID}', login: ticket }), cancel_url: withParams(ret, { paid: 'cancel', login: ticket }) };
   const cs = await stripe(env, 'POST', '/v1/checkout/sessions', {
     mode: sub ? 'subscription' : 'payment',
     ...(customer ? { customer } : (sub ? {} : { customer_creation: 'always' })),
     ...(u ? { client_reference_id: u.id } : {}),
-    success_url: withParams(ret, { paid: '{CHECKOUT_SESSION_ID}', login: ticket }),
-    cancel_url: withParams(ret, { paid: 'cancel', login: ticket }),
-    line_items: { 0: { quantity: 1, price_data: { currency: 'usd', tax_behavior: env.TAX_BEHAVIOR || 'inclusive', unit_amount: Math.round(pr[plan] * 100), product_data: { name: NAMES[plan], ...(mp ? { tax_code: env.TAX_CODE || 'txcd_10103000' } : {}) }, ...(sub ? { recurring: { interval: plan } } : {}) } } },
+    ...back,
+    line_items: items,
     metadata: meta,
-    ...(sub ? { subscription_data: { metadata: meta } } : { payment_intent_data: { metadata: meta } }),
+    ...(sub ? { subscription_data: { metadata: meta, ...(tp ? { trial_period_days: String(tp.days) } : {}) } } : { payment_intent_data: { metadata: meta } }),
     locale: lang === 'ru' ? 'ru' : 'auto',
     ...(mp ? { managed_payments: { enabled: 'true' } } : {}),
-    allow_promotion_codes: 'true',   // поле «Промокод» на странице Stripe (бесплатный доступ — /admin/promo)
-    ...(sub ? { payment_method_collection: 'if_required' } : {}),   // при сумме $0 карту не спрашивать
+    ...(tp ? {} : { allow_promotion_codes: 'true' }),   // поле «Промокод» Stripe (SECRETBASE и т. п.); со своим триал-кодом — не нужно
+    ...(sub && !tp ? { payment_method_collection: 'if_required' } : {}),   // при сумме $0 карту не спрашивать; у триала карта нужна для списания потом
   });
-  return cs.url;
+  if (tp) await env.DB.prepare("INSERT OR IGNORE INTO promo_uses (id, code, kind, user_id, email, device, status, at) VALUES (?, ?, 'trial', ?, ?, ?, 'started', ?)")
+    .bind(cs.id, tp.code, u?.id || null, u?.email || null, o.device || '', now()).run();
+  return o.embedded ? { client_secret: cs.client_secret, id: cs.id, pk: env.STRIPE_PUBLISHABLE_KEY || '' } : { url: cs.url, id: cs.id };
+}
+const checkoutUrl = async (...a) => (await makeCheckout(...a)).url;
+
+// ───────── свои промокоды (таблицы promos, promo_uses): бесплатный доступ без карты и платный триал ─────────
+const normCode = (c) => String(c || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+// защита от подбора: 20 неверных кодов за 15 минут с адреса, 500 за 10 минут на всех
+async function promoRow(env, req, raw) {
+  const ip = ipOf(req, env);
+  if (await tooMany(env, 'promo:' + ip, 20, 15) || await tooMany(env, 'promo:all', 500, 10)) throw new HttpError(429, 'slow_down');
+  const code = normCode(raw);
+  const row = /^[A-Z0-9]{3,30}$/.test(code) ? await env.DB.prepare('SELECT * FROM promos WHERE code = ?').bind(code).first() : null;
+  if (!row || !row.active) { await addFail(env, 'promo:' + ip, 'promo:all'); throw new HttpError(404, 'bad_promo'); }
+  if (row.expires && row.expires < now()) throw new HttpError(410, 'promo_expired');
+  if (row.max && row.used >= row.max) throw new HttpError(410, 'promo_used_up');
+  return row;
+}
+// уже пользовались этим кодом с этой почты или с этого устройства (засчитываются выданные и оплаченные)
+async function promoUsed(env, code, email, device) {
+  return !!(await env.DB.prepare("SELECT 1 FROM promo_uses WHERE code = ? AND status IN ('ok', 'paid') AND ((? != '' AND email = ?) OR (? != '' AND device = ?)) LIMIT 1")
+    .bind(code, email || '', email || '', device || '', device || '').first());
+}
+const promoPub = (r) => ({ code: r.code, kind: r.kind, days: r.days, price: r.price_cents / 100 });
+// оплаченный триал: отметить активацию и посчитать её (один раз на сессию Stripe)
+async function promoPaid(env, cs) {
+  const code = cs.metadata?.promo; if (!code) return;
+  const email = normEmail(cs.customer_details?.email || cs.customer_email) || null;
+  const r = await env.DB.prepare("UPDATE promo_uses SET status = 'paid', email = COALESCE(?, email), user_id = COALESCE(?, user_id) WHERE id = ? AND status != 'paid' RETURNING id")
+    .bind(email, cs.client_reference_id || null, cs.id).first();
+  const ins = r ? null : await env.DB.prepare("INSERT OR IGNORE INTO promo_uses (id, code, kind, user_id, email, device, status, at) VALUES (?, ?, 'trial', ?, ?, '', 'paid', ?) RETURNING id")
+    .bind(cs.id, code, cs.client_reference_id || null, email, now()).first();
+  if (r || ins) await env.DB.prepare('UPDATE promos SET used = used + 1 WHERE code = ?').bind(code).run();
+}
+async function adminOk(env, req) {
+  const m = /^Bearer\s+(.+)$/.exec(req.headers.get('Authorization') || '');
+  if (!env.ADMIN_TOKEN || !m || !safeEq(m[1], env.ADMIN_TOKEN)) throw new HttpError(401, 'auth');
 }
 async function cfg(env, k) { return (await env.DB.prepare('SELECT v FROM config WHERE k = ?').bind(k).first())?.v || null; }
 async function setCfg(env, k, v) { await env.DB.prepare('INSERT OR REPLACE INTO config (k, v) VALUES (?, ?)').bind(k, v).run(); }
@@ -325,7 +392,7 @@ async function googleStart(env, req, url) {
   await env.DB.prepare('DELETE FROM auth_states WHERE created < ?').bind(now() - 15 * 60e3).run();
   await env.DB.prepare('INSERT INTO auth_states (state, verifier, return_url, plan, lang, created) VALUES (?, ?, ?, ?, ?, ?)').bind(state, verifier, ret, plan, lang, now()).run();
   const q = new URLSearchParams({
-    client_id: env.GOOGLE_CLIENT_ID, redirect_uri: url.origin + '/auth/google/callback', response_type: 'code', scope: 'openid email profile',
+    client_id: env.GOOGLE_CLIENT_ID, redirect_uri: originOf(env, url) + '/auth/google/callback', response_type: 'code', scope: 'openid email profile',
     state, code_challenge: await sha256(verifier), code_challenge_method: 'S256', prompt: 'select_account', hl: lang,
   });
   return redirect(GOOGLE_AUTH(env) + '?' + q);
@@ -337,7 +404,7 @@ async function googleCallback(env, req, url) {
   if (url.searchParams.get('error') || !url.searchParams.get('code')) return redirect(withParams(st.return_url, { login: 'cancel' }));
   const r = await fetch(GOOGLE_TOKEN(env), {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ code: url.searchParams.get('code'), client_id: env.GOOGLE_CLIENT_ID, client_secret: env.GOOGLE_CLIENT_SECRET || '', redirect_uri: url.origin + '/auth/google/callback', grant_type: 'authorization_code', code_verifier: st.verifier }),
+    body: new URLSearchParams({ code: url.searchParams.get('code'), client_id: env.GOOGLE_CLIENT_ID, client_secret: env.GOOGLE_CLIENT_SECRET || '', redirect_uri: originOf(env, url) + '/auth/google/callback', grant_type: 'authorization_code', code_verifier: st.verifier }),
   });
   const tok = await r.json().catch(() => ({}));
   if (!r.ok || !tok.id_token) { console.log('google token', r.status, tok.error); return redirect(withParams(st.return_url, { login: 'error' })); }
@@ -374,7 +441,8 @@ function htmlMsg(text) {
 async function route(env, req) {
   const url = new URL(req.url), p = url.pathname, M = req.method;
   const body = async () => (M === 'POST' ? await req.json().catch(() => ({})) : {});
-  if (p === '/health') return json({ ok: true, test: isTest(env) });
+  // promo / embedded — что умеет этот сервер: приложение показывает «Есть промокод?» и форму оплаты внутри, только если да
+  if (p === '/health') return json({ ok: true, test: isTest(env), promo: true, embedded: !!env.STRIPE_PUBLISHABLE_KEY });
   if (p === '/webhook' && M === 'POST') return webhook(env, req);
   if (p === '/auth/google' && M === 'GET') return googleStart(env, req, url);
   if (p === '/auth/google/callback' && M === 'GET') return googleCallback(env, req, url);
@@ -391,7 +459,7 @@ async function route(env, req) {
   }
   if (p === '/auth/pair/redeem' && M === 'POST') {
     // защита от подбора 6 цифр: 10 попыток в минуту с адреса и 100 в минуту на всех (Cloudflare Rate Limiting)
-    const ip = req.headers.get('CF-Connecting-IP') || 'x';
+    const ip = ipOf(req, env);
     for (const [rl, key] of [[env.RL_IP, 'pair:' + ip], [env.RL_ALL, 'pair:all']]) if (rl && !(await rl.limit({ key })).success) throw new HttpError(429, 'slow_down');
     const since = now() - 10 * 60e3;
     const cnt = async (k) => (await env.DB.prepare('SELECT COUNT(*) n FROM fails WHERE k = ? AND at > ?').bind(k, since).first())?.n || 0;
@@ -417,14 +485,56 @@ async function route(env, req) {
     if (url.searchParams.get('sync')) await syncCustomer(env, u).catch((e) => console.log('sync', e.code || e.message));
     return json(await meOf(env, req, u));
   }
-  if (p === '/checkout' && M === 'POST') {
-    const u = await needUser(env, req), b = await body();
-    if ((await proOf(env, u)).sub && b.plan !== 'pass') throw new HttpError(409, 'has_sub');   // вторую подписку не продаём — управление в портале
-    return json({ url: await checkoutUrl(env, req, u, String(b.plan || ''), okReturn(env, b.return || ''), null, b.lang) });
+  // оплата: { plan, return, lang, embedded?, promo?, device? } → { url } или (embedded) { client_secret, id, pk }
+  if ((p === '/checkout' || p === '/checkout/guest') && M === 'POST') {
+    const b = await body(), u = p === '/checkout' ? await needUser(env, req) : null;
+    if (u && (await proOf(env, u)).sub && b.plan !== 'pass') throw new HttpError(409, 'has_sub');   // вторую подписку не продаём — управление в портале
+    const device = String(b.device || '').slice(0, 64);
+    let promo = null;
+    if (b.promo) {
+      promo = await promoRow(env, req, b.promo);
+      if (promo.kind !== 'trial') throw new HttpError(400, 'promo_kind');
+      if (await promoUsed(env, promo.code, u?.email, device)) throw new HttpError(409, 'promo_used');
+    }
+    return json(await makeCheckout(env, req, u, String(b.plan || ''), okReturn(env, b.return || ''), null, b.lang, { embedded: !!b.embedded, promo, device }));
   }
-  if (p === '/checkout/guest' && M === 'POST') {   // оплата без входа
-    const b = await body();
-    return json({ url: await checkoutUrl(env, req, null, String(b.plan || ''), okReturn(env, b.return || ''), null, b.lang) });
+  // свой промокод: проверить ({ code, device }) → { code, kind: 'free'|'trial', days, price }
+  if (p === '/promo/check' && M === 'POST') {
+    const b = await body(), row = await promoRow(env, req, b.code), u = await userFromReq(env, req);
+    if (await promoUsed(env, row.code, u?.email, String(b.device || '').slice(0, 64))) throw new HttpError(409, 'promo_used');
+    return json(promoPub(row));
+  }
+  // бесплатный код: Pro на N дней без Stripe. Со входом — в этот аккаунт; без входа — по почте (как оплата без входа:
+  // сессия только «чистому» аккаунту, иначе Pro привязан и человек входит своим способом)
+  if (p === '/promo/redeem' && M === 'POST') {
+    const b = await body(), row = await promoRow(env, req, b.code), device = String(b.device || '').slice(0, 64);
+    if (row.kind !== 'free') throw new HttpError(400, 'promo_kind');
+    let u = await userFromReq(env, req), fresh = false;
+    const signed = !!u;
+    if (!u) {
+      const email = normEmail(b.email);
+      if (!okEmail(email)) throw new HttpError(400, 'bad_email');
+      u = await byEmail(env, email);
+      if (!u) {
+        u = { id: crypto.randomUUID(), google_sub: null, email, name: '', customer_id: null, pw: null, email_ok: 0 };
+        await env.DB.prepare('INSERT INTO users (id, email, name, created, last_login) VALUES (?, ?, ?, ?, ?)').bind(u.id, email, '', now(), now()).run();
+        fresh = true;
+      }
+    }
+    if (await promoUsed(env, row.code, u.email, device)) throw new HttpError(409, 'promo_used');
+    const use = await env.DB.prepare("INSERT OR IGNORE INTO promo_uses (id, code, kind, user_id, email, device, status, at) VALUES (?, ?, 'free', ?, ?, ?, 'ok', ?) RETURNING id")
+      .bind('free:' + row.code + ':' + u.id, row.code, u.id, u.email, device, now()).first();
+    if (!use) throw new HttpError(409, 'promo_used');
+    const cnt = await env.DB.prepare('UPDATE promos SET used = used + 1 WHERE code = ? AND (max = 0 OR used < max) RETURNING used').bind(row.code).first();
+    if (!cnt) { await env.DB.prepare('DELETE FROM promo_uses WHERE id = ?').bind(use.id).run(); throw new HttpError(410, 'promo_used_up'); }
+    const prev = (await proOf(env, u)).until || 0;   // дни добавляются к текущему сроку Pro, а не сгорают
+    await env.DB.prepare("INSERT INTO ents (id, user_id, customer_id, kind, plan, status, until, cancel_at_end, live, updated) VALUES (?, ?, NULL, 'promo', 'promo', 'paid', ?, 0, 1, ?)")
+      .bind('promo:' + row.code + ':' + u.id, u.id, Math.max(now(), prev) + row.days * DAY, now()).run();
+    const me = await meOf(env, req, u);
+    if (signed) return json({ ok: true, promo: promoPub(row), ...me });
+    const other = (await env.DB.prepare("SELECT COUNT(*) n FROM ents WHERE user_id = ? AND kind != 'promo'").bind(u.id).first())?.n || 0;
+    if (fresh || (!u.pw && !u.google_sub && !other)) return json({ ok: true, promo: promoPub(row), token: await newSession(env, u.id), new_account: !u.pw, ...me });
+    return json({ ok: true, promo: promoPub(row), need_login: true, email: u.email, has_pw: !!u.pw, google: !!u.google_sub });
   }
   if (p === '/claim/guest' && M === 'POST') {   // вернулся из оплаты без входа: аккаунт по почте из Stripe
     const b = await body(), id = String(b.session_id || '');
@@ -451,7 +561,7 @@ async function route(env, req) {
     return json({ paid: true, need_login: true, email: u.email, has_pw: !!u.pw, google: !!u.google_sub });
   }
   if (p === '/auth/login' && M === 'POST') {   // почта + пароль
-    const b = await body(), email = normEmail(b.email), ip = ipOf(req);
+    const b = await body(), email = normEmail(b.email), ip = ipOf(req, env);
     if (await tooMany(env, 'login:' + email, 10, 15) || await tooMany(env, 'loginip:' + ip, 40, 15)) throw new HttpError(429, 'slow_down');
     const u = okEmail(email) ? await env.DB.prepare('SELECT * FROM users WHERE email = ? AND pw IS NOT NULL ORDER BY created LIMIT 1').bind(email).first() : null;
     if (!u || !(await checkPw(String(b.password || ''), u.pw))) { await addFail(env, 'login:' + email, 'loginip:' + ip); throw new HttpError(401, 'bad_login'); }
@@ -470,7 +580,7 @@ async function route(env, req) {
     return json({ ok: true, ...(await meOf(env, req, u)) });
   }
   if (p === '/auth/email/code' && M === 'POST') {   // код на почту: «забыли пароль», «восстановить покупку»
-    const b = await body(), email = normEmail(b.email), ip = ipOf(req);
+    const b = await body(), email = normEmail(b.email), ip = ipOf(req, env);
     if (!okEmail(email)) throw new HttpError(400, 'bad_email');
     if (await tooMany(env, 'code:' + email, 5, 60) || await tooMany(env, 'codeip:' + ip, 30, 60)) throw new HttpError(429, 'slow_down');
     await addFail(env, 'code:' + email, 'codeip:' + ip);   // считаем каждую отправку
@@ -492,7 +602,7 @@ async function route(env, req) {
     return json({ ok: true, ...(how === 'outbox' ? { outbox: true } : {}) });
   }
   if (p === '/auth/email/verify' && M === 'POST') {
-    const b = await body(), email = normEmail(b.email), code = String(b.code || '').replace(/\D/g, ''), ip = ipOf(req);
+    const b = await body(), email = normEmail(b.email), code = String(b.code || '').replace(/\D/g, ''), ip = ipOf(req, env);
     if (await tooMany(env, 'verify:' + email, 8, 15) || await tooMany(env, 'verifyip:' + ip, 40, 15)) throw new HttpError(429, 'slow_down');
     let uid;
     try { if (code.length !== 6) throw new HttpError(400, 'ticket'); uid = await useTicket(env, 'email', email + '|' + code); }
@@ -525,11 +635,28 @@ async function route(env, req) {
     const s = await stripe(env, 'POST', '/v1/billing_portal/sessions', { customer: u.customer_id, return_url: withParams(okReturn(env, b.return || ''), { portal: 'back' }), ...(configuration ? { configuration } : {}), locale: b.lang === 'ru' ? 'ru' : 'auto' });
     return json({ url: s.url });
   }
-  if (p === '/admin/promo' && M === 'POST') {   // промокод в Stripe: { code, percent_off=100, duration='forever'|'once'|'repeating', months, max }
-    const m = /^Bearer\s+(.+)$/.exec(req.headers.get('Authorization') || '');
-    if (!env.ADMIN_TOKEN || !m || !safeEq(m[1], env.ADMIN_TOKEN)) throw new HttpError(401, 'auth');
-    const b = await body(), code = String(b.code || '').toUpperCase();
-    if (!/^[A-Z0-9]{4,30}$/.test(code)) throw new HttpError(400, 'bad_code');
+  // промокоды (админка /admin): { type: 'free'|'trial', code, days, price ($, trial), max (0 — без лимита), expires ('ГГГГ-ММ-ДД'), note, active }
+  //   type 'stripe' (или без type, как раньше): купон Stripe + промокод для поля на странице Stripe { code, percent_off=100, duration, months, max }
+  if (p === '/admin/promo' && M === 'POST') {
+    await adminOk(env, req);
+    const b = await body(), code = normCode(b.code);
+    if (!/^[A-Z0-9]{3,30}$/.test(code)) throw new HttpError(400, 'bad_code');
+    if (b.type === 'free' || b.type === 'trial') {
+      const days = Math.round(Number(b.days)), price = Math.round(Number(b.price || 0) * 100), max = Math.max(0, Math.round(Number(b.max || 0)));
+      if (!(days >= 1 && days <= 3650)) throw new HttpError(400, 'bad_days');
+      if (b.type === 'trial' && !(price >= 0 && price <= 10000)) throw new HttpError(400, 'bad_price');
+      const exp = b.expires ? new Date(/T/.test(b.expires) ? b.expires : b.expires + 'T23:59:59Z').getTime() : 0;
+      if (Number.isNaN(exp)) throw new HttpError(400, 'bad_expires');
+      await env.DB.prepare(`INSERT INTO promos (code, kind, days, price_cents, max, expires, active, note, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(code) DO UPDATE SET kind = excluded.kind, days = excluded.days, price_cents = excluded.price_cents, max = excluded.max, expires = excluded.expires, active = excluded.active, note = excluded.note`)
+        .bind(code, b.type, days, b.type === 'trial' ? price : 0, max, exp, b.active === false ? 0 : 1, String(b.note || '').slice(0, 200), now()).run();
+      return json({ ok: true, promo: await env.DB.prepare('SELECT * FROM promos WHERE code = ?').bind(code).first() });
+    }
+    if (b.type === 'off' || b.type === 'on') {   // выключить / включить свой код
+      const r = await env.DB.prepare('UPDATE promos SET active = ? WHERE code = ? RETURNING code').bind(b.type === 'on' ? 1 : 0, code).first();
+      if (!r) throw new HttpError(404, 'not_found');
+      return json({ ok: true });
+    }
     const duration = b.duration || 'forever';
     const cp = await stripe(env, 'POST', '/v1/coupons', { percent_off: String(b.percent_off || 100), duration, ...(duration === 'repeating' ? { duration_in_months: String(b.months || 12) } : {}), name: 'Secret Base ' + code });
     const lim = b.max ? { max_redemptions: String(b.max) } : {};
@@ -538,6 +665,16 @@ async function route(env, req) {
     catch { pc = await stripe(env, 'POST', '/v1/promotion_codes', { coupon: cp.id, code, ...lim }); }
     return json({ ok: true, code: pc.code, id: pc.id, coupon: cp.id, test: isTest(env) });
   }
+  // список кодов и активаций для админки
+  if (p === '/admin/promo' && M === 'GET') {
+    await adminOk(env, req);
+    const promos = (await env.DB.prepare('SELECT * FROM promos ORDER BY created DESC').all()).results || [];
+    const uses = (await env.DB.prepare('SELECT * FROM promo_uses ORDER BY at DESC LIMIT 300').all()).results || [];
+    const st = await stripe(env, 'GET', '/v1/promotion_codes', { limit: 30 }).catch(() => ({ data: [] }));
+    const stripeCodes = (st.data || []).map((x) => ({ code: x.code, active: x.active, used: x.times_redeemed, max: x.max_redemptions, percent: x.coupon?.percent_off ?? x.promotion?.coupon?.percent_off ?? null }));
+    return json({ promos, uses, stripe: stripeCodes, test: isTest(env) });
+  }
+  if (p === '/admin' && M === 'GET') return new Response(ADMIN_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'no-referrer' } });
   if (p === '/admin/setup' && M === 'POST') {
     const m = /^Bearer\s+(.+)$/.exec(req.headers.get('Authorization') || '');
     if (!env.ADMIN_TOKEN || !m || !safeEq(m[1], env.ADMIN_TOKEN)) throw new HttpError(401, 'auth');
@@ -545,7 +682,7 @@ async function route(env, req) {
     if (!(await cfg(env, 'whsec')) || b.force) {
       const old = await cfg(env, 'webhook_id');   // пересоздание (смена ключа или версии API) — старый вебхук удалить, чтобы события не шли дважды
       if (old && b.force) await stripe(env, 'DELETE', '/v1/webhook_endpoints/' + old).catch(() => { });
-      const wh = await stripe(env, 'POST', '/v1/webhook_endpoints', { url: url.origin + '/webhook', enabled_events: Object.fromEntries(EVENTS.map((e, i) => [i, e])), description: 'Secret Base Pro', ...(env.STRIPE_VERSION ? { api_version: env.STRIPE_VERSION } : {}) });
+      const wh = await stripe(env, 'POST', '/v1/webhook_endpoints', { url: originOf(env, url) + '/webhook', enabled_events: Object.fromEntries(EVENTS.map((e, i) => [i, e])), description: 'Secret Base Pro', ...(env.STRIPE_VERSION ? { api_version: env.STRIPE_VERSION } : {}) });
       await setCfg(env, 'whsec', wh.secret); await setCfg(env, 'webhook_id', wh.id); out.webhook = wh.id;
     }
     const pc = await stripe(env, 'POST', '/v1/billing_portal/configurations', {
@@ -558,6 +695,12 @@ async function route(env, req) {
       },
     });
     await setCfg(env, 'portal_cfg', pc.id); out.portal = pc.id;
+    // Apple Pay / Google Pay во встроенной оплате: домен приложения в Payment Method Domains (повторная регистрация — не ошибка)
+    out.domains = [];
+    for (const d of String(env.PAY_DOMAINS || '').split(',').map((x) => x.trim()).filter(Boolean)) {
+      const r = await stripe(env, 'POST', '/v1/payment_method_domains', { domain_name: d, enabled: 'true' }).catch((e) => ({ error: e.code }));
+      out.domains.push({ domain: d, id: r.id || null, apple_pay: r.apple_pay?.status || null, google_pay: r.google_pay?.status || null, error: r.error || null });
+    }
     return json({ ok: true, ...out, test: isTest(env) });
   }
   throw new HttpError(404, 'not_found');

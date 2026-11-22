@@ -76,27 +76,30 @@ export async function handleReturn() {
   }
   if (paid) {
     if (paid === 'cancel' || paid === 'error') out.paid = paid;
-    else if (/^cs_[A-Za-z0-9_]+$/.test(paid) && !st.token) {   // оплатил без входа: аккаунт по почте из Stripe
-      out.paid = 'pending';
-      for (let i = 0; i < 6; i++) {
-        try {
-          const d = await call('/claim/guest', { body: { session_id: paid }, auth: false });
-          if (d.token) { applyMe(d); out.paid = 'ok'; out.fresh = !!d.new_account; out.email = d.user?.email || ''; break; }
-          if (d.need_login) { out.paid = 'login'; out.email = d.email || ''; st.hint = { email: d.email, has_pw: d.has_pw, google: d.google }; persist(); break; }
-        } catch (e) { if (e.status === 400 || e.status === 403 || e.status === 404) { out.paid = 'error'; break; } }
-        await new Promise((r) => setTimeout(r, 1500));
-      }
-    }
-    else if (/^cs_[A-Za-z0-9_]+$/.test(paid) && st.token) {
-      out.paid = 'pending';
-      for (let i = 0; i < 6; i++) {   // оплата могла ещё не подтвердиться (3-D Secure, банк) — несколько попыток
-        try { const d = await call('/claim', { body: { session_id: paid } }); applyMe(d); if (d.paid && d.pro?.active) { out.paid = 'ok'; break; } }
-        catch (e) { if (e.status === 401 || e.status === 403 || e.status === 404) { out.paid = 'error'; break; } }
-        await new Promise((r) => setTimeout(r, 1500));
-      }
-    } else out.paid = 'error';
+    else if (/^cs_[A-Za-z0-9_]+$/.test(paid)) Object.assign(out, await claimPaid(paid));
+    else out.paid = 'error';
   }
   if (portal) { out.portal = true; await refresh(true).catch(() => { }); }
+  return out;
+}
+
+// оплата прошла (возврат по адресу или onComplete встроенной оплаты): сервер сверяет сессию со Stripe и даёт Pro.
+// Без входа — аккаунт по почте из Stripe (сессия «чистому» аккаунту, иначе нужно войти). → { paid, fresh, email }
+async function claimPaid(id) {
+  const out = { paid: 'pending', fresh: false, email: '' };
+  for (let i = 0; i < 6; i++) {   // оплата могла ещё не подтвердиться (3-D Secure, банк) — несколько попыток
+    try {
+      if (!st.token) {
+        const d = await call('/claim/guest', { body: { session_id: id }, auth: false });
+        if (d.token) { applyMe(d); out.paid = 'ok'; out.fresh = !!d.new_account; out.email = d.user?.email || ''; break; }
+        if (d.need_login) { out.paid = 'login'; out.email = d.email || ''; st.hint = { email: d.email, has_pw: d.has_pw, google: d.google }; persist(); break; }
+      } else {
+        const d = await call('/claim', { body: { session_id: id } }); applyMe(d);
+        if (d.paid && d.pro?.active) { out.paid = 'ok'; break; }
+      }
+    } catch (e) { if (e.status === 400 || e.status === 401 || e.status === 403 || e.status === 404) { out.paid = 'error'; break; } }
+    await new Promise((r) => setTimeout(r, 1500));
+  }
   return out;
 }
 
@@ -113,20 +116,82 @@ export function signIn(plan = null) {
   if (plan) q.set('plan', plan);
   location.href = apiBase() + '/auth/google?' + q;   // check_links: оплата (вход Google через наш сервер)
 }
-// «Оформить»: без входа — сразу Stripe (почту человек вводит там, пароль придумает после оплаты); со входом — Stripe с его аккаунтом
-export async function checkout(plan) {
+// «Оформить» с переходом на страницу Stripe (запасной путь, если встроенная оплата не загрузилась).
+// Без входа — почту человек вводит в Stripe, пароль придумает после оплаты; со входом — Stripe с его аккаунтом. promo — код триала.
+export async function checkout(plan, promo = null) {
+  const body = { plan, return: appUrl(), lang: lang(), device: deviceId(), ...(promo ? { promo } : {}) };
   if (!st.token) {
-    const d = await call('/checkout/guest', { body: { plan, return: appUrl(), lang: lang() }, auth: false });
+    const d = await call('/checkout/guest', { body, auth: false });
     location.href = d.url; return 'redirect';   // check_links: оплата (Stripe Checkout без входа)
   }
   try {
-    const d = await call('/checkout', { body: { plan, return: appUrl(), lang: lang() } });
+    const d = await call('/checkout', { body });
     location.href = d.url; return 'redirect';   // check_links: оплата (Stripe Checkout)
   } catch (e) {
-    if (e.status === 401) return checkout(plan);   // сессия истекла — оплата без входа
+    if (e.status === 401) return checkout(plan, promo);   // сессия истекла — оплата без входа
     if (e.code === 'has_sub') { await portal(); return 'portal'; }
     throw e;
   }
+}
+
+// ───────── оплата внутри приложения (22.11.2026): Stripe Embedded Checkout в шторке пейвола, без ухода на checkout.stripe.com ─────────
+// Скрипт Stripe.js грузится только при открытии оплаты. На стенде (localhost) — подставной: localStorage sb.stripejs = <адрес>/stripe.js
+let sjs = null, emb = null;
+function loadStripe() {
+  if (window.Stripe) return Promise.resolve(window.Stripe);
+  return sjs || (sjs = new Promise((ok, no) => {
+    const fake = DEV ? ls.get('sb.stripejs') : null;
+    if (fake) window.SB_FAKE_STRIPE_BASE = fake.replace(/\/stripe\.js$/, '');
+    const s = document.createElement('script');
+    s.src = fake || 'https://js.stripe.com/v3/';   // check_links: оплата (Stripe.js — форма оплаты внутри приложения)
+    s.onload = () => (window.Stripe ? ok(window.Stripe) : no(new Error('stripe_js')));
+    s.onerror = () => { sjs = null; s.remove(); no(new Error('stripe_js')); };
+    document.head.appendChild(s);
+  }));
+}
+export function closeInApp() { try { emb?.destroy(); } catch { } emb = null; }
+// → { id } после монтирования; onDone({ paid, fresh, email }) — когда оплата прошла. Ошибка 'has_sub' — уже есть подписка (портал).
+export async function checkoutInApp(plan, { promo = null, mount, onDone } = {}) {
+  closeInApp();
+  const body = { plan, return: appUrl(), lang: lang(), device: deviceId(), embedded: true, ...(promo ? { promo } : {}) };
+  let d;
+  if (st.token) {
+    try { d = await call('/checkout', { body }); }
+    catch (e) { if (e.status !== 401) throw e; }   // сессия истекла — без входа
+  }
+  if (!d) d = await call('/checkout/guest', { body, auth: false });
+  if (!d.client_secret) { const e = new Error('no_embedded'); e.code = 'no_embedded'; throw e; }
+  const Stripe = await loadStripe();
+  const stripe = Stripe(d.pk || 'pk_test_fake');
+  emb = await stripe.initEmbeddedCheckout({ fetchClientSecret: async () => d.client_secret, onComplete: async () => { const R = await claimPaid(d.id); closeInApp(); onDone?.(R); } });
+  emb.mount(mount);
+  return { id: d.id };
+}
+
+// что умеет сервер оплаты (GET /health): { promo, embedded }. Старый сервер этих полей не знает — тогда без промокодов и
+// с переходом на страницу Stripe, как раньше (клиент можно выкладывать раньше сервера)
+let feat = null, featP = null;
+export const features = () => feat || {};
+export function loadFeatures() {
+  if (feat || !enabled()) return Promise.resolve(feat || {});
+  return featP || (featP = fetch(apiBase() + '/health', { cache: 'no-store' }).then((r) => r.json())
+    .then((d) => (feat = { promo: d.promo === true, embedded: d.embedded === true }))
+    .catch(() => ({})).finally(() => { featP = null; }));
+}
+
+// ───────── свои промокоды: бесплатный доступ без карты и платный триал (сервер: /promo/check, /promo/redeem) ─────────
+export function deviceId() {   // случайный номер устройства: «один раз на устройство» для промокодов
+  let d = ls.get('sb.dev');
+  if (!d) { d = [...crypto.getRandomValues(new Uint8Array(12))].map((x) => x.toString(16).padStart(2, '0')).join(''); ls.set('sb.dev', d); }
+  return d;
+}
+export const promoCheck = (code) => call('/promo/check', { body: { code, device: deviceId() }, auth: !!st.token });
+// бесплатный код → { ok, promo, token?, new_account?, need_login?, email? }; Pro — сразу (со входом или новым аккаунтом по почте)
+export async function promoRedeem(code, email) {
+  const d = await call('/promo/redeem', { body: { code, device: deviceId(), ...(email ? { email } : {}) }, auth: !!st.token });
+  if (d.user) applyMe(d);
+  if (d.need_login) { st.hint = { email: d.email, has_pw: d.has_pw, google: d.google }; persist(); }
+  return d;
 }
 // Stripe Customer Portal: отмена подписки, карта, чеки
 export async function portal() {
