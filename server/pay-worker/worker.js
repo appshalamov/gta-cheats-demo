@@ -441,7 +441,8 @@ function htmlMsg(text) {
 async function route(env, req) {
   const url = new URL(req.url), p = url.pathname, M = req.method;
   const body = async () => (M === 'POST' ? await req.json().catch(() => ({})) : {});
-  if (p === '/health') return json({ ok: true, test: isTest(env) });
+  // promo / embedded — что умеет этот сервер: приложение показывает «Есть промокод?» и форму оплаты внутри, только если да
+  if (p === '/health') return json({ ok: true, test: isTest(env), promo: true, embedded: !!env.STRIPE_PUBLISHABLE_KEY });
   if (p === '/webhook' && M === 'POST') return webhook(env, req);
   if (p === '/auth/google' && M === 'GET') return googleStart(env, req, url);
   if (p === '/auth/google/callback' && M === 'GET') return googleCallback(env, req, url);

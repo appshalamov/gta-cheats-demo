@@ -168,6 +168,17 @@ export async function checkoutInApp(plan, { promo = null, mount, onDone } = {}) 
   return { id: d.id };
 }
 
+// что умеет сервер оплаты (GET /health): { promo, embedded }. Старый сервер этих полей не знает — тогда без промокодов и
+// с переходом на страницу Stripe, как раньше (клиент можно выкладывать раньше сервера)
+let feat = null, featP = null;
+export const features = () => feat || {};
+export function loadFeatures() {
+  if (feat || !enabled()) return Promise.resolve(feat || {});
+  return featP || (featP = fetch(apiBase() + '/health', { cache: 'no-store' }).then((r) => r.json())
+    .then((d) => (feat = { promo: d.promo === true, embedded: d.embedded === true }))
+    .catch(() => ({})).finally(() => { featP = null; }));
+}
+
 // ───────── свои промокоды: бесплатный доступ без карты и платный триал (сервер: /promo/check, /promo/redeem) ─────────
 export function deviceId() {   // случайный номер устройства: «один раз на устройство» для промокодов
   let d = ls.get('sb.dev');

@@ -1331,7 +1331,7 @@ function paywallPanel(st) {
   const pn = promo ? tn(promo.days, 'n_days') : '';
   const promoOn = promo ? `<p class="pw-promo-on">${I.check}<span>${esc(tf(tr ? 'pw_promo_trial' : 'pw_promo_free', { c: promo.code, n: pn, p: usdS(promo.price) }))}</span><button type="button" data-action="promo-clear">${t('pw_promo_clear')}</button></p>` : '';
   // «Есть промокод?» — тихая строка под кнопкой; поле раскрывается по тапу (код вводится здесь, а не на странице Stripe)
-  const promoRow = !pay.enabled() || st === 'renew' || promo ? '' : promoUi === 'open'
+  const promoRow = !pay.enabled() || !pay.features().promo || st === 'renew' || promo ? '' : promoUi === 'open'
     ? `<div class="pw-promo"><input id="pw-code" class="au-in" type="text" value="${esc(promoTyped)}" placeholder="${esc(t('pw_promo_ph'))}" autocapitalize="characters" autocomplete="off" spellcheck="false" enterkeyhint="go" aria-label="${esc(t('pw_promo_ph'))}"><button type="button" class="pw-promo-go" data-action="promo-apply">${t('pw_promo_apply')}</button></div>`
     : `<button type="button" class="pw-promo-l" data-action="promo-open">${t('pw_promo_q')}</button>`;
   const buy = fr && st !== 'nopay'
@@ -1384,6 +1384,8 @@ function openPaywall(want) {
   pw.querySelector('.pw-close').classList.remove('show');
   setTimeout(() => pw.querySelector('.pw-close')?.classList.add('show'), 900);
   pwThing(pw);
+  // сервер оплаты умеет промокоды и оплату внутри? — узнаём один раз, затем перерисовываем панель (строка «Есть промокод?»)
+  if (pay.enabled() && !pay.features().promo) pay.loadFeatures().then((f) => { if (f.promo && pw.classList.contains('open') && pw.dataset.k === key && !pw.querySelector('.pw-pay')) pw.querySelector('.pw-panel').innerHTML = paywallPanel(st); });
   // живые счётчики: коды GTA 5 — сразу (25 КБ); места — только уже загруженных игр (данные карты 1–2 МБ ради подписи не качаем)
   if (!data[store.game]) loadGame(store.game).then(() => { if (pw.classList.contains('open') && pw.dataset.k === key && !pw.querySelector('.pw-pay')) pw.querySelector('.pw-panel').innerHTML = paywallPanel(st); }).catch(() => { });
 }
@@ -1703,7 +1705,9 @@ document.addEventListener('click', async (e) => {
       if (!pay.enabled() && !demoPay()) { toast(t('pay_soon')); break; }
       if (!pay.enabled()) { demoBuy(); closePaywall(); toast(t('pro_unlocked')); onAccess(); renderAll(); break; }
       el.disabled = true;
-      payInApp(plan);
+      if (pay.features().embedded) { payInApp(plan); break; }
+      toast(t('pay_open'));   // сервер без встроенной оплаты — страница Stripe, как раньше
+      pay.checkout(plan, promo?.kind === 'trial' ? promo.code : null).catch((e) => { el.disabled = false; toast(t(promoErr(e))); });
       break;
     case 'pw-pay-back': haptic(); pay.closeInApp(); openPaywall(pwSt); break;
     case 'promo-open': haptic(); promoUi = 'open'; openPaywall(pwSt); setTimeout(() => { try { $('#pw-code')?.focus({ preventScroll: true }); } catch { } }, 60); break;
@@ -1828,6 +1832,7 @@ document.addEventListener('visibilitychange', () => {
   ref.boot({ onboarded: () => store.onboarded, payToken: () => (pay.signedIn() ? pay.state().token : null) }).catch(() => { });
   const apiP = import('./api.js').then(() => { const api = window.SB.api; return api && (!api.isMock || api.useProfile || api.mockChosen) ? api.getProfile() : null; }).catch(() => null);
   const ret = pay.handleReturn().catch(() => ({}));
+  pay.loadFeatures();   // что умеет сервер оплаты (промокоды, оплата внутри) — заранее, чтобы пейвол открылся сразу полным
   const [P, R] = await Promise.all([apiP, ret, loadGame(store.game).catch(() => { })]);
   acc.P = P; lastAccess = access();
   renderAll();
