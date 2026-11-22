@@ -23,6 +23,10 @@ CANCEL_MODE = "at_period_end"
 STRIPE_VERSION = "2025-03-31.basil"
 # публичный адрес сервера (за пересыльщиком sb-edge на app.shalamov) и отправитель писем Resend
 PUBLIC_ORIGIN = "https://pay.sbgta.app"
+# публичный ключ Stripe (не секрет: виден в браузере) — для оплаты внутри приложения (Embedded Checkout, js/pay.js)
+STRIPE_PUBLISHABLE_KEY = "pk_live_51OoiFJJhAI4jh7FYHxFUYGMRkTRgucMc7NRuYKuq9009D1MyXCIKPkxXMYS6vlhhwYXjfN6i1A3aqx4P5N7iaZjV00UpsYlqP6"
+# домены приложения для Apple Pay / Google Pay во встроенной оплате (регистрирует /admin/setup в Stripe Payment Method Domains)
+PAY_DOMAINS = "sbgta.app"
 MAIL_FROM = "Secret Base <no-reply@sbgta.app>"
 MANAGED_PAYMENTS = "1"
 TAX_CODE = "txcd_10103000"
