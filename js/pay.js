@@ -110,8 +110,15 @@ export async function refresh(sync = false) {
   applyMe(d); return d;
 }
 
-// вход через Google; plan — сразу после входа открыть оплату этого срока
-export function signIn(plan = null) {
+// вход через Google; plan — сразу после входа открыть оплату этого срока. Сначала проверяем, что сервер отвечает: иначе
+// переход уводил всё окно на страницу ошибки браузера, а из приложения «на экране Домой» назад не вернуться (QA 20.11 и 22.11).
+// false — сервер недоступен, приложение остаётся на месте (тост показывает вызывающий).
+export async function signIn(plan = null) {
+  try {
+    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 6000);
+    const r = await fetch(apiBase() + '/health', { cache: 'no-store', signal: ac.signal }); clearTimeout(tm);
+    if (!r.ok) return false;
+  } catch { return false; }
   const q = new URLSearchParams({ return: appUrl(), lang: lang() });
   if (plan) q.set('plan', plan);
   location.href = apiBase() + '/auth/google?' + q;   // check_links: оплата (вход Google через наш сервер)

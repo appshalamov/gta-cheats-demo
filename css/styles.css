@@ -1173,3 +1173,7 @@ img.img-fail { visibility: hidden; }
   .plans { margin-top: 12px; gap: 6px; } .plan { min-height: 52px; padding: 6px 14px; }
   .pw-cta { margin-top: 10px; }
 }
+
+/* Крестик пейвола не уезжает при прокрутке (QA 22.11: на 393×852 и SE пейвол длиннее экрана — после прокрутки крестик был на −103 px).
+   Липкий элемент в колонке #paywall: сверху справа, не сдвигает панель (отрицательный нижний отступ). */
+.pw-close { position: sticky; top: calc(var(--safe-t) + 12px); right: auto; align-self: flex-end; flex: none; margin: 0 16px -44px 0; }
