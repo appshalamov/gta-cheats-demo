@@ -1483,7 +1483,7 @@ function obDefaultPlatform(gameId) {
 function welcomeHTML() {
   const sec = (ic, k) => `<div class="ob-sec"><span class="ob-sec-ic">${ic}</span><span><b>${t(k)}</b><small>${t(k + '_s')}</small></span></div>`;
   return `<div class="ob-brand"><img src="icons/favicon.svg" alt="" width="44" height="44"><h1>Secret Base</h1></div>
-    ${sec(I.map, 'w_map')}${sec(I.gamepad, 'w_codes')}
+    ${sec(I.gamepad, 'w_codes')}${sec(I.map, 'w_map')}
     <p class="ob-more">${t('w_more')}</p>
     ${access() === 'trial' ? `<div class="o-trial">${I.clock}<span>${esc(tf('trial_left', { t: trialLeft() }))}</span></div>` : ''}
     <button class="btn-primary ob-cta" data-action="ob-start">${t('next')}</button>
@@ -1515,19 +1515,46 @@ function renderOnboarding(dir = 0) {
 // ───────── знакомство на карте и с кодами (js/tour.js; Игорь 22.11.2026, сценарий «Гибрид») ─────────
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const tourCtx = () => ({ t, tf, haptic, setSnap, reduced: reducedMotion(), pro: access() === 'pro',
-  codeId: (POPULAR[store.game] || [])[0] || 'g6_money' });
+  codeId: (POPULAR[store.game] || [])[0] || 'g6_money', isFav: (id) => store.favs.includes(id) });
 let codesBusy = false;
-async function startMapTour(replay = false) {
+async function startMapTour(replay = false, after = false) {
   document.body.classList.add('in-tour');
   if (mapLock.t0 && !mapLock.pausedAt) mapLock.pausedAt = Date.now();   // повтор из Настроек: показ стоит, не сбрасывается
   renderMapLock();
   let r = 'error';
-  try { r = await (await import('./tour.js')).mapTour(tourCtx()); } catch { }
+  try { r = await (await import('./tour.js')).mapTour({ ...tourCtx(), ...(after ? { base: 3, total: 6 } : {}) }); } catch { }
   store.tourMap = true; save();
   document.body.classList.remove('in-tour');
   if (mapLock.pausedAt) { mapLock.t0 += Date.now() - mapLock.pausedAt; mapLock.pausedAt = 0; }
-  if (r === 'nomap' || replay) { ui.tab = 'home'; renderAll(); }   // нет карты — сразу к кодам; повтор — карта и коды подряд
+  if (r === 'nomap') { ui.tab = 'home'; renderAll(); }   // нет карты (нет сети) — на Главную
   else renderMapLock();
+}
+// Игорь 23.11.2026: знакомство начинается с кодов — Главная → популярный код (кнопки, «Озвучить») → «в Избранное» → карта Майами
+// (пролёт, ползунок «игра ⇄ жизнь», «Где в жизни»). Пока идёт шаг с кодом, карта прогревается: сначала «Игра», потом «Жизнь».
+// «Пропустить» на шаге кодов — сразу карта и 20 с показа, без подсказок карты.
+async function startTour(replay = false) {
+  document.body.classList.add('in-tour');
+  if (!store.tourCodes || replay) {
+    if (ui.tab !== 'home') { closeSheet(); ui.tab = 'home'; renderAll(); }
+    let r = 'error';
+    try {
+      const tm = await import('./tour.js');
+      // прогрев карты: общий window.SB.prewarmMap (сессия скорости, perf/skeleton-23-11), без него — свой из js/map.js
+      if (window.SB?.prewarmMap) Promise.resolve(window.SB.prewarmMap('gta6')).catch(() => { });
+      else mapMod().then((m) => m.prewarmMap?.('gta6', tm.PLACE)).catch(() => { });
+      r = await tm.codesFirst(tourCtx());
+    } catch { }
+    store.tourCodes = true; save();
+    closeSheet();
+    if (r === 'skip') {
+      store.tourMap = true; save();
+      document.body.classList.remove('in-tour');
+      ui.tab = 'map'; renderAll(); return;
+    }
+    await new Promise((ok) => setTimeout(ok, 320));   // шторка уехала — потом вкладка «Карта»
+  }
+  ui.tab = 'map'; renderAll();
+  await startMapTour(replay, true);
 }
 function maybeCodesTour() {
   if (codesBusy || !store.tourMap || store.tourCodes || ui.tab !== 'home' || !store.onboarded) return;
@@ -1561,13 +1588,13 @@ function obPickThen(el, fn) {
 async function finishOnboarding(tab = 'home') {
   store.game = ui.obGame; store.platform = ui.obPlatform; store.onboarded = true; save();
   try { await loadGame(store.game); } catch { /* нет сети при первом запуске — данные подгрузятся позже, не держим на онбординге */ }
-  const tour = tab === 'map' && !store.tourMap;
+  const tour = !store.tourMap;
   if (tour) document.body.classList.add('in-tour');   // 20 с показа карты стоят, пока идёт знакомство
   document.body.classList.remove('in-ob');
-  ui.tab = tab; ui.cat = DEFAULT_CATEGORY;
+  ui.tab = tour ? 'home' : tab; ui.cat = DEFAULT_CATEGORY;   // знакомство начинается на Главной с кода (23.11.2026)
   renderAll();
-  if (tour) startMapTour();
-  if (tab === 'home') maybeInstallHint();   // на карте подсказка закрыла бы замок карты
+  if (tour) startTour();
+  else if (tab === 'home') maybeInstallHint();   // на карте подсказка закрыла бы замок карты
   checkTrialEnd();
 }
 
@@ -1736,7 +1763,7 @@ document.addEventListener('click', async (e) => {
     case 'lang': store.lang = v; save(); setLang(v); renderAll(); mapMod().then((m) => m.relang()); if (crLoaded) crMod().then((m) => m.relang()).catch(() => { }); break;
     case 'haptic-toggle': store.haptic = !store.haptic; save(); haptic(); renderSettings(); break;
     case 'howto': openHowto(); break;
-    case 'tour': haptic(); closeSheet(); store.tourCodes = false; save(); ui.tab = 'map'; renderAll(); startMapTour(true); break;
+    case 'tour': haptic(); closeSheet(); startTour(true); break;
     case 'about': openAbout(); break;
     case 'creators': haptic(); window.SB.openCreator('hub'); break;
     case 'rate': toast(t('rated')); break;
@@ -1903,7 +1930,7 @@ document.addEventListener('visibilitychange', () => {
   }
   else if (!store.onboarded) showOnboarding();
   // перезагрузка посреди знакомства на карте (QA 22.11: тур и анимация кодов пропадали навсегда) — продолжить с карты
-  else if (!store.tourMap) { document.body.classList.add('in-tour'); ui.tab = 'map'; renderAll(); startMapTour(); }
+  else if (!store.tourMap) startTour();   // с кода, если до него не дошли; иначе — карта
   backGuard();
   document.body.classList.add('ready');
   requestAnimationFrame(guardTabbar);
