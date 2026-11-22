@@ -1106,16 +1106,18 @@ function renderCards() {
       <span class="mc-promo-t"><b>${GAMES[other].title}</b><small>${esc(w(other === 'gta6' ? 'promo6' : 'promo5'))}</small></span>
       <span class="mc-promo-n">${data[other] ? `<em>${data[other].places.length}</em> ${esc(w('places_n'))}` : ''}${IC.chevR}</span></button>` : '';
   if (BETA && other === 'gta6' && !data[other]) loadGame(other).then(() => { if (promo === '') return; renderCards(); }).catch(() => { });
-  if (!top.length && !extra) { box.innerHTML = promo + `<div class="mc-empty">${IC.pin}<span>${esc(w('zoom'))}</span></div>`; return; }
-  box.innerHTML = promo + (extra && !top.length ? extra : top.map(({ p, i }) => {
+  if (!top.length && !extra) { setCards(box, promo + `<div class="mc-empty">${IC.pin}<span>${esc(w('zoom'))}</span></div>`); return; }
+  setCards(box, promo + (extra && !top.length ? extra : top.map(({ p, i }) => {
     const ck = catKey(p);
     return `<button class="mc${i === selected ? ' on' : ''}" data-mp="card" data-i="${i}">
       <span class="mc-ph">${p.pg ? `<img src="${esc(p.pg.thumb || p.pg.file)}" alt="" loading="lazy" decoding="async">` : `<i class="g">${IC.game}</i>`}${p.pr ? `<img src="${esc(p.pr.thumb || p.pr.file)}" alt="" loading="lazy" decoding="async">` : `<i class="r">${IC.camera}</i>`}<em>${IC.game}</em><em class="r">${IC.camera}</em></span>
       <span class="mc-t"><b>${esc(realShort(p))}</b><small>${IC.game}${esc(GAMES[game]?.title || '')}</small></span>
       <span class="mc-ic">${IC[ck]}${p.ac && IC[p.ac] ? IC[p.ac] : ''}${meter(p.cf)}${me ? `<em>${distLabel(p)}</em>` : ''}</span>
     </button>`;
-  }).join('') + (top.length ? extra : ''));
+  }).join('') + (top.length ? extra : '')));
 }
+// лента та же — DOM не трогаем: после каждого движения карты фото в карточках мигали и лента дёргалась (QA 22.11 круг 2)
+function setCards(box, html) { if (box.__html === html) return; box.__html = html; box.innerHTML = html; }
 function scrollCardIntoView(i) {
   const el = document.querySelector(`#map-cards .mc[data-i="${i}"]`);
   el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
@@ -1624,10 +1626,15 @@ function onTap(e) {
   const point = e.point;
   tapTimer = setTimeout(() => { tapTimer = null; pickAt({ point }); }, TAP_WAIT);
 }
-function cancelTap() { if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; } }
+export function cancelTap() { if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; } }
+addEventListener('popstate', cancelTap);   // «назад» за 250 мс после тапа — точка не открывается поверх (QA 22.11 круг 2)
+// касание шторки, вкладок, кнопок за эти 250 мс — человек уже делает другое (свайп карточки вниз открывал следом новую)
+addEventListener('touchstart', (e) => { if (tapTimer && !e.target.closest?.('#map')) cancelTap(); }, { passive: true, capture: true });
 // ищем точку в радиусе пальца, приоритет пасхалки > места > сообщество
 function pickAt(e) {
   if (!map) return;
+  // пока ждали 250 мс, ушли с карты или открылся пейвол (замок 20 с) — точку не открываем
+  if (document.body.dataset.tab !== 'map' || document.getElementById('paywall')?.classList.contains('open')) return;
   const r = 14, { x, y } = e.point;
   const layers = ['eggs', 'eggs-ref', 'places', 'cl-pt', 'cl', 'gl', 'gl-col', 'gtadb'].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, 'visibility') !== 'none');
   const raw = map.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]], { layers });
