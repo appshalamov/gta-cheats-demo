@@ -314,15 +314,36 @@ body.in-ob #onboarding { display: flex; }
 .pw-lead { margin-top: 8px; font-size: 15px; line-height: 1.4; color: var(--text-2); }
 .pw-feat li { align-items: flex-start; font-size: 14.5px; }
 .pw-feat svg { margin-top: 1px; }
-.pw-plan { min-height: 72px; padding: 11px 16px 12px; }
+/* 22.11.2026 — пейвол по чек-листу конверсии (скилл paywall-konversiya): выбранный срок виден сразу — кружок с галочкой,
+   заливка акцентом, рамка 2 px; цена списания крупно справа; год крупнее остальных; на кнопке — действие и цена */
+.pw-plan { gap: 12px; min-height: 64px; padding: 10px 14px; border-width: 2px; background: color-mix(in srgb, var(--text) 5%, transparent); }
+.pw-plan.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 17%, transparent); }
+.pw-plan.pw-year { min-height: 74px; }
 .pw-plan .plan-n b { flex-wrap: wrap; gap: 2px 10px; font-size: 18px; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
-.pw-plan .plan-n small { margin-top: 3px; font-size: 13px; line-height: 1.35; }
-.pw-month { display: block; width: 100%; min-height: 44px; margin-top: 2px; font-size: 14px; font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums;
-  text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--text-2) 50%, transparent); }
-.pw-month.on { color: var(--accent); text-decoration-color: currentColor; }
-/* «Попробовать 3 дня бесплатно» — вторая кнопка под главной (22.11.2026) */
-.pw-try { display: block; width: 100%; min-height: 50px; margin-top: 10px; border-radius: 25px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-size: 16px; font-weight: 650; }
+.pw-plan .plan-n small { margin-top: 2px; font-size: 13px; line-height: 1.3; }
+.pw-plan .plan-p b { font-size: 19px; font-weight: 800; letter-spacing: -.01em; }
+.pw-plan .plan-p small { margin-top: 1px; }
+.pw-plan.pw-month { min-height: 56px; }
+.pw-plan.pw-month .plan-n b, .pw-plan.pw-month .plan-p b { font-size: 16px; }
+.pw-radio { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text-3); color: transparent;
+  transition: background-color var(--d-fast), border-color var(--d-fast); }
+.pw-radio svg { width: 14px; height: 14px; stroke-width: 3; }
+.pw-plan.on .pw-radio { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.pw-after { display: flex; justify-content: center; align-items: flex-start; gap: 6px; margin-top: 8px; padding: 0 4px; font-size: 12.5px; line-height: 1.35; color: var(--text-2); }
+.pw-after svg { flex: none; width: 13px; height: 13px; margin-top: 2px; }
+/* «Попробовать 3 дня бесплатно» — рядом с главной, вторая строка — честно: без карты, ничего не спишем */
+.pw-try { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; width: 100%; min-height: 56px; margin-top: 10px; padding: 7px 16px;
+  border-radius: 28px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; }
+.pw-try b { font-size: 16px; font-weight: 650; }
+.pw-try small { font-size: 12px; line-height: 1.3; color: var(--text-2); }
 .pw-try:active { transform: scale(.98); }
+@media (max-height: 760px) {
+  .pw-panel { padding: 16px 14px 4px; border-radius: 30px; }
+  .pw-title { font-size: 25px; } .pw-lead { margin-top: 4px; font-size: 14px; }
+  .pw-feat { margin-top: 10px; gap: 5px; } .pw-feat li { font-size: 13.5px; }
+  .plans { margin-top: 12px; gap: 6px; } .pw-plan { min-height: 56px; padding: 8px 12px; } .pw-plan.pw-year { min-height: 62px; }
+  .pw-cta { margin-top: 10px; }
+}
 .pw-gift { display: flex; align-items: flex-start; gap: 10px; margin-top: 14px; font-size: 15px; line-height: 1.3; }
 .pw-gift svg { flex: none; width: 20px; height: 20px; color: var(--accent); }
 .pw-gift b { font-weight: 700; }
