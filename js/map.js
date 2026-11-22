@@ -6,7 +6,7 @@
 // пиктограммы типа места, доступа и точности совпадения, короткие подписи на языке устройства.
 // Свои клики обрабатываем здесь через атрибут data-mp (app.js их не трогает).
 
-import { t, L as tr, getLang, rn, ra, rg, rp } from './i18n.js';
+import { t, L as tr, getLang, rn, ra, rg, rp, credit as cred } from './i18n.js';
 import { GTA6 } from './config.js';
 import { lifeStyle, LIFE_VARIANTS } from './mapstyle.js';
 
@@ -366,13 +366,8 @@ const mapsLink = (lat, lon, q) => (ctx?.mapsApp?.() === 'apple'
 // (Ambrosia, Leonida, Vice City, Los Santos) и без «Rockstar Games». Так уже в v2; в main/дизайне осталось до 21.10.2026 (тест 21.10).
 // Подписи прав у фото: из данных приходят по-русски и с именем файла скриншота («официальный скриншот Leonida_Keys_01»).
 // Имя файла не нужно для права и несёт игровое название (решение №15) — убираем; вне русского интерфейса переводим.
-const CRED_EN = [[/кадр через/g, 'frame via'], [/кадр из сериала/g, 'still from'], [/официальный скриншот/g, 'official screenshot'],
-  [/Трейлер/g, 'Trailer'], [/фото:/g, 'photo:'], [/снято рядом/g, 'shot nearby'], [/автор не указан/g, 'author unknown'], [/через/g, 'via']];
-const cred = (c) => {
-  let s = String(c || '').replace(/(официальный скриншот)\s+[\w.-]+/g, '$1');
-  if (uiLang() !== 'ru') for (const [re, to] of CRED_EN) s = s.replace(re, to);
-  return s;
-};
+// подписи кадров и фото — credit() из i18n.js: один стиль с Главной и новостями (23.11.2026)
+const credLines = (list) => [...new Set(list.filter(Boolean).map((x) => cred(x.credit)).filter(Boolean))].map((c) => `<span>${esc(c)}</span>`).join('');
 const realShort = (p) => String(rn(p)).split(/,| \(/)[0] || rn(p);
 const themeKey = () => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
 // Тексты мест (почему похоже, совет, интересно…) есть по-русски; у ~950 полей «en» в данных пока тоже русский текст.
@@ -591,7 +586,7 @@ function placeSheet(p, i) {
     ${media.length ? `<div class="mp-yt">${media.map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
     ${nearbyRow(p, i)}
     ${(p.src || []).length ? `<div class="mp-src">${IC.link}${p.src.slice(0, 3).map((u) => `<span>${esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span>`).join('')}</div>` : ''}
-    <p class="mp-cred">${[p.pg, p.pr].filter(Boolean).map((x) => esc(cred(x.credit))).join(' · ')}</p>`;
+    <p class="mp-cred">${credLines([p.pg, p.pr])}</p>`;
 }
 // ближайшие места (до 5 км) — следующий шаг прогулки в одно касание
 function nearbyRow(p, i) {
@@ -623,7 +618,7 @@ function eggSheet(e, i) {
     <p class="mp-text">${esc(txt(e.d))}</p>
     ${yt.length > 1 ? `<div class="mp-yt">${yt.slice(1).map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
     ${e.src ? `<div class="mp-src">${IC.link}<span>${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span></div>` : ''}
-    <p class="mp-cred">${[e.pg, e.pr].filter(Boolean).map((x) => esc(cred(x.credit))).join(' · ')}</p>`;
+    <p class="mp-cred">${credLines([e.pg, e.pr])}</p>`;
 }
 // фото точек сообщества — из открытого репозитория gtadb.org на GitHub (CC BY 4.0; кадры игры © Rockstar Games).
 // Пара «игра ⇄ жизнь» с одного ракурса — для сравнения ползунком (главная функция, Игорь 14.10.2026: не убирать).
@@ -894,7 +889,7 @@ function renderViewer(anim = '') {
     body = `<div class="mpv-stage" id="mpv-stage"><img src="${esc(ph.url)}"${ph.fb ? ` data-fb="${esc(ph.fb)}"` : ''} alt="" draggable="false">
         ${n > 0 ? `<button class="mpv-arr l" data-mp="viewer-step" data-d="-1" aria-label="‹">${IC.chevL}</button>` : ''}
         ${n < list.length - 1 ? `<button class="mpv-arr r" data-mp="viewer-step" data-d="1" aria-label="›">${IC.chevR}</button>` : ''}</div>
-      <p class="mpv-credit">${ph.ap ? `<b class="mpv-approx">${esc(w('approxT'))}</b> · ` : ''}${esc(cred(ph.credit))}</p>`;
+      <p class="mpv-credit">${ph.ap ? `<b class="mpv-approx">${esc(w('approxT'))}</b>` : ''}<span>${esc(cred(ph.credit))}</span></p>`;
   } else {
     const lab = { cmp: [IC.swap, w('compare'), P.length > 1 ? P.length : ''], r: [IC.camera, w('real'), R.length], g: [IC.game, w('game'), G.length] };
     head = `<div class="mpv-ttl"><b>${IC.game}<span>${esc(names.g || '')}</span></b><small>${esc(names.r || '')}</small></div>`;
@@ -909,7 +904,7 @@ function renderViewer(anim = '') {
           <div class="cmp-line"><span class="cmp-knob">${IC.chevL}${IC.chevR}</span></div>
         </div>
         ${P.length > 1 ? `<div class="cmp-pairs">${P.map((x, k) => `<button class="${k === v.pi ? 'on' : ''}" data-mp="pair" data-n="${k}" aria-label="${k + 1}/${P.length}"><img src="${esc(x.g.thumb)}" alt="" loading="lazy"><img src="${esc(x.r.url)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
-        <p class="mpv-credit">${esc(cred(pr.g.credit))} · ${esc(cred(pr.r.credit))}</p>`;
+        <p class="mpv-credit">${credLines([pr.g, pr.r])}</p>`;
     } else {
       const list = v.sec === 'r' ? R : G;
       body = `<div class="mpa-grid">${list.map((ph, k) => `<button class="mpa-img" data-mp="view" data-ref="${v.sec}:${key}" data-n="${k}"><img src="${esc(ph.thumb)}" alt="" loading="lazy" decoding="async"></button>`).join('')}</div>`;

@@ -33,7 +33,7 @@ const T = {
     map_in_game: 'В игре', map_in_real: 'В жизни', map_tip: 'Совет: ', map_where_seen: 'Где видно: ',
     map_route: 'Маршрут', map_source: 'Источник', map_no_geo: 'Геопозиция выключена. Разрешите её в настройках iPhone или найдите место поиском.',
     map_en_note: 'Описание на английском',
-    map_gtadb_credit: 'Место из базы сообщества gtadb.org and contributors (CC BY 4.0).',
+    map_gtadb_credit: 'Место из базы сообщества gtadb.org, лицензия CC BY 4.0.',
     conf_confirmed: 'Один в один', conf_likely: 'Очень похоже', conf_speculative: 'Версия фанатов',
     tab_home: 'Главная', tab_search: 'Поиск', tab_fav: 'Избранное', tab_settings: 'Настройки',
     ob_game_title: 'Во что вы играете?', ob_platform_title: 'На какой платформе?',
@@ -55,10 +55,13 @@ const T = {
     how_phone: 'Телефон героя, «Контакты», наберите номер.',
     video_soon: 'Видео скоро',
     st_game: 'Игра', st_platform: 'Платформа', st_theme: 'Тема', st_lang: 'Язык', st_maps: 'Карты',
+    st_g_account: 'Аккаунт и Pro', st_g_game: 'Игра', st_g_app: 'Приложение', st_g_maps: 'Карты', st_g_help: 'Помощь и условия', st_g_authors: 'Авторам и партнёрам',
+    st_maps_open: 'Открывать в', st_creators_row: 'Ролики о местах', st_creators_sub: 'Снимайте места из игр и зарабатывайте', st_creators_sub_np: 'Снимайте места из игр и получайте Pro',
+    st_codes_for: 'Коды для', st_pro_row: 'Все коды и карта, {p} в год',
     th_dark: 'Тёмная', th_light: 'Светлая', th_auto: 'Авто',
     st_pro: 'Pro', st_pro_on: 'У вас Pro', st_get_pro: 'Открыть Pro',
     st_howto: 'Как вводить коды', st_share_app: 'Поделиться', st_rate: 'Оценить приложение',
-    frame_credit: 'Кадр: Rockstar Games', frames_credit: 'Кадры игр на Главной и в оформлении — Rockstar Games.',
+    frames_credit: 'Кадры игр на Главной и в оформлении — Rockstar Games.',
     st_reset: 'Начать заново', st_about: 'О приложении', st_haptic: 'Виброотклик',
     about_text: 'Secret Base — неофициальное приложение. Оно не связано с Rockstar Games и Take-Two Interactive и не одобрено ими. GTA и другие названия — торговые марки их владельцев, здесь они используются только для описания. Приложение не изменяет игру и не вмешивается в её файлы: это справочник кодов и карта реальных мест.',
     share_app_text: 'Secret Base: карта и чит-коды. Места из игр в реальной жизни',
@@ -154,7 +157,7 @@ const T = {
     map_in_game: 'In game', map_in_real: 'In real life', map_tip: 'Tip: ', map_where_seen: 'Seen in: ',
     map_route: 'Directions', map_source: 'Source', map_no_geo: 'Location is off. Allow it in iPhone Settings or find a place by search.',
     map_en_note: '',
-    map_gtadb_credit: 'Place from the community database gtadb.org and contributors (CC BY 4.0).',
+    map_gtadb_credit: 'Place from the gtadb.org community database, license CC BY 4.0.',
     conf_confirmed: 'Exact match', conf_likely: 'Close match', conf_speculative: 'Fan theory',
     tab_home: 'Home', tab_search: 'Search', tab_fav: 'Favorites', tab_settings: 'Settings',
     ob_game_title: 'What are you playing?', ob_platform_title: 'Which platform?',
@@ -176,10 +179,13 @@ const T = {
     how_phone: 'Character\'s phone, Contacts, dial the number.',
     video_soon: 'Video coming soon',
     st_game: 'Game', st_platform: 'Platform', st_theme: 'Theme', st_lang: 'Language', st_maps: 'Maps',
+    st_g_account: 'Account and Pro', st_g_game: 'Game', st_g_app: 'App', st_g_maps: 'Maps', st_g_help: 'Help and terms', st_g_authors: 'Creators and partners',
+    st_maps_open: 'Open in', st_creators_row: 'Videos about places', st_creators_sub: 'Film game places and earn', st_creators_sub_np: 'Film game places and get Pro',
+    st_codes_for: 'Codes for', st_pro_row: 'All codes and the map, {p} a year',
     th_dark: 'Dark', th_light: 'Light', th_auto: 'Auto',
     st_pro: 'Pro', st_pro_on: 'You have Pro', st_get_pro: 'Get Pro',
     st_howto: 'How to enter codes', st_share_app: 'Share', st_rate: 'Rate the app',
-    frame_credit: 'Image: Rockstar Games', frames_credit: 'Game images on Home and in the interface — Rockstar Games.',
+    frames_credit: 'Game images on Home and in the interface — Rockstar Games.',
     st_reset: 'Start over', st_about: 'About', st_haptic: 'Haptics',
     about_text: 'Secret Base is an unofficial app. It is not affiliated with or endorsed by Rockstar Games or Take-Two Interactive. GTA and other names are trademarks of their owners and are used here for description only. The app does not modify the game or touch its files: it is a code reference and a map of real places.',
     share_app_text: 'Secret Base: map & cheat codes. Game places in real life',
@@ -282,4 +288,20 @@ export const rn = (o) => (o ? (lang === 'ru' && o.nr) || o.n || '' : '');
 export const ra = (o) => (o ? (lang === 'ru' && o.ar) || o.a || '' : '');
 export const rg = (o) => { const v = o ? (lang === 'ru' && o.gr) || o.g : ''; return typeof v === 'string' ? v : ''; };   // игровое имя места (gr — русское пояснение)
 export const rp = (o) => { const v = o ? (lang === 'ru' && o.pn) || o.p : ''; return typeof v === 'string' ? v : ''; };   // реальное место пасхалки (pn — по-русски; pr занято реальным фото)
+// Подпись кадра или фото — один стиль во всём приложении (Игорь 23.11.2026: «© Rockstar Games · официальный скриншот
+// Leonida_Keys_04» — смешение языков и имя файла). Кадр игры или сериала — «© Правообладатель»; фото из жизни —
+// «Фото: автор, лицензия» на языке интерфейса. Без имён файлов, таймкодов трейлеров, номеров (L123), «·» и «снято рядом».
+const CR = { ru: ['Фото', 'автор не указан', 'участники gtadb.org'], en: ['Photo', 'unknown author', 'gtadb.org contributors'] };
+export function credit(c) {
+  let s = String(c || '').replace(/\s+/g, ' ').trim(); if (!s) return '';
+  const own = s.match(/^©\s*(?:\d{4}\s+)?([^·(]+?)\s*(?:·|\(|$)/);
+  if (own) return '© ' + own[1].trim();
+  const [ph, unk, gdb] = CR[lang] || CR.en;
+  s = s.replace(/^(фото|photo):\s*/i, '').replace(/\s*\(L\d+\)/g, '')
+    .replace(/gtadb\.org\s+and contributors/i, gdb).replace(/автор не указан|author unknown/g, unk)
+    .replace(/\s*\((CC[^)]*)\)/, ' · $1').replace(/\s*·\s*Wikimedia(?: Commons)?\s*$/i, '');
+  const parts = s.split(/\s*·\s*/).filter(Boolean);
+  if (parts.length > 1) parts[0] = parts[0].replace(/\s+(?:from|\/)\s.*$/, '');   // «Ken Lund from Reno, Nevada, USA» → «Ken Lund»
+  return `${ph}: ${parts.join(', ')}`;
+}
 export function L(v) { if (v == null) return ''; return typeof v === 'string' ? v : (v[lang] ?? v.ru ?? v.en ?? ''); }

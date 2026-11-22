@@ -608,6 +608,8 @@ body.in-ob #onboarding { display: flex; }
 .mp-src > svg { width: 15px; height: 15px; color: var(--text-3); }
 .mp-src a { color: var(--text-2); }
 .mp-cred { margin-top: 8px; font-size: 11px; line-height: 1.35; color: var(--text-3); }
+/* подписи кадра игры и фото из жизни — каждая своей строкой, один стиль (credit() в i18n.js, 23.11.2026) */
+.mp-cred span, .mpv-credit span, .mpv-credit b { display: block; overflow-wrap: anywhere; }
 .mp-egghead { display: flex; gap: 12px; align-items: center; margin: 2px 0 12px; }
 .mp-eggic { flex: none; width: 48px; height: 48px; padding: 11px; border-radius: 14px; background: color-mix(in srgb, #f472b6 22%, transparent); color: #f472b6; }
 .mp-egghead small { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #f472b6; font-weight: 700; }
