@@ -849,7 +849,7 @@ function renderSettings() {
       <div class="row row-static"><span class="row-ic">${I.globe}</span><span class="row-l">${t('st_maps')}</span>
         <span class="mini-seg">${MAPS_APPS.map(([k, n]) => `<button class="${(store.mapsApp || 'google') === k ? 'on' : ''}" data-action="maps-app" data-v="${k}">${n}</button>`).join('')}</span></div>
       <div class="row row-static"><span class="row-ic">${I.vibe}</span><span class="row-l">${t('st_haptic')}</span>
-        <button class="switch${store.haptic ? ' on' : ''}" data-action="haptic-toggle" aria-label="haptics"><i></i></button></div>
+        <button class="switch${store.haptic ? ' on' : ''}" data-action="haptic-toggle" aria-label="${esc(t('a_haptics'))}"><i></i></button></div>
     </div>
     <div class="group">
       ${row('tour', I.map, t('st_tour'))}
@@ -894,6 +894,7 @@ function renderAll() {
   $('#search-input').placeholder = t('search_ph');
   document.querySelectorAll('.tab-l').forEach((s) => { s.textContent = t('tab_' + s.dataset.k); });
   document.querySelectorAll('[data-t]').forEach((s) => { s.textContent = t(s.dataset.t); });
+  document.querySelectorAll('[data-ta]').forEach((s) => s.setAttribute('aria-label', t(s.dataset.ta)));   // подписи кнопок-значков для VoiceOver на языке интерфейса (QA 22.11)
   renderHome(); renderSearch(); renderFavs(); renderSettings();
   maybeCodesTour();
 }
