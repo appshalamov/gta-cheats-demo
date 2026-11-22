@@ -1233,7 +1233,7 @@ function openCodeLock(c) { openSheet(codeLockHTML(c), 'sheet-detail sheet-lock')
 // ───────── карта без Pro: 10 секунд показа за запуск, потом размытие и замок (концепт v11 map:trial; 31 §4.2) ─────────
 // Замок — слой поверх вкладки «Карта» (js/map.js не трогаем); шторка места из ссылки открывается над ним.
 const MAP_DEMO = 20000;   // демо карты в пробном: 20 с (Игорь 20.11.2026: «15–20 секунд, а не как сейчас»)
-const mapLock = { t0: 0, timer: 0, paywall: false, pausedAt: 0 };
+const mapLock = { t0: 0, seen: 0, timer: 0, paywall: false, pausedAt: 0 };
 const mapPw = () => (access() === 'trial' ? 'map' : workEnded() ? '' : 'trial_end');
 function renderMapLock() {
   let el = $('#map-lock');
@@ -1245,7 +1245,9 @@ function renderMapLock() {
   el.hidden = false;
   // 20 с считаются с момента, когда карта видна, а не с тапа по вкладке: на iPhone карта грузится 10–16 с
   // и живого показа оставалось ~10 с (QA 22.11, роль «карта»)
-  const mapShown = () => !!window.__gtaMap && !document.getElementById('map')?.classList.contains('loading');
+  // карта не загрузилась за 12 с (плохая сеть) — отсчёт всё равно идёт, демо не бесконечное
+  if (!mapLock.seen) mapLock.seen = Date.now();
+  const mapShown = () => (!!window.__gtaMap && !document.getElementById('map')?.classList.contains('loading')) || Date.now() - mapLock.seen > 12000;
   if (!mapLock.t0 && mapShown()) mapLock.t0 = Date.now();
   el.innerHTML = `<div class="ml-veil"></div><div class="ml-box"><span class="ml-ic">${I.lock}</span><b id="ml-t"></b><span class="ml-bar"><i id="ml-bar"></i></span>
     <button class="btn-primary" data-action="paywall" data-pw="${mapPw()}">${t('open_pro')}</button></div>`;
@@ -1698,7 +1700,7 @@ document.addEventListener('click', async (e) => {
     case 'rate': toast(t('rated')); break;
     case 'reset': {   // «Начать заново»: демо-Pro снят, настройки и избранное — по умолчанию; срок пробного прежний
       ui.stopPlay?.(); Object.assign(store, { ...DEFAULTS, lang: store.lang, theme: store.theme, trialStart: store.trialStart || Date.now(), ftUntil: store.ftUntil, linkKeys: [] }); save();   // пробный НЕ начинается заново (QA 20.11.2026: «Начать заново» давал ещё 72 ч)
-      Object.assign(mapLock, { t0: 0, paywall: false }); clearInterval(mapLock.timer); mapLock.timer = 0;
+      Object.assign(mapLock, { t0: 0, seen: 0, paywall: false }); clearInterval(mapLock.timer); mapLock.timer = 0;
       closeSheet(); closePaywall(); $('#install').classList.remove('show'); lastAccess = access(); showOnboarding(); renderMapLock(); break;
     }
     case 'paywall': haptic(); closeSheet(); openPaywall(el.dataset.pw || ''); break;
