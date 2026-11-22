@@ -213,7 +213,8 @@ def enrich_places(enrich, dry):
         if add:
             ch["game_media"] = gm + add
         src = list(r.get("sources") or [])
-        new_src = [u for u in (it.get("sources") or []) if u.startswith("http") and u not in src][:1]
+        first = (it.get("sources") or [""])[0]   # только главный источник записи (IGN и т. п.) — повторный запуск ничего не добавит
+        new_src = [first] if first.startswith("http") and first not in src else []
         if new_src:
             ch["sources"] = src + new_src
         if ch:
