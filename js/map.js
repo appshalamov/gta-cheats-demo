@@ -2245,6 +2245,32 @@ export async function focus(g, kind, id) {
   return true;
 }
 
+// Знакомство (js/tour.js): пролёт к месту на карте игры и карточка на половине экрана; ползунок «игра ⇄ жизнь» — тем же setInlineX
+export async function tourOpen(id, dur = 2200) {
+  if (!map && opening) await opening.catch(() => null);
+  if (!map) return false;
+  if (game !== 'gta6') await setGame('gta6');
+  const d = await loadGame(game);
+  const i = d.places.findIndex((x) => x.id === id);
+  if (i < 0) return false;
+  if (mode !== 'game' && GAME_MAP[game]) {
+    await setMode('game');
+    await new Promise((r) => { const t = setTimeout(r, 4000); map.once('idle', () => { clearTimeout(t); r(); }); });
+  }
+  const c = ll(d.places[i]); if (!c) return false;
+  const zoom = Math.max(map.getZoom(), tilesGame() ? 6.5 : 14.5);
+  await new Promise((res) => {
+    const t = setTimeout(res, dur + 900);
+    map.once('moveend', () => { clearTimeout(t); res(); });
+    if (dur) map.flyTo({ center: c, zoom, duration: dur, offset: camOffset('half'), curve: 1.3 });
+    else map.easeTo({ center: c, zoom, duration: 0, offset: camOffset('half') });
+  });
+  openPlace(i, false, 'half');
+  return true;
+}
+export const tourSlide = (st, v) => setInlineX(st, v);
+export const tourMode = () => mode;
+
 // где я на этой карте: в реальном мире — как есть, на карте игры — пересчитано по опорным точкам (та же логика, что переход)
 function meAt() {
   if (!me) return null;
