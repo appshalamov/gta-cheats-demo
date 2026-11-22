@@ -1401,18 +1401,18 @@ function backGuard() {
     if (document.getElementById('mp-viewer')?.classList.contains('open')) { again(); return; }
     const cr = document.getElementById('cr');
     if (cr && !cr.hidden && crLoaded) { crMod().then((m) => m.back?.()).catch(() => { }); again(); return; }
+    if (document.getElementById('tour')) { import('./tour.js').then((m) => m.skip()); again(); return; }   // тур раньше шторки (QA 22.11)
     if ($('#sheet-layer').classList.contains('open')) { closeSheet(); again(); return; }
     const pw = $('#paywall');
     if (pw.classList.contains('open')) { if (pw.querySelector('.pw-close.show')) closePaywall(); again(); return; }
     if (document.body.classList.contains('in-ob')) { again(); return; }
-    if (document.getElementById('tour')) { import('./tour.js').then((m) => m.skip()); again(); return; }
     if (ui.tab !== 'home') { ui.tab = 'home'; renderAll(); again(); }
   });
 }
 function closePaywall() {
   pay.closeInApp(); promoUi = '';
   $('#paywall').classList.remove('open');
-  if (store.tourMap && !store.tourCodes && ui.tab === 'map' && store.onboarded) { ui.tab = 'home'; renderAll(); return; }   // после пейвола — Главная и одна анимация кодов
+  if (store.tourMap && !store.tourCodes && ui.tab === 'map' && store.onboarded) { closeSheet(); ui.tab = 'home'; renderAll(); return; }   // после пейвола — Главная и одна анимация кодов; карточку места закрыть (QA 22.11: оставалась поверх Главной и тур кодов не начинался)
   maybeInstallHint();
 }
 // демо-покупка: срок как у настоящей (пропуск до 19.11 считается с 19.11 — 31 §4.4); настоящая — Paddle / покупки Apple (сервер)
@@ -1850,6 +1850,8 @@ document.addEventListener('visibilitychange', () => {
     store.onboarded = true; save(); if (location.hash) history.replaceState(null, '', location.pathname + location.search); window.SB.openCreator('admin');
   }
   else if (!store.onboarded) showOnboarding();
+  // перезагрузка посреди знакомства на карте (QA 22.11: тур и анимация кодов пропадали навсегда) — продолжить с карты
+  else if (!store.tourMap) { document.body.classList.add('in-tour'); ui.tab = 'map'; renderAll(); startMapTour(); }
   backGuard();
   document.body.classList.add('ready');
   requestAnimationFrame(guardTabbar);
