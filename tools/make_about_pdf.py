@@ -4,7 +4,7 @@
 Снимает каждую секцию страницы about/?deck картинкой 16:9 (Playwright, плотность 2) и собирает PDF из картинок —
 по скиллу pdf-dlya-iphone (без серых квадратов на iPhone). Нужен локальный сервер корня репозитория.
 Запуск: ~/.video-venv/bin/python tools/make_about_pdf.py http://127.0.0.1:8967/about/
-Пишет about/Secret-Base-presentation-RU.pdf и -EN.pdf; после — proverka_pdf_apple.py (итог «проблем 0»).
+Пишет about/Secret-Base-presentation-{RU,EN}[-nopay].pdf; после — proverka_pdf_apple.py (итог «проблем 0»).
 """
 import sys, pathlib, subprocess, tempfile, asyncio
 from playwright.async_api import async_playwright
@@ -12,14 +12,15 @@ from playwright.async_api import async_playwright
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKILL = pathlib.Path.home() / '.claude/skills/pdf-dlya-iphone/scripts/kartinki_v_pdf.py'
 W, H = 1600, 900
+OUTTMP = sys.argv[2] if len(sys.argv) > 2 else None   # папка для кадров (по умолчанию системная временная)
 
 
-async def shots(url, lang, out):
+async def shots(url, lang, out, extra=''):
     async with async_playwright() as p:
         br = await p.chromium.launch()
-        ctx = await br.new_context(viewport={'width': W, 'height': H}, device_scale_factor=1.5, reduced_motion='reduce')
+        ctx = await br.new_context(viewport={'width': W, 'height': H}, device_scale_factor=1.5, reduced_motion='reduce', timezone_id='America/Los_Angeles')
         pg = await ctx.new_page()
-        await pg.goto(f'{url}?deck&lang={lang}', wait_until='networkidle')
+        await pg.goto(f'{url}?deck&lang={lang}{extra}', wait_until='networkidle')
         await pg.wait_for_function('document.documentElement.dataset.ready')
         hgt = await pg.evaluate('document.body.scrollHeight')
         for y in range(0, hgt, H):
@@ -37,10 +38,11 @@ async def shots(url, lang, out):
 
 def main():
     url = sys.argv[1] if len(sys.argv) > 1 else 'http://127.0.0.1:8967/about/'
-    for lang in ('ru', 'en'):
-        tmp = pathlib.Path(tempfile.mkdtemp(prefix=f'about-{lang}-'))
-        files = asyncio.run(shots(url, lang, tmp))
-        pdf = ROOT / 'about' / f'Secret-Base-presentation-{lang.upper()}.pdf'
+    # обычные и «без программы» (?nopay: Россия и Беларусь — без слов о выплатах, Выжимка §10 п. 10)
+    for lang, extra, tag in (('ru', '', ''), ('en', '', ''), ('ru', '&nopay', '-nopay'), ('en', '&nopay', '-nopay')):
+        tmp = pathlib.Path(tempfile.mkdtemp(prefix=f'about-{lang}{tag}-', dir=OUTTMP))
+        files = asyncio.run(shots(url, lang, tmp, extra))
+        pdf = ROOT / 'about' / f'Secret-Base-presentation-{lang.upper()}{tag}.pdf'
         subprocess.run([sys.executable, '-I', str(SKILL), str(pdf), *files], check=True)
         print(pdf.name, len(files), 'стр.', pdf.stat().st_size // 1024, 'КБ', '| кадры:', tmp)
 
