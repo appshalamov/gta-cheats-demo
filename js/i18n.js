@@ -56,7 +56,7 @@ const T = {
     video_soon: 'Видео скоро',
     st_game: 'Игра', st_platform: 'Платформа', st_theme: 'Тема', st_lang: 'Язык', st_maps: 'Карты',
     st_g_account: 'Аккаунт и Pro', st_g_game: 'Игра', st_g_app: 'Приложение', st_g_maps: 'Карты', st_g_help: 'Помощь и условия', st_g_authors: 'Авторам и партнёрам',
-    st_maps_open: 'Открывать в', st_creators_row: 'Ролики о местах', st_creators_sub: 'Снимайте места из игр и зарабатывайте', st_creators_sub_np: 'Снимайте места из игр и получайте Pro',
+    st_maps_open: 'Открывать в', st_creators_row: 'Ролики о местах', st_creators_sub: 'Снимайте места и зарабатывайте', st_creators_sub_np: 'Снимайте места и получайте Pro',
     st_codes_for: 'Коды для', st_pro_row: 'Все коды и карта, {p} в год',
     th_dark: 'Тёмная', th_light: 'Светлая', th_auto: 'Авто',
     st_pro: 'Pro', st_pro_on: 'У вас Pro', st_get_pro: 'Открыть Pro',
