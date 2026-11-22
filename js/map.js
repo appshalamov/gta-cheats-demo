@@ -2396,11 +2396,14 @@ async function warmFresh(g) {
     return !!t && Date.now() - t < WARM_TTL && !!navigator.serviceWorker?.controller && await caches.has('tiles-v1');
   } catch { return false; }
 }
-export function prewarm(g = 'gta6') {
-  return (warmed[g] ||= (async () => {
+// Вход — window.SB.prewarmMap в app.js (контракт с онбордингом). Без сети — сразу false, повтор после появления сети.
+export function prewarm(g = 'gta6', life = true) {
+  const key = g + (life ? '' : ':g');
+  return (warmed[key] ||= (async () => {
     const r = { game: false, life: false };
+    if (!navigator.onLine) { delete warmed[key]; return r; }
     let d;
-    try { [d] = await Promise.all([loadGame(g), loadLib(), loadGtadb(g).catch(() => null)]); } catch { delete warmed[g]; return r; }
+    try { [d] = await Promise.all([loadGame(g), loadLib(), loadGtadb(g).catch(() => null)]); } catch { delete warmed[key]; return r; }
     const real = { center: [d.center[1], d.center[0]], zoom: d.zoom - 0.6 };
     // карта уже открыта — «Игру» она грузит сама, «Жизнь» греет её «запасная карта» (ghostPrep)
     if (map || opening) { r.game = r.life = true; r.byMap = true; return r; }
@@ -2412,6 +2415,7 @@ export function prewarm(g = 'gta6') {
       const mid = (k) => gp.map((p) => p.gm[k]).sort((a, b) => a - b)[Math.floor(gp.length / 2)] || 0;
       r.game = await warmView(gameStyleFor(g), { center: G2M(mid(0), mid(1)), zoom: 3.6 });
     } else r.game = GAME_MAP[g] ? await warmView(gameStyleFor(g), real) : true;
+    if (!life) return r;
     r.life = map || opening ? true : await warmView(STYLE[themeKey()], real);
     if (r.game && r.life) warmMark(g);
     return r;

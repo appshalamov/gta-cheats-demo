@@ -66,7 +66,7 @@ const warmUI = () => { try { navigator.serviceWorker?.controller?.postMessage('w
 window.SB.prewarmMap = (g = MAP_OF(store.game)) => {
   if (navigator.connection?.saveData) return Promise.resolve({ game: false, life: false });
   window.SB.prewarmMap.ready = warmP[g] ||= mapMod().then((m) => m.prewarm(g)).catch(() => ({ game: false, life: false }))
-    .then((r) => { swAfterWarm?.(); if (r.game && r.life && !r.byMap) setTimeout(warmUI, 4000); return r; });   // карта открылась раньше — фото позже (sb:map-idle)
+    .then((r) => { if (!r.game && !r.life) delete warmP[g]; swAfterWarm?.(); if (r.game && r.life && !r.byMap) setTimeout(warmUI, 4000); return r; });   // не вышло (нет сети) — следующий вызов попробует снова   // карта открылась раньше — фото позже (sb:map-idle)
   return window.SB.prewarmMap.ready;
 };
 window.SB.openPlaceVideos = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.openPlaceVideos(world, placeId); }); };
@@ -1962,7 +1962,8 @@ document.addEventListener('visibilitychange', () => {
   requestAnimationFrame(guardTabbar);
   // карта «Игра», потом «Жизнь» — прогрев в простое, пока человек на Главной: вкладка карты откроется без ожидания
   // прогрев — как только показано главное фото Главной (не ждём остальных картинок): к тапу по карте она уже в пути
-  if (store.onboarded) afterHero(() => { new Image().src = mapPhUrl(MAP_OF(store.game)); window.SB.prewarmMap(); }, 600);
+  // во время знакомства (body.in-tour) прогрев зовёт сам онбординг — второй не запускаем
+  if (store.onboarded) afterHero(() => { if (document.body.classList.contains('in-tour')) return; new Image().src = mapPhUrl(MAP_OF(store.game)); window.SB.prewarmMap(); }, 600);
   // фото эпох для офлайна — когда канал свободен: карта открылась и плитки легли (+6 с) или через 45 с без карты
   addEventListener('sb:map-idle', () => setTimeout(warmUI, 10000), { once: true });
   afterFirstScreen(warmUI, 45000);
