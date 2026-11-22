@@ -39,6 +39,8 @@
   --glass-thin-hi: inset 0 1px 0 rgba(255,255,255,.30);
   --glass-thin-shadow: 0 4px 14px rgba(0,0,0,.22);
   --glass-regular-bg: rgba(20, 19, 24, 0.72);
+  /* таббар и окна поверх живого контента: плотнее стекла — на WebKit сквозь 0,72 читались строки страницы (QA 21.11) */
+  --glass-dense-bg: rgba(22, 21, 26, 0.92);
   --glass-regular-filter: blur(24px) saturate(1.7);
   --glass-regular-edge: rgba(255,255,255,.18);
   --glass-regular-hi: inset 0 1px 0 rgba(255,255,255,.22);
@@ -172,7 +174,7 @@
   --warn: #946500;
   --focus: #121116;
   --scrim: rgba(0,0,0,.3);
-  --text-glass-2: rgba(18,17,22,.74);
+  --text-glass-2: rgba(18,17,22,.84);   /* было .74 — подписи на стекле поверх фото в светлой теме бледные (QA 21.11) */
   --pad-ps: #3a3d45;
   --pad-xb-a: #50a231;
   --pad-xb-b: #e2453c;
@@ -193,6 +195,7 @@
   --glass-thin-hi: inset 0 1px 0 rgba(255,255,255,.30);
   --glass-thin-shadow: 0 4px 14px rgba(0,0,0,.22);
   --glass-regular-bg: rgba(250, 248, 244, 0.84);
+  --glass-dense-bg: rgba(250, 248, 244, 0.95);
   --glass-regular-filter: blur(24px) saturate(1.7);
   --glass-regular-edge: rgba(0,0,0,.08);
   --glass-regular-hi: inset 0 1px 0 rgba(255,255,255,.90);

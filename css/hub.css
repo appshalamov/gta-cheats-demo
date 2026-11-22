@@ -127,7 +127,7 @@
 .mc-lock { width: 18px; height: 18px; color: var(--accent); }
 .mini-cheat b { font-size: 15px; font-weight: 650; line-height: 1.25; min-height: 2.5em; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .mc-code { display: flex; align-items: center; gap: 5px; min-height: 28px; }
-.mc-code .combo { gap: 5px; flex-wrap: nowrap; }
+.mc-code .combo, .mc-code .combo.combo-bal { display: flex; gap: 5px; flex-wrap: nowrap; }
 .mc-code .k { width: 28px; height: 28px; border-radius: 9px; font-size: 11px; }
 .mc-code .k-face { border-radius: 50%; }
 .mc-code .k svg { width: 16px; height: 16px; }
@@ -242,6 +242,7 @@ mark.hl { background: none; color: var(--accent); font-weight: 750; } /* сов�
 .card-fc { flex: none; font-style: normal; font-size: 13px; font-weight: 650; color: var(--accent); } /* «прогноз» в Поиске и Избранном — рядом с названием */
 .card-code { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; min-width: 0; }
 .card-code .combo { gap: 5px; }
+.combo.combo-bal { display: grid; grid-template-columns: repeat(var(--per), max-content); justify-content: start; }
 .card-code .k { width: 32px; height: 32px; border-radius: 10px; font-size: 12px; }
 .card-code .k-face { border-radius: 50%; }
 .card-code .k svg { width: 19px; height: 19px; }
@@ -272,9 +273,10 @@ mark.hl { background: none; color: var(--accent); font-weight: 750; } /* сов�
 .sheet.sheet-detail { background: radial-gradient(120% 240px at 50% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 100%), var(--sheet-bg); }
 .sheet-detail .d-head { align-items: center; gap: 8px; margin-bottom: 8px; }
 .sheet-detail .d-head h2 { font-size: 28px; font-weight: 800; letter-spacing: -.035em; }
+@media (max-width: 380px) { .sheet-detail .d-head h2 { font-size: 24px; } }   /* 360: «Смена погоды» в одну строку (QA 21.11) */
 .sheet-detail .icon-btn { width: 44px; height: 44px; padding: 11px; background: color-mix(in srgb, var(--text) 8%, transparent); border: 1px solid var(--line); }
 /* что делает — одной строкой; тап по строке показывает целиком (решение №15) */
-.sheet-detail .d-desc { font-size: 15px; line-height: 1.4; color: var(--text-2); margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.sheet-detail .d-desc { font-size: 15px; line-height: 1.4; color: var(--text-2); margin: -11px 0; padding: 11px 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
 .sheet-detail .d-desc.open { white-space: normal; }
 .sheet-detail .media { margin: 4px 0 12px; }
 .pass { position: relative; margin-top: 12px; padding: 14px 16px 16px; border-radius: var(--r-sheet);

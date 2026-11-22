@@ -1,7 +1,7 @@
 // Места и пасхалки из data/map/<game>.json — для Главной, Поиска и Избранного.
 // Сама карта (js/map.js) грузит те же файлы отдельно; здесь только чтение и поиск.
 
-import { L, getLang } from './i18n.js';
+import { L, getLang, rn, ra } from './i18n.js';
 
 const cache = {};
 export const MAP_GAMES = ['gta6', 'gta5'];
@@ -57,11 +57,11 @@ export const CONF = ['confirmed', 'likely', 'speculative'];
 export const titleOf = (o) => (o.kind === 'egg' ? L(o.t) : o.g || '');
 // у пасхалки место в жизни — первая часть адреса без пояснений («Piru United Methodist Church — прообраз …», «(Оаху)»):
 // пояснения в данных по-русски и с игровыми названиями (тест 21.10.2026: русский текст на Главной в английском интерфейсе)
-export const realOf = (o) => (o.kind === 'egg' ? (o.p || '').split(',')[0].split(' — ')[0].replace(/\s*\([^)]*[А-Яа-яЁё][^)]*\)/g, '').trim() : o.n || '');
+export const realOf = (o) => (o.kind === 'egg' ? (o.p || '').split(',')[0].split(' — ')[0].replace(/\s*\([^)]*[А-Яа-яЁё][^)]*\)/g, '').trim() : rn(o));
 // Решение Игоря №15: на карточках мест (Главная, Поиск, Избранное) крупно — настоящее место, как в карточке карты
 // (map.js realShort: до первой запятой или скобки); игровое название не показываем. Мелко — адрес (место) или город (пасхалка).
 export const realName = (o) => { const r = realOf(o); return (o.kind === 'egg' ? r : r.split(/,| \(/)[0].trim()) || r || catLabel(o.c); };
-export const realSub = (o) => (o.kind === 'egg' ? cityOf(o) : o.a || cityOf(o));
+export const realSub = (o) => (o.kind === 'egg' ? cityOf(o) : ra(o) || cityOf(o));
 export function cityOf(o) {
   const parts = String(o.kind === 'egg' ? o.p : o.a || '').split(',').map((s) => s.trim()).filter(Boolean);
   const st = parts.findIndex((s) => /^(FL|CA)\b/.test(s));
@@ -103,7 +103,7 @@ export function searchPlaces(d, q, filter = {}) {
       for (const w of words) {
         if (!h.includes(w)) return null;
         if (norm(titleOf(o)).includes(w)) score += 3;
-        if (norm(realOf(o)).includes(w)) score += 2;
+        if (norm(realOf(o)).includes(w) || norm(o.n).includes(w)) score += 2;
       }
       return { o, score };
     })
