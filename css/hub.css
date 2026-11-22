@@ -385,3 +385,12 @@ mark.hl { background: none; color: var(--accent); font-weight: 750; } /* сов�
 .gsw-pn b { font-size: 15px; font-weight: 650; }
 .gsw-pn small { font-size: 12px; line-height: 1.25; color: var(--text-2); }
 .gsw-soon { margin: 14px 4px 4px; text-align: center; font-size: 12.5px; line-height: 1.4; color: var(--text-3); }
+
+/* Экран «Все»: новости, пасхалки, новое на карте (23.11.2026) */
+.feed-list { padding: 4px 16px calc(var(--tabbar-h, 84px) + 24px); }
+.feed-upd { margin: 4px 0 6px; font-size: 13px; color: var(--text-3); }
+.nrow .nr-th { width: 96px; height: 54px; border-radius: 12px; }
+.nrow .pr-t b, .erow .pr-t b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.nr-date { color: var(--accent) !important; font-weight: 650; font-size: 12px !important; }
+.er-map { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 36px; padding: 0 12px; border-radius: 18px; font-size: 13px; font-weight: 650; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.er-map svg { width: 16px; height: 16px; }
