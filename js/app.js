@@ -978,7 +978,8 @@ const MAPS_APPS = [['google', 'Google'], ['apple', 'Apple']];
 const stGroup = (title, body, cls = '') => body ? `<section class="st-sec${cls ? ' ' + cls : ''}"><h3 class="st-h">${esc(title)}</h3>${body}</section>` : '';
 const segRow = (icon, label, items, cur, action) => `<div class="row row-static"><span class="row-ic">${icon}</span><span class="row-l">${esc(label)}</span>
   <span class="mini-seg" role="radiogroup" aria-label="${esc(label)}">${items.map(([k, n]) => `<button class="${cur === k ? 'on' : ''}" role="radio" aria-checked="${cur === k}" data-action="${action}" data-v="${k}">${esc(n)}</button>`).join('')}</span></div>`;
-const linkRow = (href, icon, label) => `<a class="row" href="${href}"><span class="row-ic">${icon}</span><span class="row-l">${esc(label)}</span><span class="row-v"></span><span class="row-chev">${I.chevron}</span></a>`;
+// только свои страницы (terms, privacy): адрес всегда «./<страница>.html» — check_links видит, что это не наружу
+const linkRow = (page, icon, label) => `<a class="row" href="./${page}.html?lang=${getLang()}"><span class="row-ic">${icon}</span><span class="row-l">${esc(label)}</span><span class="row-v"></span><span class="row-chev">${I.chevron}</span></a>`;
 function renderSettings() {
   const g = game(), lg = getLang();
   const th = { dark: t('th_dark'), light: t('th_light'), auto: t('th_auto') };
@@ -1000,8 +1001,8 @@ function renderSettings() {
       ${row('tour', I.map, t('st_tour'))}
       ${row('share-app', I.share, t('st_share_app'))}
       ${row('rate', I.star, t('st_rate'))}
-      ${linkRow(`terms.html?lang=${lg}`, I.doc, t('pw_terms'))}
-      ${linkRow(`privacy.html?lang=${lg}`, I.shield, t('pw_privacy'))}
+      ${linkRow('terms', I.doc, t('pw_terms'))}
+      ${linkRow('privacy', I.shield, t('pw_privacy'))}
       ${row('about', I.home, t('st_about'))}</div>`)}
     ${stGroup(t('st_g_authors'), authors)}
     <div class="group st-reset">${row('reset', I.reset, t('st_reset'), '', false)}</div>
