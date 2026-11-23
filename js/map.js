@@ -7,6 +7,7 @@
 // Свои клики обрабатываем здесь через атрибут data-mp (app.js их не трогает).
 
 import { t, L as tr, getLang, rn, ra, rg, rp, credit as cred } from './i18n.js';
+import { liveExtras, mergeExtras } from './live.js';
 import { GTA6 } from './config.js';
 import { lifeStyle, LIFE_VARIANTS } from './mapstyle.js';
 
@@ -346,7 +347,8 @@ const IMG_BASE = /\/beta\//.test(location.pathname) ? '../' : '';
 const rebase = (o) => (typeof o === 'string' ? (IMG_BASE && o.startsWith('img/map/') ? IMG_BASE + o : o) : Array.isArray(o) ? o.map(rebase)
   : o && typeof o === 'object' ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, rebase(v)])) : o);
 async function loadGame(g) {
-  if (!data[g]) data[g] = await once('d:' + g, () => fetch(`data/map/${g}.json`).then((r) => r.json()).then(rebase));
+  // + места и пасхалки с сервера live.sbgta.app (js/live.js): новое появляется на карте без выкладки приложения
+  if (!data[g]) data[g] = await once('d:' + g, () => Promise.all([fetch(`data/map/${g}.json`).then((r) => r.json()), liveExtras(g)]).then(([d, x]) => rebase(mergeExtras(d, x))));
   Object.assign(SF, data[g].sf);
   return data[g];
 }

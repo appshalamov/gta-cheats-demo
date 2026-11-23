@@ -1,0 +1,11 @@
+name = "sb-live"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+# live.sbgta.app — зона sbgta.app на этом аккаунте (app.shalamov), как pay./ref. у sb-edge
+routes = [{ pattern = "live.sbgta.app", custom_domain = true }]
+
+# KV «sb-live» (создан 23.11.2026): news, newmap:<игра>, img:<путь> — пишет только tools/publish_live.py через wrangler
+[[kv_namespaces]]
+binding = "LIVE"
+id = "1abcbf3e7b0a401db579ebfe99d68179"

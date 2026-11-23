@@ -100,6 +100,8 @@ export const PAYWALL = {
 // test: true — тестовый режим Stripe (карта 4242…), строка об этом на пейволе. Live — только после «да» Игоря.
 // Рефералка (js/ref.js, сервер server/ref-worker): закрепление по ссылке и статистика креатора. api: null — выключено.
 export const REF = { api: 'https://ref.sbgta.app' };
+// Живой контент (js/live.js, сервер server/live-worker): новости и новое на карте из Cloudflare KV. api: null — только свои файлы.
+export const LIVE = { api: 'https://live.sbgta.app' };
 
 export const PAY = { api: 'https://pay.sbgta.app', test: false };   // боевая оплата для всех с 22.11.2026 (Stripe «MR DALLARS» → «Secret Base»); test: true — только у включивших ?paytest=1
 

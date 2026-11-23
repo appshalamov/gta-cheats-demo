@@ -2,13 +2,16 @@
 // Сама карта (js/map.js) грузит те же файлы отдельно; здесь только чтение и поиск.
 
 import { L, getLang, rn, ra, rg, rp } from './i18n.js';
+import { liveJSON, liveExtras, resetLive, mergeExtras } from './live.js';
 
 const cache = {}, done = {};
 export const MAP_GAMES = ['gta6', 'gta5'];
 
 export async function loadPlaces(game) {
   if (!cache[game]) {
-    cache[game] = fetch(`data/map/${game}.json`, { cache: 'no-cache' }).then((r) => r.json()).then((d) => {
+    // свои данные + новое с сервера live.sbgta.app (не дольше 2,5 с; без сети — только свои), см. js/live.js
+    cache[game] = Promise.all([fetch(`data/map/${game}.json`, { cache: 'no-cache' }).then((r) => r.json()), liveExtras(game)]).then(([d, x]) => {
+      mergeExtras(d, x);
       d.places.forEach((p) => { p.kind = 'place'; p.game = game; });
       d.eggs.forEach((e) => { e.kind = 'egg'; e.game = game; });
       // часть пасхалок лежит внутри карточки места (p.eggs) — добавляем их в общий список
@@ -135,7 +138,9 @@ export const newsNow = () => newsDone;
 export function loadNews(force = false) {
   if (!newsP || force) {
     const prev = newsP;
-    newsP = fetch('data/news.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    // сначала сервер live.sbgta.app (обновляется раз в сутки без выкладки приложения), при сбое — свой data/news.json
+    newsP = liveJSON('/news.json').then((d) => (d && Array.isArray(d.items) && d.items.length ? d : Promise.reject(new Error('empty'))))
+      .catch(() => fetch('data/news.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : Promise.reject(r.status))))
       .then((d) => { newsMeta = { updated: d.updated || '', fetched: Date.now() }; return (newsDone = d.items || []); })
       .catch(() => (prev || Promise.resolve((newsDone ||= []))));
   }
@@ -145,7 +150,7 @@ export const newsUpdated = () => newsMeta.updated;   // ISO-время сбор�
 // перечитать места и пасхалки игры с сервера (возврат в приложение); старые данные остаются, если сети нет
 export async function refreshPlaces(game) {
   const old = cache[game];
-  delete cache[game];
+  delete cache[game]; resetLive(game);
   const d = await loadPlaces(game);
   if (!d.places.length && old) { cache[game] = old; return old; }
   return d;
