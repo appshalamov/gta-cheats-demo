@@ -206,3 +206,8 @@
 .g-zoom { display: block; width: 100%; height: auto; }
 
 .g-trust.g-trust-one { color: var(--text-2); font-weight: 600; }   /* один источник — серая, без галочки */
+/* «Дальше» в финале инструкции (серии) */
+.g-next .g-nx { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 0; text-align: left; background: none; color: var(--text); border-top: 1px solid var(--line); }
+.g-next .g-nx b { flex: 1 1 auto; font-size: 17px; font-weight: 700; }
+.g-next .g-nx small { display: block; font-size: 14px; color: var(--text-2); font-weight: 400; margin-top: 2px; }
+.g-next .g-nx > svg { width: 16px; height: 16px; flex: none; color: var(--text-3, var(--text-2)); }

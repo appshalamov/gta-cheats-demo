@@ -492,6 +492,7 @@ async function openGuideKey(key, from = '', linked = false) {
   const o = /^set-/.test(id) ? await findSetting(g, id) : kind === 'egg' ? await findByKey(`egg:${g}:${id}`) : null;
   if (!hasGuide(o)) { openOnMap(key.replace(/^guide:/, 'egg:')); return; }
   closeSheet();
+  await gcore.loadIndex(g);   // «Дальше» в финале читает указатель — загрузить и при входе по ссылке
   const m = await guideMod();
   m.openGuide({ ...o, game: g }, guideCtx(g, from, linked || store.linkKeys.includes(`guide:${g}:${id}`) || store.linkKeys.includes(`egg:${g}:${id}`), (x) => `guide:${g}:${x.id}`));
 }

@@ -5,7 +5,8 @@
 // Данные — egg.how из data/map/<игра>.json (tools/build_map.py guide_fields). Прогресс — на телефоне (localStorage sb.gd), по id шагов.
 // Тот же компонент потом — гид прохождения (req.ty mission/chapter + ref) и предупреждения (miss).
 
-import { view as setView } from './guide-set.js';   // вид «настройки» (guide-settings)
+import { view as setView } from './guide-set.js';
+import { recByKey, nextFor } from './guide-core.js';   // «Дальше» в финале — по указателю (серии, seriya-uderzhanie)   // вид «настройки» (guide-settings)
 
 const S = {
   ru: {
@@ -18,7 +19,7 @@ const S = {
     fin_car: 'Готово. Машина ваша.', fin: 'Готово. Всё получилось.', again: 'Начать заново',
     meta: '{n} шагов, около {m} минут', meta0: '{n} шагов', missable: 'Можно упустить навсегда', no_fix: 'Для этого шага частых ошибок нет. Посмотрите ролик или общий список.',
     en_only: 'Инструкция на английском', offline: 'Ролики работают с сетью',
-    path_meta: '{n} шагов, около {m} минут', patch: 'могут закрыть патчем', quiet: 'Как заехать тихо', bugPart: 'Баг: сквозь дверь гаража',
+    up: 'Дальше', inLife: 'Это место в жизни', path_meta: '{n} шагов, около {m} минут', patch: 'могут закрыть патчем', quiet: 'Как заехать тихо', bugPart: 'Баг: сквозь дверь гаража',
     questPart: 'Квест No Flusher', finPart: 'Гараж и регистрация', frame: 'кадр: {by}, YouTube', zoom: 'Открыть кадр',
   },
   en: {
@@ -31,7 +32,7 @@ const S = {
     fin_car: 'Done. The car is yours.', fin: 'Done. You made it.', again: 'Start over',
     meta: '{n} steps, about {m} min', meta0: '{n} steps', missable: 'Missable', no_fix: 'No common mistakes for this step. Watch the video or the full list.',
     en_only: 'Guide in English', offline: 'Videos need a connection',
-    path_meta: '{n} steps, about {m} min', patch: 'may be patched out', quiet: 'Get in quietly', bugPart: 'Bug: through the garage door',
+    up: 'Next', inLife: 'This place in real life', path_meta: '{n} steps, about {m} min', patch: 'may be patched out', quiet: 'Get in quietly', bugPart: 'Bug: through the garage door',
     questPart: 'No Flusher quest', finPart: 'Garage and registration', frame: 'frame: {by}, YouTube', zoom: 'Open frame',
   },
 };
@@ -106,6 +107,13 @@ function partHTML(path, st, i) {
   const label = pt === 'quiet' ? s('quiet') : path.id === 'bug' ? s('bugPart') : (i === 0 || first) ? s('questPart') : s('finPart');
   return `<li class="g-part"><h2>${esc(label)}</h2></li>`;
 }
+// «Дальше» в финале (1–3 строки): next[] записи указателя → только то, что сборка умеет открыть (C.canOpen); место — «в жизни»
+function nextHTML() {
+  const rec = recByKey(O.game || 'gta6', `guide:${O.game || 'gta6'}:${O.id}`);
+  const rows = (rec ? nextFor(rec, O.game || 'gta6') : []).filter((r) => !C.canOpen || C.canOpen(r.k) || /^(place|egg):/.test(r.k));
+  if (!rows.length) return '';
+  return `<section class="g-sec g-next"><h2>${esc(s('up'))}</h2>${rows.map((r) => `<button class="g-nx" data-g="go" data-k="${esc(r.k)}"><b>${esc(r.t ? tx(r.t) : s('inLife'))}</b>${r.sub ? `<small>${esc(tx(r.sub))}</small>` : ''}${C.I.chevron}</button>`).join('')}</section>`;
+}
 function stuckHTML(ci) {
   const h = H(), st = STEPS(), x = st[ci];
   const mine = (h.fx || []).filter((f) => x && (f.s || []).includes(x.id));
@@ -135,6 +143,7 @@ function render() {
     <ol class="g-steps">${st.map((x, i) => partHTML(path, st, i) + (i === wall ? `<li class="g-wall"><p>${esc(s('wall', { a: fr + 1, b: st.length }))}</p><button class="g-pro" data-g="pw">${esc(s('get_pro'))}</button></li>` : '')
       + stepHTML(x, i, p, (started && i === ci) || p.o === i)).join('')}</ol>
     ${ci >= st.length ? `<p class="g-fin">${I.check}<span>${esc(O.k === 'vehicle' ? s('fin_car') : s('fin'))}</span></p>` : ''}
+    ${ci >= st.length ? nextHTML() : ''}
     ${C.after?.(O) || ''}
     <section class="g-sec g-foot">
       ${h.alt && free() ? `<details class="g-alt"><summary>${esc(s('alt'))}</summary><p>${esc(tx(h.alt.t))}</p>${h.alt.nt ? `<p class="g-note">${esc(tx(h.alt.nt))}</p>` : ''}
@@ -215,6 +224,7 @@ function onClick(e) {
     case 'video': video(b.dataset.v, +b.dataset.t || 0); break;
     case 'vclose': { const v = layer.querySelector('#g-video'); v.innerHTML = ''; v.hidden = true; break; }
     case 'again': setProg({ d: [], t: {}, s: 0, path: p.path }); render(); break;
+    case 'go': C.event?.('guide_next', { id: O.id, to: b.dataset.k }); C.open?.(b.dataset.k); break;   // C.open сам закрывает инструкцию
     case 'pw': C.paywall(); break;
     case 'report': C.toast(s('report_ok')); C.event?.('guide_report', { id: O.id, step: cur(p) + 1 }); break;
   }
