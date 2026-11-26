@@ -29,6 +29,8 @@
 /* развилки: те же шаги, что в «По шагам»; варианты — строки с кружком */
 .e-forks .g-step.is-done .g-t { -webkit-line-clamp: 2; }
 .e-chosen { color: var(--text); font-weight: 650; }
+.e-mark { color: var(--accent); font-weight: 650; }
+.e-check .g-meta { margin-top: -2px; }
 .e-pick { margin: 0 0 2px; font-size: 15px; font-weight: 700; }
 .e-ahead { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
 .e-ahead svg { width: 16px; height: 16px; flex: none; }
@@ -62,4 +64,3 @@
 .e-nx:first-of-type { border-top: 0; }
 .e-nx svg { width: 18px; height: 18px; flex: none; color: var(--accent); }   /* шеврон в icons.js смотрит вправо */
 .e-reset { color: var(--text-2); }
-.hub-end .prow { margin: 0 16px; }

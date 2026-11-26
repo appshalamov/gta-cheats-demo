@@ -471,19 +471,15 @@ async function openGuideKey(key, from = '', linked = false) {
     onClose: () => { if (ui.tab === 'feed') renderFeed(); else if (ui.tab === 'home') renderHub(); },
   });
 }
-// «Концовки и лучшее прохождение» (js/endings.js): Главная GTA 6, ссылка ?open=endings:gta6. Место в приложении решает Fable.
-const END_ROW = { t: { ru: 'Концовки и лучшее прохождение', en: 'Endings and the best playthrough' }, s: { ru: 'Какие концовки ещё открыты и как прийти к лучшей. Без спойлеров', en: 'Which endings are still open and how to reach the best one. Spoiler-free' }, b: { ru: 'Открыть', en: 'Open' } };
-function endingsRow() {
-  return `<div class="prow erow has-how" data-action="open-endings" data-v="gta6" role="button" tabindex="0">
-    <span class="pr-th"><span class="pr-ph">${I.doc}</span></span>
-    <span class="pr-t"><b>${esc(L(END_ROW.t))}</b><small>${esc(L(END_ROW.s))}</small></span>
-    <button class="er-map" data-action="open-endings" data-v="gta6">${I.doc}<span>${esc(L(END_ROW.b))}</span></button></div>`;
-}
+// «Концовки и лучшее прохождение» (js/endings.js). Решение Fable «система гида»: строки на Главной нет, вход — оглавление «Гид по игре»
+// (data-action="open-endings" data-v="gta6"), подсказка у миссии с развилкой, справочник, поиск, ссылка ?open=endings:gta6.
+const END_ROW = { t: { ru: 'Концовки GTA 6', en: 'GTA 6 endings' } };
 async function openEndingsKey(g = 'gta6', from = '') {
   closeSheet();
   const m = await endingsMod();
   const ok = await m.openEndings(g, {
-    lang: getLang(), I, from, haptic, toast,
+    lang: getLang(), I, from, haptic, toast, access, linked: from === 'link',
+    paywall: () => openPaywall(mapPw()),
     share: () => shareText(`${L(END_ROW.t)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=endings:${g}`),
     event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
     onClose: () => { if (ui.tab === 'home') renderHub(); },
@@ -695,7 +691,6 @@ function paintHub(box, isMap, pd, newsAll, favPreview) {
     ${noPd ? hubSection(t('hub_places'), t('hub_places_sub'), placesBtn, skRow()) + hubSection(t('hub_eggs'), t('hub_eggs_sub'), more('eggs'), skRow()) : ''}
     ${places.length ? hubSection(t('hub_places'), t('hub_places_sub'), placesBtn, `<div class="hscroll">${places.map((o) => placeCard(o)).join('')}</div>`) : ''}
     ${eggs.length ? hubSection(t('hub_eggs'), t('hub_eggs_sub'), more('eggs'), `<div class="hscroll" data-sec="eggs">${eggs.map((o) => placeCard(o)).join('')}</div>`) : ''}
-    ${store.game === 'gta6' ? `<section class="hub-sec hub-end">${endingsRow()}</section>` : ''}
     ${favCount ? hubSection(t('hub_favs'), '', `<button class="hub-more" data-action="tab" data-tab="fav">${t('see_all')}${I.chevron}</button>`,
       favPreview ? `<div class="hscroll">${favPreview.slice(0, 10).map((x) => (x.kind ? placeCard(x, { game: x.game !== store.game }) : miniCheat(x))).join('')}</div>` : skRow()) : ''}
     <div class="hub-foot">${t('hub_foot')}</div>`;

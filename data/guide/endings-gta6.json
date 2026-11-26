@@ -1184,23 +1184,23 @@
  ],
  "next": [
   {
+   "a": "open-key",
+   "d": {
+    "key": "saves:gta6"
+   },
+   "t": {
+    "ru": "Все точки невозврата и как сохраняться",
+    "en": "All points of no return and how to save"
+   }
+  },
+  {
    "a": "open-feed",
    "d": {
     "v": "eggs"
    },
    "t": {
-    "ru": "Пасхалки и находки GTA 6 для свободной игры",
-    "en": "GTA 6 easter eggs and finds for free roam"
-   }
-  },
-  {
-   "a": "open-cheats",
-   "d": {
-    "cat": ""
-   },
-   "t": {
-    "ru": "Коды GTA 6 для свободной игры",
-    "en": "GTA 6 cheats for free roam"
+    "ru": "Пасхалки и находки для свободной игры после титров",
+    "en": "Easter eggs and finds for free roam after the credits"
    }
   },
   {
