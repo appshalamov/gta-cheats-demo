@@ -37,3 +37,4 @@
 .pg-rows .pg-in .g-main, .pg-rows .pg-yn .g-main { width: auto; }
 .pg-yn .g-main { margin-top: 16px; }
 .pg-other { margin-top: 12px; }
+.g-pk-row .pg-tt { text-align: left; }

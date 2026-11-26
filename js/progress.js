@@ -15,7 +15,7 @@ import { registerPickRow, setBase, base as coreBase, setPos, pos as corePos, ran
 
 const S = {
   ru: {
-    title: 'Где вы в сюжете', close: 'Закрыть', back: 'Назад',
+    title: 'Где вы в игре?', close: 'Закрыть', back: 'Назад',
     pct: 'По проценту из игры', pct_s: 'Пауза, Прогресс, Статистика, строка «Сюжет»', pct_go: 'Дальше',
     con: 'Подтянуть с {p}', con_s: 'По трофеям, без пароля', psn: 'PlayStation', xbox: 'Xbox', other: 'У меня {p}',
     id_psn: 'PSN Online ID', id_xbox: 'Gamertag', find: 'Найти',
@@ -33,7 +33,7 @@ const S = {
     privacy: 'Ник хранится только на телефоне. Сервер не сохраняет трофеи.',
   },
   en: {
-    title: 'Where you are in the story', close: 'Close', back: 'Back',
+    title: 'Where are you in the game?', close: 'Close', back: 'Back',
     pct: 'From the in-game percentage', pct_s: 'Pause, Progress, Stats, the Story line', pct_go: 'Next',
     con: 'Sync from {p}', con_s: 'From your trophies, no password', psn: 'PlayStation', xbox: 'Xbox', other: 'I play on {p}',
     id_psn: 'PSN Online ID', id_xbox: 'Gamertag', find: 'Find',
@@ -265,6 +265,7 @@ const rowHTML = (lang, b, sm) => `<span class="pg-tt"><b>${esc(b)}</b><small>${e
 const platOf = (ctx) => { const p = typeof ctx.platform === 'function' ? ctx.platform() : ctx.platform; return p === 'xbox' ? 'xbox' : 'psn'; };
 const sx = (lang, k, v = {}) => { let x = (S[lang] || S.en)[k] ?? S.en[k]; for (const [a, b] of Object.entries(v)) x = x.split(`{${a}}`).join(b); return x; };
 export function registerRows(ctx) {
+  if (!C) C = ctx; css();                     // .pg-tt (заголовок и подпись строки столбиком) — из progress.css
   registerPickRow({ id: 'progress-pct', html: (lang) => rowHTML(lang, sx(lang, 'pct'), sx(lang, 'pct_s')), onTap: (game) => ask(ctx, game, 'pct') });
   if (consoleOn()) registerPickRow({ id: 'progress-console', html: (lang) => rowHTML(lang, sx(lang, 'con', { p: sx(lang, platOf(ctx)) }), sx(lang, 'con_s')), onTap: (game) => ask(ctx, game, 'con') });
 }
