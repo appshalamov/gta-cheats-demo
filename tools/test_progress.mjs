@@ -8,7 +8,8 @@ let fail = 0; const ok = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); i
 globalThis.localStorage = { d: {}, getItem(k) { return this.d[k] ?? null; }, setItem(k, v) { this.d[k] = String(v); } };
 const P = await import(new URL('js/progress.js', root));
 const tro = J('data/guide/trophies.json');
-let mis; try { mis = J('data/guide/missions.json'); } catch { mis = J('data/guide/missions.stub.json'); }
+// база миссий: MISSIONS=<путь> (настоящая из ветки guide-walkthrough), иначе data/guide/missions.json, иначе запасная
+let mis; try { mis = process.env.MISSIONS ? JSON.parse(readFileSync(process.env.MISSIONS)) : J('data/guide/missions.json'); } catch { mis = J('data/guide/missions.stub.json'); }
 const D = P.index(tro, mis);
 const T = J('data/guide/progress-test.json').profiles;
 const title = (i) => D.order[i]?.t.en;
@@ -24,8 +25,15 @@ r = P.fromEarned(D, T['sb-test-heist'].earned); ok(title(r.idx) === 'The Cartel 
 r = P.fromEarned(D, T['sb-test-done'].earned); ok(r.idx === D.order.length - 1 && !r.next && !r.gap.length, 'sb-test-done → сюжет пройден, уточнять нечего');
 r = P.fromEarned(D, [{ name: 'paradise lost' }, { name: 'Just Like Paradise' }]); ok(D.order[r.idx].ch === 'c1' && D.order[r.idx + 1].ch === 'c2', 'конец главы 1 → последняя миссия главы 1 (имя без учёта регистра)');
 ok(P.fromPercent(D, 0) === -1 && P.fromPercent(D, 100) === D.order.length - 1, 'процент 0 и 100 — края');
+ok(D.order[0].id.replace(/^m:/, '') === 'prologue' || mis.stub, `первая миссия в порядке — «${title(0)}»`);
+ok(title(D.order.length - 1) === 'The End of the Road', `последняя миссия в порядке — «${title(D.order.length - 1)}» (n — номер внутри главы)`);
+ok(D.order.every((m, k) => k === 0 || (D.ch.find((c) => c.id === m.ch).n >= D.ch.find((c) => c.id === D.order[k - 1].ch).n)), 'главы идут подряд, без перемешивания');
+ok(P.pctStart(D, 50) === P.fromPercent(D, 50) - 2 && P.pctStart(D, 0) === -1, 'процент: старт вопросов на 2 миссии раньше оценки');
 // запись: трофеи не затирают более дальнюю ручную отметку
 P.save(D, 40, 'self'); ok(P.save(D, 20, 'psn') === false && P.getProg().via === 'self', 'ручная отметка дальше трофеев — оставили');
+ok(P.save(D, 40, 'pct') === false && P.getProg().via === 'self', 'процент на ту же миссию не затирает ручную');
+P.save(D, 60, 'pct'); ok(P.save(D, 55, 'xbox') === false && P.getProg().via === 'pct', 'консоль не двигает назад и отметку процента');
+ok(P.save(D, 10, 'self') === true && P.getProg().via === 'self', 'ручная отметка назад — всегда');
 ok(P.save(D, 50, 'psn') === true && P.getProg().via === 'psn' && P.getProg().m.startsWith('m:'), 'трофеи дальше — записали в sb.gp с via:psn');
 
 // ---------- сервер ----------

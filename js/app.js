@@ -471,11 +471,12 @@ async function openGuideKey(key, from = '', linked = false) {
   });
 }
 // «Подтянуть прогресс с консоли» (js/progress.js, guide-progress 26.11.2026): PSN Online ID / Xbox Gamertag → место в сюжете → sb.gp.
-// Вход для гида прохождения — window.SB.openProgress(from, 'psn'|'xbox'); ссылка ?open=progress[:psn|:xbox].
+// Строки для шторки «Где вы» гида прохождения — import('./progress.js').mountRows(el, ctx); ссылка ?open=progress[:psn|:xbox] — своя шторка.
 async function openProgressUI(from = '', platform = null) {
   const m = await import('./progress.js');
   m.openProgress({
-    lang: getLang(), I, from, platform, haptic, toast,
+    lang: getLang(), I, from, haptic, toast, con: !!platform,
+    platform: platform === 'xbox' ? 'xbox' : platform === 'psn' ? 'playstation' : store.platform,
     event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
     openWalk: () => window.SB?.openWalk?.(), openWalkPick: () => window.SB?.openWalk?.('pick'), openFeed: (k) => window.SB?.openFeed?.(k),
   });
