@@ -33,7 +33,8 @@ const mapMod = () => import('./map.js');
 // экраны креаторов (js/league.js, данные — window.SB.api из js/api.js): раздел «Авторам и партнёрам» — строкой в Настройках,
 // сам хаб открывается отдельным экраном (Fable 23.11.2026, вариант B); слой Лиги
 const crMod = () => import('./league.js');
-const guideMod = () => import('./guide.js');   // инструкция «По шагам» (26.11.2026) — грузится при первом открытии
+const guideMod = () => import('./guide.js');
+const savesMod = () => import('./saves.js');   // «Не упустить навсегда» — предупреждения и сохранения (26.11.2026, guide-saves) — черновик для Fable   // инструкция «По шагам» (26.11.2026) — грузится при первом открытии
 const crCtx = () => ({ openSheet, closeSheet, toast, haptic, openOnMap, game: () => store.game, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k), onProfile: setProfile });
 let crLoaded = false;   // модуль грузится при первом заходе в Настройки или по вызову экрана креатора — не на старте
 // вход для сессии карты: кнопка «Ролики об этом месте» в карточке места вызывает window.SB.openPlaceVideos(игра, id места)
@@ -470,6 +471,34 @@ async function openGuideKey(key, from = '', linked = false) {
     onClose: () => { if (ui.tab === 'feed') renderFeed(); else if (ui.tab === 'home') renderHub(); },
   });
 }
+// «Не упустить навсегда» (js/saves.js): точки невозврата по миссиям, «как сохраняться» для выбранной платформы — тем же экраном «По шагам».
+// Вход — ссылка ?open=saves:gta6:all и window.SB.openSaves(); где он будет в приложении — решает Fable («Решение Fable — система гида.md»).
+async function openSavesScreen(from = '') {
+  const g = 'gta6', m = await savesMod();
+  const how = async (o) => (await guideMod()).openGuide(o, {
+    lang: getLang(), I, from: 'saves', linked: true, access, haptic, toast, date: guideDate, imgUrl, credit,
+    paywall: () => openPaywall(mapPw()), share: () => shareText(`${guideTitle(o)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=saves:${g}:all`),
+    event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+    onClose: () => { if (m.isOpen()) document.documentElement.classList.add('guide-open'); },
+  });
+  const ok = await m.openSaves({
+    game: g, lang: getLang(), I, from, platform: store.platform, haptic, toast,
+    share: () => shareText(`${getLang() === 'ru' ? 'Не упустить навсегда — GTA 6' : "Don't miss it forever — GTA 6"} — ${APP.shortName}\n${location.origin}${location.pathname}?open=saves:${g}:all`),
+    event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+    openHow: how,
+    next: (v) => {
+      if (v === 'walk') return window.SB.openWalk?.();
+      if (v === 'end') return window.SB.openEndings?.();
+      m.closeSaves();
+      if (v === 'egg') setTimeout(() => openGuideKey('guide:gta6:egg-bugatti-thrax-andrew-node', 'saves'), 380);
+      else if (v === 'eggs') { ui.feed = 'eggs'; ui.tab = 'feed'; renderAll(); }
+      else if (v === 'codes') { ui.tab = 'cheats'; renderAll(); }
+    },
+    onClose: () => { if (ui.tab === 'home') renderHub(); },
+  });
+  if (!ok) toast(t('place_nf'));
+}
+window.SB.openSaves = openSavesScreen;
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
 function eggRow(o) {
   if (hasGuide(o)) {
@@ -2080,9 +2109,9 @@ document.addEventListener('visibilitychange', () => {
   // ссылка «поделиться местом» (…/?open=place:gta5:<id>): друг сразу видит это место (и без Pro); знакомство — в следующий раз
   // ключ проверяем по виду: мусор в ?open= молча открывал пейвол карты (QA 20.11.2026)
   const openRaw = new URLSearchParams(location.search).get('open');
-  const openKey = /^(place|egg|db|guide):(gta6|gta5):[\w.-]{1,120}$/.test(openRaw || '') ? openRaw : null;
+  const openKey = /^(place|egg|db|guide|saves):(gta6|gta5):[\w.-]{1,120}$/.test(openRaw || '') ? openRaw : null;
   if (openRaw && !openKey) { history.replaceState(null, '', location.pathname); toast(t('place_nf')); }
-  if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); if (openKey.startsWith('guide:')) openGuideKey(openKey, 'link', true); else openOnMap(openKey); }
+  if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); if (openKey.startsWith('guide:')) openGuideKey(openKey, 'link', true); else if (openKey.startsWith('saves:')) openSavesScreen('link'); else openOnMap(openKey); }
   else if (/[?&#]admin\b/.test(location.search + location.hash)) {   // экран «Для админов» (только веб): ?admin или #admin
     store.onboarded = true; save(); if (location.hash) history.replaceState(null, '', location.pathname + location.search); window.SB.openCreator('admin');
   }
