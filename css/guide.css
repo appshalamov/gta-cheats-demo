@@ -97,3 +97,89 @@
 .g-vf { position: relative; width: 100%; aspect-ratio: 16 / 9; }
 .g-vf iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .g-video[hidden], .g-sheet[hidden] { display: none; }   /* display: flex отменял hidden — слой ролика закрывал экран (26.11) */
+
+/* ── вид «настройки» (js/guide.js renderSet, js/guide-menu.js): шаг = пункт меню, справа крупное значение;
+   в раскрытом шаге путь по меню — строки «схема экрана + кнопка + действие». Схема рисуется из данных, не картинка. ── */
+.gs-step .g-t { flex: 1 1 auto; }
+.gs-val { flex: none; align-self: center; max-width: 42%; font: 750 16px/1.2 var(--font-num); color: var(--text-2); text-align: right; }
+.gs-step.is-cur .gs-val { font: 800 26px/1.1 var(--font-num); color: var(--accent); }
+.gs-head { display: flex; gap: 12px; align-items: flex-start; }
+.gs-head .g-t { flex: 1 1 auto; }
+.gs-plat { display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; margin: 6px 0 0; font-size: 15px; color: var(--text-2); }
+.gs-plat .g-link { min-height: 40px; font-size: 15px; }
+.gs-path { list-style: none; margin: 14px 0 4px; padding: 0; counter-reset: gs; }
+.gs-line { margin: 0 0 14px; }
+.gs-line.gs-open { display: flex; align-items: center; gap: 10px; min-height: 40px; margin-bottom: 8px; }
+.gs-keys { display: inline-flex; gap: 4px; }
+.gs-act { margin: 8px 0 0; font-size: 16px; line-height: 1.5; font-weight: 600; color: var(--text); }
+.gs-line.gs-open .gs-act { margin: 0; }
+.gs-act .k, .gs-keys .k { display: inline-grid; place-items: center; vertical-align: -7px; min-width: 28px; height: 28px; margin: 0 2px; padding: 0 6px;
+  border-radius: 8px; font: 750 12px/1 var(--font-num); background: var(--card-2, var(--card)); color: var(--text); }
+.gs-act .k-face, .gs-keys .k-face { width: 28px; padding: 0; border-radius: 50%; }
+.gs-act .k svg, .gs-keys .k svg { width: 18px; height: 18px; }
+.k-unsure { outline: 1.5px dashed var(--text-3, var(--text-2)); outline-offset: 1px; }
+.gs-shot { display: block; width: 100%; padding: 0; border-radius: 12px; overflow: hidden; background: none; }
+.gs-next h2 { margin-bottom: 4px; }
+.gs-nx { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 10px; width: 100%; min-height: 60px; padding: 10px 0; text-align: left;
+  border-top: 1px solid var(--line); background: none; color: var(--text); }
+.gs-nx:first-of-type { border-top: 0; }
+.gs-nx b { font-size: 17px; font-weight: 700; }
+.gs-nx small { grid-column: 1; font-size: 14px; color: var(--text-2); }
+.gs-nx svg { grid-row: 1 / span 2; grid-column: 2; width: 18px; height: 18px; color: var(--text-2); }
+.g-shotv { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; justify-content: center; padding: 0 12px; background: rgba(0,0,0,.94); color: #fff; }
+.g-shotv[hidden] { display: none; }
+.g-shotv .gs-act { color: #fff; font-size: 18px; } .g-shotv .g-note { color: rgba(255,255,255,.7); }
+.gs-big .gm { border-radius: 10px; }
+.g-vf video { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; }
+
+/* схема экрана меню игры: 16:9, всё в единицах ширины контейнера (cqw) — одинаково в строке шага, на весь экран и в ролике */
+.gm { position: relative; container-type: inline-size; aspect-ratio: 16 / 9; overflow: hidden; color: #fff; text-align: left;
+  background: #120d1c; font-family: var(--font-ui); }
+.gm-sky { position: absolute; inset: 0; background: linear-gradient(170deg, #2a1240 0%, #6d2a6b 38%, #e0607a 64%, #f6a85e 82%, #233a5e 83%, #0d1726 100%); }
+.gm-sky.dim::after { content: ""; position: absolute; inset: 0; background: rgba(8,6,14,.72); backdrop-filter: blur(2px); }
+.gm-hud { position: absolute; left: 3cqw; bottom: 4cqw; } .gm-mm { display: block; width: 16cqw; height: 10cqw; border-radius: 1.2cqw; background: rgba(0,0,0,.45); border: .3cqw solid rgba(255,255,255,.5); }
+.gm-center { position: absolute; inset: 0; display: grid; place-items: center; }
+.gm-center .k { width: 13cqw; height: 9cqw; min-width: 0; border-radius: 2cqw; font: 800 2.6cqw/1 var(--font-num); background: rgba(0,0,0,.55); color: #fff; outline: .5cqw solid var(--accent); outline-offset: .6cqw; }
+.gm-pl { position: absolute; left: 6cqw; top: 14cqw; margin: 0; padding: 0; list-style: none; }
+.gm-pl li { font: 800 3.6cqw/1.55 var(--font-ui); letter-spacing: -.01em; color: rgba(255,255,255,.62); padding: 0 1.4cqw; border-radius: .8cqw; }
+.gm-pl li.hi { color: #111; background: #fff; }
+.gm-tabs { position: absolute; left: 0; right: 0; top: 2.6cqw; display: flex; align-items: center; gap: 1.6cqw; padding: 0 3cqw; }
+.gm-tabs ul { display: flex; gap: 2.4cqw; margin: 0; padding: 0; list-style: none; overflow: hidden; flex: 1 1 auto; scroll-behavior: auto; }
+.gm-tabs li { flex: none; font: 750 2.3cqw/1 var(--font-ui); color: rgba(255,255,255,.55); padding: .9cqw 0; border-bottom: .4cqw solid transparent; }
+.gm-tabs li.on { color: #fff; border-bottom-color: #fff; }
+.gm-tabs .k, .gm-hint .k { flex: none; display: inline-grid; place-items: center; min-width: 4.6cqw; height: 3.4cqw; padding: 0 .8cqw; border-radius: .9cqw;
+  font: 800 1.7cqw/1 var(--font-num); background: rgba(255,255,255,.14); color: #fff; }
+.gm-tabs .k-face, .gm-hint .k-face { width: 3.4cqw; min-width: 0; padding: 0; border-radius: 50%; }
+.gm-tabs .k svg, .gm-hint .k svg { width: 2.4cqw; height: 2.4cqw; }
+.gm-hint .k-xb span { font-size: 1.9cqw; }
+.gm-crumb { position: absolute; left: 4cqw; top: 9.2cqw; margin: 0; font: 650 1.9cqw/1 var(--font-ui); color: rgba(255,255,255,.6); }
+.gm-body { position: absolute; left: 3cqw; right: 3cqw; top: 12cqw; bottom: 7.4cqw; display: grid; grid-template-columns: 1fr; gap: 3cqw; }
+.gm-body:has(.gm-desc) { grid-template-columns: 62% 1fr; }
+.gm-list { max-width: 76cqw; }
+.gm-list { margin: 0; padding: 0; list-style: none; overflow: hidden; scroll-behavior: auto; }
+.gm-row { display: flex; justify-content: space-between; gap: 2cqw; padding: 1cqw 1.4cqw; border-radius: .8cqw; font: 600 2.2cqw/1.25 var(--font-ui); color: rgba(255,255,255,.82); }
+.gm-row span { flex: none; color: rgba(255,255,255,.62); font-weight: 650; }
+.gm-row.hi { background: #fff; color: #111; } .gm-row.hi span { color: #111; }
+.gm-row.gm-set span { color: var(--accent-ink); background: var(--accent); border-radius: .6cqw; padding: 0 .8cqw; }
+.gm-sh { margin: 1.2cqw 0 .3cqw; padding: 0 1.4cqw; font: 800 1.7cqw/1 var(--font-ui); letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.5); }
+.gm-go span { font-size: 3cqw; line-height: .8; }
+.gm-desc { margin: 0; align-self: start; font: 500 2cqw/1.45 var(--font-ui); color: rgba(255,255,255,.78); }
+.gm-hint { position: absolute; right: 3cqw; bottom: 2.4cqw; display: flex; gap: 2.6cqw; }
+.gm-hint > span { display: inline-flex; align-items: center; gap: .9cqw; font: 650 1.9cqw/1 var(--font-ui); color: rgba(255,255,255,.8); }
+.gm-hint i { font-style: normal; }
+/* рамка на нужном пункте — цвет эпохи, как выделение в приложении */
+.gm .ring { outline: .55cqw solid var(--accent); outline-offset: .35cqw; box-shadow: 0 0 2.6cqw color-mix(in srgb, var(--accent) 55%, transparent); }
+.gs-lab { display: block; margin-top: 2px; font-size: 14px; font-weight: 500; line-height: 1.3; color: var(--text-2); }
+/* путь: один экран на шаг, под ним строки; активная строка — та, что на экране */
+.gs-shot { margin-top: 14px; }
+.gs-row { display: flex; flex-wrap: wrap; gap: 0 18px; margin-top: 2px; }
+.gs-row .g-link { font-size: 15px; }
+.gs-path { margin: 2px 0 4px; }
+.gs-line { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 7px 0; cursor: pointer; }
+.gs-line .gs-dot { flex: none; width: 8px; height: 8px; margin-top: 11px; border-radius: 50%; background: var(--line-2, var(--text-3, var(--text-2))); }
+.gs-line.on .gs-dot { background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); }
+.gs-line .gs-act { margin: 0; font-weight: 550; color: var(--text-2); }
+.gs-line.on .gs-act { color: var(--text); font-weight: 650; }
+.gs-line.gs-open { padding: 7px 0; min-height: 0; margin: 0; cursor: default; }
+.gs-act .k-text, .gs-keys .k-text { width: auto; }
+.gm-pl { top: 9cqw; } .gm-pl li { font-size: 3.2cqw; line-height: 1.5; }

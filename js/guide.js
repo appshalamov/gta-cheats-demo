@@ -5,6 +5,8 @@
 // Данные — egg.how из data/map/<игра>.json (tools/build_map.py guide_fields). Прогресс — на телефоне (localStorage sb.gd), по id шагов.
 // Тот же компонент потом — гид прохождения (req.ty mission/chapter + ref) и предупреждения (miss).
 
+import { pathTo, screenHTML, key, keyHTML, platOf, fitScreens } from './guide-menu.js';
+
 const S = {
   ru: {
     close: 'Закрыть', share: 'Поделиться', whole: 'Весь путь в ролике, {n} минут', whole0: 'Весь путь в ролике', before: 'Перед выездом',
@@ -16,6 +18,13 @@ const S = {
     fin_car: 'Готово. Машина ваша.', fin: 'Готово. Всё получилось.', again: 'Начать заново',
     meta: '{n} шагов, около {m} минут', meta0: '{n} шагов', missable: 'Можно упустить навсегда', no_fix: 'Для этого шага частых ошибок нет. Посмотрите ролик или общий список.',
     en_only: 'Инструкция на английском', offline: 'Ролики работают с сетью',
+    // вид «настройки» (путь по меню игры)
+    set_meta: '{n} настроек, около {m} минут', for_plat: 'Для {p}.', show_for: 'Показать для {p}', pc_note: 'На ПК меню то же, кнопки — как на PlayStation.',
+    open_set: 'Откройте настройки', a_pause: 'Нажмите {k}, игра встанет на паузу', a_pick: 'Нажмите {k} на «{to}»', a_tab: '{k} до вкладки «{to}»',
+    a_tab_n: '{k} {n} раза до вкладки «{to}»', a_move: '{k} до пункта «{to}»', a_set: '{k} до значения «{to}»',
+    why: 'Зачем', was: 'По умолчанию {v}', ps_only: 'Только PlayStation', fin_set: 'Готово. Настройки на месте.', up_next: 'Дальше',
+    shot_cap: 'Схема меню, наша. Названия пунктов как в игре.', unsure: 'Кнопки Xbox сверяем с записью меню', video_set: 'Весь путь в ролике, {n}', video_step: 'Ролик с {t}',
+    show_path: 'Показать по шагам', w_select: 'Выбрать', w_back: 'Назад', w_reset: 'Сброс', src_n: 'Источники: {s}', hyp: 'Совет по общим правилам, в гайдах по GTA 6 не проверен',
   },
   en: {
     close: 'Close', share: 'Share', whole: 'Watch the whole route, {n} min', whole0: 'Watch the whole route', before: 'Before you go',
@@ -27,10 +36,16 @@ const S = {
     fin_car: 'Done. The car is yours.', fin: 'Done. You made it.', again: 'Start over',
     meta: '{n} steps, about {m} min', meta0: '{n} steps', missable: 'Missable', no_fix: 'No common mistakes for this step. Watch the video or the full list.',
     en_only: 'Guide in English', offline: 'Videos need a connection',
+    set_meta: '{n} settings, about {m} min', for_plat: 'For {p}.', show_for: 'Show for {p}', pc_note: 'On PC the menu is the same; buttons shown for PlayStation.',
+    open_set: 'Open Settings', a_pause: 'Press {k} to pause the game', a_pick: 'Press {k} on “{to}”', a_tab: '{k} to the “{to}” tab',
+    a_tab_n: '{k} {n} times to the “{to}” tab', a_move: '{k} to “{to}”', a_set: '{k} to “{to}”',
+    why: 'Why', was: 'Default {v}', ps_only: 'PlayStation only', fin_set: 'Done. Your settings are set.', up_next: 'Up next',
+    shot_cap: 'Our menu diagram. Item names as in the game.', unsure: 'Xbox buttons being checked against a menu recording', video_set: 'Whole route on video, {n}', video_step: 'Video from {t}',
+    show_path: 'Play the steps', w_select: 'Select', w_back: 'Back', w_reset: 'Defaults', src_n: 'Sources: {s}', hyp: 'General advice, not yet checked in GTA 6 guides',
   },
 };
 const KEY = 'sb.gd', FIRST = 'sb.gd1';
-let C = null, O = null, layer = null, lock = null, stuckAll = false;
+let C = null, O = null, layer = null, lock = null, stuckAll = false, plat = null;   // plat — платформа экранов вида «настройки»
 
 const s = (k, v = {}) => {
   let x = (S[C.lang] || S.en)[k] ?? S.en[k] ?? k;
@@ -50,9 +65,9 @@ export function progressOf(o) { const p = read()[kOf(o)]; return p ? (o.how?.st 
 const H = () => O.how;
 // Pro (решение Fable): бесплатно целиком — первая начатая инструкция, пробные дни, вход по ссылке, короткие (≤ 3 шагов) и отсылки
 function firstFree() { try { const f = localStorage.getItem(FIRST); return !f || f === kOf(O); } catch { return true; } }
-const free = () => C.access() !== 'locked' || !!C.linked || H().st.length <= 3 || O.k === 'reference' || firstFree();
+const free = () => H().vw === 'settings' || C.access() !== 'locked' || !!C.linked || H().st.length <= 3 || O.k === 'reference' || firstFree();
 const shut = (i) => !free() && i >= (H().fr ?? 2);
-const cur = (p) => { const i = H().st.findIndex((x) => !p.d.includes(x.id)); return i < 0 ? H().st.length : i; };
+const cur = (p) => { const L = H().vw === 'settings' ? shownSt() : H().st, i = L.findIndex((x) => !p.d.includes(x.id)); return i < 0 ? L.length : i; };
 
 function css() {
   if (document.getElementById('guide-css')) return;
@@ -89,6 +104,7 @@ function stuckHTML(ci) {
       : `<button class="g-link" data-g="still">${esc(s('still'))}</button>`) : ''}</div>`;
 }
 function render() {
+  if (H().vw === 'settings') { renderSet(); return; }
   const h = H(), p = prog(), st = h.st, I = C.I, ci = cur(p), started = p.d.length > 0 || p.s;
   const fr = h.fr ?? 2, wall = !free() && fr < st.length ? fr : -1;
   const trust = h.self ? s('self', { d: C.date(h.self) }) : (O.sn || []).length ? s('collected', { n: O.sn.length }) : '';
@@ -118,6 +134,112 @@ function render() {
   <div class="g-sheet" id="g-stuck" hidden></div>
   <footer class="g-bar">${barHTML(p, ci)}</footer>
   <div class="g-video" id="g-video" hidden></div>`;
+}
+// ── вид «настройки»: шаг = один пункт меню игры; в раскрытом шаге — путь по меню строками «экран + кнопка + действие» ──
+const PN = { playstation: 'PlayStation', xbox: 'Xbox' };
+const M = () => H().menu;
+const shownSt = () => H().st.filter((x) => !x.only || x.only === plat);
+const W = () => ({ lab: tx, w: { select: s('w_select'), back: s('w_back'), reset: s('w_reset') } });
+let sel = {}, playT = null;   // sel[шаг] — какой узел пути показан на экране шага; playT — «Показать» листает узлы сам
+function lineHTML(nd, i, si, on) {
+  const k = key(M(), plat, nd.btn), kh = keyHTML(k);
+  const ph = { pause: 'a_pause', pick: 'a_pick', tab: nd.n > 1 ? 'a_tab_n' : 'a_tab', move: 'a_move', set: 'a_set' }[nd.act];
+  const txt = esc(s(ph, { k: '\u0001', to: tx(nd.lab) || nd.to, n: nd.n })).replace('\u0001', kh || esc(k?.tok || ''));
+  return `<li class="gs-line${on ? ' on' : ''}" data-g="node" data-i="${si}" data-n="${i}"><span class="gs-dot"></span><p class="gs-act">${txt}</p></li>`;
+}
+function setStepHTML(x, i, p, open, first) {
+  const I = C.I, done = p.d.includes(x.id), n = i + 1;
+  const cls = `g-step gs-step${done ? ' is-done' : ''}${open ? ' is-cur' : ''}`;
+  const val = `<span class="gs-val">${esc(tx(x.val))}</span>`;
+  if (!open) return `<li class="${cls}" data-g="open" data-i="${i}"><span class="g-num">${done ? I.check : n}</span><p class="g-t">${esc(tx(x.hn) || tx(x.t))}</p>${val}</li>`;
+  const nodes = pathTo(M(), x.it, x.set);
+  // общее начало «пауза → настройки» целиком только в первом шаге, дальше одной строкой «Откройте настройки»
+  const from = first ? 0 : 2, n0 = sel[i] ?? nodes.length - 1, nd = nodes[Math.max(from, Math.min(n0, nodes.length - 1))];
+  const vt = H().vid?.[plat]?.ch?.[x.id];
+  return `<li class="${cls}" data-i="${i}"><span class="g-num">${done ? I.check : n}</span><div class="g-body">
+    <div class="gs-head"><p class="g-t">${esc(tx(x.hn) || tx(x.t))}<small class="gs-lab">${esc(tx(x.t))}</small></p>${val}</div>
+    ${x.why ? `<p class="g-ok"><b>${esc(s('why'))}.</b> ${esc(tx(x.why))}</p>` : ''}
+    ${x.def != null && x.set != null ? `<p class="g-note">${esc(s('was', { v: x.def }))}${x.only ? `. ${esc(s('ps_only'))}` : ''}</p>` : ''}
+    ${x.hyp ? `<p class="g-trap">${esc(s('hyp'))}</p>` : ''}
+    <button class="gs-shot" data-g="shot" data-i="${i}" aria-label="${esc(s('shot_cap'))}">${screenHTML(M(), plat, nd.scr, W())}</button>
+    <div class="gs-row"><button class="g-link gs-play" data-g="play" data-i="${i}">${I.play}<span>${esc(s('show_path'))}</span></button>
+      ${vt != null ? `<button class="g-link" data-g="svid" data-t="${vt}">${I.video || I.play}<span>${esc(s('video_step', { t: mmss(vt) }))}</span></button>` : ''}</div>
+    <ol class="gs-path">${first ? '' : `<li class="gs-line gs-open"><span class="gs-dot"></span><p class="gs-act">${esc(s('open_set'))} <span class="gs-keys">${keyHTML(key(M(), plat, 'pause'))}${keyHTML(key(M(), plat, 'confirm'))}</span></p></li>`}
+      ${nodes.slice(from).map((q, k) => lineHTML(q, k + from, i, k + from === nodes.indexOf(nd))).join('')}</ol>
+    ${x.src?.length ? `<p class="g-note">${esc(s('src_n', { s: x.src.join(', ') }))}</p>` : ''}
+  </div></li>`;
+}
+function nextHTML() {
+  const nx = H().next || []; if (!nx.length) return '';
+  return `<section class="g-sec gs-next"><h2>${esc(s('up_next'))}</h2>${nx.map((q) => `<button class="gs-nx" data-g="go" data-k="${esc(q.k)}"><b>${esc(tx(q.t))}</b>${q.s ? `<small>${esc(tx(q.s))}</small>` : ''}${C.I.chevron}</button>`).join('')}</section>`;
+}
+function renderSet() {
+  const h = H(), I = C.I, p = prog(), st = shownSt(), all = h.st;
+  const ci = (() => { const k = st.findIndex((x) => !p.d.includes(x.id)); return k < 0 ? st.length : k; })(), started = p.d.length > 0 || p.s;
+  const other = plat === 'xbox' ? 'playstation' : 'xbox';
+  const vid = h.vid?.[plat], trust = (O.sn || []).length ? s('collected', { n: O.sn.length }) : '';
+  const unsure = (M().btn.st?.[plat] || 'ok') !== 'ok';
+  layer.innerHTML = `<div class="g-scroll gs" id="g-scroll">
+    <header class="g-top"><button class="g-ib" data-g="close" aria-label="${esc(s('close'))}">${I.chevron}</button>
+      <button class="g-ib" data-g="share" aria-label="${esc(s('share'))}">${I.share}</button></header>
+    <h1 class="g-h1">${esc(tx(h.ta))}</h1>
+    ${h.rw ? `<p class="g-rw">${esc(tx(h.rw))}</p>` : ''}
+    <p class="g-meta">${esc(s('set_meta', { n: st.length, m: h.min || Math.max(2, Math.round(st.length * 0.7)) }))}</p>
+    <p class="gs-plat">${esc(s('for_plat', { p: PN[plat] }))} <button class="g-link" data-g="plat">${esc(s('show_for', { p: PN[other] }))}</button></p>
+    ${!['playstation', 'xbox'].includes(C.platform) ? `<p class="g-note">${esc(s('pc_note'))}</p>` : ''}
+    ${unsure ? `<p class="g-note">${esc(s('unsure'))}</p>` : ''}
+    ${trust ? `<p class="g-trust">${I.check}<span>${esc(trust)}</span></p>` : ''}
+    ${vid ? `<button class="g-link g-whole" data-g="svid" data-t="0">${I.play}<span>${esc(s('video_set', { n: vid.len }))}</span></button>` : ''}
+    <ol class="g-steps">${st.map((x, i) => setStepHTML(x, i, p, (started && i === ci) || p.o === i, i === 0 || all.indexOf(x) === 0)).join('')}</ol>
+    ${ci >= st.length ? `<p class="g-fin">${I.check}<span>${esc(s('fin_set'))}</span></p>
+      ${vid ? `<button class="g-link" data-g="svid" data-t="0">${I.play}<span>${esc(s('video_set', { n: vid.len }))}</span></button>` : ''}` : ''}
+    ${ci >= st.length || !started ? nextHTML() : ''}
+    <section class="g-sec g-foot">
+      ${(O.sn || []).length ? `<p class="g-note">${esc(s('sources'))}: ${esc(O.sn.join(', '))}</p>` : ''}
+      <p class="g-note">${esc(s('shot_cap'))}</p>
+      <button class="g-link" data-g="report">${esc(s('report'))}</button>
+    </section>
+  </div>
+  <div class="g-shotv" id="g-shotv" hidden></div>
+  <footer class="g-bar">${setBarHTML(p, ci, st)}</footer>
+  <div class="g-video" id="g-video" hidden></div>`;
+  requestAnimationFrame(() => fitScreens(layer));
+}
+function setBarHTML(p, ci, st) {
+  const started = p.d.length > 0 || p.s;
+  if (!started) return `<button class="g-main" data-g="start">${esc(s('start'))}</button>`;
+  if (ci >= st.length) return `<button class="g-sub" data-g="again">${esc(s('again'))}</button><button class="g-main" data-g="close">${esc(s('finish'))}</button>`;
+  return `<button class="g-main" data-g="next">${esc(ci === st.length - 1 ? s('finish') : s('next'))}</button>`;
+}
+// сменить экран шага без перерисовки всего слоя (строка пути → её экран)
+function swapScreen(i) {
+  const li = layer.querySelector(`.gs-step[data-i="${i}"]`); if (!li) return;
+  const x = shownSt()[i], first = i === 0, nodes = pathTo(M(), x.it, x.set), n = Math.max(first ? 0 : 2, Math.min(sel[i] ?? nodes.length - 1, nodes.length - 1));
+  li.querySelector('.gs-shot').innerHTML = screenHTML(M(), plat, nodes[n].scr, W());
+  li.querySelectorAll('.gs-line[data-n]').forEach((e) => e.classList.toggle('on', +e.dataset.n === n));
+  fitScreens(li);
+}
+function stopPlay() { clearInterval(playT); playT = null; }
+function playPath(i) {
+  stopPlay();
+  const x = shownSt()[i], nodes = pathTo(M(), x.it, x.set); let n = i === 0 ? 0 : 2;
+  sel[i] = n; swapScreen(i); C.event?.('guide_play', { id: O.id, step: i + 1 });
+  playT = setInterval(() => { n++; if (n >= nodes.length || !layer.classList.contains('open')) { stopPlay(); return; } sel[i] = n; swapScreen(i); }, 1300);
+}
+// экран меню на весь экран (поворот не нужен: 16:9 во всю ширину, ниже — подпись действия)
+function openShot(b) {
+  const v = layer.querySelector('#g-shotv'), act = b.closest('.g-body')?.querySelector('.gs-line.on .gs-act')?.innerHTML || '';
+  v.innerHTML = `<button class="g-ib g-vx" data-g="shotx" aria-label="${esc(s('close'))}">${C.I.close}</button><div class="gs-big">${b.innerHTML}</div><p class="gs-act">${act}</p><p class="g-note">${esc(s('shot_cap'))}</p>`;
+  v.hidden = false; fitScreens(v);
+}
+// свой ролик прохода по меню (mp4 со своего хостинга), с главы шага
+function setVideo(t) {
+  const vd = H().vid?.[plat]; if (!vd) return;
+  const v = layer.querySelector('#g-video');
+  v.innerHTML = `<div class="g-vbox"><button class="g-ib g-vx" data-g="vclose" aria-label="${esc(s('close'))}">${C.I.close}</button>
+    <div class="g-vf"><video src="${esc(vd.src.replace('{l}', C.lang === 'ru' ? 'ru' : 'en'))}#t=${t}" ${vd.poster ? `poster="${esc(vd.poster)}"` : ''} controls autoplay playsinline muted preload="metadata"></video></div></div>`;
+  v.hidden = false;
+  C.event?.('guide_video', { id: O.id, v: plat, t });
 }
 function barHTML(p, ci) {
   const st = H().st, started = p.d.length > 0 || p.s;
@@ -154,7 +276,7 @@ function openStuck() {
 
 function onClick(e) {
   const b = e.target.closest('[data-g]'); if (!b || !layer.contains(b)) return;
-  const a = b.dataset.g, p = prog(), st = H().st, i = +b.dataset.i;
+  const a = b.dataset.g, p = prog(), st = H().vw === 'settings' ? shownSt() : H().st, i = +b.dataset.i;
   switch (a) {
     case 'close': closeGuide(); break;
     case 'share': C.share(O); break;
@@ -184,13 +306,20 @@ function onClick(e) {
     case 'vclose': { const v = layer.querySelector('#g-video'); v.innerHTML = ''; v.hidden = true; break; }
     case 'again': setProg({ d: [], t: {}, s: 0 }); render(); break;
     case 'pw': C.paywall(); break;
+    case 'plat': stopPlay(); sel = {}; plat = plat === 'xbox' ? 'playstation' : 'xbox'; C.haptic(); rerender(); C.event?.('guide_plat', { id: O.id, p: plat }); break;
+    case 'shot': openShot(b); break;
+    case 'node': stopPlay(); sel[i] = +b.dataset.n; swapScreen(i); break;
+    case 'play': playPath(i); break;
+    case 'shotx': { const v = layer.querySelector('#g-shotv'); v.innerHTML = ''; v.hidden = true; break; }
+    case 'svid': setVideo(+b.dataset.t || 0); break;
+    case 'go': closeGuide(); setTimeout(() => C.open?.(b.dataset.k), 60); C.event?.('guide_next', { id: O.id, to: b.dataset.k }); break;
     case 'report': C.toast(s('report_ok')); C.event?.('guide_report', { id: O.id, step: cur(p) + 1 }); break;
   }
 }
 
 export function openGuide(o, ctx) {
   if (!o?.how?.st?.length) return false;
-  C = ctx; O = o; stuckAll = false; css();
+  C = ctx; O = o; stuckAll = false; plat = platOf(ctx.platform); sel = {}; stopPlay(); css();
   layer = document.getElementById('guide');
   if (!layer) {
     layer = document.createElement('div'); layer.id = 'guide'; layer.setAttribute('role', 'dialog'); layer.setAttribute('aria-modal', 'true');
