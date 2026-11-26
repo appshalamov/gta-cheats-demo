@@ -61,7 +61,9 @@ PL = {'coming-home': ('gta6-homestead-ci', 'Hamlet Correctional'), 'day-release'
 # названия-спойлеры: даже «следующая миссия» прячет название до тапа
 SP2 = {'discharge-time', 'checking-out', 'sunset', 'tie-up-loose-ends', 'starting-from-zero', 'vcia-takedown', 'protective-custody',
        'the-end-of-the-road', 'unfinished-business', 'honest-abe', 'operation-savage-glory', 'child-s-play', 'childs-play', 'family-matters'}
-SKIP = {'deposit-cash-into-buckme', 'save-for-the-future', 'prepare-for-vice-city', 'send-money-to-lorena', 'send-more-money-to-lorena', 'heist-planning'}
+# honest-abe и unfinished-business — подшаги GTABase/PowerPyx: в списках Dexerto, Red Bull, FandomWire их нет, а по ресёрчу концовок «Proceed»
+# после запроса «Meet Abe» сразу запускает Protective Custody (сверка с guide-endings 27.11)
+SKIP = {'honest-abe', 'unfinished-business', 'deposit-cash-into-buckme', 'save-for-the-future', 'prepare-for-vice-city', 'send-money-to-lorena', 'send-more-money-to-lorena', 'heist-planning'}
 
 webch = {c['n']: c for c in web['chapters']}
 webidx = {}
