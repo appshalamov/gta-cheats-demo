@@ -36,6 +36,7 @@ const crMod = () => import('./league.js');
 const guideMod = () => import('./guide.js');   // инструкция «По шагам» — грузится при первом открытии
 const walkMod = () => import('./walk.js');   // «Прохождение» и общая шторка «Где вы в игре» (регистрируется в ядре: registerPickSheet)
 const savesMod = () => import('./saves.js');   // «Не упустить навсегда» — справочник сохранений (guide-saves)
+const endingsMod = () => import('./endings.js');   // «Концовки и лучшее прохождение» (26.11.2026, feature/guide-endings) — при первом открытии
 // «Гид по игре» (26.11.2026, решение «система гида»): ядро — позиция, спойлеры, ключи, «Дальше», строка состояния; раздел на Главной и оглавление
 import * as gcore from './guide-core.js';
 const ghubMod = () => import('./guide-hub.js');
@@ -552,6 +553,26 @@ async function openSavesScreen(from = '', key = 'all') {
 }
 window.SB.openSaves = openSavesScreen;
 gcore.registerOpener('saves', (k, ctx) => openSavesScreen(ctx?.from || 'link', k.id || 'all'));   // ключи saves:<игра>:<id> в общей таблице openKey
+// «Концовки и лучшее прохождение» (js/endings.js). Решение Fable «система гида»: строки на Главной нет, вход — оглавление «Гид по игре»
+// (data-action="open-endings" data-v="gta6"), подсказка у миссии с развилкой, справочник, поиск, ссылка ?open=endings:gta6.
+const END_ROW = { t: { ru: 'Концовки GTA 6', en: 'GTA 6 endings' } };
+async function openEndingsKey(g = 'gta6', from = '', focus = '') {
+  closeSheet();
+  const m = await endingsMod();
+    lang: getLang(), I, from, focus, haptic, toast, access, linked: from === 'link',
+    paywall: () => openPaywall(mapPw()),
+    share: () => shareText(`${L(END_ROW.t)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=endings:${g}`),
+    event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+    onClose: () => { if (ui.tab === 'home') renderHub(); },
+  });
+  if (!ok) toast(t('place_nf'));
+}
+// ключ endings:<игра>[:<развилка>] — в общей таблице ключей ядра гида (оглавление, «Дальше», подсказки миссий, поиск)
+gcore.registerOpener('endings', (k, x = {}) => openEndingsKey(k.game, x.from || 'key', k.id));
+// подпись «Концовки» в оглавлении, пока js/endings.js не загружен: счёт, запомненный при последнем показе (sb.ge[игра].cnt); модуль заменит функцию
+window.SB.endingsLine = (g = 'gta6', lang = 'ru') => {
+  try { const c = (JSON.parse(localStorage.getItem('sb.ge') || '{}')[g] || {}).cnt; if (!c) return ''; return (lang === 'ru' ? 'Открыто {a} из {b}' : '{a} of {b} still open').replace('{a}', c[0]).replace('{b}', c[1]); } catch { return ''; }
+};
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
 function eggRow(o) {
   if (hasGuide(o)) {
@@ -2040,6 +2061,7 @@ document.addEventListener('click', async (e) => {
     case 'open-news': haptic(); openNews(el.dataset.id); break;
     case 'open-guide': haptic(); openGuideKey(el.dataset.key, el.dataset.from || ui.tab); break;
     case 'open-walk': haptic(); openWalk(ui.tab); break;
+    case 'open-endings': haptic(); openEndingsKey(el.dataset.v || 'gta6', ui.tab); break;
     case 'gopen': haptic(); gopen(el.dataset.k); break;
     case 'egg-filter': haptic(); ui.eggf = v; renderFeed(); break;
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
@@ -2244,7 +2266,7 @@ document.addEventListener('visibilitychange', () => {
   const openRaw = new URLSearchParams(location.search).get('open');
   const openKey = gcore.parseOpen(openRaw || '') && (openRaw || '').length < 140 ? openRaw : null;   // одна таблица ключей (guide-core.KEY_RE)
   if (openRaw && !openKey) { history.replaceState(null, '', location.pathname); toast(t('place_nf')); }
-  if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); if (openKey.startsWith('guide:')) openGuideKey(openKey, 'link', true); else if (/^(place|egg|db):/.test(openKey)) openOnMap(openKey); else gcore.openKey(openKey); }
+  if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); if (openKey.startsWith('guide:')) openGuideKey(openKey, 'link', true); else if (/^(place|egg|db):/.test(openKey)) openOnMap(openKey); else gcore.openKey(openKey, { from: 'link' }); }
   else if (/[?&#]admin\b/.test(location.search + location.hash)) {   // экран «Для админов» (только веб): ?admin или #admin
     store.onboarded = true; save(); if (location.hash) history.replaceState(null, '', location.pathname + location.search); window.SB.openCreator('admin');
   }
