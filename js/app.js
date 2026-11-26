@@ -474,25 +474,30 @@ async function openGuideKey(key, from = '', linked = false) {
   m.openGuide({ ...o, game: g }, guideCtx(g, from, linked || store.linkKeys.includes(`guide:${g}:${id}`) || store.linkKeys.includes(`egg:${g}:${id}`), (x) => `guide:${g}:${x.id}`));
 }
 window.SB.openWalk = (from = 'sb') => openWalk(from);   // для оглавления гида и тестов
-window.SB.pickPos = (opts = {}) => walkMod().then((w) => w.pickPos({ lang: getLang(), I, haptic }, store.game, opts));   // общая шторка «Где вы в игре»
-window.SB.walkLine = () => walkMod().then((w) => w.stateLine(store.game, getLang()));   // строка состояния для Главной (сборщик)
+// ядро гида: ключ walk:gta6[:<подсказка>] открывает «Прохождение» (и сразу подсказку); таблицу ключей ведёт сборщик (guide-core)
+let core = null;
+import('./guide-core.js').then((m) => { core = m; m.registerOpener('walk', (k) => openWalk('key', k.game || 'gta6', k.id || '')); }).catch(() => { });
+const posCtx = () => ({ lang: getLang(), I, haptic, event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+  // строки guide-progress в шторке «Где вы в игре»: подключаются, когда в сборке есть js/progress.js (ветка feature/guide-progress)
+  mountProgress: window.SB.hasProgress ? (el, o) => import('./progress.js').then((m) => m.mountRows(el, { ...o, platform: store.platform })) : null });
+window.SB.pickPos = (opts = {}) => walkMod().then((w) => w.pickPos(posCtx(), store.game, opts));   // общая шторка «Где вы в игре»
 // ── «Прохождение» (js/walk.js): игрок отмечает последнюю миссию, экран показывает подсказки «перед миссией» (инструкции «По шагам»)
-async function openWalk(from = '', g = 'gta6') {
+async function openWalk(from = '', g = 'gta6', tipId = '') {
   closeSheet();
   const w = await walkMod();
   const leave = (fn) => { w.closeWalk(); setTimeout(fn, 80); };   // сначала снять экран и его запись истории, потом переход
   const ok = await w.openWalk({
     lang: getLang(), I, from, haptic, toast, event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
     done: (o) => Math.max(0, guideDone(o)),
-    openTip: async (o) => (await guideMod()).openGuide(o, guideCtx(g, 'walk', false, () => `walk:${g}`, () => w.refresh())),
+    openTip: async (o) => (await guideMod()).openGuide(o, guideCtx(g, 'walk', false, (x) => `walk:${g}:${String(x.id).replace(/^walk-/, '')}`, () => w.refresh())),
     openPlace: (k) => leave(() => openOnMap(k)),
     openFeed: (v) => leave(() => { ui.feed = v; ui.tab = 'feed'; renderAll(); }),
     openCheats: () => leave(() => { ui.tab = 'cheats'; renderAll(); }),
     // ключи «Дальше» (решение Fable: одна таблица ?open= будет в js/guide-core.js у сборщика; здесь — то, что есть в этой ветке)
-    can: (k) => /^guide:(gta6|gta5):/.test(k),
-    openKey: (k) => { if (/^guide:(gta6|gta5):/.test(k)) leave(() => openGuideKey(k, 'walk')); },
+    can: (k) => /^guide:(gta6|gta5):/.test(k) || !!core?.hasOpener?.(String(k).split(':')[0]),
+    openKey: (k) => { if (/^guide:(gta6|gta5):/.test(k)) leave(() => openGuideKey(k, 'walk')); else leave(() => core?.openKey(k, { from: 'walk' })); },
     onClose: () => { if (ui.tab === 'home') renderHub(); },
-  }, g);
+  }, g, tipId);
   if (!ok) toast(t('place_nf'));
 }
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
@@ -2106,9 +2111,10 @@ document.addEventListener('visibilitychange', () => {
   // ссылка «поделиться местом» (…/?open=place:gta5:<id>): друг сразу видит это место (и без Pro); знакомство — в следующий раз
   // ключ проверяем по виду: мусор в ?open= молча открывал пейвол карты (QA 20.11.2026)
   const openRaw = new URLSearchParams(location.search).get('open');
-  if (openRaw === 'walk:gta6') { history.replaceState(null, '', location.pathname); if (store.onboarded) setTimeout(() => openWalk('link'), 0); }
+  const walkKey = /^walk:gta6(:[\w-]{1,80})?$/.exec(openRaw || '');
+  if (walkKey) { history.replaceState(null, '', location.pathname); if (store.onboarded) setTimeout(() => openWalk('link', 'gta6', (walkKey[1] || '').slice(1)), 0); }
   const openKey = /^(place|egg|db|guide):(gta6|gta5):[\w.-]{1,120}$/.test(openRaw || '') ? openRaw : null;
-  if (openRaw && !openKey && openRaw !== 'walk:gta6') { history.replaceState(null, '', location.pathname); toast(t('place_nf')); }
+  if (openRaw && !openKey && !walkKey) { history.replaceState(null, '', location.pathname); toast(t('place_nf')); }
   if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); if (openKey.startsWith('guide:')) openGuideKey(openKey, 'link', true); else openOnMap(openKey); }
   else if (/[?&#]admin\b/.test(location.search + location.hash)) {   // экран «Для админов» (только веб): ?admin или #admin
     store.onboarded = true; save(); if (location.hash) history.replaceState(null, '', location.pathname + location.search); window.SB.openCreator('admin');

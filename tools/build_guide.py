@@ -106,3 +106,13 @@ if not only_check:
     p = os.path.join(ROOT, 'data', 'guide', 'missions.json')
     json.dump(out, open(p, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     print('записано', p, os.path.getsize(p), 'байт')
+    # записи для указателя гида (tools/build_guide_index.py, решение Fable раздел 3): подсказки этой функции, ключ walk:<игра>:<id>
+    G = base['game']
+    items = [{'k': f"walk:{G}:{t['id']}", 'kind': 'tip', 't': t['t'], 'sub': t['rw'], 'm': t.get('until'), 'from': t.get('from'), 'until': t.get('until'),
+              **({'dur': True} if t.get('dur') else {}), 'sp': t.get('sp', 0), 'lvl': t['lvl'], 'st': t['st'], 'src_n': len(set(t.get('s', []))),
+              'steps_n': len(t['how']['st']), 'fr': t['how'].get('fr', 2), **({'min': t['min']} if t.get('min') else {}), 'next': t['next'],
+              'ch': base and next((m['ch'] for m in base['m'] if f"m:{m['id']}" == t.get('until')), None)} for t in tips]
+    items = [{k: v for k, v in r.items() if v is not None} for r in items]
+    q = os.path.join(ROOT, 'data', 'guide', f'entries-walk-{G}.json')
+    json.dump({'items': items}, open(q, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+    print('записано', q, len(items), 'записей для указателя')

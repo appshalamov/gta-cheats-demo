@@ -3,8 +3,11 @@
 // Здесь же — общая для всего приложения шторка «Где вы в игре» pickPos() и база миссий GTA 6 (data/guide/missions.json, хозяин — эта функция).
 // Прогресс — sb.gp = {gta6: {m:'m:<id>' | c:'c<N>', via:'self'|'pct'|'psn'|'xbox', at, t:{ru,en}}}. Правила (Fable, раздел 3): ручная отметка
 // сильнее всего, в том числе назад; консоль и процент двигают только вперёд. Когда придёт js/guide-core.js — pos/setPos/canShow берём оттуда.
-// Для Главной: stateLine(game) → одна строка состояния (точка невозврата ≤ 2 миссий / отметка / «Где вы в игре?»); строку рисует сборщик.
+// Строка на Главной — core.stateLine() по указателю (подсказки этой функции — data/guide/entries-walk-gta6.json, tools/build_guide.py).
 // Срочное у точки невозврата: свои подсказки miss + saves.js (nextWarn, savesFor), если ctx.saves подключён (ветка guide-saves).
+
+import * as core from './guide-core.js';   // ядро гида (eggs-community): pos/setPos по правилам sb.gp, база миссий, строки шторки
+import { I as ICONS } from './icons.js';
 
 const S = {
   ru: {
@@ -46,7 +49,7 @@ const S = {
     st_mark0: 'After “{m}”: what to do before your next missions', st_none: "Where are you in the game? Mark it and we'll show what not to miss",
   },
 };
-const KEY = 'sb.gp', STALE = 3 * 864e5;
+const STALE = 3 * 864e5;
 let C = null, D = null, layer = null, reveal = false, openAny = false, moreNext = false;
 
 const lgOf = (lg) => (S[lg] ? lg : 'en');
@@ -68,11 +71,11 @@ export function loadGuide(game = 'gta6') {
     d.mid = Object.fromEntries(d.m.map((m) => [`m:${m.id}`, m]));
     d.chStart = {};   // отметка главы без миссии = начало главы: позиция последней миссии предыдущих глав
     d.ch.forEach((c) => { d.chStart[c.id] = d.order.filter((m) => chN[m.ch] < c.n).length - 1; });
+    core.setBase(game, d);   // порядок миссий для ядра (stateLine, canShow, setPos)
     D = d; return d;
   })());
 }
-const readAll = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
-export function getProg(game = 'gta6') { return readAll()[game] || null; }
+export function getProg(game = 'gta6') { return core.pos(game); }
 // позиция игрока: индекс последней пройденной основной миссии (-1 — ничего не прошёл; null — не отмечал)
 export function stage(d = D, p = getProg(d?.game)) {
   if (!d || !p) return null;
@@ -81,14 +84,8 @@ export function stage(d = D, p = getProg(d?.game)) {
   return -1;
 }
 // запись позиции по правилам Fable: ручная (self) — всегда; консоль и процент — только вперёд
-export function setProg(game, p, d = D) {
-  try {
-    const all = readAll(), cur = all[game];
-    if (p && p.via && p.via !== 'self' && cur && d && (stage(d, p) ?? -1) <= (stage(d, cur) ?? -1)) return false;
-    if (p) all[game] = { ...p, via: p.via || 'self', at: Date.now() }; else delete all[game];
-    localStorage.setItem(KEY, JSON.stringify(all)); return true;
-  } catch { return false; }
-}
+// «Только начинаю» = начало главы 1 ({c:'c1'}); для своей ленты глава без миссии = ничего из неё не пройдено (stage → chStart)
+export function setProg(game, p) { return core.setPos(game, p && (p.m || p.c) ? p : { c: 'c1', via: (p && p.via) || 'self' }); }
 const posOf = (ref) => (ref && D.pos[ref] != null ? D.pos[ref] : null);
 // подсказка видна, когда миссия from пройдена, а until ещё нет (until null — до конца игры)
 export function activeTips(st, d = D) {
@@ -107,19 +104,6 @@ export function nearPnr(st, d = D) {
   }
   return null;
 }
-// строка состояния для Главной и оглавления (сборщик рисует сам; «Продолжить инструкцию» — его уровень 2)
-export async function stateLine(game = 'gta6', lang = 'ru') {
-  const d = await loadGuide(game); if (!d) return null;
-  const p = getProg(game), st = stage(d, p);
-  if (st == null) return { lvl: 4, k: `walk:${game}`, t: s('st_none', {}, lang) };
-  const near = nearPnr(st, d);
-  if (near) return { lvl: 1, k: `walk:${game}`, amber: true, t: near.ahead === 1 ? s('st_pnr1', { k: near.tips.length }, lang) : s('st_pnr', { n: near.ahead, k: near.tips.length }, lang) };
-  const last = st >= 0 ? d.order[st] : null, next = d.order[st + 1];
-  const k = activeTips(st, d).filter((t) => t.until === (next && `m:${next.id}`)).length;
-  const lm = last ? tx(last.t, lang) : s('none', {}, lang);
-  return { lvl: 3, k: `walk:${game}`, t: next && k && next.sp < 2 ? s('st_mark', { m: lm, k, x: tx(next.t, lang) }, lang) : s('st_mark0', { m: lm }, lang) };
-}
-
 function css() {
   for (const [id, href] of [['guide-css', 'css/guide.css'], ['walk-css', 'css/walk.css']]) {
     if (document.getElementById(id)) continue;
@@ -134,13 +118,14 @@ export async function pickPos(ctx, game = 'gta6', opts = {}) {
   css();
   const d = await loadGuide(game); if (!d) return null;
   closePick();
-  const lg = ctx.lang, I = ctx.I, p = getProg(game);
+  const lg = ctx.lang, I = ctx.I || ICONS, p = getProg(game);
   const cur = p?.m || (p?.c ? '' : p ? 'start' : ''), sel = p?.m ? d.mid[p.m]?.ch : p?.c || 'c1';
   let open = sel;
   const el = document.createElement('div'); el.id = 'gpos'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
   const selN = d.ch.find((c) => c.id === sel)?.n || 1;
   const html = () => `<div class="gp-bg" data-p="close"></div><div class="g-sheet gp-sheet"><div class="g-sh-in">
     <div class="g-sh-top"><b>${esc(s('where', {}, lg))}</b><button class="g-ib" data-p="close" aria-label="${esc(s('close', {}, lg))}">${I.close}</button></div>
+    ${(core.pickRowsList?.() || []).map((r) => `<button class="w-opt gp-x" data-p="row" data-id="${esc(r.id)}"><span>${r.html(lg)}</span>${I.chevron}</button>`).join('')}
     ${(opts.extra || []).map((x) => `<button class="w-opt gp-x" data-p="x" data-id="${esc(x.id)}"><span>${esc(tx(x.t, lg))}${x.sub ? `<small>${esc(tx(x.sub, lg))}</small>` : ''}</span>${I.chevron}</button>`).join('')}
     <button class="w-opt${cur === 'start' ? ' on' : ''}" data-p="set" data-m=""><span>${esc(s('start', {}, lg))}</span>${I.check}</button>
     ${d.ch.map((c) => {
@@ -151,22 +136,31 @@ export async function pickPos(ctx, game = 'gta6', opts = {}) {
         ${o ? `${ms.some((m) => m.o) || c.n <= 2 ? '' : `<p class="g-note">${esc(s('ch_soon', {}, lg))}</p>`}
           <button class="w-opt${p?.c === c.id ? ' on' : ''}" data-p="setc" data-c="${c.id}"><span>${esc(s('ch_here', {}, lg))}</span>${I.check}</button>
           <ol class="w-ms">${ms.map((m) => `<li><button class="w-opt${cur === `m:${m.id}` ? ' on' : ''}" data-p="set" data-m="m:${m.id}"><span><em>${m.n}</em>${esc(tx(m.t, lg))}</span>${I.check}</button></li>`).join('')}</ol>` : ''}</div>`;
-    }).join('')}</div></div>`;
-  el.innerHTML = html(); document.body.appendChild(el);
+    }).join('')}<div id="pg-rows"></div></div></div>`;
+  // строки guide-progress («По проценту из игры», «Подтянуть с консоли») — в конце шторки, раскрываются на месте.
+  // Подключение в app.js: ctx.mountProgress = (el, o) => import('./progress.js').then((m) => m.mountRows(el, { ...o, platform: store.platform }))
+  const mount = () => { const box = el.querySelector('#pg-rows'); if (box && ctx.mountProgress) ctx.mountProgress(box, { lang: lg, I, game, haptic: ctx.haptic, event: ctx.event, onSaved: saved }); };
+  const saved = () => { const got = getProg(game); P = null; el.classList.remove('open'); setTimeout(() => el.remove(), 300); if (history.state?.gpos) history.back(); opts.onDone?.(got); P0?.(got); };
+  let P0 = null;
+  el.innerHTML = html(); document.body.appendChild(el); mount();
   history.pushState({ gpos: 1 }, '');   // «назад» закрывает шторку, а не экран под ней
   requestAnimationFrame(() => el.classList.add('open'));
   return new Promise((res) => {
-    P = { el, res };
-    el.addEventListener('click', (e) => {
+    P = { el, res }; P0 = res;
+    el.addEventListener('click', async (e) => {
       const b = e.target.closest('[data-p]'); if (!b) return;
       const a = b.dataset.p;
       if (a === 'close') { closePick(); return; }
-      if (a === 'ch') { open = open === b.dataset.c ? '' : b.dataset.c; const y = el.querySelector('.g-sheet').scrollTop; el.innerHTML = html(); el.querySelector('.g-sheet').scrollTop = y; return; }
+      if (a === 'ch') { open = open === b.dataset.c ? '' : b.dataset.c; const y = el.querySelector('.g-sheet').scrollTop; el.innerHTML = html(); mount(); el.querySelector('.g-sheet').scrollTop = y; return; }
+      if (a === 'row') {   // строка модуля (guide-progress: «По проценту», «С консоли») — свой ввод, потом позиция в ядро
+        const r = (core.pickRowsList?.() || []).find((q) => q.id === b.dataset.id); const v = r ? await r.onTap(game) : null;
+        if (v) { core.setPos(game, v); saved(); } return;
+      }
       if (a === 'x') { const x = (opts.extra || []).find((q) => q.id === b.dataset.id); closePick(); x?.on?.(); return; }
       const ref = a === 'set' ? b.dataset.m || null : null, c = a === 'setc' ? b.dataset.c : null;
       const t = ref ? d.mid[ref].t : c ? { ru: s('ch', { n: d.ch.find((q) => q.id === c).n }, 'ru'), en: s('ch', { n: d.ch.find((q) => q.id === c).n }, 'en') } : null;
       const np = ref ? { m: ref, via: 'self', t } : c ? { c, via: 'self', t } : { m: null, via: 'self' };
-      setProg(game, np, d); ctx.haptic?.(); ctx.event?.('walk_mark', { m: ref || c || 'start' });
+      setProg(game, np); ctx.haptic?.(); ctx.event?.('walk_mark', { m: ref || c || 'start' });
       const got = getProg(game); P = null; el.classList.remove('open'); setTimeout(() => el.remove(), 300); if (history.state?.gpos) history.back();
       opts.onDone?.(got); res(got);
     });
@@ -296,7 +290,7 @@ function onClick(e) {
   }
 }
 
-export async function openWalk(ctx, game = 'gta6') {
+export async function openWalk(ctx, game = 'gta6', tipId = '') {
   C = ctx; reveal = false; moreNext = false; css();
   const d = await loadGuide(game); if (!d) return false;
   layer = document.getElementById('walk');
@@ -305,6 +299,7 @@ export async function openWalk(ctx, game = 'gta6') {
     document.body.appendChild(layer); layer.addEventListener('click', onClick);
   }
   render(); loadExt();
+  if (tipId && D.tips.some((t) => t.id === tipId)) setTimeout(() => openTip(tipId), 60);   // ключ walk:gta6:<подсказка>
   layer.classList.add('open'); document.documentElement.classList.add('walk-open');
   history.pushState({ walk: 1 }, '');
   C.event?.('walk_open', { from: ctx.from || '', st: stage() });
@@ -322,3 +317,5 @@ export function closeWalk(fromPop = false) {
 export const isOpen = () => !!layer?.classList.contains('open');
 // «назад» в системе: сначала шторка «Где вы», потом инструкция поверх (guide.js); этот экран — когда его запись истории снята
 addEventListener('popstate', () => { if (closePick(true)) return; if (isOpen() && !history.state?.walk && !history.state?.guide) closeWalk(true); });
+// одна шторка на приложение: ядро отдаёт pickPos сюда (если сборщик добавил registerPickSheet), иначе вызывают SB.pickPos
+core.registerPickSheet?.((game, ctx = {}) => pickPos({ lang: ctx.lang || document.documentElement.lang || 'ru', haptic: ctx.haptic, event: ctx.event, I: ctx.I }, game, ctx));
