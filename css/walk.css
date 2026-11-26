@@ -1,0 +1,63 @@
+/* «Прохождение» (js/walk.js, 26.11.2026). Тот же язык, что у «По шагам» (css/guide.css): список на фоне, без рамок и пилюль,
+   крупная главная кнопка внизу блока. Экран под инструкцией: инструкция (z 40) открывается поверх. */
+#walk { position: fixed; left: 0; right: 0; top: 0; height: var(--app-h, 100dvh); z-index: 39; background: var(--bg); color: var(--text);
+  display: flex; flex-direction: column; transform: translateY(100%); visibility: hidden;
+  transition: transform .42s cubic-bezier(.2,.9,.25,1), visibility 0s linear .42s; }
+#walk.open { transform: none; visibility: visible; transition: transform .42s cubic-bezier(.2,.9,.25,1), visibility 0s; }
+@media (prefers-reduced-motion: reduce) { #walk, #walk.open { transition: visibility 0s; } }
+
+.w-where { margin-top: 16px; }
+.w-set-sub { font-size: 16px; line-height: 1.45; color: var(--text-2); margin: 0 0 14px; }
+.w-set { width: 100%; }
+.w-pos { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 0; text-align: left; color: var(--text); background: none;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.w-tt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.w-tt b { font-size: 17px; font-weight: 700; line-height: 1.3; color: var(--text); }
+.w-tt small { font-size: 14px; line-height: 1.35; color: var(--text-2); }
+.w-pos .w-tt b { font-size: 21px; letter-spacing: -.01em; }
+.w-chg { flex: none; font-size: 16px; font-weight: 650; color: var(--accent); }
+
+.w-tips { display: flex; flex-direction: column; }
+.w-tip { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 72px; padding: 12px 0; text-align: left; background: none; color: var(--text);
+  border-top: 1px solid var(--line); }
+.w-tip:first-child { border-top: 0; }
+.w-tip.is-miss { box-shadow: inset 3px 0 0 var(--warn); padding-left: 14px; }
+.w-when { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; margin-top: 2px; }
+.w-tip.is-miss .w-when { color: var(--warn); font-weight: 600; }
+.w-mi { display: block; }
+.w-mi svg { display: inline-block; width: 15px; height: 15px; margin-right: 6px; vertical-align: -2px; }
+.w-dn { color: var(--ok); font-weight: 650; }
+.w-chev { flex: none; width: 20px; height: 20px; color: var(--text-3, var(--text-2)); }
+.w-chev svg { width: 20px; height: 20px; }
+.w-later { margin-top: 10px; }
+
+.w-next .w-nt { margin: 0; font-size: 24px; font-weight: 800; line-height: 1.2; letter-spacing: -.02em; text-wrap: balance; }
+.w-next .w-hid { font-size: 17px; font-weight: 650; color: var(--text-2); }
+.w-no { margin: 8px 0 0; font-size: 16px; line-height: 1.45; color: var(--text-2); }
+.w-pass { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 16px; padding: 0 16px; }
+.w-pass svg { width: 20px; height: 20px; flex: none; }
+.w-pass span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.w-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 8px 0; text-align: left; background: none; color: var(--text);
+  border-top: 1px solid var(--line); }
+.w-more h2 + .w-row { border-top: 0; }
+.w-ic { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; color: var(--accent);
+  background: color-mix(in srgb, var(--text) 7%, transparent); }
+.w-ic svg { width: 22px; height: 22px; }
+.w-src { margin-top: 18px; }
+
+/* выбор места в игре */
+.w-sheet { padding-bottom: calc(var(--safe-b, 0px) + 24px); max-height: 82%; }
+.w-ch { border-top: 1px solid var(--line); }
+.w-chh { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; text-align: left; background: none; color: var(--text); }
+.w-chh .w-chev svg { transform: rotate(90deg); transition: transform .2s; }
+.w-ch.open .w-chh .w-chev svg { transform: rotate(-90deg); }
+.w-ms { list-style: none; margin: 0 0 8px; padding: 0; }
+.w-opt { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 48px; text-align: left; font-size: 16px;
+  line-height: 1.3; background: none; color: var(--text); }
+.w-opt span { min-width: 0; }
+.w-opt em { display: inline-block; min-width: 28px; font: 650 14px/1 var(--font-num); font-style: normal; color: var(--text-2); }
+.w-opt svg { flex: none; width: 20px; height: 20px; color: transparent; }
+.w-opt.on { font-weight: 700; }
+.w-opt.on svg { color: var(--accent); }
+.w-sheet[hidden] { display: none; }
