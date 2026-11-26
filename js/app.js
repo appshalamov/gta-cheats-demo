@@ -8,7 +8,7 @@ import * as ref from './ref.js';
 import { t, tn, L, setLang, getLang, SPEAK, credit } from './i18n.js';
 import { I, platformIcon, comboHTML, btn, balanceCombos } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
-import { loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, newsUpdated, refreshPlaces, newOnMap, hasPhoto, placesNow, newsNow, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
+import { kwHit, loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, newsUpdated, refreshPlaces, newOnMap, hasPhoto, placesNow, newsNow, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
 // ───────── хранилище ─────────
 const KEY = 'cheats.v1';
@@ -33,7 +33,11 @@ const mapMod = () => import('./map.js');
 // экраны креаторов (js/league.js, данные — window.SB.api из js/api.js): раздел «Авторам и партнёрам» — строкой в Настройках,
 // сам хаб открывается отдельным экраном (Fable 23.11.2026, вариант B); слой Лиги
 const crMod = () => import('./league.js');
-const guideMod = () => import('./guide.js');   // инструкция «По шагам» (26.11.2026) — грузится при первом открытии
+const guideMod = () => import('./guide.js');
+// «Гид по игре» (26.11.2026, решение «система гида»): ядро — позиция, спойлеры, ключи, «Дальше», строка состояния; раздел на Главной и оглавление
+import * as gcore from './guide-core.js';
+const ghubMod = () => import('./guide-hub.js');
+const gReady = {};   // инструкция «По шагам» (26.11.2026) — грузится при первом открытии
 const crCtx = () => ({ openSheet, closeSheet, toast, haptic, openOnMap, game: () => store.game, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k), onProfile: setProfile });
 let crLoaded = false;   // модуль грузится при первом заходе в Настройки или по вызову экрана креатора — не на старте
 // вход для сессии карты: кнопка «Ролики об этом месте» в карточке места вызывает window.SB.openPlaceVideos(игра, id места)
@@ -648,8 +652,41 @@ function watchPlaceCounts() {
 let hubSeq = 0;
 // Главная рисуется сразу: коды и всё, что уже в памяти; ленты, которым нужны данные мест и новости, — скелетоном
 // тех же размеров (без прыжков), затем дорисовка (Игорь 23.11.2026: «интерфейс уже подгрузился, на клик сразу отреагировали»)
+// раздел «Гид по игре»: есть записи в указателе — строка состояния (1–2) и «Весь гид»; у игры без гида (GTA 5) раздела нет
+async function fillGuideSec() {
+  const g = store.game;
+  try {
+    const m = await ghubMod();
+    if (!(await m.ready(g))) { gReady[g] = { html: '' }; return; }
+    const h = m.homeHTML(g, getLang(), esc, I);
+    gReady[g] = { html: hubSection(h.title, '', `<button class="hub-more" data-action="gopen" data-k="toc">${esc(h.more)}${I.chevron}</button>`, h.body) };
+  } catch { gReady[g] = { html: '' }; }
+  const box = document.getElementById('gh-sec'); if (box && g === store.game) box.innerHTML = gReady[g].html;
+}
+const gdDone = (rec) => { try { const [, g, id] = rec.k.split(':'); const v = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${g}:${id}`]; return v && (v.s || (v.d || []).length) ? (v.d || []).length : -1; } catch { return -1; } };
+async function openGuideToc() {
+  const m = await ghubMod(); await m.ready(store.game);
+  openSheet(m.tocHTML(store.game, getLang(), esc, I, gdDone), 'gh-toc-sheet');
+}
+async function pickWhere() {
+  await gcore.loadBase(store.game);
+  try { await window.SB?.registerProgressRows?.(); } catch { }
+  const v = await gcore.pickPos(store.game, { openSheet, closeSheet, lang: getLang(), esc });
+  if (v) { gReady[store.game] = null; fillGuideSec(); }
+}
+// одна таблица ключей ?open= и «Дальше» (guide-core.openKey): свои открывающие — здесь, остальные регистрируют модули функций
+gcore.registerOpener('guide', (k) => openGuideKey(`guide:${k.game}:${k.id}`, 'key'));
+gcore.registerOpener('progress', () => pickWhere());
+for (const pre of ['place', 'egg', 'db']) gcore.registerOpener(pre, (k) => openOnMap(`${k.kind}:${k.game}:${k.id}`));
+function gopen(k) {
+  if (k === 'toc') return openGuideToc();
+  if (k === 'codes') { closeSheet(); ui.tab = 'home'; renderAll(); return; }
+  if (k === 'map') { closeSheet(); ui.tab = 'map'; renderAll(); return; }
+  if (!gcore.openKey(k)) toast(t('place_nf'));
+}
 async function renderHub() {
   const my = ++hubSeq;
+  if (!gReady[store.game]) fillGuideSec();
   renderHero();
   const box = $('#home-main'), isMap = MAP_GAMES.includes(store.game);
   const favCount = store.favs.length + store.favPlaces.length;
@@ -684,6 +721,7 @@ function paintHub(box, isMap, pd, newsAll, favPreview) {
   box.innerHTML = `
     ${forecastBanner()}
     ${!news ? hubSection(t('hub_news'), '', more('news'), skRow(' ncard')) : news.length ? hubSection(t('hub_news'), esc(agoText(newsUpdated())), more('news'), `<div class="hscroll" data-sec="news">${news.map(newsCard).join('')}</div>`) : ''}
+    <div id="gh-sec">${gReady[store.game]?.html || ''}</div>
     ${noPd ? hubSection(t('hub_newmap'), t('hub_newmap_sub'), more('newmap'), skRow()) : fresh.length ? hubSection(t('hub_newmap'), t('hub_newmap_sub'), more('newmap'), `<div class="hscroll" data-sec="newmap">${fresh.map((o) => placeCard(o)).join('')}</div>`) : ''}
     ${hubSection(t('hub_cheats'), `<button class="hub-plat" data-action="switch">${esc(L(PLATFORMS[store.platform]))}<i class="gsw-chev">${I.chevron}</i></button>`, `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
@@ -876,9 +914,16 @@ async function renderSearch() {
     return `<div class="s-sec"><div class="s-h">${title} <em>${items.length}</em>${limit && items.length > limit ? `<button data-action="sf-type" data-v="${k}">${t('show_all')}</button>` : ''}</div>${shown.map((x) => render(x)).join('')}</div>`;
   };
   const lim = sf.type === 'all' ? 4 : 0;
-  const html = (sf.type === 'all' || sf.type === 'cheats' ? sec('cheats', t('f_cheats'), R.cheats, (c) => cardHTML(c, { badge: true, q }), lim) : '')
+  // инструкции «По шагам» — первой секцией, одна находка — одна строка (решение Fable 09)
+  const guides = R.eggs.filter(hasGuide), eggsOnly = R.eggs.filter((o) => !hasGuide(o));
+  // «По шагам» первой — только при сильном совпадении (ключевые фразы); иначе после кодов («сбросить розыск» — коды первыми)
+  const gSec = sf.type === 'all' || sf.type === 'eggs' ? sec('guides', t('g_btn'), guides, (o) => eggRow(o), 0) : '';
+  const gFirst = guides.some((o) => kwHit(o, q));
+  const html = (gFirst ? gSec : '')
+    + (sf.type === 'all' || sf.type === 'cheats' ? sec('cheats', t('f_cheats'), R.cheats, (c) => cardHTML(c, { badge: true, q }), lim) : '')
+    + (gFirst ? '' : gSec)
     + (sf.type === 'all' || sf.type === 'places' ? sec('places', t('f_places'), R.places, (o) => placeRow(o, { q }), lim) : '')
-    + (sf.type === 'all' || sf.type === 'eggs' ? sec('eggs', t('f_eggs'), R.eggs, (o) => placeRow(o, { q }), lim) : '');
+    + (sf.type === 'all' || sf.type === 'eggs' ? sec('eggs', t('f_eggs'), eggsOnly, (o) => placeRow(o, { q }), lim) : '');
   box.innerHTML = html || `<div class="empty-big"><span class="eb-ic">${I.search}</span><h3>${t('search_empty')}</h3><p>${t('search_empty_hint')}</p>${(sf.cat || sf.conf) ? `<button class="btn-ghost" data-action="sf-reset">${t('clear_filters')}</button>` : ''}</div>`;
 }
 function rememberQuery() {
@@ -1898,6 +1943,7 @@ document.addEventListener('click', async (e) => {
     }
     case 'open-news': haptic(); openNews(el.dataset.id); break;
     case 'open-guide': haptic(); openGuideKey(el.dataset.key, el.dataset.from || ui.tab); break;
+    case 'gopen': haptic(); gopen(el.dataset.k); break;
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
     case 'fav-place': {
       e.stopPropagation(); toggleFavPlace(el.dataset.key);
@@ -1925,7 +1971,7 @@ document.addEventListener('click', async (e) => {
     case 'search-clear': ui.query = ''; $('#search-input').value = ''; renderSearch(); $('#search-input').focus(); break;
     case 'theme': store.theme = v; save(); applyTheme(); renderSettings(); mapMod().then((m) => m.retheme()); break;
     case 'maps-app': haptic(); store.mapsApp = v; save(); renderSettings(); break;
-    case 'lang': store.lang = v; save(); setLang(v); renderAll(); mapMod().then((m) => m.relang()); if (crLoaded) crMod().then((m) => m.relang()).catch(() => { }); break;
+    case 'lang': store.lang = v; save(); setLang(v); for (const g in gReady) delete gReady[g]; renderAll(); mapMod().then((m) => m.relang()); if (crLoaded) crMod().then((m) => m.relang()).catch(() => { }); break;
     case 'haptic-toggle': store.haptic = !store.haptic; save(); haptic(); renderSettings(); break;
     case 'howto': openHowto(); break;
     case 'tour': haptic(); closeSheet(); startTour(true); break;
@@ -2097,9 +2143,9 @@ document.addEventListener('visibilitychange', () => {
   // ссылка «поделиться местом» (…/?open=place:gta5:<id>): друг сразу видит это место (и без Pro); знакомство — в следующий раз
   // ключ проверяем по виду: мусор в ?open= молча открывал пейвол карты (QA 20.11.2026)
   const openRaw = new URLSearchParams(location.search).get('open');
-  const openKey = /^(place|egg|db|guide):(gta6|gta5):[\w.-]{1,120}$/.test(openRaw || '') ? openRaw : null;
+  const openKey = gcore.parseOpen(openRaw || '') && (openRaw || '').length < 140 ? openRaw : null;   // одна таблица ключей (guide-core.KEY_RE)
   if (openRaw && !openKey) { history.replaceState(null, '', location.pathname); toast(t('place_nf')); }
-  if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); if (openKey.startsWith('guide:')) openGuideKey(openKey, 'link', true); else openOnMap(openKey); }
+  if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); if (openKey.startsWith('guide:')) openGuideKey(openKey, 'link', true); else if (/^(place|egg|db):/.test(openKey)) openOnMap(openKey); else gcore.openKey(openKey); }
   else if (/[?&#]admin\b/.test(location.search + location.hash)) {   // экран «Для админов» (только веб): ?admin или #admin
     store.onboarded = true; save(); if (location.hash) history.replaceState(null, '', location.pathname + location.search); window.SB.openCreator('admin');
   }
