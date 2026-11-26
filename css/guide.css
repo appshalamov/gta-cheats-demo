@@ -1,6 +1,7 @@
 /* Инструкция «По шагам» (js/guide.js, 26.11.2026). Решение Fable: список прямо на фоне, без рамок и пилюль;
    текущий шаг раскрыт, крупное значение (код, адрес) — как код в карточке чита; внизу «Не получается» и главная кнопка. */
-#guide { position: fixed; left: 0; right: 0; top: 0; height: var(--app-h, 100dvh); z-index: 40; background: var(--bg); color: var(--text);
+#guide { position: fixed; left: 0; right: 0; top: 0; height: var(--app-h, 100dvh); z-index: 39;   /* ниже #paywall (40): стена «Оформить Pro» открывает пейвол поверх (guide-endings 26.11) */
+  background: var(--bg); color: var(--text);
   display: flex; flex-direction: column; transform: translateY(100%); visibility: hidden;
   transition: transform .42s cubic-bezier(.2,.9,.25,1), visibility 0s linear .42s; }
 #guide.open { transform: none; visibility: visible; transition: transform .42s cubic-bezier(.2,.9,.25,1), visibility 0s; }
@@ -183,3 +184,21 @@
 .gs-line.gs-open { padding: 7px 0; min-height: 0; margin: 0; cursor: default; }
 .gs-act .k-text, .gs-keys .k-text { width: auto; }
 .gm-pl { top: 9cqw; } .gm-pl li { font-size: 3.2cqw; line-height: 1.5; }
+/* два пути (квест / баг), части листа и кадр шага — решение «система гида», этап 0а */
+.g-paths { margin: 14px 0 0; border-top: 1px solid var(--line); }
+.g-path { display: block; width: 100%; text-align: left; padding: 12px 0 12px 16px; border-bottom: 1px solid var(--line); background: none; color: var(--text); position: relative; }
+.g-path::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 2px; background: transparent; }
+.g-path.on::before { background: var(--accent); }
+.g-path b { display: block; font-size: 17px; font-weight: 750; }
+.g-path:not(.on) b { color: var(--text-2); font-weight: 650; }
+.g-path span { display: block; margin-top: 3px; font-size: 14px; color: var(--text-2); }
+.g-path em { font-style: normal; color: var(--warn); font-weight: 650; }
+.g-part { list-style: none; padding: 22px 0 6px; border-top: 0; }
+.g-part h2 { font: var(--t-title-2); letter-spacing: -.02em; margin: 0; }
+.g-img { margin: 12px 0 2px; }
+.g-img button { display: block; width: 100%; padding: 0; border-radius: 14px; overflow: hidden; background: var(--card-2); aspect-ratio: 16 / 9; }
+.g-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.g-img figcaption { margin-top: 6px; font-size: 12px; color: var(--text-3, var(--text-2)); }
+.g-zoom { display: block; width: 100%; height: auto; }
+
+.g-trust.g-trust-one { color: var(--text-2); font-weight: 600; }   /* один источник — серая, без галочки */
