@@ -5,6 +5,8 @@
 // Данные — egg.how из data/map/<игра>.json (tools/build_map.py guide_fields). Прогресс — на телефоне (localStorage sb.gd), по id шагов.
 // Тот же компонент потом — гид прохождения (req.ty mission/chapter + ref) и предупреждения (miss).
 
+import { view as setView } from './guide-set.js';   // вид «настройки» (guide-settings)
+
 const S = {
   ru: {
     close: 'Закрыть', share: 'Поделиться', whole: 'Весь путь в ролике, {n} минут', whole0: 'Весь путь в ролике', before: 'Перед выездом',
@@ -35,6 +37,7 @@ const S = {
 };
 const KEY = 'sb.gd', FIRST = 'sb.gd1';
 let C = null, O = null, layer = null, lock = null, stuckAll = false;
+let V = null;   // вид листа не «шаги» (settings) — свой модуль guide-set.js
 
 const s = (k, v = {}) => {
   let x = (S[C.lang] || S.en)[k] ?? S.en[k] ?? k;
@@ -54,10 +57,10 @@ export function progressOf(o) { const p = read()[kOf(o)]; return p ? (o.how?.st 
 const H = () => O.how;
 // путь (квест / баг): выбор хранится в прогрессе (p.path); по умолчанию — первый путь (сильнее строка доверия, решение «система гида»)
 const PATH = () => { const h = H(); if (!h.pa?.length) return { st: h.st }; const id = prog().path; return h.pa.find((x) => x.id === id) || h.pa[0]; };
-const STEPS = () => PATH().st;
+const STEPS = () => (V ? V.list() : PATH().st);   // V — вид «настройки» (guide-set.js): свой список шагов
 // Pro (решение Fable): бесплатно целиком — первая начатая инструкция, пробные дни, вход по ссылке, короткие (≤ 3 шагов) и отсылки
 function firstFree() { try { const f = localStorage.getItem(FIRST); return !f || f === kOf(O); } catch { return true; } }
-const free = () => C.access() !== 'locked' || !!C.linked || STEPS().length <= 3 || O.k === 'reference' || firstFree();
+const free = () => !!V?.free || C.access() !== 'locked' || !!C.linked || STEPS().length <= 3 || O.k === 'reference' || firstFree();
 const shut = (i) => !free() && i >= (H().fr ?? 2);
 const cur = (p) => { const st = STEPS(); const i = st.findIndex((x) => !p.d.includes(x.id)); return i < 0 ? st.length : i; };
 
@@ -112,6 +115,7 @@ function stuckHTML(ci) {
       : `<button class="g-link" data-g="still">${esc(s('still'))}</button>`) : ''}</div>`;
 }
 function render() {
+  if (V) { V.render(); return; }
   const h = H(), p = prog(), st = STEPS(), path = PATH(), I = C.I, ci = cur(p), started = p.d.length > 0 || p.s;
   const fr = h.fr ?? 2, wall = !free() && fr < st.length ? fr : -1;
   const sn = O.sn || [], one = O.st === 'one' || sn.length === 1;
@@ -179,6 +183,7 @@ function openStuck() {
 function onClick(e) {
   const b = e.target.closest('[data-g]'); if (!b || !layer.contains(b)) return;
   const a = b.dataset.g, p = prog(), st = STEPS(), i = +b.dataset.i;
+  if (V?.click(a, b, i)) return;
   switch (a) {
     case 'close': closeGuide(); break;
     case 'share': C.share(O); break;
@@ -217,6 +222,7 @@ function onClick(e) {
 export function openGuide(o, ctx) {
   if (!o?.how?.st?.length) return false;
   C = ctx; O = o; stuckAll = false; css();
+  V?.stop(); V = o.how.vw === 'settings' ? setView({ C, O, layer: () => layer, prog, s, tx, esc, mmss, rerender, closeGuide }) : null;
   layer = document.getElementById('guide');
   if (!layer) {
     layer = document.createElement('div'); layer.id = 'guide'; layer.setAttribute('role', 'dialog'); layer.setAttribute('aria-modal', 'true');
@@ -235,7 +241,7 @@ export function closeGuide(fromPop = false) {
   if (!layer?.classList.contains('open')) return false;
   layer.classList.remove('open'); document.documentElement.classList.remove('guide-open');
   const v = layer.querySelector('#g-video'); if (v) { v.innerHTML = ''; v.hidden = true; }
-  wake(false);
+  wake(false); V?.stop();
   C?.onClose?.();
   if (!fromPop && history.state?.guide) history.back();
   return true;

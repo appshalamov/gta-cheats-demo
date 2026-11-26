@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- Кадры ролика «путь по меню» (tools/settings_video.py): те же схемы экранов, что в приложении (js/guide-menu.js). Не для пользователей. -->
+<html lang="ru" data-skin="gta6" data-theme="dark"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../css/tokens.css"><link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/guide.css">
+<style>
+  html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; background: #000; }
+  #f { position: relative; width: 1280px; height: 720px; }
+  #f .gm { width: 1280px; }
+  .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 40px 26px; background: linear-gradient(transparent, rgba(0,0,0,.86) 38%);
+    color: #fff; font: 700 34px/1.3 var(--font-ui); display: flex; align-items: center; gap: 14px; }
+  .cap .k { display: inline-grid; place-items: center; min-width: 54px; height: 54px; padding: 0 12px; border-radius: 14px; font: 800 20px/1 var(--font-num);
+    background: var(--accent); color: var(--accent-ink); }
+  .cap .k-face { width: 54px; padding: 0; border-radius: 50%; } .cap .k svg { width: 32px; height: 32px; } .cap .k-xb span { font-size: 26px; color: var(--accent-ink); }
+  .top { position: absolute; left: 40px; top: 30px; right: 40px; color: #fff; font: 800 30px/1.2 var(--font-ui); text-shadow: 0 2px 12px rgba(0,0,0,.6); }
+  .top small { display: block; font: 650 22px/1.3 var(--font-ui); color: var(--accent); }
+  .card { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; color: #fff; background: #120d1c; gap: 14px; }
+  .card b { font: 800 64px/1.05 var(--font-ui); letter-spacing: -.03em; } .card span { font: 650 30px/1.3 var(--font-ui); color: var(--accent); }
+  .card small { font: 500 22px/1.3 var(--font-ui); color: rgba(255,255,255,.6); }
+  .gm .gm-tabs, .gm .gm-crumb, .gm .gm-pl { transform: translateY(6cqw); } /* место под подпись шага сверху */
+  .gm .gm-body { top: 18cqw; bottom: 12cqw; } .gm .gm-hint { display: none; }
+</style></head><body><div id="f"></div>
+<script type="module">
+import { pathTo, screenHTML, key, keyHTML, fitScreens } from '../js/guide-menu.js';
+const q = new URLSearchParams(location.search), g = q.get('g') || 'gta6', id = q.get('id'), plat = q.get('p') || 'playstation', lg = q.get('lang') || 'ru';
+const d = await (await fetch(`../data/guide/${g}-settings.json`)).json(), M = d.menu, G = d.guides.find((x) => x.id === id);
+const tx = (o) => (o ? o[lg] || o.en : ''), esc = (x) => String(x ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const W = lg === 'ru' ? { pause: 'Пауза', pick: 'Выбрать «{to}»', tab: 'Вкладка «{to}»', move: 'До пункта «{to}»', set: 'Значение «{to}»', select: 'Выбрать', back: 'Назад', reset: 'Сброс', done: 'Готово', fin: 'Настройки на месте', ours: 'Схема меню Secret Base. Названия пунктов как в игре.' }
+  : { pause: 'Pause', pick: 'Select “{to}”', tab: '“{to}” tab', move: 'Go to “{to}”', set: 'Set “{to}”', select: 'Select', back: 'Back', reset: 'Defaults', done: 'Done', fin: 'Your settings are set', ours: 'Secret Base menu diagram. Item names as in the game.' };
+const frames = [];   // { html, dur, step }
+const P = { playstation: 'PlayStation', xbox: 'Xbox' };
+frames.push({ dur: 2.2, html: `<div class="card"><b>${esc(tx(G.how.ta))}</b><span>${P[plat]}</span><small>${esc(W.ours)}</small></div>` });
+const st = G.how.st.filter((x) => !x.only || x.only === plat);
+st.forEach((x, i) => {
+  const nodes = pathTo(M, x.it, x.set);   // общее начало «пауза → настройки» в ролике каждый раз, но коротко
+  const all = i === 0 ? nodes : [{ ...nodes[0], short: 1 }, { ...nodes[1], short: 1 }, ...nodes.slice(2)];
+  all.forEach((nd, k) => {
+    const kk = key(M, plat, nd.btn);
+    const cap = (W[nd.act] || '').replace('{to}', esc(nd.to || '')) + (nd.n > 1 ? ` ×${nd.n}` : '');
+    frames.push({ step: k === 0 ? x.id : undefined, dur: nd.short ? 0.8 : nd.act === 'set' ? 2.0 : 1.5,
+      html: screenHTML(M, plat, nd.scr, { lab: tx, w: W }) + `<div class="top">${i + 1}. ${esc(tx(x.hn))}<small>${esc(tx(x.t))} → ${esc(tx(x.val))}</small></div><div class="cap">${keyHTML(kk)}<span>${cap}</span></div>` });
+  });
+});
+frames.push({ dur: 2.0, html: `<div class="card"><b>${esc(W.done)}</b><span>${esc(W.fin)}</span></div>` });
+window.FRAMES = frames.map((f) => ({ dur: f.dur, step: f.step }));
+window.show = (i) => { const f = document.getElementById('f'); f.innerHTML = frames[i].html; fitScreens(f); };
+window.READY = true;
+</script></body></html>

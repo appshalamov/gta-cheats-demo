@@ -459,20 +459,38 @@ function guideMeta(o) {
 }
 const guideTitle = (o) => L(o.how?.ta) || L(o.t);
 const guideDate = (d) => { const x = Date.parse((d || '') + 'T12:00:00Z'); return x ? new Date(x).toLocaleDateString(getLang(), { day: 'numeric', month: 'long' }) : ''; };
+// советы по настройкам игры (вид settings, функция «настройки» гида): свой файл data/guide/<игра>-settings.json — меню игры, кнопки, советы
+const setData = {};
+async function loadSettings(g) {
+  if (setData[g]) return setData[g];
+  try { const r = await fetch(`data/guide/${g}-settings.json`); setData[g] = r.ok ? await r.json() : null; } catch { setData[g] = null; }
+  return setData[g];
+}
+async function findSetting(g, id) {
+  const d = await loadSettings(g), x = d?.guides?.find((q) => q.id === id);
+  return x ? { id: x.id, k: 'settings', t: x.how.ta, sn: x.sn || [], how: { ...x.how, vw: 'settings', menu: d.menu } } : null;
+}
 async function openGuideKey(key, from = '', linked = false) {
   const { kind, game: g, id } = parseKey(key.replace(/^guide:/, 'egg:'));
-  const o = kind === 'egg' ? await findByKey(`egg:${g}:${id}`) : null;
+  const o = /^set-/.test(id) ? await findSetting(g, id) : kind === 'egg' ? await findByKey(`egg:${g}:${id}`) : null;
   if (!hasGuide(o)) { openOnMap(key.replace(/^guide:/, 'egg:')); return; }
   closeSheet();
   const m = await guideMod();
   m.openGuide({ ...o, game: g }, {
     lang: getLang(), I, from, linked: linked || store.linkKeys.includes(`guide:${g}:${id}`) || store.linkKeys.includes(`egg:${g}:${id}`),
-    access, haptic, toast, date: guideDate, imgUrl, credit,
+    access, haptic, toast, date: guideDate, imgUrl, credit, platform: store.platform,
+    open: (k) => { if (!gcore.openKey(k)) toast(t('place_nf')); },   // одна таблица ключей (guide-core)
+    canOpen: (k) => gcore.hasOpener(gcore.parseOpen(k)?.kind),   // строка «Дальше» — только на то, что в сборке умеют открыть
     paywall: () => openPaywall(mapPw()),
     share: (x) => shareText(`${guideTitle(x)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=guide:${g}:${x.id}`),
     event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
     onClose: () => { if (ui.tab === 'feed') renderFeed(); else if (ui.tab === 'home') renderHub(); },
   });
+}
+async function openSetList() {
+  const d = await loadSettings('gta6'); if (!d) return;
+  openSheet(`<h2 class="pick-t">${esc(t('st_setguide'))}</h2><div class="opts">${d.guides.map((x) => `<button class="opt set-opt" data-action="open-guide" data-key="guide:gta6:${esc(x.id)}" data-from="settings">
+    <span class="opt-t"><b>${esc(L(x.how.ta))}</b><small>${esc(L(x.how.rw) || '')}</small></span></button>`).join('')}</div>`, 'sheet-pick');
 }
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
 function eggRow(o) {
@@ -668,6 +686,7 @@ async function pickWhere() {
 gcore.registerOpener('guide', (k) => openGuideKey(`guide:${k.game}:${k.id}`, 'key'));
 gcore.registerOpener('progress', () => pickWhere());
 for (const pre of ['place', 'egg', 'db']) gcore.registerOpener(pre, (k) => openOnMap(`${k.kind}:${k.game}:${k.id}`));
+gcore.registerOpener('set', () => openSetList());   // set:gta6 — лист «Настроить игру» (5 советов; отдельный совет — guide:gta6:set-<id>)
 function gopen(k) {
   if (k === 'toc') return openGuideToc();
   if (k === 'codes') { closeSheet(); ui.tab = 'home'; renderAll(); return; }
@@ -1099,7 +1118,8 @@ function renderSettings() {
     ${stGroup(t('st_g_account'), `<div class="group">${proRowHTML()}${acct}</div>`)}
     ${stGroup(t('st_g_game'), `<div class="group">
       ${row('switch', platformIcon(store.platform), t('st_codes_for'), esc(`${g.title}, ${L(PLATFORMS[store.platform])}`))}
-      ${row('howto', I.info, t('st_howto'))}</div>`)}
+      ${row('howto', I.info, t('st_howto'))}
+      ${store.game === 'gta6' ? row('set-guides', I.gamepad, t('st_setguide')) : ''}</div>`)}
     ${stGroup(t('st_g_app'), `<div class="group">
       ${segRow(I.globe, t('st_lang'), [['ru', 'RU'], ['en', 'EN']], lg, 'lang')}
       ${segRow(I.moon, t('st_theme'), ['dark', 'light', 'auto'].map((k) => [k, th[k]]), store.theme, 'theme')}
@@ -1990,6 +2010,7 @@ document.addEventListener('click', async (e) => {
     case 'lang': store.lang = v; save(); setLang(v); for (const g in gReady) delete gReady[g]; renderAll(); mapMod().then((m) => m.relang()); if (crLoaded) crMod().then((m) => m.relang()).catch(() => { }); break;
     case 'haptic-toggle': store.haptic = !store.haptic; save(); haptic(); renderSettings(); break;
     case 'howto': openHowto(); break;
+    case 'set-guides': haptic(); openSetList(); break;
     case 'tour': haptic(); closeSheet(); startTour(true); break;
     case 'about': openAbout(); break;
     case 'creators': haptic(); window.SB.openCreator('hub'); break;

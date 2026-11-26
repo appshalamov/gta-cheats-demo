@@ -3,9 +3,7 @@
   "v": "1.00",
   "date": "2026-11-19",
   "note": "версия игры для перепроверки багов после патча",
-  "pending": [
-   "guide:gta6:set-driving"
-  ],
+  "pending": [],
   "has": {
    "index": true,
    "missions": false

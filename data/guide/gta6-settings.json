@@ -1,0 +1,2716 @@
+{
+ "v": 1,
+ "game": "gta6",
+ "upd": "2026-11-26",
+ "menu": {
+  "pause": {
+   "items": [
+    "Map",
+    "Game",
+    "Store",
+    "Help",
+    "Photo Studio",
+    "Settings",
+    "Retry Checkpoint",
+    "Restart Mission"
+   ],
+   "target": "Settings"
+  },
+  "start": "scheme",
+  "tabs": [
+   {
+    "id": "scheme",
+    "l": "Control Scheme",
+    "sec": [
+     {
+      "id": "cs",
+      "l": "",
+      "it": [
+       {
+        "id": "scheme",
+        "l": "Control Scheme",
+        "v": "Default",
+        "o": [
+         "Default",
+         "Classic",
+         "Left-Handed"
+        ]
+       },
+       {
+        "id": "preview",
+        "l": "Preview",
+        "v": "",
+        "ty": "go"
+       },
+       {
+        "id": "touchpad",
+        "l": "Touch Pad Button",
+        "v": "Map",
+        "o": [
+         "Map",
+         "Camera"
+        ],
+        "only": "playstation"
+       },
+       {
+        "id": "viewbtn",
+        "l": "View Button",
+        "v": "Map",
+        "o": [
+         "Map",
+         "Camera"
+        ],
+        "only": "xbox"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "controller",
+    "l": "Controller",
+    "sec": [
+     {
+      "id": "sens",
+      "l": "Aim & Look Sensitivity",
+      "it": [
+       {
+        "id": "look_h",
+        "l": "Horizontal Look Sensitivity",
+        "v": "7",
+        "o": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10",
+         "11",
+         "12",
+         "13",
+         "14"
+        ]
+       },
+       {
+        "id": "look_v",
+        "l": "Vertical Look Sensitivity",
+        "v": "7",
+        "o": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10",
+         "11",
+         "12",
+         "13",
+         "14"
+        ]
+       },
+       {
+        "id": "aim_h",
+        "l": "Horizontal Aim Sensitivity",
+        "v": "7",
+        "o": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10",
+         "11",
+         "12",
+         "13",
+         "14"
+        ]
+       },
+       {
+        "id": "aim_v",
+        "l": "Vertical Aim Sensitivity",
+        "v": "7",
+        "o": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10",
+         "11",
+         "12",
+         "13",
+         "14"
+        ]
+       },
+       {
+        "id": "look_acc",
+        "l": "Look Acceleration",
+        "v": "7",
+        "o": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       },
+       {
+        "id": "aim_acc",
+        "l": "Aim Acceleration",
+        "v": "7",
+        "o": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       },
+       {
+        "id": "curve",
+        "l": "Aim Response Curve",
+        "v": "Standard",
+        "o": [
+         "Standard",
+         "Linear",
+         "Precision",
+         "Aggressive"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "inv",
+      "l": "Inverted Controls",
+      "it": [
+       {
+        "id": "inv_look",
+        "l": "Look",
+        "v": "Default",
+        "o": [
+         "Default",
+         "Vertical",
+         "Horizontal",
+         "Both"
+        ]
+       },
+       {
+        "id": "inv_move",
+        "l": "Movement",
+        "v": "Default"
+       },
+       {
+        "id": "inv_map",
+        "l": "3D Map Rotation",
+        "v": "Default"
+       },
+       {
+        "id": "inv_air",
+        "l": "Aircraft Movement",
+        "v": "Default"
+       }
+      ]
+     },
+     {
+      "id": "feat",
+      "l": "Controller Features",
+      "it": [
+       {
+        "id": "vibe",
+        "l": "Vibration & Haptics Strength",
+        "v": "10",
+        "o": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       },
+       {
+        "id": "dz_l",
+        "l": "Deadzone (Left Stick)",
+        "v": "5",
+        "o": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       },
+       {
+        "id": "dz_r",
+        "l": "Deadzone (Right Stick)",
+        "v": "5",
+        "o": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "ds",
+      "l": "DualSense Wireless Controller Features",
+      "only": "playstation",
+      "it": [
+       {
+        "id": "at_res",
+        "l": "Adaptive Triggers Resistance",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ],
+        "only": "playstation"
+       },
+       {
+        "id": "at_vib",
+        "l": "Adaptive Triggers Vibration",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ],
+        "only": "playstation"
+       },
+       {
+        "id": "speedlim",
+        "l": "Adaptive Speed Limiter",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ],
+        "only": "playstation"
+       },
+       {
+        "id": "lightbar",
+        "l": "Light Bar Effect",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ],
+        "only": "playstation"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "gameplay",
+    "l": "Gameplay",
+    "sec": [
+     {
+      "id": "combat",
+      "l": "Combat",
+      "it": [
+       {
+        "id": "targeting",
+        "l": "Targeting",
+        "v": "Partial",
+        "o": [
+         "Lock-On",
+         "Partial",
+         "Free Aim"
+        ]
+       },
+       {
+        "id": "aa",
+        "l": "Aim Assist Strength",
+        "v": "4",
+        "o": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4"
+        ]
+       },
+       {
+        "id": "shoot_as",
+        "l": "Shooting Assist",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "driveby",
+        "l": "Drive-By Assist",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "quickdraw",
+        "l": "Quick Draw",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "cover",
+        "l": "Cover Selection",
+        "v": "Camera & Movement",
+        "o": [
+         "Camera & Movement",
+         "Movement Only"
+        ]
+       },
+       {
+        "id": "holster",
+        "l": "Holster in Vehicle",
+        "v": "Automatic",
+        "o": [
+         "Automatic",
+         "Manual"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "move",
+      "l": "Movement",
+      "it": [
+       {
+        "id": "movespeed",
+        "l": "Movement Speed",
+        "v": "Walk",
+        "o": [
+         "Walk",
+         "Fast Walk",
+         "Jog",
+         "Run"
+        ]
+       },
+       {
+        "id": "cmovespeed",
+        "l": "Combat Movement Speed",
+        "v": "Fast Walk",
+        "o": [
+         "Walk",
+         "Fast Walk",
+         "Jog"
+        ]
+       },
+       {
+        "id": "standsprint",
+        "l": "Stand & Sprint",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "acc",
+      "l": "Accessibility",
+      "it": [
+       {
+        "id": "tap",
+        "l": "Tap Assist",
+        "v": "Off",
+        "o": [
+         "Off",
+         "2x",
+         "3x",
+         "4x",
+         "Hold"
+        ]
+       },
+       {
+        "id": "holddelay",
+        "l": "Hold Delay",
+        "v": "Off"
+       },
+       {
+        "id": "holdassist",
+        "l": "Hold Assist",
+        "v": "Off"
+       },
+       {
+        "id": "focus",
+        "l": "Focus",
+        "v": "L3+R3"
+       },
+       {
+        "id": "dpad",
+        "l": "Directional Button Actions",
+        "v": "Hold",
+        "o": [
+         "Hold",
+         "Hold & Release"
+        ]
+       },
+       {
+        "id": "aiming",
+        "l": "Aiming",
+        "v": "Hold",
+        "o": [
+         "Hold",
+         "Press"
+        ]
+       },
+       {
+        "id": "interact",
+        "l": "Interact",
+        "v": "Hold",
+        "o": [
+         "Hold",
+         "Press"
+        ]
+       },
+       {
+        "id": "loadout",
+        "l": "Loadout",
+        "v": "Hold",
+        "o": [
+         "Hold",
+         "Hold & Release"
+        ]
+       },
+       {
+        "id": "fishing",
+        "l": "Fishing",
+        "v": "Rotate"
+       },
+       {
+        "id": "nitrous",
+        "l": "Nitrous",
+        "v": "Hold",
+        "o": [
+         "Hold",
+         "Press"
+        ]
+       },
+       {
+        "id": "minigames",
+        "l": "Simplified Mini Games",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "autodrive",
+        "l": "Auto Drive",
+        "v": "Restricted",
+        "o": [
+         "Restricted",
+         "Unrestricted"
+        ]
+       },
+       {
+        "id": "helmet",
+        "l": "Auto Equip Helmet",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "acc_combat",
+        "l": "Accessible Combat",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "rvd",
+        "l": "Reduced Vehicle Damage",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "display",
+    "l": "Display",
+    "sec": [
+     {
+      "id": "disp",
+      "l": "Display",
+      "it": [
+       {
+        "id": "hdr",
+        "l": "HDR Calibration",
+        "v": "",
+        "ty": "go"
+       },
+       {
+        "id": "safezone",
+        "l": "Safe Zone",
+        "v": "",
+        "ty": "go"
+       }
+      ]
+     },
+     {
+      "id": "vfx",
+      "l": "Visual Effects",
+      "it": [
+       {
+        "id": "pse",
+        "l": "Player Status Effects Intensity",
+        "v": "5",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5"
+        ]
+       },
+       {
+        "id": "hit",
+        "l": "Hit Effects Intensity",
+        "v": "5",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5"
+        ]
+       },
+       {
+        "id": "aware",
+        "l": "Awareness Effects Intensity",
+        "v": "5",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5"
+        ]
+       },
+       {
+        "id": "blur",
+        "l": "Motion Blur Strength",
+        "v": "3",
+        "o": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       },
+       {
+        "id": "dismember",
+        "l": "Dismemberment",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "gore",
+        "l": "Blood & Gore Intensity",
+        "v": "High",
+        "o": [
+         "Low",
+         "Medium",
+         "High"
+        ]
+       },
+       {
+        "id": "flash",
+        "l": "Flashbang",
+        "v": "Bright",
+        "o": [
+         "Bright",
+         "Dark"
+        ]
+       },
+       {
+        "id": "focuscb",
+        "l": "Focus Trail Colorblind Mode",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "brightred",
+        "l": "Brightness Reduction",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "hcs",
+      "l": "High Contrast Shaders",
+      "it": [
+       {
+        "id": "hcs",
+        "l": "High Contrast Shaders",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "ui",
+    "l": "UI",
+    "sec": [
+     {
+      "id": "read",
+      "l": "Scaling & Readability",
+      "it": [
+       {
+        "id": "lang",
+        "l": "Language",
+        "v": "English"
+       },
+       {
+        "id": "textsize",
+        "l": "UI Text Size",
+        "v": "Small",
+        "o": [
+         "Small",
+         "Medium",
+         "Large",
+         "X Large"
+        ]
+       },
+       {
+        "id": "colour",
+        "l": "Color Adjustments",
+        "v": "Off",
+        "o": [
+         "Off",
+         "Protan",
+         "Deutan",
+         "Tritan"
+        ]
+       },
+       {
+        "id": "mapblip",
+        "l": "Map Blip Size",
+        "v": "Default",
+        "o": [
+         "Default",
+         "Large"
+        ]
+       },
+       {
+        "id": "mmblip",
+        "l": "Minimap Blip Size",
+        "v": "Default",
+        "o": [
+         "Default",
+         "Large"
+        ]
+       },
+       {
+        "id": "marker",
+        "l": "In-World Marker Size",
+        "v": "Default",
+        "o": [
+         "Default",
+         "Large"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "subs",
+      "l": "Subtitles & Captions",
+      "it": [
+       {
+        "id": "subs",
+        "l": "Subtitles",
+        "v": "Off",
+        "o": [
+         "Off",
+         "Mission Only",
+         "On"
+        ]
+       },
+       {
+        "id": "cc",
+        "l": "Closed Captions",
+        "v": "Off",
+        "o": [
+         "Off",
+         "Non-Speech",
+         "Environment",
+         "On"
+        ]
+       },
+       {
+        "id": "subsize",
+        "l": "Size",
+        "v": "Small",
+        "o": [
+         "Small",
+         "Medium",
+         "Large"
+        ]
+       },
+       {
+        "id": "speaker",
+        "l": "Speaker Names",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "subbg",
+        "l": "Background",
+        "v": "Off",
+        "o": [
+         "Off",
+         "Transparent",
+         "Solid"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "nav",
+      "l": "Navigation",
+      "it": [
+       {
+        "id": "minimap",
+        "l": "Minimap",
+        "v": "On",
+        "o": [
+         "On",
+         "Dynamic",
+         "Off"
+        ]
+       },
+       {
+        "id": "compass",
+        "l": "Compass",
+        "v": "Off",
+        "o": [
+         "On",
+         "Dynamic",
+         "Off"
+        ]
+       },
+       {
+        "id": "gpsturn",
+        "l": "GPS Turn Indicators",
+        "v": "On",
+        "o": [
+         "On",
+         "Highways",
+         "Off"
+        ]
+       },
+       {
+        "id": "iwm",
+        "l": "In-World Markers",
+        "v": "On",
+        "o": [
+         "On",
+         "Off",
+         "Objectives"
+        ]
+       },
+       {
+        "id": "door",
+        "l": "Door Markers",
+        "v": "On",
+        "o": [
+         "On",
+         "Dynamic",
+         "Off"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "ret",
+      "l": "Reticle",
+      "it": [
+       {
+        "id": "dot",
+        "l": "Persistent Center Dot",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "hitmark",
+        "l": "Reticle Hit Markers",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "retsize",
+        "l": "Reticle Size",
+        "v": "Default",
+        "o": [
+         "Default",
+         "Large"
+        ]
+       },
+       {
+        "id": "retshape",
+        "l": "Reticle Shape",
+        "v": "Complex",
+        "o": [
+         "Complex",
+         "Simple",
+         "Dot",
+         "None"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "camera",
+    "l": "Camera",
+    "sec": [
+     {
+      "id": "foot",
+      "l": "On Foot",
+      "it": [
+       {
+        "id": "foot_h",
+        "l": "Height",
+        "v": "Medium",
+        "o": [
+         "Low",
+         "Medium",
+         "High"
+        ]
+       },
+       {
+        "id": "foot_fh",
+        "l": "Horizontal Follow Speed",
+        "v": "10",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       },
+       {
+        "id": "foot_fv",
+        "l": "Vertical Follow Speed",
+        "v": "10",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "veh",
+      "l": "Land & Water Vehicles",
+      "it": [
+       {
+        "id": "veh_h",
+        "l": "Height (All Vehicles)",
+        "v": "Medium",
+        "o": [
+         "Low",
+         "Medium",
+         "High"
+        ]
+       },
+       {
+        "id": "veh_fh",
+        "l": "Horizontal Follow Speed (Driver)",
+        "v": "10",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       },
+       {
+        "id": "veh_fv",
+        "l": "Vertical Follow Speed (Driver)",
+        "v": "10",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       },
+       {
+        "id": "veh_fd",
+        "l": "Follow Delay (Driver)",
+        "v": "0",
+        "o": [
+         "0",
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "comfort",
+      "l": "Comfort",
+      "it": [
+       {
+        "id": "sway",
+        "l": "Weapon Sway",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "shake",
+        "l": "Camera Shake",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "bob",
+        "l": "Camera Bob",
+        "v": "10",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       },
+       {
+        "id": "phone",
+        "l": "Phone Display",
+        "v": "Default",
+        "o": [
+         "Default",
+         "First Person"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "cine",
+      "l": "Cinematic",
+      "it": [
+       {
+        "id": "killshot",
+        "l": "Cinematic Kill Shot Frequency",
+        "v": "3",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5"
+        ]
+       },
+       {
+        "id": "crash",
+        "l": "Cinematic Vehicle Crash Frequency",
+        "v": "3",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5"
+        ]
+       },
+       {
+        "id": "idle",
+        "l": "Idle Camera",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "audio",
+    "l": "Audio",
+    "sec": [
+     {
+      "id": "setup",
+      "l": "Setup",
+      "it": [
+       {
+        "id": "mono",
+        "l": "Mono Audio",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "tinnitus",
+        "l": "Tinnitus Reduction",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "ctrlspk",
+        "l": "Controller Speaker",
+        "v": "On",
+        "o": [
+         "On",
+         "Off"
+        ],
+        "only": "playstation"
+       },
+       {
+        "id": "scanner",
+        "l": "Controller Cop Scanner",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "gpsvoice",
+        "l": "GPS Voice",
+        "v": "Off",
+        "o": [
+         "On",
+         "Tones",
+         "Voice",
+         "Off"
+        ]
+       },
+       {
+        "id": "mutelic",
+        "l": "Mute Licensed Music",
+        "v": "Off",
+        "o": [
+         "On",
+         "Off"
+        ]
+       },
+       {
+        "id": "radio",
+        "l": "Vehicle Radio",
+        "v": "Default",
+        "o": [
+         "Default",
+         "On",
+         "Off"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "vol",
+      "l": "Volume",
+      "it": [
+       {
+        "id": "v_master",
+        "l": "Master Volume",
+        "v": "10",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       },
+       {
+        "id": "v_sfx",
+        "l": "SFX Volume",
+        "v": "10",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       },
+       {
+        "id": "v_dialog",
+        "l": "Dialogue Volume",
+        "v": "10",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       },
+       {
+        "id": "v_music",
+        "l": "Music Volume",
+        "v": "10",
+        "o": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "account",
+    "l": "Account",
+    "sec": [
+     {
+      "id": "rs",
+      "l": "Rockstar Games",
+      "it": [
+       {
+        "id": "support",
+        "l": "Customer Support",
+        "v": "",
+        "ty": "go"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "btn": {
+   "playstation": {
+    "pause": "OPTIONS",
+    "confirm": "X",
+    "back": "O",
+    "tab_next": "R1",
+    "tab_prev": "L1",
+    "up": "↑",
+    "down": "↓",
+    "left": "←",
+    "right": "→"
+   },
+   "xbox": {
+    "pause": "MENU",
+    "confirm": "A",
+    "back": "B",
+    "tab_next": "RB",
+    "tab_prev": "LB",
+    "up": "↑",
+    "down": "↓",
+    "left": "←",
+    "right": "→"
+   },
+   "st": {
+    "playstation": "ok",
+    "xbox": "check"
+   },
+   "sure": {
+    "pause": "ok",
+    "tab_next": "ok",
+    "tab_prev": "ok",
+    "back": "ok",
+    "confirm": "rule",
+    "up": "rule",
+    "down": "rule",
+    "left": "rule",
+    "right": "rule"
+   }
+  },
+  "src": {
+   "A": "Настройки — ресёрч/A",
+   "note": "порядок групп по S1; Restore Default — кнопка не названа, в схеме не показываем"
+  }
+ },
+ "guides": [
+  {
+   "id": "set-first",
+   "sn": [
+    "playday.one",
+    "games.gg",
+    "VideoGamer",
+    "FD"
+   ],
+   "how": {
+    "ta": {
+     "ru": "Первые часы игры",
+     "en": "Your first hours"
+    },
+    "rw": {
+     "ru": "Пять настроек, чтобы не потеряться и всё понимать.",
+     "en": "Five settings so you never get lost and understand everything."
+    },
+    "min": 2,
+    "st": [
+     {
+      "id": "movespeed",
+      "it": "movespeed",
+      "set": "Jog",
+      "hn": {
+       "ru": "Бег без кнопки",
+       "en": "Jog by default"
+      },
+      "why": {
+       "ru": "Полный наклон стика — бег трусцой, не надо жать бег всё время.",
+       "en": "Full stick tilt jogs, no need to hold sprint."
+      },
+      "src": [
+       "playday.one",
+       "FD",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Movement Speed",
+       "en": "Movement Speed"
+      },
+      "val": {
+       "ru": "Jog",
+       "en": "Jog"
+      },
+      "def": "Walk"
+     },
+     {
+      "id": "textsize",
+      "it": "textsize",
+      "set": "Medium",
+      "hn": {
+       "ru": "Крупнее текст",
+       "en": "Bigger text"
+      },
+      "why": {
+       "ru": "По умолчанию текст мелкий. Large — если телевизор далеко.",
+       "en": "Default text is small. Large if the TV is far away."
+      },
+      "src": [
+       "playday.one",
+       "VideoGamer",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "UI Text Size",
+       "en": "UI Text Size"
+      },
+      "val": {
+       "ru": "Medium",
+       "en": "Medium"
+      },
+      "def": "Small"
+     },
+     {
+      "id": "subs",
+      "it": "subs",
+      "set": "On",
+      "hn": {
+       "ru": "Субтитры",
+       "en": "Subtitles"
+      },
+      "why": {
+       "ru": "Не пропустите задание в шуме погони.",
+       "en": "Don't miss instructions during a chase."
+      },
+      "src": [
+       "playday.one",
+       "VideoGamer",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Subtitles",
+       "en": "Subtitles"
+      },
+      "val": {
+       "ru": "On",
+       "en": "On"
+      },
+      "def": "Off"
+     },
+     {
+      "id": "subbg",
+      "it": "subbg",
+      "set": "Solid",
+      "hn": {
+       "ru": "Фон субтитров",
+       "en": "Subtitle background"
+      },
+      "why": {
+       "ru": "Белый текст читается и на ярком пляже.",
+       "en": "White text stays readable on a bright beach."
+      },
+      "src": [
+       "playday.one",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Background",
+       "en": "Background"
+      },
+      "val": {
+       "ru": "Solid",
+       "en": "Solid"
+      },
+      "def": "Off"
+     },
+     {
+      "id": "compass",
+      "it": "compass",
+      "set": "On",
+      "hn": {
+       "ru": "Компас",
+       "en": "Compass"
+      },
+      "why": {
+       "ru": "Видно направление к цели, проще ориентироваться в Леонида.",
+       "en": "Shows the direction to your goal across Leonida."
+      },
+      "src": [
+       "playday.one",
+       "games.gg"
+      ],
+      "hyp": 1,
+      "t": {
+       "ru": "Compass",
+       "en": "Compass"
+      },
+      "val": {
+       "ru": "On",
+       "en": "On"
+      },
+      "def": "Off"
+     }
+    ],
+    "next": [
+     {
+      "k": "guide:gta6:set-driving",
+      "t": {
+       "ru": "Настроить вождение",
+       "en": "Set up driving"
+      },
+      "s": {
+       "ru": "Чтобы не разбить Thrax и любую быструю машину.",
+       "en": "So you don't wreck the Thrax or any fast car."
+      }
+     },
+     {
+      "k": "guide:gta6:egg-bugatti-thrax-andrew-node",
+      "t": {
+       "ru": "Угнать Bugatti без трекера",
+       "en": "Steal the Bugatti with no tracker"
+      },
+      "s": {
+       "ru": "Thrax, по шагам",
+       "en": "Thrax, step by step"
+      }
+     },
+     {
+      "k": "walk:gta6",
+      "t": {
+       "ru": "Прохождение: что сейчас важно",
+       "en": "Walkthrough: what matters now"
+      },
+      "s": {
+       "ru": "Дела до следующей миссии",
+       "en": "Things to do before the next mission"
+      }
+     }
+    ],
+    "upd": "2026-11-26",
+    "vid": {
+     "playstation": {
+      "src": "img/guide/gta6/set-first-ps-{l}.mp4",
+      "len": "0:39",
+      "sec": 38.6,
+      "ch": {
+       "movespeed": 2,
+       "textsize": 10,
+       "subs": 16,
+       "subbg": 23,
+       "compass": 30
+      }
+     },
+     "xbox": {
+      "src": "img/guide/gta6/set-first-xb-{l}.mp4",
+      "len": "0:39",
+      "sec": 38.6,
+      "ch": {
+       "movespeed": 2,
+       "textsize": 10,
+       "subs": 16,
+       "subbg": 23,
+       "compass": 30
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "set-driving",
+   "sn": [
+    "playday.one",
+    "games.gg",
+    "Dexerto",
+    "Eurogamer",
+    "BGR",
+    "VideoGamer"
+   ],
+   "how": {
+    "ta": {
+     "ru": "Настроить вождение",
+     "en": "Set up driving"
+    },
+    "rw": {
+     "ru": "Чтобы не разбить Thrax и любую быструю машину.",
+     "en": "So you don't wreck the Thrax or any fast car."
+    },
+    "min": 4,
+    "st": [
+     {
+      "id": "vibe",
+      "it": "vibe",
+      "set": "6",
+      "hn": {
+       "ru": "Сила вибрации",
+       "en": "Vibration strength"
+      },
+      "why": {
+       "ru": "Дорогу и удары чувствуешь, но руки не устают и вибрация не мешает рулить.",
+       "en": "You still feel the road and hits, but it won't tire your hands or throw off steering."
+      },
+      "src": [
+       "playday.one",
+       "Dexerto",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Vibration & Haptics Strength",
+       "en": "Vibration & Haptics Strength"
+      },
+      "val": {
+       "ru": "6",
+       "en": "6"
+      },
+      "def": "10"
+     },
+     {
+      "id": "at_res",
+      "it": "at_res",
+      "set": "Off",
+      "hn": {
+       "ru": "Сопротивление курков",
+       "en": "Trigger resistance"
+      },
+      "why": {
+       "ru": "Газ без упора легче дозировать на гиперкаре, палец меньше устаёт.",
+       "en": "Throttle without resistance is easier to feather on a hypercar."
+      },
+      "src": [
+       "Dexerto",
+       "BGR"
+      ],
+      "only": "playstation",
+      "t": {
+       "ru": "Adaptive Triggers Resistance",
+       "en": "Adaptive Triggers Resistance"
+      },
+      "val": {
+       "ru": "Off",
+       "en": "Off"
+      },
+      "def": "On"
+     },
+     {
+      "id": "rvd",
+      "it": "rvd",
+      "set": "On",
+      "hn": {
+       "ru": "Машина прочнее",
+       "en": "Tougher car"
+      },
+      "why": {
+       "ru": "Машина выдерживает больше ударов и пуль. Игра предупредит, что это меняет сложность. На трофеи не влияет, выключить можно в любой момент.",
+       "en": "Your car takes more hits and bullets. The game warns it changes difficulty; trophies are unaffected and you can switch it off anytime."
+      },
+      "src": [
+       "playday.one",
+       "games.gg",
+       "VideoGamer",
+       "notebookcheck"
+      ],
+      "t": {
+       "ru": "Reduced Vehicle Damage",
+       "en": "Reduced Vehicle Damage"
+      },
+      "val": {
+       "ru": "On",
+       "en": "On"
+      },
+      "def": "Off"
+     },
+     {
+      "id": "blur",
+      "it": "blur",
+      "set": "0",
+      "hn": {
+       "ru": "Без размытия",
+       "en": "No motion blur"
+      },
+      "why": {
+       "ru": "На скорости картинка чёткая, дорогу читать легче. Если на 30 кадрах дёргается, поставьте 1.",
+       "en": "The road stays sharp at speed. If 30 fps looks choppy, use 1."
+      },
+      "src": [
+       "Eurogamer",
+       "BGR",
+       "VideoGamer",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Motion Blur Strength",
+       "en": "Motion Blur Strength"
+      },
+      "val": {
+       "ru": "0",
+       "en": "0"
+      },
+      "def": "3"
+     },
+     {
+      "id": "veh_h",
+      "it": "veh_h",
+      "set": "High",
+      "hn": {
+       "ru": "Камера выше",
+       "en": "Higher camera"
+      },
+      "why": {
+       "ru": "Сверху видно дальше: поворот замечаешь за 2–3 секунды.",
+       "en": "From higher up you see turns 2–3 seconds earlier."
+      },
+      "src": [
+       "playday.one",
+       "games.gg",
+       "VideoGamer"
+      ],
+      "t": {
+       "ru": "Height (All Vehicles)",
+       "en": "Height (All Vehicles)"
+      },
+      "val": {
+       "ru": "High",
+       "en": "High"
+      },
+      "def": "Medium"
+     },
+     {
+      "id": "shake",
+      "it": "shake",
+      "set": "Off",
+      "hn": {
+       "ru": "Без тряски камеры",
+       "en": "No camera shake"
+      },
+      "why": {
+       "ru": "Камеру не трясёт на скорости, легче держать траекторию.",
+       "en": "No shaking at speed, easier to hold your line."
+      },
+      "src": [
+       "games.gg",
+       "VideoGamer",
+       "playday.one"
+      ],
+      "t": {
+       "ru": "Camera Shake",
+       "en": "Camera Shake"
+      },
+      "val": {
+       "ru": "Off",
+       "en": "Off"
+      },
+      "def": "On"
+     },
+     {
+      "id": "bob",
+      "it": "bob",
+      "set": "5",
+      "hn": {
+       "ru": "Меньше качки",
+       "en": "Less camera bob"
+      },
+      "why": {
+       "ru": "Картинка меньше раскачивается в поворотах.",
+       "en": "Less sway through corners."
+      },
+      "src": [
+       "games.gg",
+       "playday.one"
+      ],
+      "t": {
+       "ru": "Camera Bob",
+       "en": "Camera Bob"
+      },
+      "val": {
+       "ru": "5",
+       "en": "5"
+      },
+      "def": "10"
+     },
+     {
+      "id": "crash",
+      "it": "crash",
+      "set": "1",
+      "hn": {
+       "ru": "Реже кино после аварии",
+       "en": "Fewer crash cutscenes"
+      },
+      "why": {
+       "ru": "Меньше замедленных повторов после столкновения, быстрее снова на дороге.",
+       "en": "Fewer slow-mo replays after a crash, back on the road sooner."
+      },
+      "src": [
+       "VideoGamer",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Cinematic Vehicle Crash Frequency",
+       "en": "Cinematic Vehicle Crash Frequency"
+      },
+      "val": {
+       "ru": "1",
+       "en": "1"
+      },
+      "def": "3"
+     },
+     {
+      "id": "gpsvoice",
+      "it": "gpsvoice",
+      "set": "Voice",
+      "hn": {
+       "ru": "Голос навигатора",
+       "en": "GPS voice"
+      },
+      "why": {
+       "ru": "Голос подскажет поворот, не надо смотреть на мини-карту.",
+       "en": "A voice calls the turns, so you keep your eyes on the road."
+      },
+      "src": [
+       "playday.one",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "GPS Voice",
+       "en": "GPS Voice"
+      },
+      "val": {
+       "ru": "Voice",
+       "en": "Voice"
+      },
+      "def": "Off"
+     }
+    ],
+    "next": [
+     {
+      "k": "guide:gta6:set-aim",
+      "t": {
+       "ru": "Прицел: меньше промахов",
+       "en": "Aim: fewer misses"
+      },
+      "s": {
+       "ru": "Помощь прицела и чувствительность для геймпада.",
+       "en": "Aim assist and sensitivity for a controller."
+      }
+     },
+     {
+      "k": "guide:gta6:egg-bugatti-thrax-andrew-node",
+      "t": {
+       "ru": "Угнать Bugatti без трекера",
+       "en": "Steal the Bugatti with no tracker"
+      },
+      "s": {
+       "ru": "Thrax, по шагам",
+       "en": "Thrax, step by step"
+      }
+     },
+     {
+      "k": "walk:gta6",
+      "t": {
+       "ru": "Прохождение: что сейчас важно",
+       "en": "Walkthrough: what matters now"
+      },
+      "s": {
+       "ru": "Дела до следующей миссии",
+       "en": "Things to do before the next mission"
+      }
+     }
+    ],
+    "upd": "2026-11-26",
+    "vid": {
+     "playstation": {
+      "src": "img/guide/gta6/set-driving-ps-{l}.mp4",
+      "len": "1:05",
+      "sec": 65.0,
+      "ch": {
+       "vibe": 2,
+       "at_res": 10,
+       "rvd": 16,
+       "blur": 23,
+       "veh_h": 30,
+       "shake": 36,
+       "bob": 43,
+       "crash": 49,
+       "gpsvoice": 56
+      }
+     },
+     "xbox": {
+      "src": "img/guide/gta6/set-driving-xb-{l}.mp4",
+      "len": "0:58",
+      "sec": 58.4,
+      "ch": {
+       "vibe": 2,
+       "rvd": 10,
+       "blur": 16,
+       "veh_h": 23,
+       "shake": 30,
+       "bob": 36,
+       "crash": 43,
+       "gpsvoice": 49
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "set-aim",
+   "sn": [
+    "playday.one",
+    "games.gg",
+    "Dexerto",
+    "XP",
+    "FD",
+    "BM"
+   ],
+   "how": {
+    "ta": {
+     "ru": "Прицел: меньше промахов",
+     "en": "Aim: fewer misses"
+    },
+    "rw": {
+     "ru": "Помощь прицела и чувствительность для геймпада.",
+     "en": "Aim assist and sensitivity for a controller."
+    },
+    "min": 3,
+    "st": [
+     {
+      "id": "look_h",
+      "it": "look_h",
+      "set": "8",
+      "hn": {
+       "ru": "Поворот камеры",
+       "en": "Camera turn speed"
+      },
+      "why": {
+       "ru": "Быстрее разворачиваешься к цели, но без перелётов.",
+       "en": "Turn to targets faster without overshooting."
+      },
+      "src": [
+       "Dexerto",
+       "BM",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Horizontal Look Sensitivity",
+       "en": "Horizontal Look Sensitivity"
+      },
+      "val": {
+       "ru": "8",
+       "en": "8"
+      },
+      "def": "7"
+     },
+     {
+      "id": "aim_h",
+      "it": "aim_h",
+      "set": "6",
+      "hn": {
+       "ru": "Скорость прицела",
+       "en": "Aim speed"
+      },
+      "why": {
+       "ru": "Прицел медленнее камеры: меньше промахиваешься по бегущим.",
+       "en": "Aim slower than the camera: fewer misses on moving targets."
+      },
+      "src": [
+       "Dexerto",
+       "FD",
+       "XP"
+      ],
+      "t": {
+       "ru": "Horizontal Aim Sensitivity",
+       "en": "Horizontal Aim Sensitivity"
+      },
+      "val": {
+       "ru": "6",
+       "en": "6"
+      },
+      "def": "7"
+     },
+     {
+      "id": "aim_v",
+      "it": "aim_v",
+      "set": "6",
+      "hn": {
+       "ru": "Прицел по вертикали",
+       "en": "Vertical aim"
+      },
+      "why": {
+       "ru": "Точнее доводишь до головы.",
+       "en": "Finer control for headshots."
+      },
+      "src": [
+       "Dexerto",
+       "FD",
+       "XP"
+      ],
+      "t": {
+       "ru": "Vertical Aim Sensitivity",
+       "en": "Vertical Aim Sensitivity"
+      },
+      "val": {
+       "ru": "6",
+       "en": "6"
+      },
+      "def": "7"
+     },
+     {
+      "id": "dz_r",
+      "it": "dz_r",
+      "set": "3",
+      "hn": {
+       "ru": "Мёртвая зона правого стика",
+       "en": "Right stick deadzone"
+      },
+      "why": {
+       "ru": "Прицел отзывается на лёгкое касание. Если камера ползёт сама, прибавьте 1.",
+       "en": "Aim reacts to light touches. If the camera drifts, add 1."
+      },
+      "src": [
+       "Dexerto",
+       "BM",
+       "playday.one"
+      ],
+      "t": {
+       "ru": "Deadzone (Right Stick)",
+       "en": "Deadzone (Right Stick)"
+      },
+      "val": {
+       "ru": "3",
+       "en": "3"
+      },
+      "def": "5"
+     },
+     {
+      "id": "targeting",
+      "it": "targeting",
+      "set": "Lock-On",
+      "hn": {
+       "ru": "Захват цели",
+       "en": "Target lock"
+      },
+      "why": {
+       "ru": "Прицел сам цепляется за врага. Опытным — Free Aim.",
+       "en": "The reticle snaps to enemies. Experienced players: Free Aim."
+      },
+      "src": [
+       "playday.one",
+       "BGR",
+       "XP",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Targeting",
+       "en": "Targeting"
+      },
+      "val": {
+       "ru": "Lock-On",
+       "en": "Lock-On"
+      },
+      "def": "Partial"
+     },
+     {
+      "id": "foot_h",
+      "it": "foot_h",
+      "set": "High",
+      "hn": {
+       "ru": "Камера пешком выше",
+       "en": "Higher on-foot camera"
+      },
+      "why": {
+       "ru": "Видно поверх укрытий, меньше слепых зон.",
+       "en": "See over cover, fewer blind spots."
+      },
+      "src": [
+       "playday.one",
+       "games.gg",
+       "BM"
+      ],
+      "t": {
+       "ru": "Height",
+       "en": "Height"
+      },
+      "val": {
+       "ru": "High",
+       "en": "High"
+      },
+      "def": "Medium"
+     },
+     {
+      "id": "sway",
+      "it": "sway",
+      "set": "Off",
+      "hn": {
+       "ru": "Без качания оружия",
+       "en": "No weapon sway"
+      },
+      "why": {
+       "ru": "Ствол не гуляет в прицеле.",
+       "en": "The weapon doesn't drift while aiming."
+      },
+      "src": [
+       "playday.one",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Weapon Sway",
+       "en": "Weapon Sway"
+      },
+      "val": {
+       "ru": "Off",
+       "en": "Off"
+      },
+      "def": "On"
+     }
+    ],
+    "next": [
+     {
+      "k": "guide:gta6:set-comfort",
+      "t": {
+       "ru": "Чтобы не укачивало",
+       "en": "Stop motion sickness"
+      },
+      "s": {
+       "ru": "Включайте по одному и проверяйте 10 минут езды.",
+       "en": "Turn on one at a time and test for 10 minutes of driving."
+      }
+     },
+     {
+      "k": "guide:gta6:egg-bugatti-thrax-andrew-node",
+      "t": {
+       "ru": "Угнать Bugatti без трекера",
+       "en": "Steal the Bugatti with no tracker"
+      },
+      "s": {
+       "ru": "Thrax, по шагам",
+       "en": "Thrax, step by step"
+      }
+     },
+     {
+      "k": "walk:gta6",
+      "t": {
+       "ru": "Прохождение: что сейчас важно",
+       "en": "Walkthrough: what matters now"
+      },
+      "s": {
+       "ru": "Дела до следующей миссии",
+       "en": "Things to do before the next mission"
+      }
+     }
+    ],
+    "upd": "2026-11-26",
+    "vid": {
+     "playstation": {
+      "src": "img/guide/gta6/set-aim-ps-{l}.mp4",
+      "len": "0:52",
+      "sec": 51.8,
+      "ch": {
+       "look_h": 2,
+       "aim_h": 10,
+       "aim_v": 16,
+       "dz_r": 23,
+       "targeting": 30,
+       "foot_h": 36,
+       "sway": 43
+      }
+     },
+     "xbox": {
+      "src": "img/guide/gta6/set-aim-xb-{l}.mp4",
+      "len": "0:52",
+      "sec": 51.8,
+      "ch": {
+       "look_h": 2,
+       "aim_h": 10,
+       "aim_v": 16,
+       "dz_r": 23,
+       "targeting": 30,
+       "foot_h": 36,
+       "sway": 43
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "set-comfort",
+   "sn": [
+    "playday.one",
+    "games.gg",
+    "VideoGamer",
+    "Eurogamer"
+   ],
+   "how": {
+    "ta": {
+     "ru": "Чтобы не укачивало",
+     "en": "Stop motion sickness"
+    },
+    "rw": {
+     "ru": "Включайте по одному и проверяйте 10 минут езды.",
+     "en": "Turn on one at a time and test for 10 minutes of driving."
+    },
+    "min": 4,
+    "st": [
+     {
+      "id": "blur",
+      "it": "blur",
+      "set": "0",
+      "hn": {
+       "ru": "Без размытия",
+       "en": "No motion blur"
+      },
+      "why": {
+       "ru": "Размытие в движении — главная причина тошноты.",
+       "en": "Motion blur is the top trigger for nausea."
+      },
+      "src": [
+       "Eurogamer",
+       "BGR",
+       "games.gg",
+       "VideoGamer"
+      ],
+      "t": {
+       "ru": "Motion Blur Strength",
+       "en": "Motion Blur Strength"
+      },
+      "val": {
+       "ru": "0",
+       "en": "0"
+      },
+      "def": "3"
+     },
+     {
+      "id": "flash",
+      "it": "flash",
+      "set": "Dark",
+      "hn": {
+       "ru": "Тёмная вспышка",
+       "en": "Dark flashbang"
+      },
+      "why": {
+       "ru": "Светошумовая не слепит белым экраном.",
+       "en": "Flashbangs won't blind you with a white screen."
+      },
+      "src": [
+       "playday.one",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Flashbang",
+       "en": "Flashbang"
+      },
+      "val": {
+       "ru": "Dark",
+       "en": "Dark"
+      },
+      "def": "Bright"
+     },
+     {
+      "id": "dot",
+      "it": "dot",
+      "set": "On",
+      "hn": {
+       "ru": "Точка в центре",
+       "en": "Center dot"
+      },
+      "why": {
+       "ru": "Игра сама пишет: точка помогает глазам держаться за центр.",
+       "en": "The game itself says the dot can help with motion sickness."
+      },
+      "src": [
+       "playday.one",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Persistent Center Dot",
+       "en": "Persistent Center Dot"
+      },
+      "val": {
+       "ru": "On",
+       "en": "On"
+      },
+      "def": "Off"
+     },
+     {
+      "id": "sway",
+      "it": "sway",
+      "set": "Off",
+      "hn": {
+       "ru": "Без качания оружия",
+       "en": "No weapon sway"
+      },
+      "why": {
+       "ru": "Меньше лишнего движения в кадре.",
+       "en": "Less extra movement on screen."
+      },
+      "src": [
+       "playday.one",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Weapon Sway",
+       "en": "Weapon Sway"
+      },
+      "val": {
+       "ru": "Off",
+       "en": "Off"
+      },
+      "def": "On"
+     },
+     {
+      "id": "shake",
+      "it": "shake",
+      "set": "Off",
+      "hn": {
+       "ru": "Без тряски камеры",
+       "en": "No camera shake"
+      },
+      "why": {
+       "ru": "Картинка не дрожит от взрывов и скорости.",
+       "en": "The picture doesn't shake from blasts or speed."
+      },
+      "src": [
+       "games.gg",
+       "VideoGamer",
+       "playday.one"
+      ],
+      "t": {
+       "ru": "Camera Shake",
+       "en": "Camera Shake"
+      },
+      "val": {
+       "ru": "Off",
+       "en": "Off"
+      },
+      "def": "On"
+     },
+     {
+      "id": "bob",
+      "it": "bob",
+      "set": "2",
+      "hn": {
+       "ru": "Почти без качки",
+       "en": "Minimal camera bob"
+      },
+      "why": {
+       "ru": "Камера не покачивается при ходьбе и езде.",
+       "en": "The camera barely bobs when walking or driving."
+      },
+      "src": [
+       "games.gg",
+       "playday.one"
+      ],
+      "t": {
+       "ru": "Camera Bob",
+       "en": "Camera Bob"
+      },
+      "val": {
+       "ru": "2",
+       "en": "2"
+      },
+      "def": "10"
+     },
+     {
+      "id": "killshot",
+      "it": "killshot",
+      "set": "1",
+      "hn": {
+       "ru": "Реже кино при выстреле",
+       "en": "Fewer kill cams"
+      },
+      "why": {
+       "ru": "Меньше резких смен камеры.",
+       "en": "Fewer sudden camera cuts."
+      },
+      "src": [
+       "playday.one",
+       "VideoGamer"
+      ],
+      "t": {
+       "ru": "Cinematic Kill Shot Frequency",
+       "en": "Cinematic Kill Shot Frequency"
+      },
+      "val": {
+       "ru": "1",
+       "en": "1"
+      },
+      "def": "3"
+     },
+     {
+      "id": "crash",
+      "it": "crash",
+      "set": "1",
+      "hn": {
+       "ru": "Реже кино при аварии",
+       "en": "Fewer crash cams"
+      },
+      "why": {
+       "ru": "Меньше замедленных повторов.",
+       "en": "Fewer slow-mo replays."
+      },
+      "src": [
+       "VideoGamer",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Cinematic Vehicle Crash Frequency",
+       "en": "Cinematic Vehicle Crash Frequency"
+      },
+      "val": {
+       "ru": "1",
+       "en": "1"
+      },
+      "def": "3"
+     },
+     {
+      "id": "idle",
+      "it": "idle",
+      "set": "Off",
+      "hn": {
+       "ru": "Без камеры простоя",
+       "en": "No idle camera"
+      },
+      "why": {
+       "ru": "Камера не уезжает сама, пока вы стоите.",
+       "en": "The camera won't wander while you stand still."
+      },
+      "src": [
+       "playday.one",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Idle Camera",
+       "en": "Idle Camera"
+      },
+      "val": {
+       "ru": "Off",
+       "en": "Off"
+      },
+      "def": "On"
+     }
+    ],
+    "next": [
+     {
+      "k": "guide:gta6:set-picture",
+      "t": {
+       "ru": "Картинка на телевизоре",
+       "en": "Picture on your TV"
+      },
+      "s": {
+       "ru": "Выбирать режим не нужно: на PS5, PS5 Pro и Xbox игра идёт в 30 кадрах. Настройте яркость и края.",
+       "en": "No mode to pick: PS5, PS5 Pro and Xbox all run at 30 fps. Set brightness and edges."
+      }
+     },
+     {
+      "k": "guide:gta6:egg-bugatti-thrax-andrew-node",
+      "t": {
+       "ru": "Угнать Bugatti без трекера",
+       "en": "Steal the Bugatti with no tracker"
+      },
+      "s": {
+       "ru": "Thrax, по шагам",
+       "en": "Thrax, step by step"
+      }
+     },
+     {
+      "k": "walk:gta6",
+      "t": {
+       "ru": "Прохождение: что сейчас важно",
+       "en": "Walkthrough: what matters now"
+      },
+      "s": {
+       "ru": "Дела до следующей миссии",
+       "en": "Things to do before the next mission"
+      }
+     }
+    ],
+    "upd": "2026-11-26",
+    "vid": {
+     "playstation": {
+      "src": "img/guide/gta6/set-comfort-ps-{l}.mp4",
+      "len": "1:05",
+      "sec": 65.0,
+      "ch": {
+       "blur": 2,
+       "flash": 10,
+       "dot": 16,
+       "sway": 23,
+       "shake": 30,
+       "bob": 36,
+       "killshot": 43,
+       "crash": 49,
+       "idle": 56
+      }
+     },
+     "xbox": {
+      "src": "img/guide/gta6/set-comfort-xb-{l}.mp4",
+      "len": "1:05",
+      "sec": 65.0,
+      "ch": {
+       "blur": 2,
+       "flash": 10,
+       "dot": 16,
+       "sway": 23,
+       "shake": 30,
+       "bob": 36,
+       "killshot": 43,
+       "crash": 49,
+       "idle": 56
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "set-picture",
+   "sn": [
+    "Digital Foundry",
+    "playday.one",
+    "games.gg"
+   ],
+   "how": {
+    "ta": {
+     "ru": "Картинка на телевизоре",
+     "en": "Picture on your TV"
+    },
+    "rw": {
+     "ru": "Выбирать режим не нужно: на PS5, PS5 Pro и Xbox игра идёт в 30 кадрах. Настройте яркость и края.",
+     "en": "No mode to pick: PS5, PS5 Pro and Xbox all run at 30 fps. Set brightness and edges."
+    },
+    "min": 3,
+    "st": [
+     {
+      "id": "hdr",
+      "it": "hdr",
+      "set": null,
+      "hn": {
+       "ru": "Калибровка HDR",
+       "en": "HDR calibration"
+      },
+      "why": {
+       "ru": "Max Brightness — по пику яркости вашего ТВ, Black Levels — пока чёрный не перестанет быть серым, Paper White — чтобы меню не слепило. По умолчанию 600, 50, 50.",
+       "en": "Max Brightness to your TV peak, Black Levels until black stops looking grey, Paper White so menus don’t glare. Defaults 600, 50, 50."
+      },
+      "src": [
+       "playday.one",
+       "games.gg",
+       "Digital Foundry"
+      ],
+      "t": {
+       "ru": "HDR Calibration",
+       "en": "HDR Calibration"
+      },
+      "val": {
+       "ru": "Настроить",
+       "en": "Adjust"
+      },
+      "def": null
+     },
+     {
+      "id": "safezone",
+      "it": "safezone",
+      "set": null,
+      "hn": {
+       "ru": "Края экрана",
+       "en": "Safe zone"
+      },
+      "why": {
+       "ru": "Если мини-карта или деньги обрезаны краем ТВ, сдвиньте рамку внутрь.",
+       "en": "If the minimap or cash is cut off by your TV edge, move the frame in."
+      },
+      "src": [
+       "playday.one",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Safe Zone",
+       "en": "Safe Zone"
+      },
+      "val": {
+       "ru": "Настроить",
+       "en": "Adjust"
+      },
+      "def": null
+     },
+     {
+      "id": "blur",
+      "it": "blur",
+      "set": "0",
+      "hn": {
+       "ru": "Без размытия",
+       "en": "No motion blur"
+      },
+      "why": {
+       "ru": "Чётче в движении. На 30 кадрах кому-то приятнее 1–2.",
+       "en": "Sharper in motion. At 30 fps some prefer 1–2."
+      },
+      "src": [
+       "Eurogamer",
+       "BGR",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Motion Blur Strength",
+       "en": "Motion Blur Strength"
+      },
+      "val": {
+       "ru": "0",
+       "en": "0"
+      },
+      "def": "3"
+     }
+    ],
+    "next": [
+     {
+      "k": "guide:gta6:set-first",
+      "t": {
+       "ru": "Первые часы игры",
+       "en": "Your first hours"
+      },
+      "s": {
+       "ru": "Пять настроек, чтобы не потеряться и всё понимать.",
+       "en": "Five settings so you never get lost and understand everything."
+      }
+     },
+     {
+      "k": "guide:gta6:egg-bugatti-thrax-andrew-node",
+      "t": {
+       "ru": "Угнать Bugatti без трекера",
+       "en": "Steal the Bugatti with no tracker"
+      },
+      "s": {
+       "ru": "Thrax, по шагам",
+       "en": "Thrax, step by step"
+      }
+     },
+     {
+      "k": "walk:gta6",
+      "t": {
+       "ru": "Прохождение: что сейчас важно",
+       "en": "Walkthrough: what matters now"
+      },
+      "s": {
+       "ru": "Дела до следующей миссии",
+       "en": "Things to do before the next mission"
+      }
+     }
+    ],
+    "upd": "2026-11-26",
+    "vid": {
+     "playstation": {
+      "src": "img/guide/gta6/set-picture-ps-{l}.mp4",
+      "len": "0:24",
+      "sec": 24.4,
+      "ch": {
+       "hdr": 2,
+       "safezone": 9,
+       "blur": 15
+      }
+     },
+     "xbox": {
+      "src": "img/guide/gta6/set-picture-xb-{l}.mp4",
+      "len": "0:24",
+      "sec": 24.4,
+      "ch": {
+       "hdr": 2,
+       "safezone": 9,
+       "blur": 15
+      }
+     }
+    }
+   }
+  }
+ ]
+}
