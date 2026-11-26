@@ -3,6 +3,7 @@
 Модель меню — одна на игру: вкладки по порядку (A §2), группы — заголовки в списке (A §5), пункты по порядку групп (A §3, порядок строк — по S1).
 Путь к пункту, экраны и ролик считаются из модели (js/guide-menu.js) — правьте порядок здесь, не в путях.
 Кнопки: btn[платформа][действие]; st 'ok' — подтверждено (A §4: пауза, вкладки, назад); confirm/up/down/left/right — общее правило Rockstar (ASSUMPTION).
+Пишет ещё data/guide/entries-settings-gta6.json — записи kind:set для указателя (проверка: python3 tools/build_guide_index.py).
 Проверки при сборке: у каждого шага пункт есть в меню, значение есть в вариантах пункта, у шага ≥ 2 источников или пометка hyp, RU и EN на месте."""
 import json, os, sys
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'guide', 'gta6-settings.json')
@@ -208,6 +209,8 @@ if __name__ == '__main__':
         assert all(len(kw[l]) >= 8 for l in kw), g['id']
         index.append({'k': f"guide:gta6:{g['id']}", 'kind': 'set', 't': h['ta'], 'sub': h['rw'], 'sp': 0,
                       'st': 'ok' if n_ok >= 2 else 'one', 'src_n': len(g['sn']), 'upd': UPD, 'steps_n': len(h['st']), 'min': h['min'],
-                      'free': True, 'kw': kw, 'next': [q['k'] for q in h['next']]})
-    json.dump({'v': 1, 'game': 'gta6', 'upd': UPD, 'menu': MENU, 'guides': GUIDES, 'index': index}, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+                      'free': True, 'kw': kw, 'next': [q['k'] for q in h['next'] if not q['k'].startswith('walk:')]})   # walk — когда «Прохождение» будет в указателе
+    ENTRIES = os.path.join(os.path.dirname(OUT), 'entries-settings-gta6.json')   # записи для указателя гида (tools/build_guide_index.py сборщика)
+    json.dump({'items': index}, open(ENTRIES, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    json.dump({'v': 1, 'game': 'gta6', 'upd': UPD, 'menu': MENU, 'guides': GUIDES}, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print('ok', OUT, sum(len(g['how']['st']) for g in GUIDES), 'шагов в', len(GUIDES), 'советах')
