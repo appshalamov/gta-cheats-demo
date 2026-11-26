@@ -30,7 +30,7 @@
 // verify_code}], demo (+ email, nick, country, payouts). Доступ (шаг 9): Pro — pro_until; рабочий Pro партнёра —
 // work_pro_until (14 дней после подтверждения канала, +30 дней за принятый ролик от 1 000 просмотров); пробный — trial_until.
 
-import { CREATOR_MODE, CREATOR } from './config.js';
+import { CREATOR_MODE, CREATOR, REWARDS } from './config.js';
 import { demoDB, DEMO } from './demo-data.js';
 import { loadPlaces } from './places.js';
 import * as ref from './ref.js';
@@ -49,7 +49,7 @@ const RULES = {
   rpm: { tiktok: 12, reels: 12, youtube: 12, shorts: 5 },   // центов за 1 000 просмотров (файл 31)
   rpm_min_cents: 300, rpm_cap_cents: 15000, rpm_example: { views: 1000000, cents: 12000 },
   cpa_cents: 1500, cpa_after_cents: 5000, cpa_days: 90, author_fee_pct: 10, author_fee_months: 12,
-  scout_pair_cents: 1000, mod_decision_cents: 1, mod_min_accuracy: 70, task_after_days: 7,
+  scout_pair_cents: REWARDS.photo.place.no_real, mod_decision_cents: 1, mod_min_accuracy: 70, task_after_days: 7,
   league_goal_views: 10000, partner_pro_days: 14, partner_pro_per_video_days: 30, partner_pro_min_views: 1000,
   gift_days: 30,
   // лимиты, раунд, апелляция, модерация (02 §7.7–§7.9, §10; 03 §5): экраны «Честные правила», экзамен и очередь берут цифры отсюда

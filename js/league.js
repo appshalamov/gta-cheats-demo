@@ -10,6 +10,7 @@ import './api.js';
 import { APP, HERO } from './config.js';
 import { getLang, L, credit } from './i18n.js';
 import { I } from './icons.js';
+import * as CN from './creators.js';   // «Снимать сейчас», банк исходников, задание агенту (26.11.2026, ветка feature/guide-creators)
 import { loadPlaces, realOf, thumbOf, placeKey, searchPlaces, featured, imgUrl } from './places.js';
 
 const api = () => window.SB.api;
@@ -831,11 +832,11 @@ async function hubMain() {
   let rows = '';
   const work = await workRows();   // «Задания» и «Мои вклады» (08 №11, №13) — у всех, вклады без денег
   if (guest) rows = work + row('open:rules', 'doc', tx('rules'), tx('rules_sub'));
-  else if (minor) rows = work + row('add', 'plus', tx('add_minor')) + row('open:earn', 'star', tx('pro_days'), tx('pro_days_sub')) + row('open:rules', 'doc', tx('rules'), tx('rules_sub_np'));
+  else if (minor) rows = CN.hubRow() + work + row('add', 'plus', tx('add_minor')) + row('open:earn', 'star', tx('pro_days'), tx('pro_days_sub')) + row('open:rules', 'doc', tx('rules'), tx('rules_sub_np'));
   else if (!partner) rows = row('login', 'link', tx('hub_player'), tx('partner')) + row('open:mylink', 'gift', tx('my_link_p'), tx('gift_sub')) + work + row('add', 'plus', tx('add_minor')) + row('open:rules', 'doc', tx('rules'), tx('rules_sub'));
   else {
     const vids = await api().listMyVideos(), rev = vids.filter((v) => ['submitted', 'in_review', 'pending_review'].includes(v.status)).length;
-    rows = (np ? row('open:earn', 'star', tx('pro_days'), tx('pro_days_sub')) : row('open:earn', 'wallet', tx('my_earn'), tx('my_earn_sub')))
+    rows = CN.hubRow() + (np ? row('open:earn', 'star', tx('pro_days'), tx('pro_days_sub')) : row('open:earn', 'wallet', tx('my_earn'), tx('my_earn_sub')))
       + row('open:myvideos', 'video', tx('my_videos'), vids.length ? `${plural(vids.length, 'n_videos')}${rev ? `, ${rev} ${tx('n_on_review')}` : ''}` : '')
       + row('open:mylink', 'link', tx('my_link'), tx('code_sub', { c: P.ref_code }))
       + (isMod() || ['student', 'paused'].includes(P.mod?.stage) ? row('open:review', 'shield', tx('review'), tx('review_sub')) : row('open:review', 'shield', tx('review_how')))
@@ -2164,6 +2165,7 @@ async function adminHTML() {
 
 // ───────── экраны ─────────
 const SCREENS = {
+  ...CN.SCREENS,
   league: {
     html: async (a) => {
       const tab = a.tab || 'tasks', big = tab === 'tasks';
@@ -2203,6 +2205,7 @@ async function onClick(e) {
   const el = e.target.closest('[data-cr]'); if (!el) return;
   const a = el.dataset.cr, v = el.dataset.v;
   const scr = el.closest('.cr-scr');
+  if (a.startsWith('cn-') && await CN.onAction(a, el)) return;
   e.preventDefault();
   if (a.startsWith('open:')) { const s = a.slice(5); ctx.closeSheet(); await load(); push(s === 'league' ? 'league' : s, {}); return; }
   switch (a) {
@@ -2409,6 +2412,7 @@ async function onClick(e) {
 // ───────── вход ─────────
 export function init(c) {
   ctx = c;
+  CN.setup({ head, body, row, tag, push, pop, close, rerender, esc, link, isMinor, ctx: () => ctx, P: () => P, top: () => stack[stack.length - 1] });
   if (init.done) return; init.done = true;
   document.addEventListener('click', onClick);
   // форма вклада: поля переживают перерисовку, «Дальше» без источника не активна (02 §6.3), фото — с устройства
@@ -2437,6 +2441,8 @@ function crArgs(args) {
   delete a.game;
   return a;
 }
+/** Строка «Снимать сейчас: N» на Главной — только у автора с рефкодом (05 п. 2); иначе '' */
+export async function homeNow() { await load(); return CN.on() && (isPartner() || isMinor()) && P.ref_code ? CN.homeHTML() : ''; }
 export async function openCreator(id = 'league', args = {}) { await load(); return push(id, crArgs(args)); }
 /** «Стать партнёром» снаружи (пейвол nopay): вход почтой и 18+; уже партнёр — Лига */
 export async function becomePartner() { await load(); if (isPartner()) return push('league', {}); loginSheet(); }

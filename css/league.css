@@ -506,3 +506,66 @@
 
 /* Клавиатура iPhone: поля экранов креаторов не прячутся под клавиатуру (28.10.2026) */
 .kb-open .cr-body { padding-bottom: calc(var(--kb, 0px) + 24px); }
+
+/* «Снимать сейчас», банк исходников, задание агенту — js/creators.js (26.11.2026, ветка feature/guide-creators) */
+.cn-list { margin: 4px 0 14px; border-radius: 22px; overflow: hidden; background: color-mix(in srgb, var(--text) 5%, transparent); border: 1px solid var(--line); }
+:root[data-theme="light"] .cn-list { background: var(--card); border-color: transparent; box-shadow: var(--sh-raised); }
+.cn-card { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--line); color: var(--text); }
+.cn-card:last-child { border-bottom: 0; }
+.cn-card > svg { width: 18px; height: 18px; flex: none; color: var(--text-3); }
+.cn-card:active { background: color-mix(in srgb, var(--text) 6%, transparent); }
+.cn-th { width: 64px; height: 64px; flex: none; border-radius: 16px; overflow: hidden; background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.cn-th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cn-th.cn-ic { display: grid; place-items: center; color: var(--accent); }
+.cn-th.cn-ic svg { width: 28px; height: 28px; }
+.cn-m { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cn-m > b { font-size: 16px; line-height: 21px; font-weight: 650; }
+.cn-m small, .cn-top small { font-size: 13px; line-height: 18px; color: var(--text-2); }
+.cn-score { height: 4px; margin-top: 6px; border-radius: 2px; background: color-mix(in srgb, var(--text) 10%, transparent); overflow: hidden; }
+.cn-score i { display: block; height: 100%; background: var(--accent); }
+.cn-top { display: flex; gap: 14px; align-items: center; margin: 4px 0 8px; }
+.cn-top .cn-th { width: 84px; height: 84px; border-radius: 20px; }
+.cn-top > span { display: flex; flex-direction: column; gap: 2px; }
+.cn-first { margin: 6px 0 14px; font-size: 13.5px; line-height: 19px; color: var(--text-2); }
+.cn-plan { display: grid; gap: 14px; padding: 14px; border-radius: 22px; background: color-mix(in srgb, var(--text) 5%, transparent); }
+:root[data-theme="light"] .cn-plan { background: var(--card); box-shadow: var(--sh-raised); }
+.cn-plan span { display: block; font: var(--t-label); color: var(--text-2); margin-bottom: 4px; }
+.cn-plan p { margin: 0; font-size: 15.5px; line-height: 22px; }
+.cn-plan ol { margin: 0; padding-left: 20px; font-size: 15px; line-height: 22px; }
+.cn-plan li { padding: 2px 0; }
+.cn-cp { display: inline-grid; place-items: center; width: 32px; height: 32px; margin-left: 4px; vertical-align: middle; color: var(--text-2); }
+.cn-cp svg { width: 16px; height: 16px; }
+.cn-srcs { display: grid; gap: 10px; margin: 8px 0; }
+.cn-src, .cn-bk { padding: 12px 14px; border-radius: 20px; background: color-mix(in srgb, var(--text) 5%, transparent); }
+:root[data-theme="light"] .cn-src, :root[data-theme="light"] .cn-bk { background: var(--card); box-shadow: var(--sh-raised); }
+.cn-bk .cn-src { padding: 0; background: none; box-shadow: none; }
+.cn-src > b { display: block; font-size: 15.5px; line-height: 21px; }
+.cn-src > small { display: block; font-size: 13px; line-height: 18px; color: var(--text-2); }
+.cn-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.cn-acts .cr-mini { margin-top: 8px; }
+.cn-for { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 14px; color: var(--accent); text-align: left; }
+.cn-for svg { width: 16px; height: 16px; }
+.cn-reward { display: flex; gap: 12px; align-items: flex-start; margin: 10px 0; padding: 12px 14px; border-radius: 20px; background: var(--accent-soft); }
+.cn-reward > svg { width: 22px; height: 22px; flex: none; color: var(--accent); margin-top: 1px; }
+.cn-reward b { display: block; font-size: 14.5px; line-height: 20px; font-weight: 600; }
+.cn-reward small { display: block; margin-top: 2px; font-size: 12.5px; line-height: 17px; color: var(--text-2); }
+.cn-note { margin: 8px 0; font-size: 12.5px; line-height: 17px; color: var(--text-3); }
+.cn-demo { margin: 18px 0 0; font-size: 12px; line-height: 16px; color: var(--text-3); text-align: center; }
+.cn-in { display: block; margin: 10px 0; }
+.cn-in span { display: block; font: var(--t-label); color: var(--text-2); margin-bottom: 6px; }
+.cn-in input { width: 100%; height: 50px; padding: 0 16px; border-radius: 16px; font-size: 16px; color: var(--text); background: color-mix(in srgb, var(--text) 6%, transparent); border: 1px solid var(--line); }
+.cn-chk { display: flex; gap: 12px; align-items: flex-start; margin: 14px 0; font-size: 14.5px; line-height: 20px; }
+.cn-chk input { width: 22px; height: 22px; flex: none; accent-color: var(--accent); }
+.cn-pre { margin: 10px 0 12px; padding: 14px; max-height: 260px; overflow: auto; border-radius: 18px; font-size: 12px; line-height: 17px; white-space: pre-wrap; word-break: break-word;
+  background: color-mix(in srgb, var(--text) 6%, transparent); color: var(--text-2); }
+.cn-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.cn-steps li { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 21px; }
+.cn-steps li span { width: 26px; height: 26px; flex: none; border-radius: 50%; display: grid; place-items: center; font: 700 13px/1 var(--font-num); color: var(--accent-ink); background: var(--accent); }
+#cn-home { padding: 0 16px; margin: 4px 0 10px; }
+.cn-home { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 8px 14px; text-align: left; border-radius: 22px; color: var(--text); background: var(--accent-soft); }
+.cn-home .row-l small { display: block; font-size: 13px; color: var(--text-2); }
+.cn-home .row-ic { color: var(--accent); }
+.cn-sent { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 14px 6px; text-align: center; }
+.cn-sent > svg { width: 44px; height: 44px; padding: 10px; border-radius: 50%; color: var(--accent-ink); background: var(--ok); box-sizing: content-box; }
+.cn-sent b { font: var(--t-headline); }
+.cn-sent small { font-size: 13.5px; color: var(--text-2); }
