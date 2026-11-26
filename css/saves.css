@@ -1,6 +1,6 @@
 /* «Не упустить навсегда» (js/saves.js, 26.11.2026). Тот же язык, что «По шагам» (css/guide.css): список на фоне, без рамок и пилюль,
-   янтарный — только для того, что теряется навсегда. Экран «как сохраняться» открывается поверх (#guide, z 40). */
-#saves { position: fixed; left: 0; right: 0; top: 0; height: var(--app-h, 100dvh); z-index: 39; background: var(--bg); color: var(--text);
+   янтарный — только для того, что теряется навсегда. Экран «как сохраняться» открывается поверх (#guide, z 39; пейвол выше). */
+#saves { position: fixed; left: 0; right: 0; top: 0; height: var(--app-h, 100dvh); z-index: 38; background: var(--bg); color: var(--text);
   display: flex; flex-direction: column; transform: translateY(100%); visibility: hidden;
   transition: transform .42s cubic-bezier(.2,.9,.25,1), visibility 0s linear .42s; }
 #saves.open { transform: none; visibility: visible; transition: transform .42s cubic-bezier(.2,.9,.25,1), visibility 0s; }

@@ -500,6 +500,7 @@ async function openSavesScreen(from = '', key = 'all') {
   if (!ok) toast(t('place_nf'));
 }
 window.SB.openSaves = openSavesScreen;
+import('./guide-core.js').then((c) => c.registerOpener('saves', (k, ctx) => openSavesScreen(ctx?.from || 'link', k.id || 'all'))).catch(() => { });   // ключи saves:<игра>:<id> в общей таблице openKey
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
 function eggRow(o) {
   if (hasGuide(o)) {

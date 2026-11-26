@@ -702,8 +702,8 @@
     "st": "dispute",
     "free": true,
     "next": [
-     "cheats:gta6",
-     "saves:gta6:all"
+     "saves:gta6:all",
+     "walk:gta6"
     ]
    }
   }

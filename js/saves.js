@@ -2,7 +2,8 @@
 // Справочник, а не список дел: правила сохранений, «Как сохраняться» (PS5/Xbox) и «перед кодом» — экраном «По шагам» (js/guide.js),
 // все точки невозврата по главам, «Всегда», трофеи, баги. Срочное отсюда показывает «Прохождение» (guide-walkthrough) янтарным блоком
 // через nextWarn/savesFor, галочки дел — sb.gs (toggleDone). Позиция игрока — общий ключ sb.gp, отметку меняет общая шторка «Где вы»
-// (window.SB.pickPos — guide-walkthrough / guide-core), своей шторки нет. Спойлеры — правило Fable (canShow из guide-core, пока его нет — своё такое же).
+// (window.SB.pickPos — guide-walkthrough / guide-core), своей шторки нет. Позиция, порядок миссий, спойлеры, «раскрыто» — ядро js/guide-core.js
+// (pos, rankOf, canShow, reveal, setPos, loadBase); без отметки названий миссий нет вовсе (решение Fable: «Глава 2: дом и вещи»).
 // Данные: data/guide/saves.json, миссии — data/guide/missions.json (путь в saves.json base).
 
 const S = {
@@ -11,7 +12,7 @@ const S = {
     lead: 'Миссии в GTA 6 не переиграть: повтора из меню нет. Назад — только через своё ручное сохранение. Здесь все точки невозврата и как сохраняться, чтобы не потерять часы игры.',
     where: 'Где вы', where_none: 'Отметьте, где вы в игре, — покажем, сколько осталось до ближайшей точки невозврата.', where_set: 'Глава {c}. После «{m}»',
     where_c: 'Начало главы {c}', change: 'Изменить', mark: 'Отметить, где я', still: 'Всё ещё после «{m}»?', yes: 'Да',
-    soon: 'Через {n} — точка невозврата: {l}', soon_0: 'Следующая миссия — точка невозврата: {l}', to_walk: 'Что сделать — в «Прохождении»',
+    soon: 'Через {n} точка невозврата: {l}', soon_0: 'Следующая миссия — точка невозврата: {l}', to_walk: 'Что сделать — в «Прохождении»',
     n_m: '{n} миссии|{n} миссию|{n} миссий',
     how_t: 'Сохраниться грамотно', how_btn: 'Как сохраняться на {p}', how_meta: '{n} шага, около {m} минут|{n} шаг, около {m} минут|{n} шагов, около {m} минут',
     code_btn: 'Как сохраниться перед кодом',
@@ -27,7 +28,7 @@ const S = {
     lead: "You can't replay GTA 6 missions from a menu. The only way back is your own manual save. Here are all the points of no return and how to save so you don't lose hours.",
     where: 'Where you are', where_none: "Mark where you are in the game — we'll show how far the next point of no return is.", where_set: 'Chapter {c}. After “{m}”',
     where_c: 'Start of chapter {c}', change: 'Change', mark: 'Mark where I am', still: 'Still after “{m}”?', yes: 'Yes',
-    soon: 'In {n}: point of no return — {l}', soon_0: 'Next mission is a point of no return — {l}', to_walk: 'What to do — in the Walkthrough',
+    soon: 'Point of no return in {n}: {l}', soon_0: 'Next mission is a point of no return — {l}', to_walk: 'What to do — in the Walkthrough',
     n_m: '{n} mission|{n} missions',
     how_t: 'Save the smart way', how_btn: 'How to save on {p}', how_meta: '{n} step, about {m} min|{n} steps, about {m} min',
     code_btn: 'How to save before a cheat',
@@ -40,7 +41,8 @@ const S = {
   },
 };
 const GP = 'sb.gp', GS = 'sb.gs', DAY = 864e5;
-let C = null, D = null, layer = null, shown = new Set(), langK = 'ru';
+let C = null, D = null, layer = null, langK = 'ru', core = null;
+const coreP = import('./guide-core.js').then((m) => (core = m)).catch(() => null);
 
 const L = () => (langK === 'ru' ? 'ru' : 'en');
 const s = (k, v = {}) => { let x = S[L()][k] ?? S.en[k] ?? k; for (const [a, b] of Object.entries(v)) x = x.split(`{${a}}`).join(b); return x; };
@@ -65,28 +67,32 @@ const srcName = (u) => { try { const h = new URL(u).hostname.replace(/^www\./, '
 const cache = {};
 async function load(game) {
   if (cache[game]) return cache[game];
+  await coreP;
   const get = (p) => fetch(base() + p).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   const d = await get('data/guide/saves.json');
   if (!d || d.game !== game) return (cache[game] = null);
-  const mb = d.base ? await get(d.base) : null;   // база миссий guide-walkthrough: m[] по порядку сюжета, ch "c1"
-  const list = (mb?.m || []).map((x, i) => ({ id: bare(x.id), i, ch: num(x.ch), t: x.t, sp: x.sp || 0 }));
+  const b = d.base && core ? await core.loadBase(game) : null;   // база миссий guide-walkthrough (порядок, главы, sp)
+  const list = (b?.m || []).map((x, i) => ({ id: x.id, i, ch: num(x.ch), t: x.t, sp: x.sp || 0 }));
   const mm = new Map(list.map((x) => [x.id, x]));
-  const chs = (mb?.ch || []).map((c) => ({ id: c.id, n: c.n, t: c.t }));
-  return (cache[game] = { d, list, mm, chs });
+  return (cache[game] = { d, list, mm });
 }
 
-// позиция: индекс последней пройденной миссии (-1 — нет отметки); отметка главы = начало главы (всё до неё пройдено)
+// позиция из ядра: i — номер в сюжете (миссия → её индекс, глава → начало главы, как rankOf ядра); -1 — нет отметки
 function pos(x, game) {
-  const core = window.SB?.guideCore; if (core?.pos) { const p = core.pos(game); if (p && typeof p.i === 'number') return p; }
-  const g = jget(GP)[game] || {};
-  if (g.m && x.mm.has(bare(g.m))) return { i: x.mm.get(bare(g.m)).i, m: x.mm.get(bare(g.m)), at: g.at || 0, set: true };
-  if (g.c) { const n = num(g.c), f = x.list.findIndex((q) => q.ch === n); return { i: f < 0 ? -1 : f - 1, c: n, at: g.at || 0, set: true }; }
-  return { i: -1, set: false };
+  const g = core?.pos(game); if (!g || !(g.m || g.c)) return { i: -1, set: false };
+  const i = core.rankOf(game, g.m || g.c), m = g.m ? x.mm.get(bare(g.m)) : null;
+  return { i, m, c: num(g.c), at: g.at || 0, set: i >= 0, raw: g };
 }
-// правило спойлеров (Fable): пройденное видно; следующая — если не sp 2; дальше — только sp 0; остальное — по тапу
-function canShow(m, p) {
-  const core = window.SB?.guideCore; if (core?.canShow) return core.canShow({ m: m.id, sp: m.sp }, p);
-  return m.sp === 0 || m.i <= p.i || (m.i === p.i + 1 && m.sp < 2);
+// название точки невозврата (правило Fable): без отметки — никогда (глава и вид потери); иначе canShow ядра по sp миссии,
+// from — предыдущая миссия (следующая видна, дальше — по правилу), «раскрыто» — reveal ядра (sb.gr)
+const recOf = (r, m, x) => ({ k: r.k, sp: m.sp, from: m.i > 0 ? 'm:' + x.list[m.i - 1].id : undefined });
+function canShow(r, m, p, x) {
+  if (!core) return false;
+  const rec = recOf(r, m, x);
+  const opened = (() => { try { return JSON.parse(localStorage.getItem('sb.gr') || '[]').includes(rec.k); } catch { return false; } })();
+  if (opened) return true;
+  if (!p.set) return false;
+  return m.sp === 0 || m.i <= p.i || core.canShow(rec, C?.game || 'gta6').title;
 }
 const doneSet = (game) => new Set(jget(GS)[game] || []);
 export function toggleDone(game, id) {
@@ -107,7 +113,7 @@ export async function nextWarn(game, lang) {
   const p = pos(x, game); if (!p.set) return null;
   const q = pnrs(x, p).find((z) => !z.past); if (!q) return null;
   const dn = doneSet(game);
-  return { id: q.r.id, m: q.m.id, ch: q.r.ch, ahead: q.ahead, lt: q.r.lt, t: q.r.t, k: q.r.k, show: canShow(q.m, p),
+  return { id: q.r.id, m: q.m.id, ch: q.r.ch, ahead: q.ahead, d: q.ahead + 1, lt: q.r.lt, t: q.r.t, k: q.r.k, show: canShow(q.r, q.m, p, x),
     items: q.r.items.map((w) => ({ id: w.id, t: w.t, why: w.why, lvl: w.lvl, st: w.st, done: dn.has(w.id) })) };
 }
 // для экрана миссии: {miss, req} — подставить в how.miss / how.req, guide.js рисует сам
@@ -144,17 +150,17 @@ const wHTML = (w) => `<li class="sv-w${w.lvl === 1 ? ' is-l1' : ''}"><div class=
   <p class="sv-lv">${esc(w.lvl === 1 ? s('lv1') : s('lv2'))}${trust(w)}</p></div></li>`;
 
 function pnrHTML(q, p) {
-  const { r, m } = q, open = canShow(m, p) || shown.has(r.id);
+  const { r, m } = q, open = canShow(r, m, p, D);
   const head = open ? `<h3 class="sv-h3">${esc(s('ch', { c: r.ch }))}. ${esc(tx(m.t))}${q.past ? `<small>${esc(s('passed'))}</small>` : ''}</h3>`
     : `<h3 class="sv-h3">${esc(s('ch', { c: r.ch }))}: ${esc(tx(r.lt))}</h3>`;
-  if (!open) return `<div class="sv-pnr" data-id="${esc(r.id)}">${head}<button class="sv-sp" data-s="spoil" data-id="${esc(r.id)}">${C.I.eye}<span>${esc(s('hid'))}</span></button></div>`;
+  if (!open) return `<div class="sv-pnr" data-id="${esc(r.id)}">${head}<button class="sv-sp" data-s="spoil" data-id="${esc(r.k)}">${C.I.eye}<span>${esc(s('hid'))}</span></button></div>`;
   return `<div class="sv-pnr${q.past ? ' is-past' : ''}" data-id="${esc(r.id)}">${head}<p class="sv-pt">${esc(tx(r.t))}</p><p class="sv-why">${esc(tx(r.why))}</p>
     <ul class="sv-list">${r.items.map(wHTML).join('')}</ul></div>`;
 }
 
 function render() {
   const { d } = D, I = C.I, game = C.game, p = pos(D, game), qs = pnrs(D, p);
-  const soon = p.set ? qs.find((q) => !q.past && q.ahead <= 2) : null;
+  const soon = p.set ? qs.find((q) => !q.past && q.ahead + 1 <= 2) : null;   // как stateLine ядра: «через d миссий», d = до точки включительно
   const how = d.save[plat()], code = d.save.code;
   const stale = p.set && p.at && Date.now() - p.at > 3 * DAY && p.m;
   const whereTxt = p.m ? s('where_set', { c: p.m.ch, m: tx(p.m.t) }) : p.c ? s('where_c', { c: p.c }) : '';
@@ -174,7 +180,7 @@ function render() {
       ${p.set ? `<div class="sv-where"><p>${esc(whereTxt)}</p>${canPick ? `<button class="g-link" data-s="pick">${esc(s('change'))}</button>` : ''}</div>
         ${stale ? `<div class="sv-where sv-stale"><p>${esc(s('still', { m: tx(p.m.t) }))}</p><span><button class="g-link" data-s="still">${esc(s('yes'))}</button>${canPick ? `<button class="g-link" data-s="pick">${esc(s('change'))}</button>` : ''}</span></div>` : ''}`
         : `<p class="sv-p">${esc(s('where_none'))}</p>${canPick ? `<button class="g-link" data-s="pick">${I.pin}<span>${esc(s('mark'))}</span></button>` : ''}`}
-      ${soon ? `<p class="g-miss sv-soon">${I.alert}<span>${esc(soon.ahead ? s('soon', { n: pl('n_m', soon.ahead), l: tx(soon.r.lt) }) : s('soon_0', { l: tx(soon.r.lt) }))}</span></p>
+      ${soon ? `<p class="g-miss sv-soon">${I.alert}<span>${esc(soon.ahead ? s('soon', { n: pl('n_m', soon.ahead + 1), l: tx(soon.r.lt) }) : s('soon_0', { l: tx(soon.r.lt) }))}</span></p>
         ${window.SB?.openWalk ? `<button class="g-link" data-s="nx" data-v="walk">${esc(s('to_walk'))}</button>` : ''}` : ''}
     </section>
 
@@ -209,8 +215,8 @@ async function onClick(e) {
     case 'close': closeSaves(); break;
     case 'share': C.share?.(); break;
     case 'pick': C.haptic?.(); if (window.SB?.pickPos) window.SB.pickPos(C.game, () => rerender()); else window.SB?.openWalk?.(); break;
-    case 'still': { const all = jget(GP); if (all[C.game]) { all[C.game].at = Date.now(); jset(GP, all); } rerender(); break; }
-    case 'spoil': shown.add(b.dataset.id); rerender(); C.event?.('saves_spoil', { id: b.dataset.id }); break;
+    case 'still': { const g = core?.pos(C.game); if (g) core.setPos(C.game, { m: g.m, c: g.m ? undefined : g.c, via: 'self' }); rerender(); break; }
+    case 'spoil': core?.reveal(b.dataset.id); rerender(); C.event?.('saves_spoil', { id: b.dataset.id }); break;
     case 'how': { const o = await howObj(C.game, v); if (o) C.openHow?.(o); C.event?.('saves_how', { v }); break; }
     case 'nx': C.event?.('saves_next', { v }); C.next?.(v); break;
     case 'report': C.toast?.(s('report_ok')); C.event?.('saves_report', {}); break;
@@ -232,7 +238,7 @@ export async function openSaves(ctx, key = 'all') {
   requestAnimationFrame(() => layer.classList.add('open'));
   document.documentElement.classList.add('guide-open');
   history.pushState({ saves: 1 }, '');
-  if (key !== 'all') { shown.add(key); rerender(); requestAnimationFrame(() => { const el = layer.querySelector(`.sv-pnr[data-id="${CSS.escape(key)}"]`), sc = layer.querySelector('#sv-scroll');
+  if (key !== 'all') { const r = D.d.pnr.find((q) => q.id === key); if (r) core?.reveal(r.k); rerender(); requestAnimationFrame(() => { const el = layer.querySelector(`.sv-pnr[data-id="${CSS.escape(key)}"]`), sc = layer.querySelector('#sv-scroll');
     if (el && sc) sc.scrollTop = el.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 64; }); }
   C.event?.('saves_open', { from: ctx.from || '', key });
   return true;
