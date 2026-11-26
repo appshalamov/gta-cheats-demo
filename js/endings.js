@@ -6,7 +6,7 @@
 // Данные — data/guide/endings.json; миссии и главы — общая база data/guide/missions.json (ведёт guide-walkthrough), здесь только ссылки по id.
 // Прогресс — на телефоне, localStorage sb.ge: { <игра>: { ch: <n главы>, c: {<развилка>: <вариант>}, r: {<концовка>: 1|2}, rs: [<шаги маршрута>], all: 0|1 } }.
 
-import { pos, setPos, pickPos, loadBase, openKey } from './guide-core.js';   // ядро гида: позиция sb.gp, шторка «Где вы», ключи ?open=
+import { pos, setPos, pickPos, loadBase, openKey, hasOpener } from './guide-core.js';   // ядро гида: позиция sb.gp, шторка «Где вы», ключи ?open=
 
 const S = {
   ru: {
@@ -211,7 +211,7 @@ function bestHTML(p) {
     <p class="e-h3">${esc(s('best_route'))}</p><ol class="g-steps">${rows}</ol></section>`;
 }
 function nextHTML() {
-  const rows = (D.next || []).slice(0, 3);
+  const rows = (D.next || []).filter((n) => n.a !== 'open-key' || hasOpener(String(n.d?.key).split(':')[0])).slice(0, 3);   // ключ гида — только если его модуль в сборке
   if (!rows.length) return '';
   return `<section class="g-sec e-next"><h2>${esc(s('next'))}</h2>${rows.map((n) => `<button class="e-nx" data-e="nx" data-action="${esc(n.a)}"${Object.entries(n.d || {}).map(([k, v]) => ` data-${esc(k)}="${esc(v)}"`).join('')}>
       <span>${esc(tx(n.t))}</span>${C.I.chevron}</button>`).join('')}
@@ -285,7 +285,7 @@ function onClick(e) {
     case 'reset': setProg({ c: {}, r: {}, rs: [], all: 0, fe: p.fe }); render(); break;   // свои выборы; позиция в игре (sb.gp) общая — её не трогаем, бесплатная концовка та же
     case 'report': C.toast(s('report_ok')); C.event?.('endings_report', {}); break;
     case 'nx': C.event?.('endings_next', { a: b.dataset.action, v: b.dataset.v || b.dataset.key || '' }); closeEndings();
-      if (b.dataset.action === 'open-key' && !openKey(b.dataset.key, { from: 'endings' })) C.toast?.(s('soon'));   // ключ гида (saves:…) — через ядро; иначе — общий обработчик data-action
+      if (b.dataset.action === 'open-key') openKey(b.dataset.key, { from: 'endings' });   // ключ гида (saves:…) — через ядро; иначе — общий обработчик data-action
       break;
   }
 }

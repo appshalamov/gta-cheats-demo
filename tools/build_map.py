@@ -474,9 +474,9 @@ def guide_fields(it):
     by — кто нашёл; v — ролики [yt, канал] (только встраиваемые: смотрятся внутри приложения); sn — названия источников."""
     h = it.get("how")
     out = {}
-    if isinstance(h, dict) and h.get("steps"):
+    def conv(steps):
         st = []
-        for i, s in enumerate(h["steps"]):
+        for i, s in enumerate(steps):
             t = bix(s, "t")
             if not t:
                 continue
@@ -496,11 +496,25 @@ def guide_fields(it):
                        **({"tr": bix(s, "trap")} if bix(s, "trap") else {}),
                        **({"bv": str(s["big"]), **({"bn": bix(s, "big_note")} if bix(s, "big_note") else {})} if s.get("big") else {}),
                        **({"tg": [{"p": bix(x, "p"), **({"a": x["a"]} if x.get("a") else {}), **({"v": x["v"]} if x.get("v") else {})}
-                                  for x in s["tags"] if bix(x, "p")], "need": int(s.get("need") or len(s["tags"]))} if s.get("tags") else {})})
+                                  for x in s["tags"] if bix(x, "p")], "need": int(s.get("need") or len(s["tags"]))} if s.get("tags") else {}),
+                       # кадр шага с кольцом (решение «система гида»): src own|lic|svg|ref; ref — чужой, в прод не идёт (build_guide_index --prod)
+                       **({"img": {"f": s["img"]["file"], "src": s["img"].get("src", "ref"), **({"by": s["img"]["by"]} if s["img"].get("by") else {})}}
+                          if isinstance(s.get("img"), dict) and s["img"].get("file") else {}),
+                       **({"pt": s["part"]} if s.get("part") else {})})
             for k in ("ok", "tr"):
                 if st[-1].get(k):
                     nums_same(st[-1][k], f"{it.get('id')} шаг {i + 1} {k}")
-        ids = {x["id"] for x in st}
+        return st
+
+    if isinstance(h, dict) and h.get("steps"):
+        st = conv(h["steps"])
+        # два пути у одной находки (квест / баг): pa[] — свои шаги, время и пометка «могут закрыть патчем»; st — первый путь
+        pa = [{"id": x["id"], "t": bix(x, "t"), "min": int(x.get("time_min") or 0) or None, "st": conv(x["steps"]),
+               **({"bug": 1} if x.get("bug") else {}), **({"nt": bix(x, "note")} if bix(x, "note") else {})}
+              for x in h.get("paths") or [] if x.get("steps")]
+        if pa:
+            st = pa[0]["st"]
+        ids = {x["id"] for p_ in pa for x in p_["st"]} | {x["id"] for x in st}
         alt = h.get("alt") or {}
         wh = h.get("whole") or {}
         g = {"ta": bix(h, "action"), "rw": bix(h, "reward"),
@@ -508,7 +522,7 @@ def guide_fields(it):
              **({"self": h["self"]} if h.get("self") else {}), "lv": h.get("difficulty") or "medium", "min": int(h.get("time_min") or 0) or None,
              "req": [{"ty": r.get("type") if r.get("type") in GUIDE_REQ else "other", **({"ref": r["ref"]} if r.get("ref") else {}),
                       "t": bix(r, "t")} for r in h.get("req") or [] if bix(r, "t")],
-             "st": st,
+             "st": st, **({"pa": pa} if pa else {}),
              "fx": [{"t": bix(f, "t"), **({"s": [x for x in f.get("steps") or [] if x in ids]} if f.get("steps") else {})}
                     for f in h.get("fails") or [] if bix(f, "t")],
              "alt": ({"t": bix(alt, "t"), **({"nt": bix(alt, "note")} if bix(alt, "note") else {}),
