@@ -149,6 +149,8 @@ const findCard = (f) => `<button class="cn-card" data-cr="cn-find" data-v="${f.i
 const nextBlock = (rows) => `<h2 class="cr-h">${esc(tx('next_h'))}</h2><div class="group">${rows.slice(0, 3).join('')}</div>`;
 const demoLine = () => `<p class="cn-demo">${esc(tx('demo'))}</p>`;
 const money = () => !H.isMinor();
+// ссылка автора: на инструкцию (ключ guide: из указателя гида), иначе общая рефссылка — ключа find: в guide-core KEY_RE нет (выпуск 3)
+const refUrl = (code, f) => `${H.link(code)}${f.guide ? `&open=${f.guide}` : ''}`;
 const usd = (c) => `$${c % 100 ? (c / 100).toFixed(2) : c / 100}`;
 /** Раздел авторов в демке виден только в демо-режиме partner (решение Fable «система гида», guide-creators): в выпуски 1–2 не идёт */
 export const on = () => window.SB?.mockRaw?.() === 'partner';   // через devGate api.js: в боевой сборке раздела нет
@@ -177,7 +179,7 @@ async function findHTML(a) {
   if (!f) return nowHTML({});   // находки по этой инструкции в «Снимать сейчас» нет — список
   const P = H.P(), i = FINDS.indexOf(f), nx = FINDS[(i + 1) % FINDS.length];
   const first = f.who.where ? tx('first_by', { who: f.who.by, where: f.who.where, d: dd(f.who.d) }) : tx('first_none', { who: f.who.by, d: dd(f.who.d) });
-  const lnk = P?.ref_code ? `${H.link(P.ref_code)}&open=${f.guide || 'find:gta6:' + f.id}` : '';
+  const lnk = P?.ref_code ? refUrl(P.ref_code, f) : '';
   const plan = `<h2 class="cr-h">${esc(tx('plan_h'))}</h2><div class="cn-plan">
     <div><span>${esc(tx('plan_hook'))}</span><p>${esc(L2(f.plan.hook))}</p></div>
     <div><span>${esc(tx('plan_show'))}</span><ol>${L2(f.plan.show).map((x) => `<li>${esc(x)}</li>`).join('')}</ol></div>
@@ -231,7 +233,7 @@ function taskText(f) {
     source: { author: s.who, at: s.at, quality: s.q, permission: s.perm }, highlight: s.at,
     steps: f.plan.show.en, schema: f.src.some((x) => x.kind === 'ours') ? `https://sbgta.app/media/schemes/${f.id}.svg` : null,
     formats: ['9:16'], count: 3, subtitles: ['ru', 'en'], hook: f.plan.hook.en, titles: f.plan.titles.en,
-    outro: { text: 'Secret Base', ref_url: P?.ref_code ? `https://${H.link(P.ref_code)}&open=${f.guide || 'find:gta6:' + f.id}` : 'https://sbgta.app', qr: true } }, null, 2);
+    outro: { text: 'Secret Base', ref_url: P?.ref_code ? 'https://' + refUrl(P.ref_code, f) : 'https://sbgta.app', qr: true } }, null, 2);
 }
 async function agentHTML(a) {
   const f = byId(a.id) || FINDS[0], txt = taskText(f);
