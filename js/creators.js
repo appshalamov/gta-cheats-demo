@@ -150,8 +150,8 @@ const nextBlock = (rows) => `<h2 class="cr-h">${esc(tx('next_h'))}</h2><div clas
 const demoLine = () => `<p class="cn-demo">${esc(tx('demo'))}</p>`;
 const money = () => !H.isMinor();
 const usd = (c) => `$${c % 100 ? (c / 100).toFixed(2) : c / 100}`;
-/** Раздел авторов в демке виден только под ?sbmock=partner (решение Fable «система гида», guide-creators): в выпуски 1–2 не идёт */
-export const on = () => /[?&]sbmock=partner\b/.test(location.search);
+/** Раздел авторов в демке виден только в демо-режиме partner (решение Fable «система гида», guide-creators): в выпуски 1–2 не идёт */
+export const on = () => window.SB?.mockRaw?.() === 'partner';   // через devGate api.js: в боевой сборке раздела нет
 
 // ── «Снимать сейчас» ──
 async function nowHTML(a) {

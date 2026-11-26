@@ -483,7 +483,7 @@ function guideCtx(g, from, linked, shareKey, onClose) {
     share: (x) => shareText(`${guideTitle(x)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=${shareKey(x)}`),
     event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
     onClose: onClose || (() => { if (ui.tab === 'feed') renderFeed(); else if (ui.tab === 'home') renderHub(); }),
-    after: (x) => (typeof cnShootHTML === 'function' ? cnShootHTML(`guide:${g}:${x.id}`) : ''),   // «Снять про это» — только автору с рефкодом, под ?sbmock=partner (guide-creators)
+    after: (x) => (typeof cnShootHTML === 'function' ? cnShootHTML(`guide:${g}:${x.id}`) : ''),   // «Снять про это» — только автору с рефкодом, в демо-режиме partner (guide-creators)
   };
 }
 async function openGuideKey(key, from = '', linked = false) {
@@ -852,7 +852,8 @@ let cnAuthor = false;
 const cnShootHTML = (key) => (cnAuthor ? `<button class="g-shoot" data-action="cn-shoot" data-key="${esc(key)}">${I.video}<span>${getLang() === 'en' ? 'Film this' : 'Снять про это'}<small>${getLang() === 'en' ? 'Video plan, materials and a link with your code' : 'План ролика, материалы и ссылка с вашим кодом'}</small></span>${I.chevron}</button>` : '');
 // «Снимать сейчас: N» на Главной у автора с рефкодом (ветка feature/guide-creators, 05 п. 2): раздел креаторов грузим, только если открыт ?sbmock=partner
 function cnHome() {
-  if (!/[?&]sbmock=partner\b/.test(location.search)) return;   // демка: только под ?sbmock=partner (решение Fable «система гида»)
+  if (!window.SB?.mockRaw) { import('./api.js').then(() => cnHome()).catch(() => { }); return; }   // api.js ещё не загружен — проверить после
+  if (window.SB.mockRaw() !== 'partner') return;   // демка: только в демо-режиме partner, через devGate api.js (решение Fable «система гида»)
   crMod().then((m) => { crLoaded = true; m.init(crCtx()); return m.homeNow(); }).then((h) => { const b = document.getElementById('cn-home'); cnAuthor = !!h; if (b && h) { b.innerHTML = h; b.hidden = false; } }).catch(() => { });
 }
 

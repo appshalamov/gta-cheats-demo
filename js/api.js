@@ -74,6 +74,9 @@ function mockPick() {
   try { s = s || sessionStorage.getItem('sb.mock') || localStorage.getItem('sb.mock'); } catch { }
   return STATES.includes(s) ? s : null;
 }
+// имя демо-режима для модулей гида (креаторы, прогресс) — только через devGate: в боевой сборке всегда null (check_code §11, 26.11.2026)
+export function mockRaw() { if (!devGate()) return null; let s = null; try { s = new URLSearchParams(location.search).get('sbmock') || sessionStorage.getItem('sb.mock'); } catch { } return s || null; }
+window.SB = Object.assign(window.SB || {}, { mockRaw });
 const MOCK = mockPick();
 const SOURCE = MOCK ? 'mock' : DEMO_ON ? 'demo' : 'beta';
 const MODE = DEMO_ON ? 'demo' : CREATOR_MODE;

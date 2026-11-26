@@ -64,7 +64,7 @@ const wr = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch
 const norm = (x) => String(x || '').toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 // кнопки консоли — только в демке (Решение Fable: «Кнопки PlayStation и Xbox — только под ?sbmock»)
 // как js/api.js: ?sbmock=<имя> пишет sessionStorage sb.mock только на стенде (localhost) или в demo — в боевой сборке кнопок нет
-export const consoleOn = () => { try { return !!sessionStorage.getItem('sb.mock') || (/[?&]sbmock=\w/.test(location.search) && /^(localhost|127\.0\.0\.1)$/.test(location.hostname)); } catch { return false; } };
+export const consoleOn = () => !!window.SB?.mockRaw?.();   // через devGate api.js: в боевой сборке кнопок консоли нет
 
 // ---------- данные ----------
 async function getJSON(u) { const r = await fetch(u); if (!r.ok) throw new Error(r.status); return r.json(); }
