@@ -821,11 +821,9 @@ const skRow = (cls = '', n = 3) => `<div class="hscroll sk-row" aria-hidden="tru
 function paintHub(box, isMap, pd, newsAll, favPreview) {
   const list = cheats();
   const popular = (POPULAR[store.game] || []).map((id) => list.find((c) => c.id === id)).filter(Boolean);
-  // разделы «Новости / Новое на карте / Пасхалки» с кнопками «Все» (выпуск 23.11); без данных — скелетоны тех же размеров
-  const freshIds = new Set(pd ? newOnMap(pd).map((o) => o.id) : []);
-  const places = pd ? featured(pd, 'place', 14 + freshIds.size).filter((o) => !freshIds.has(o.id)).slice(0, 14) : [];
+  // Порядок Главной (Игорь 27.11): Коды → Популярное → Места → Пасхалки → Гид по игре → Новости внизу; «Новое на карте» убрано
+  const places = pd ? featured(pd, 'place', 14) : [];
   const eggs = pd ? eggsNewFirst(pd).filter(hasPhoto).slice(0, 12) : [];
-  const fresh = pd ? newOnMap(pd, 'place', 12) : [];
   const news = newsAll ? newsAll.filter((n) => n.game === store.game).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 12) : null;
   const favCount = store.favs.length + store.favPlaces.length;
   const more = (v) => `<button class="hub-more" data-action="open-feed" data-v="${v}">${t('see_all')}${I.chevron}</button>`;
@@ -833,10 +831,6 @@ function paintHub(box, isMap, pd, newsAll, favPreview) {
   const noPd = isMap && !pd;
   box.innerHTML = `
     ${forecastBanner()}
-    ${!news ? hubSection(t('hub_news'), '', more('news'), skRow(' ncard')) : news.length ? hubSection(t('hub_news'), esc(agoText(newsUpdated())), more('news'), `<div class="hscroll" data-sec="news">${news.map(newsCard).join('')}</div>`) : ''}
-    <div id="gh-sec">${gReady[store.game]?.html || ''}</div>
-    <div id="cn-home" hidden></div>
-    ${noPd ? hubSection(t('hub_newmap'), t('hub_newmap_sub'), more('newmap'), skRow()) : fresh.length ? hubSection(t('hub_newmap'), t('hub_newmap_sub'), more('newmap'), `<div class="hscroll" data-sec="newmap">${fresh.map((o) => placeCard(o)).join('')}</div>`) : ''}
     ${hubSection(t('hub_cheats'), `<button class="hub-plat" data-action="switch">${esc(L(PLATFORMS[store.platform]))}<i class="gsw-chev">${I.chevron}</i></button>`, `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
         <span class="ct-ic">${I[c.icon]}</span><span class="ct-t"><b>${L(c)}</b><small>${tn(list.filter((x) => x.category === c.id).length, 'n_codes')}</small></span></button>`).join('')}</div>`)}
@@ -844,8 +838,11 @@ function paintHub(box, isMap, pd, newsAll, favPreview) {
     ${noPd ? hubSection(t('hub_places'), t('hub_places_sub'), placesBtn, skRow()) + hubSection(t('hub_eggs'), t('hub_eggs_sub'), more('eggs'), skRow()) : ''}
     ${places.length ? hubSection(t('hub_places'), t('hub_places_sub'), placesBtn, `<div class="hscroll">${places.map((o) => placeCard(o)).join('')}</div>`) : ''}
     ${eggs.length ? hubSection(t('hub_eggs'), t('hub_eggs_sub'), more('eggs'), `<div class="hscroll" data-sec="eggs">${eggs.map((o) => placeCard(o)).join('')}</div>`) : ''}
+    <div id="gh-sec">${gReady[store.game]?.html || ''}</div>
+    <div id="cn-home" hidden></div>
     ${favCount ? hubSection(t('hub_favs'), '', `<button class="hub-more" data-action="tab" data-tab="fav">${t('see_all')}${I.chevron}</button>`,
       favPreview ? `<div class="hscroll">${favPreview.slice(0, 10).map((x) => (x.kind ? placeCard(x, { game: x.game !== store.game }) : miniCheat(x))).join('')}</div>` : skRow()) : ''}
+    ${!news ? hubSection(t('hub_news'), '', more('news'), skRow(' ncard')) : news.length ? hubSection(t('hub_news'), esc(agoText(newsUpdated())), more('news'), `<div class="hscroll" data-sec="news">${news.map(newsCard).join('')}</div>`) : ''}
     <div class="hub-foot">${t('hub_foot')}</div>`;
   cnHome();
 }
