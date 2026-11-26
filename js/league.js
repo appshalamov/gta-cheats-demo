@@ -2442,7 +2442,7 @@ function crArgs(args) {
   return a;
 }
 /** Строка «Снимать сейчас: N» на Главной — только у автора с рефкодом (05 п. 2); иначе '' */
-export async function homeNow() { await load(); return (isPartner() || isMinor()) && P.ref_code ? CN.homeHTML() : ''; }
+export async function homeNow() { await load(); return CN.on() && (isPartner() || isMinor()) && P.ref_code ? CN.homeHTML() : ''; }
 export async function openCreator(id = 'league', args = {}) { await load(); return push(id, crArgs(args)); }
 /** «Стать партнёром» снаружи (пейвол nopay): вход почтой и 18+; уже партнёр — Лига */
 export async function becomePartner() { await load(); if (isPartner()) return push('league', {}); loginSheet(); }

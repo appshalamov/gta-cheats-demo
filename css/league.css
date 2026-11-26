@@ -565,3 +565,7 @@
 .cn-home { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 8px 14px; text-align: left; border-radius: 22px; color: var(--text); background: var(--accent-soft); }
 .cn-home .row-l small { display: block; font-size: 13px; color: var(--text-2); }
 .cn-home .row-ic { color: var(--accent); }
+.cn-sent { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 14px 6px; text-align: center; }
+.cn-sent > svg { width: 44px; height: 44px; padding: 10px; border-radius: 50%; color: var(--accent-ink); background: var(--ok); box-sizing: content-box; }
+.cn-sent b { font: var(--t-headline); }
+.cn-sent small { font-size: 13.5px; color: var(--text-2); }

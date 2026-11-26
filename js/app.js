@@ -682,10 +682,9 @@ function paintHub(box, isMap, pd, newsAll, favPreview) {
     <div class="hub-foot">${t('hub_foot')}</div>`;
   cnHome();
 }
-// «Снимать сейчас: N» на Главной у автора с рефкодом (ветка feature/guide-creators, 05 п. 2): раздел креаторов грузим, только если на устройстве есть профиль автора
+// «Снимать сейчас: N» на Главной у автора с рефкодом (ветка feature/guide-creators, 05 п. 2): раздел креаторов грузим, только если открыт ?sbmock=partner
 function cnHome() {
-  let hint = /[?&]sbmock=/.test(location.search); try { hint ||= !!localStorage.getItem('sb.beta.v1'); } catch { }
-  if (!hint) return;
+  if (!/[?&]sbmock=partner\b/.test(location.search)) return;   // демка: только под ?sbmock=partner (решение Fable «система гида»)
   crMod().then((m) => { crLoaded = true; m.init(crCtx()); return m.homeNow(); }).then((h) => { const b = document.getElementById('cn-home'); if (b && h) { b.innerHTML = h; b.hidden = false; } }).catch(() => { });
 }
 

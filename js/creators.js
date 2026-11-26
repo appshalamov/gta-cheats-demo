@@ -5,6 +5,7 @@
 // (js/league.js): league.js отдаёт сюда свои помощники через setup(), сам этот модуль league.js не импортирует.
 import { I } from './icons.js';
 import { getLang } from './i18n.js';
+import { REWARDS } from './config.js';   // одна таблица ставок (решение Fable «система гида» §7)
 
 let H = null;   // помощники league.js: head, body, row, tag, push, pop, close, ctx(), P(), isPartner(), isMinor(), link(), esc
 export function setup(h) { H = h; }
@@ -15,7 +16,7 @@ const T = {
     now_h: 'Снимать сейчас', now_sub: '{n} находки ждут первых роликов', now_p: 'Подтверждённые находки, по которым роликов ещё мало. Кто снимет первым, соберёт поиск.',
     t_now: 'Снимать', t_conf: 'Подтверждено', t_out: 'Вышло',
     st_now: 'Снимать сейчас', st_conf: 'Подтверждено', st_guide: 'Есть инструкция', st_first: 'Статей ещё нет: можно первым', st_late: 'Уже есть статьи: снимайте свой ракурс',
-    meta: 'Замечено {d}, источников {s}, роликов около {v}', score: 'Оценка радара {n} из 100',
+    meta: 'Нашли {d}, источников {s}, роликов около {v}', score: 'Оценка радара {n} из 100',
     home_row: 'Снимать сейчас: {n}', home_sub: 'Свежие находки, роликов почти нет',
     first_by: 'Первым показал: {who}, {where}, {d}', first_none: 'Кто нашёл первым, не установлено. Первый разбор: {who}, {d}',
     plan_h: 'План ролика', plan_hook: 'Начало', plan_show: 'Показать', plan_titles: 'Названия',
@@ -24,8 +25,8 @@ const T = {
     p_yes: 'Автор разрешил нарезки с указанием канала', p_asked: 'Разрешение запрошено', p_no: 'Разрешения нет: только смотреть', p_auto: 'Нашёл автопоиск, разрешение не запрошено', p_own: 'Наш материал, можно всё',
     watch: 'Смотреть с {t}', dl_author: 'Скачать у автора', dl: 'Скачать',
     agent_btn: 'Задание агенту', my_link: 'Ссылка на находку с вашим кодом', add_src: 'Добавить исходник', bank_btn: 'Банк исходников',
-    life_need: 'Нет съёмки места в жизни. Снимите набор (горизонталь и вертикаль, от 30 секунд): $10', life_need_np: 'Нет съёмки места в жизни. За принятый набор — 7 дней Pro',
-    first_fee: 'Нашли сами и статей нет? Отправьте находку: $5 и строка первооткрывателя',
+    life_need: 'Нет съёмки места в жизни. Снимите набор (горизонталь и вертикаль, от 30 секунд): {s}', life_need_np: 'Нет съёмки места в жизни. За принятый набор — 7 дней Pro',
+    first_fee: 'Нашли сами и статей нет? Отправьте находку: {s} и строка первооткрывателя',
     pre: 'Предварительно: деньги начнём платить после серверной проверки',
     next_h: 'Дальше', nx_guide: 'По шагам: {t}', nx_map: 'Показать место на карте', nx_next: 'Следующая находка: {t}', nx_bank: 'Банк исходников', nx_bank_d: 'Чистые записи, съёмка в жизни, схемы',
     nx_link: 'Моя ссылка и код', nx_link_d: 'Кто пришёл по вашим роликам', nx_tasks: 'Задания недели', nx_now_d: '{n} находки ждут первых роликов',
@@ -41,13 +42,16 @@ const T = {
     ag_h: 'Задание агенту', ag_p: 'Скопируйте и вставьте в Claude Code с навыком нарезки. Видео режется на вашем компьютере, к нам не уходит.',
     ag_copy: 'Скопировать задание', ag_how: 'Как запустить', ag_1: 'Один раз поставьте навык: /plugin install sb-clipper', ag_2: 'Скачайте исходник у автора или возьмите свою запись', ag_3: 'Вставьте задание. Агент сделает 3 ролика 9:16 с субтитрами, схемой и концовкой со ссылкой',
     ag_out: 'Что получится', ag_out_p: '3 вертикальных ролика по 20–45 секунд, субтитры RU и EN, наша схема в нужном шаге, последний кадр с вашей ссылкой и QR',
+    sn_h: 'Что дальше', sn_what: 'Что будет с исходником', sn_rev: 'Проверим за сутки: ваша ли запись, есть ли находка на указанной секунде, нет ли людей крупно и частных домов',
+    sn_bank: 'После проверки исходник появится в банке и в «Материалах» находки с именем вашего канала', sn_credit: 'Ваш канал будет подписан у находки и в «Источниках» инструкции, зрители смотрят запись во встроенном плеере',
+    sn_pay: 'Съёмка места засчитается: {s} в «Заработке»', sn_pro: 'Съёмка места засчитается: 7 дней Pro', sn_mine: 'Мои вклады', sn_mine_d: 'Статус проверки и что принято',
     copied: 'Скопировано', demo: 'Пример интерфейса на находках радара 26 ноября', soon: 'В демке не работает',
   },
   en: {
     now_h: 'Film now', now_sub: '{n} finds waiting for first videos', now_p: 'Confirmed finds with few videos so far. Whoever films first gets the search traffic.',
     t_now: 'Film', t_conf: 'Confirmed', t_out: 'Covered',
     st_now: 'Film now', st_conf: 'Confirmed', st_guide: 'Guide ready', st_first: 'No articles yet: you can be first', st_late: 'Articles are out: film your own angle',
-    meta: 'Spotted {d}, {s} sources, about {v} videos', score: 'Radar score {n} of 100',
+    meta: 'Found {d}, {s} sources, about {v} videos', score: 'Radar score {n} of 100',
     home_row: 'Film now: {n}', home_sub: 'Fresh finds, almost no videos yet',
     first_by: 'First shown by {who}, {where}, {d}', first_none: 'Who found it first is unknown. First breakdown: {who}, {d}',
     plan_h: 'Video plan', plan_hook: 'Open with', plan_show: 'Show', plan_titles: 'Titles',
@@ -56,8 +60,8 @@ const T = {
     p_yes: 'Author allows clips with channel credit', p_asked: 'Permission requested', p_no: 'No permission: watch only', p_auto: 'Found by auto search, not asked yet', p_own: 'Our material, free to use',
     watch: 'Watch from {t}', dl_author: 'Download from author', dl: 'Download',
     agent_btn: 'Task for the agent', my_link: 'Link to this find with your code', add_src: 'Add a source', bank_btn: 'Source bank',
-    life_need: 'No real-life footage of the place. Film a set (landscape and vertical, 30+ seconds): $10', life_need_np: 'No real-life footage of the place. An accepted set earns 7 days of Pro',
-    first_fee: 'Found it yourself and there are no articles? Send the find: $5 and a discoverer credit',
+    life_need: 'No real-life footage of the place. Film a set (landscape and vertical, 30+ seconds): {s}', life_need_np: 'No real-life footage of the place. An accepted set earns 7 days of Pro',
+    first_fee: 'Found it yourself and there are no articles? Send the find: {s} and a discoverer credit',
     pre: 'Preliminary: payouts start once server checks are live',
     next_h: 'Next', nx_guide: 'Step by step: {t}', nx_map: 'Show the place on the map', nx_next: 'Next find: {t}', nx_bank: 'Source bank', nx_bank_d: 'Clean recordings, real-life footage, diagrams',
     nx_link: 'My link and code', nx_link_d: 'Who came from your videos', nx_tasks: 'Tasks of the week', nx_now_d: '{n} finds waiting for first videos',
@@ -73,6 +77,9 @@ const T = {
     ag_h: 'Task for the agent', ag_p: 'Copy and paste into Claude Code with the clipping skill. The video is cut on your computer and never sent to us.',
     ag_copy: 'Copy the task', ag_how: 'How to run it', ag_1: 'Install the skill once: /plugin install sb-clipper', ag_2: 'Download the source from the author or use your own recording', ag_3: 'Paste the task. The agent makes 3 vertical 9:16 videos with captions, our diagram and an end card with your link',
     ag_out: 'What you get', ag_out_p: '3 vertical videos of 20–45 seconds, RU and EN captions, our diagram at the right step, a last frame with your link and QR',
+    sn_h: 'What’s next', sn_what: 'What happens to your source', sn_rev: 'We check it within a day: that it is your recording, the find is at the given second, no close-up people or private homes',
+    sn_bank: 'Once approved, it appears in the bank and in the find’s Materials with your channel name', sn_credit: 'Your channel is credited on the find and in the guide’s Sources; viewers watch it in the built-in player',
+    sn_pay: 'The footage counts: {s} in Earnings', sn_pro: 'The footage counts: 7 days of Pro', sn_mine: 'My contributions', sn_mine_d: 'Review status and what was accepted',
     copied: 'Copied', demo: 'Interface example on radar finds from November 26', soon: 'Not available in the demo',
   },
 };
@@ -142,6 +149,9 @@ const findCard = (f) => `<button class="cn-card" data-cr="cn-find" data-v="${f.i
 const nextBlock = (rows) => `<h2 class="cr-h">${esc(tx('next_h'))}</h2><div class="group">${rows.slice(0, 3).join('')}</div>`;
 const demoLine = () => `<p class="cn-demo">${esc(tx('demo'))}</p>`;
 const money = () => !H.isMinor();
+const usd = (c) => `$${c % 100 ? (c / 100).toFixed(2) : c / 100}`;
+/** Раздел авторов в демке виден только под ?sbmock=partner (решение Fable «система гида», guide-creators): в выпуски 1–2 не идёт */
+export const on = () => /[?&]sbmock=partner\b/.test(location.search);
 
 // ── «Снимать сейчас» ──
 async function nowHTML(a) {
@@ -170,7 +180,7 @@ async function findHTML(a) {
     <div><span>${esc(tx('plan_hook'))}</span><p>${esc(L2(f.plan.hook))}</p></div>
     <div><span>${esc(tx('plan_show'))}</span><ol>${L2(f.plan.show).map((x) => `<li>${esc(x)}</li>`).join('')}</ol></div>
     <div><span>${esc(tx('plan_titles'))}</span><ol>${L2(f.plan.titles).map((x) => `<li>${esc(x)}<button class="cn-cp" data-cr="copy" data-v="${esc(x)}" aria-label="copy">${I.copy}</button></li>`).join('')}</ol></div></div>`;
-  const reward = !f.life ? `<div class="cn-reward">${I.camera}<span><b>${esc(money() ? tx('life_need') : tx('life_need_np'))}</b>${money() ? `<small>${esc(tx('pre'))}</small>` : ''}</span></div>` : '';
+  const reward = !f.life ? `<div class="cn-reward">${I.camera}<span><b>${esc(money() ? tx('life_need', { s: usd(REWARDS.creator.life_set) }) : tx('life_need_np'))}</b>${money() ? `<small>${esc(tx('pre'))}</small>` : ''}</span></div>` : '';
   const mats = `<h2 class="cr-h">${esc(tx('mat_h'))}</h2><p class="cr-p">${esc(tx('mat_p'))}</p><div class="cn-srcs">${f.src.map((s) => srcRow(s, f)).join('')}</div>${reward}
     <button class="btn-ghost" data-cr="cn-add" data-v="${f.id}">${I.plus}${esc(tx('add_src'))}</button>`;
   const rows = [];
@@ -194,7 +204,7 @@ async function bankHTML(a) {
   const list = items.map(({ s, f }) => `<div class="cn-bk">${srcRow(s, f)}<button class="cn-for" data-cr="cn-find" data-v="${f.id}">${esc(tx('for_find', { t: L2(f.t) }))}${I.chevron}</button></div>`).join('');
   const nx = nextBlock([H.row('cn-now', 'video', tx('now_h'), tx('nx_now_d', { n: nowList().length })), H.row('open:mylink', 'link', tx('nx_link'), tx('nx_link_d'))]);
   return `${H.head(tx('bank_h'))}${H.body(`<p class="cr-p">${esc(tx('bank_p'))}</p>${seg}${auto}<div class="cn-srcs">${list}</div>
-    <button class="btn-ghost" data-cr="cn-add">${I.plus}${esc(tx('add_src'))}</button>${money() ? `<p class="cn-note">${esc(tx('first_fee'))}. ${esc(tx('pre'))}</p>` : ''}${nx}${demoLine()}`)}`;
+    <button class="btn-ghost" data-cr="cn-add">${I.plus}${esc(tx('add_src'))}</button>${money() ? `<p class="cn-note">${esc(tx('first_fee', { s: usd(REWARDS.creator.first_find) }))}. ${esc(tx('pre'))}</p>` : ''}${nx}${demoLine()}`)}`;
 }
 
 // ── добавить исходник ──
@@ -207,7 +217,7 @@ async function addHTML(a) {
        <label class="cn-in"><span>${esc(tx('add_at'))}</span><input inputmode="numeric" placeholder="${esc(tx('add_at_ph'))}"></label>
        <label class="cn-chk"><input type="checkbox" checked><span>${esc(tx('add_mine'))}</span></label>`
     : `<button class="btn-ghost" data-cr="cn-soon">${I.camera}${esc(tx('add_file'))}</button><p class="cn-note">${esc(tx('add_file_p'))}</p>
-       ${money() ? `<p class="cn-note">${esc(tx('life_need'))}. ${esc(tx('pre'))}</p>` : ''}`;
+       ${money() ? `<p class="cn-note">${esc(tx('life_need', { s: usd(REWARDS.creator.life_set) }))}. ${esc(tx('pre'))}</p>` : ''}`;
   return `${H.head(tx('add_h'))}${H.body(`${f ? `<p class="cn-first">${esc(tx('for_find', { t: L2(f.t) }))}</p>` : ''}<p class="cr-p">${esc(tx('add_p'))}</p>${seg}${fields}
     <button class="btn-primary" data-cr="cn-send">${I.send}${esc(tx('add_send'))}</button><p class="cn-note">${esc(tx('add_rules'))}</p>`)}`;
 }
@@ -230,12 +240,26 @@ async function agentHTML(a) {
     ${nextBlock([H.row('cn-bank', 'video', tx('nx_bank'), tx('nx_bank_d')), H.row('cn-now', 'video', tx('now_h'), tx('nx_now_d', { n: nowList().length }))])}${demoLine()}`)}`;
 }
 
+// ── «Что дальше» после отправки исходника (решение Fable «система гида», guide-creators) ──
+async function sentHTML(a) {
+  const f = a.find ? byId(a.find) : null, life = a.kind === 'life';
+  const st = life ? ['sn_rev', 'sn_bank', money() ? 'sn_pay' : 'sn_pro'] : ['sn_rev', 'sn_bank', 'sn_credit'];
+  const rows = [];
+  if (f) rows.push(H.row('cn-agent', 'sparkle', tx('agent_btn'), L2(f.t), `data-v="${f.id}"`));
+  rows.push(H.row('cn-now', 'video', tx('now_h'), tx('nx_now_d', { n: nowList().length })));
+  rows.push(H.row('open:contribs', 'doc', tx('sn_mine'), tx('sn_mine_d')));
+  return `${H.head(tx('sn_h'))}${H.body(`<div class="cn-sent">${I.check}<b>${esc(tx('add_ok'))}</b>${f ? `<small>${esc(tx('for_find', { t: L2(f.t) }))}</small>` : ''}</div>
+    <h2 class="cr-h">${esc(tx('sn_what'))}</h2><ol class="cn-steps">${st.map((k, i) => `<li><span>${i + 1}</span>${esc(tx(k, { s: usd(REWARDS.creator.life_set) }))}</li>`).join('')}</ol>
+    ${life && money() ? `<p class="cn-note">${esc(tx('pre'))}</p>` : ''}${nextBlock(rows)}${demoLine()}`)}`;
+}
+
 export const SCREENS = {
+  cn_sent: { html: sentHTML },
   cn_now: { html: nowHTML }, cn_find: { html: findHTML }, cn_bank: { html: bankHTML }, cn_add: { html: addHTML }, cn_agent: { html: agentHTML },
 };
 
 /** Строка раздела «Авторам и партнёрам» (хаб) */
-export const hubRow = () => H.row('cn-now', 'video', tx('now_h'), tx('now_sub', { n: nowList().length }), `data-badge="${nowList().length}"`) + H.row('cn-bank', 'doc', tx('bank_btn'), tx('nx_bank_d'));
+export const hubRow = () => !on() ? '' : H.row('cn-now', 'video', tx('now_h'), tx('now_sub', { n: nowList().length }), `data-badge="${nowList().length}"`) + H.row('cn-bank', 'doc', tx('bank_btn'), tx('nx_bank_d'));
 /** Строка на Главной у автора с рефкодом (05 п. 2): «Снимать сейчас: N» */
 export const homeHTML = () => `<button class="cn-home" data-action="cn-home"><span class="row-ic">${I.video}</span><span class="row-l">${esc(tx('home_row', { n: nowList().length }))}<small>${esc(tx('home_sub'))}</small></span><span class="row-chev">${I.chevron}</span></button>`;
 
@@ -249,7 +273,7 @@ export async function onAction(a, el) {
     case 'cn-agent': H.push('cn_agent', { id: v }); return true;
     case 'cn-add': H.push('cn_add', { find: v || null }); return true;
     case 'cn-tab': case 'cn-btab': case 'cn-akind': if (top) { top.args[a === 'cn-akind' ? 'kind' : 'tab'] = v; await H.rerender(); } return true;
-    case 'cn-send': H.ctx().toast(tx('add_ok')); H.pop(); return true;
+    case 'cn-send': { const t = H.top(); H.push('cn_sent', { kind: t?.args.kind || 'game', find: t?.args.find || null }, true); return true; }
     case 'cn-watch': case 'cn-soon': H.ctx().toast(tx('soon')); return true;
     case 'cn-guide': H.close(); window.SB?.openGuideKey?.(v); return true;
     case 'cn-map': H.close(); H.ctx().openOnMap(v); return true;
