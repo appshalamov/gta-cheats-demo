@@ -45,6 +45,10 @@ for m in base['m']:
         both(m['o'], f"миссия {m['id']}.o")
     if m.get('timed'):
         both(m['timed'], f"миссия {m['id']}.timed")
+    if m.get('pnr'):
+        both(m['pnr'], f"миссия {m['id']}.pnr")
+    if m.get('kw') and (not m['kw'].get('ru') or not m['kw'].get('en')):
+        errs.append(f"миссия {m['id']}: kw без RU или EN")
     if len(set(m.get('s', []))) < 2 and not m.get('one'):
         errs.append(f"миссия {m['id']}: меньше двух источников ({m.get('s')})")
 refs = {f'm:{i}' for i in ids}
@@ -71,6 +75,10 @@ for t in tips:
     for k in srcs:
         if k not in base['src']:
             errs.append(f'{w}: источник {k} не описан в src')
+    if not t.get('next'):
+        errs.append(f'{w}: пустое «Дальше» (next)')
+    if t.get('st') == 'ok' and len(srcs) < 2:
+        errs.append(f'{w}: st=ok при одном источнике')
     st = (t.get('how') or {}).get('st') or []
     if not st:
         errs.append(f'{w}: нет шагов how.st')

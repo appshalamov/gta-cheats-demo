@@ -11,7 +11,7 @@ const S = {
     start: 'Начать', next: 'Сделано, дальше', finish: 'Готово', stuck: 'Не получается', still: 'Всё равно не выходит',
     ok: 'Получилось, если', video_at: 'Ролик с {t}', in_game: 'Где в игре', not_this: 'Не {c}', of: 'из',
     tags_n: '{a} из {b}', alt: 'Обходной путь (глитч)', sources: 'Источники', report: 'Сообщить об ошибке', report_ok: 'Спасибо, проверим',
-    self: 'Прошли сами {d}', collected: 'Собрано по {n} источникам, сами пока не проходили', one_src: 'Пока один источник: {s}. Ищем второй',
+    self: 'Прошли сами {d}', collected: 'Собрано по {n} источникам, сами пока не проходили',
     wall: 'Дальше в Pro: шаги {a}–{b}, точные места и разбор ошибок', get_pro: 'Оформить Pro',
     fin_car: 'Готово. Машина ваша.', fin: 'Готово. Всё получилось.', again: 'Начать заново',
     meta: '{n} шагов, около {m} минут', meta0: '{n} шагов', missable: 'Можно упустить навсегда', no_fix: 'Для этого шага частых ошибок нет. Посмотрите ролик или общий список.',
@@ -22,7 +22,7 @@ const S = {
     start: 'Start', next: 'Done, next', finish: 'Finish', stuck: "I'm stuck", still: 'Still stuck',
     ok: 'It worked if', video_at: 'Video from {t}', in_game: 'In game', not_this: 'Not {c}', of: 'of',
     tags_n: '{a} of {b}', alt: 'Shortcut (glitch)', sources: 'Sources', report: 'Report a mistake', report_ok: "Thanks, we'll check",
-    self: 'We did it ourselves on {d}', collected: 'Collected from {n} sources, not yet tested by us', one_src: 'Single source so far: {s}. Looking for a second',
+    self: 'We did it ourselves on {d}', collected: 'Collected from {n} sources, not yet tested by us',
     wall: 'The rest is in Pro: steps {a}–{b}, exact spots and fixes', get_pro: 'Get Pro',
     fin_car: 'Done. The car is yours.', fin: 'Done. You made it.', again: 'Start over',
     meta: '{n} steps, about {m} min', meta0: '{n} steps', missable: 'Missable', no_fix: 'No common mistakes for this step. Watch the video or the full list.',
@@ -91,7 +91,7 @@ function stuckHTML(ci) {
 function render() {
   const h = H(), p = prog(), st = h.st, I = C.I, ci = cur(p), started = p.d.length > 0 || p.s;
   const fr = h.fr ?? 2, wall = !free() && fr < st.length ? fr : -1;
-  const trust = h.self ? s('self', { d: C.date(h.self) }) : (O.sn || []).length === 1 ? s('one_src', { s: O.sn[0] }) : (O.sn || []).length ? s('collected', { n: O.sn.length }) : '';
+  const trust = h.self ? s('self', { d: C.date(h.self) }) : (O.sn || []).length ? s('collected', { n: O.sn.length }) : '';
   const enOnly = !['ru', 'en'].includes(C.lang) && !st[0].t[C.lang];
   layer.innerHTML = `<div class="g-scroll" id="g-scroll">
     <header class="g-top"><button class="g-ib" data-g="close" aria-label="${esc(s('close'))}">${I.chevron}</button>

@@ -188,5 +188,16 @@ for t in tips:
         fixru(x['t']); fixru(x.get('ok')); fixru(x.get('tr'))
     for k in [k for k, v in t.items() if v is None]:
         del t[k]
+# поля для общего указателя гида (решение Fable 26.11, раздел 3): lvl 1 — теряется навсегда, st ok|one, sp, next — «Дальше»
+FORK = {'m:hey-arnold', 'm:safe-word'}          # у миссии развилка → «Концовки: что влияет»
+CHASE = {'m:daily-driver', 'm:checking-out'}    # погоня и езда → «Настроить вождение»
+for t in tips:
+    t['lvl'] = 1 if t.get('miss') else 2
+    t['st'] = 'one' if t.get('one') or len(set(t['s'])) < 2 else 'ok'
+    t.setdefault('sp', 0)
+    nx = ['walk:gta6']
+    if t.get('until') in FORK: nx.append('endings:gta6')
+    if t.get('until') in CHASE: nx.append('guide:gta6:set-driving')
+    t['next'] = nx[:3]
 json.dump(tips, open(os.path.join(R, 'база — подсказки.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print('подсказок', len(tips), 'с одним источником:', sum(1 for t in tips if t.get('one')))

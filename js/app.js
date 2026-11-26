@@ -33,8 +33,8 @@ const mapMod = () => import('./map.js');
 // экраны креаторов (js/league.js, данные — window.SB.api из js/api.js): раздел «Авторам и партнёрам» — строкой в Настройках,
 // сам хаб открывается отдельным экраном (Fable 23.11.2026, вариант B); слой Лиги
 const crMod = () => import('./league.js');
-const guideMod = () => import('./guide.js');
-const walkMod = () => import('./walk.js');   // «Прохождение» по прогрессу (26.11.2026, «Гид по игре», функция 2)   // инструкция «По шагам» (26.11.2026) — грузится при первом открытии
+const guideMod = () => import('./guide.js');   // инструкция «По шагам» (26.11.2026) — грузится при первом открытии
+const walkMod = () => import('./walk.js');   // «Прохождение» и общая шторка «Где вы в игре» (26.11.2026, «Гид по игре»)
 const crCtx = () => ({ openSheet, closeSheet, toast, haptic, openOnMap, game: () => store.game, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k), onProfile: setProfile });
 let crLoaded = false;   // модуль грузится при первом заходе в Настройки или по вызову экрана креатора — не на старте
 // вход для сессии карты: кнопка «Ролики об этом месте» в карточке места вызывает window.SB.openPlaceVideos(игра, id места)
@@ -473,6 +473,9 @@ async function openGuideKey(key, from = '', linked = false) {
   const m = await guideMod();
   m.openGuide({ ...o, game: g }, guideCtx(g, from, linked || store.linkKeys.includes(`guide:${g}:${id}`) || store.linkKeys.includes(`egg:${g}:${id}`), (x) => `guide:${g}:${x.id}`));
 }
+window.SB.openWalk = (from = 'sb') => openWalk(from);   // для оглавления гида и тестов
+window.SB.pickPos = (opts = {}) => walkMod().then((w) => w.pickPos({ lang: getLang(), I, haptic }, store.game, opts));   // общая шторка «Где вы в игре»
+window.SB.walkLine = () => walkMod().then((w) => w.stateLine(store.game, getLang()));   // строка состояния для Главной (сборщик)
 // ── «Прохождение» (js/walk.js): игрок отмечает последнюю миссию, экран показывает подсказки «перед миссией» (инструкции «По шагам»)
 async function openWalk(from = '', g = 'gta6') {
   closeSheet();
@@ -485,15 +488,12 @@ async function openWalk(from = '', g = 'gta6') {
     openPlace: (k) => leave(() => openOnMap(k)),
     openFeed: (v) => leave(() => { ui.feed = v; ui.tab = 'feed'; renderAll(); }),
     openCheats: () => leave(() => { ui.tab = 'cheats'; renderAll(); }),
+    // ключи «Дальше» (решение Fable: одна таблица ?open= будет в js/guide-core.js у сборщика; здесь — то, что есть в этой ветке)
+    can: (k) => /^guide:(gta6|gta5):/.test(k),
+    openKey: (k) => { if (/^guide:(gta6|gta5):/.test(k)) leave(() => openGuideKey(k, 'walk')); },
     onClose: () => { if (ui.tab === 'home') renderHub(); },
   }, g);
   if (!ok) toast(t('place_nf'));
-}
-function walkRow() {
-  let p = null; try { p = JSON.parse(localStorage.getItem('sb.gp') || '{}')[store.game]; } catch { }
-  const m = p?.t ? L(p.t) : '';
-  return `<div class="prow wrow" data-action="open-walk" role="button" tabindex="0"><span class="pr-th">${I.flag}</span>
-    <span class="pr-t"><b>${esc(p ? (m ? tf('walk_at', { m }) : t('walk_t')) : t('walk_t'))}</b><small>${esc(p ? t('walk_sub') : t('walk_s'))}</small></span><i class="w-chev">${I.chevron}</i></div>`;
 }
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
 function eggRow(o) {
@@ -692,7 +692,6 @@ function paintHub(box, isMap, pd, newsAll, favPreview) {
   box.innerHTML = `
     ${forecastBanner()}
     ${!news ? hubSection(t('hub_news'), '', more('news'), skRow(' ncard')) : news.length ? hubSection(t('hub_news'), esc(agoText(newsUpdated())), more('news'), `<div class="hscroll" data-sec="news">${news.map(newsCard).join('')}</div>`) : ''}
-    ${store.game === 'gta6' ? hubSection(t('hub_walk'), '', '', walkRow()) : ''}
     ${noPd ? hubSection(t('hub_newmap'), t('hub_newmap_sub'), more('newmap'), skRow()) : fresh.length ? hubSection(t('hub_newmap'), t('hub_newmap_sub'), more('newmap'), `<div class="hscroll" data-sec="newmap">${fresh.map((o) => placeCard(o)).join('')}</div>`) : ''}
     ${hubSection(t('hub_cheats'), `<button class="hub-plat" data-action="switch">${esc(L(PLATFORMS[store.platform]))}<i class="gsw-chev">${I.chevron}</i></button>`, `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">

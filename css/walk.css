@@ -61,3 +61,38 @@
 .w-opt.on { font-weight: 700; }
 .w-opt.on svg { color: var(--accent); }
 .w-sheet[hidden] { display: none; }
+
+/* решение Fable 26.11: общая шторка «Где вы в игре» (pickPos — одна на приложение), три группы, янтарный блок, серая строка «Один источник» */
+#gpos { position: fixed; inset: 0; z-index: 46; visibility: hidden; }
+#gpos.open { visibility: visible; }
+.gp-bg { position: absolute; inset: 0; background: rgba(0,0,0,.45); opacity: 0; transition: opacity .25s; }
+#gpos.open .gp-bg { opacity: 1; }
+.gp-sheet { max-height: 84%; transform: translateY(100%); transition: transform .32s cubic-bezier(.2,.9,.25,1); padding-bottom: calc(var(--safe-b, 0px) + 24px); }
+#gpos.open .gp-sheet { transform: none; }
+@media (prefers-reduced-motion: reduce) { .gp-sheet, .gp-bg { transition: none; } }
+.gp-x span small { display: block; font-size: 13px; color: var(--text-2); font-weight: 400; }
+.gp-x svg { color: var(--text-3, var(--text-2)); }
+
+.w-gh { margin: 18px 0 2px; font-size: 15px; font-weight: 700; color: var(--text-2); }
+.w-now > .w-gh:first-child, .w-now > details:first-child .w-gh { margin-top: 6px; }
+.w-gh-perm { color: var(--warn); }
+.w-any summary { list-style: none; display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; }
+.w-any summary::-webkit-details-marker { display: none; }
+.w-any summary .w-gh { margin: 0; }
+.w-any summary small { flex: 1 1 auto; font-size: 14px; color: var(--text-2); }
+.w-any summary .w-chev svg { transform: rotate(90deg); transition: transform .2s; }
+.w-any[open] summary .w-chev svg { transform: rotate(-90deg); }
+.w-more-n { margin-top: 2px; }
+.w-one { color: var(--text-3, var(--text-2)); }
+
+.w-stale { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin: 8px 0 0; font-size: 15px; color: var(--text-2); }
+.w-stale span { flex: 1 1 100%; }
+
+.w-amb { margin: 18px 0 0; padding: 12px 0 8px 14px; box-shadow: inset 3px 0 0 var(--warn); }
+.w-amb-h { display: flex; gap: 8px; margin: 0; font-size: 17px; font-weight: 700; line-height: 1.35; color: var(--warn); }
+.w-amb-h svg { width: 18px; height: 18px; flex: none; margin-top: 3px; }
+.w-amb-t { margin: 6px 0 0; font-size: 15px; line-height: 1.45; color: var(--text-2); }
+.w-amb-l { margin: 6px 0 0; padding: 0 0 0 18px; font-size: 15px; line-height: 1.45; }
+.w-amb-l li { margin: 2px 0; }
+.w-pnr { display: flex; gap: 8px; align-items: flex-start; }
+.w-pnr svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
