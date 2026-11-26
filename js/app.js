@@ -33,6 +33,7 @@ const mapMod = () => import('./map.js');
 // экраны креаторов (js/league.js, данные — window.SB.api из js/api.js): раздел «Авторам и партнёрам» — строкой в Настройках,
 // сам хаб открывается отдельным экраном (Fable 23.11.2026, вариант B); слой Лиги
 const crMod = () => import('./league.js');
+const guideMod = () => import('./guide.js');   // инструкция «По шагам» (26.11.2026) — грузится при первом открытии
 const crCtx = () => ({ openSheet, closeSheet, toast, haptic, openOnMap, game: () => store.game, isFav: (k) => isFavPlace(k), toggleFav: (k) => toggleFavPlace(k), onProfile: setProfile });
 let crLoaded = false;   // модуль грузится при первом заходе в Настройки или по вызову экрана креатора — не на старте
 // вход для сессии карты: кнопка «Ролики об этом месте» в карточке места вызывает window.SB.openPlaceVideos(игра, id места)
@@ -412,12 +413,12 @@ function miniCheat(c) {
 }
 function placeCard(o, opt = {}) {
   const key = placeKey(o), fav = store.favPlaces.includes(key), img = thumbOf(o, o.kind === 'egg' ? 'game' : 'real');
-  return `<div class="pcard" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
+  return `<div class="pcard${hasGuide(o) ? ' has-how' : ''}" data-action="${hasGuide(o) ? 'open-guide' : 'open-place'}" data-key="${esc(key)}" role="button" tabindex="0">
     ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pc-ph">${o.kind === 'egg' ? I.egg : I[catIcon(o.c)]}</span>`}
     <span class="pc-grad"></span>
     <span class="pc-tags">${isNew(o) ? `<i class="tag-new">${t('news_new')}</i>` : ''}${o.kind === 'egg' ? `<i class="tag-egg">${t('map_egg')}</i>` : `<i class="conf conf-${o.cf}">${t('conf_' + o.cf)}</i>`}${opt.game ? `<i class="tag-game">${GAMES.find((g) => g.id === o.game)?.title || ''}</i>` : ''}</span>
     <button class="pc-fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="${esc(t('save'))}">${fav ? I.heartFill : I.heart}</button>
-    <span class="pc-txt"><b>${esc(realName(o))}</b>${o.kind === 'egg' ? (realSub(o) ? `<small>${esc(realSub(o))}</small>` : '') : `<small>${I.pin}${esc(cityOf(o) || realSub(o))}</small>`}</span>
+    <span class="pc-txt"><b>${esc(hasGuide(o) ? guideTitle(o) : realName(o))}</b>${hasGuide(o) ? `<small>${esc(guideMeta(o))}</small>` : o.kind === 'egg' ? (realSub(o) ? `<small>${esc(realSub(o))}</small>` : '') : `<small>${I.pin}${esc(cityOf(o) || realSub(o))}</small>`}</span>
   </div>`;
 }
 // ── Разделы «Новости», «Новое на карте», «Пасхалки» (Игорь 23.11.2026: «чтобы видели новости и события в реальном времени») ──
@@ -432,7 +433,7 @@ function agoText(iso) {
   return tf('upd_d', { n: Math.round(h / 24) });
 }
 const newsOf = async () => (await loadNews()).filter((n) => n.game === store.game).sort((a, b) => String(b.date).localeCompare(String(a.date)));
-const eggsNewFirst = (pd) => pd.eggs.slice().sort((a, b) => isNew(b) - isNew(a) || String(b.dt || '').localeCompare(String(a.dt || '')) || hasPhoto(b) - hasPhoto(a));
+const eggsNewFirst = (pd) => pd.eggs.slice().sort((a, b) => (guideDone(b) >= 0 && hasGuide(b)) - (guideDone(a) >= 0 && hasGuide(a)) || isNew(b) - isNew(a) || hasGuide(b) - hasGuide(a) || String(b.dt || '').localeCompare(String(a.dt || '')) || hasPhoto(b) - hasPhoto(a));
 // строка новости на экране «Все»: кадр, дата, заголовок, источник; тап — шторка
 function newsRow(n) {
   const img = n.img ? imgUrl(n.img.thumb || n.img.file) : '';
@@ -441,8 +442,44 @@ function newsRow(n) {
     <span class="pr-t"><small class="nr-date">${esc(newsDate(n.date))}</small><b>${esc(L(n.t))}</b><small>${esc((n.src || []).join(', '))}</small></span>
   </div>`;
 }
-// строка пасхалки: кадр, название, настоящее место, кнопка «На карте»
+// ── Инструкция «По шагам» (26.11.2026, «Гид по игре»; решение Fable — «Гид по игре — пасхалки (26.11.2026)/02»):
+// пасхалка с полем how открывает свой экран (js/guide.js) — из ленты, Новостей, карты и по ссылке guide:<игра>:<id>
+const hasGuide = (o) => !!o?.how?.st?.length;
+function guideDone(o) {   // сколько шагов пройдено (прогресс на телефоне, sb.gd); -1 — не начинали
+  try { const p = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${o.game}:${o.id}`]; if (!p) return -1; return o.how.st.filter((x) => (p.d || []).includes(x.id)).length; } catch { return -1; }
+}
+function guideMeta(o) {
+  const n = o.how.st.length, d = guideDone(o);
+  if (d >= 0 && d < n) return tf('g_cont', { n: d + 1, m: n });
+  return o.how.min ? tf('g_meta', { s: tn(n, 'n_steps'), m: o.how.min }) : tn(n, 'n_steps');
+}
+const guideTitle = (o) => L(o.how?.ta) || L(o.t);
+const guideDate = (d) => { const x = Date.parse((d || '') + 'T12:00:00Z'); return x ? new Date(x).toLocaleDateString(getLang(), { day: 'numeric', month: 'long' }) : ''; };
+async function openGuideKey(key, from = '', linked = false) {
+  const { kind, game: g, id } = parseKey(key.replace(/^guide:/, 'egg:'));
+  const o = kind === 'egg' ? await findByKey(`egg:${g}:${id}`) : null;
+  if (!hasGuide(o)) { openOnMap(key.replace(/^guide:/, 'egg:')); return; }
+  closeSheet();
+  const m = await guideMod();
+  m.openGuide({ ...o, game: g }, {
+    lang: getLang(), I, from, linked: linked || store.linkKeys.includes(`guide:${g}:${id}`) || store.linkKeys.includes(`egg:${g}:${id}`),
+    access, haptic, toast, date: guideDate, imgUrl, credit,
+    paywall: () => openPaywall(mapPw()),
+    share: (x) => shareText(`${guideTitle(x)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=guide:${g}:${x.id}`),
+    event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+    onClose: () => { if (ui.tab === 'feed') renderFeed(); else if (ui.tab === 'home') renderHub(); },
+  });
+}
+// строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
 function eggRow(o) {
+  if (hasGuide(o)) {
+    const key = placeKey(o), img = thumbOf(o, 'game') || thumbOf(o, 'real');
+    return `<div class="prow erow has-how" data-action="open-guide" data-key="${esc(key)}" role="button" tabindex="0">
+    <span class="pr-th">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${I.egg}</span>`}</span>
+    <span class="pr-t">${isNew(o) ? `<small class="nr-date">${esc(t('news_new'))}</small>` : ''}<b>${esc(guideTitle(o))}</b><small>${esc(guideMeta(o))}</small></span>
+    <button class="er-map" data-action="open-guide" data-key="${esc(key)}">${I.doc}<span>${esc(t('g_btn'))}</span></button>
+  </div>`;
+  }
   const key = placeKey(o), img = thumbOf(o, 'game');
   return `<div class="prow erow" data-action="open-place" data-key="${esc(key)}" role="button" tabindex="0">
     <span class="pr-th">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${I.egg}</span>`}</span>
@@ -497,6 +534,7 @@ function newsCard(n) {
 }
 async function openNews(id) {
   const n = (await loadNews()).find((x) => x.id === id); if (!n) return;
+  const guide = /^egg:/.test(n.key || '') ? await findByKey(n.key).then((o) => (hasGuide(o) ? o : null)).catch(() => null) : null;
   const img = n.img ? imgUrl(n.img.file) : '';
   const src = n.src || [];
   openSheet(`<div class="news-sheet">
@@ -505,7 +543,10 @@ async function openNews(id) {
     <h2>${esc(L(n.t))}</h2>
     <p>${esc(L(n.d))}</p>
     ${src.length ? `<p class="ns-src">${esc(t(src.length > 1 ? 'news_srcs' : 'news_src'))}: ${esc(src.join(', '))}</p>` : ''}
-    ${n.key ? `<button class="btn-primary" data-action="open-place" data-key="${esc(n.key)}">${I.pin}<span>${esc(t('news_on_map'))}</span></button>` : ''}
+    ${guide ? `${guide.how.self ? `<p class="ns-trust">${I.check}<span>${esc(tf('g_self', { d: guideDate(guide.how.self) }))}</span></p>` : ''}
+      <button class="btn-primary" data-action="open-guide" data-key="${esc(n.key)}" data-from="news">${I.doc}<span>${esc(t('g_btn'))}</span></button>
+      <button class="ns-map" data-action="open-place" data-key="${esc(n.key)}">${I.pin}<span>${esc(t('news_on_map'))}</span></button>`
+    : n.key ? `<button class="btn-primary" data-action="open-place" data-key="${esc(n.key)}">${I.pin}<span>${esc(t('news_on_map'))}</span></button>` : ''}
   </div>`, 'news');
 }
 // строка места (Поиск, Избранное): фото, настоящее место (решение №15, без игрового названия), адрес, точность — строкой, без рамки-карточки
@@ -1839,6 +1880,7 @@ document.addEventListener('click', async (e) => {
       haptic(); changeGame(v); break;
     }
     case 'open-news': haptic(); openNews(el.dataset.id); break;
+    case 'open-guide': haptic(); openGuideKey(el.dataset.key, el.dataset.from || ui.tab); break;
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
     case 'fav-place': {
       e.stopPropagation(); toggleFavPlace(el.dataset.key);
@@ -2038,9 +2080,9 @@ document.addEventListener('visibilitychange', () => {
   // ссылка «поделиться местом» (…/?open=place:gta5:<id>): друг сразу видит это место (и без Pro); знакомство — в следующий раз
   // ключ проверяем по виду: мусор в ?open= молча открывал пейвол карты (QA 20.11.2026)
   const openRaw = new URLSearchParams(location.search).get('open');
-  const openKey = /^(place|egg|db):(gta6|gta5):[\w.-]{1,120}$/.test(openRaw || '') ? openRaw : null;
+  const openKey = /^(place|egg|db|guide):(gta6|gta5):[\w.-]{1,120}$/.test(openRaw || '') ? openRaw : null;
   if (openRaw && !openKey) { history.replaceState(null, '', location.pathname); toast(t('place_nf')); }
-  if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); openOnMap(openKey); }
+  if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); if (openKey.startsWith('guide:')) openGuideKey(openKey, 'link', true); else openOnMap(openKey); }
   else if (/[?&#]admin\b/.test(location.search + location.hash)) {   // экран «Для админов» (только веб): ?admin или #admin
     store.onboarded = true; save(); if (location.hash) history.replaceState(null, '', location.pathname + location.search); window.SB.openCreator('admin');
   }

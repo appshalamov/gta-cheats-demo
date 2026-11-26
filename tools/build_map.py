@@ -440,6 +440,99 @@ def bi(item, key):
     return {"ru": ru or en, "en": en or ru}
 
 
+LANGS = ("ru", "en", "es", "pt", "de", "fr", "it", "tr", "uk", "pl")
+
+
+def bix(d, key):
+    """{ru, en, …} без обрезки (шаги инструкции длиннее подписей). EN — <key>, остальные — <key>_<язык>."""
+    out = {lg: str(d.get(key if lg == "en" else f"{key}_{lg}") or "").strip() for lg in LANGS}
+    out = {k: v for k, v in out.items() if v}
+    if not out:
+        return None
+    out.setdefault("en", out.get("ru", "")); out.setdefault("ru", out["en"])
+    return out
+
+
+def nums_same(tr, where):
+    """Предохранитель: числа и коды в шаге одинаковы во всех языках (перевод не превратит 8554013 в 85540133)."""
+    if not tr:
+        return
+    sets = {lg: sorted(re.findall(r"\d[\d ,.]*\d|\d", v.replace("\u00a0", " "))) for lg, v in tr.items()}
+    norm = {lg: sorted(x.replace(" ", "").replace(",", "").replace(".", "") for x in v) for lg, v in sets.items()}
+    if len({tuple(v) for v in norm.values()}) > 1:
+        raise SystemExit(f"СТОП инструкция {where}: числа различаются между языками {norm}")
+
+
+GUIDE_REQ = ("mission", "chapter", "character", "money", "item", "time_of_day", "weather", "wanted", "other")
+
+
+def guide_fields(it):
+    """Пасхалка-инструкция (26.11.2026, «Гид по игре», проект «Гид по игре — пасхалки (26.11.2026)/01–02»):
+    how — rw награда, lv сложность, min минут, req условия (ty mission/chapter + ref — привязка к прогрессу для гида
+    прохождения), st шаги {id, t, tip, at, v [yt, сек, метка], c код, cw неверный вариант, n {need, of} счётчик},
+    fx частые ошибки {t, s [id шагов]}, alt обходной путь, fr — сколько шагов бесплатно, chk — дата проверки, miss — можно упустить;
+    by — кто нашёл; v — ролики [yt, канал] (только встраиваемые: смотрятся внутри приложения); sn — названия источников."""
+    h = it.get("how")
+    out = {}
+    if isinstance(h, dict) and h.get("steps"):
+        st = []
+        for i, s in enumerate(h["steps"]):
+            t = bix(s, "t")
+            if not t:
+                continue
+            nums_same(t, f"{it.get('id')} шаг {i + 1}")
+            v = s.get("video") or {}
+            st.append({"id": s.get("id") or f"s{i + 1}", "t": t,
+                       **({"tip": bix(s, "tip")} if bix(s, "tip") else {}),
+                       # «Где в игре» — только если есть и ru, и en: без перевода в RU попадал английский (Mile Zero, 26.11)
+                       **({"at": bix(s, "where")} if s.get("where") and s.get("where_ru") else {}),
+                       **({"v": [v["yt"], int(v.get("t") or 0)] + ([v["label"]] if v.get("label") else [])} if v.get("yt") else {}),
+                       **({"c": str(s["code"])} if s.get("code") else {}),
+                       **({"cw": str(s["code_wrong"])} if s.get("code_wrong") else {}),
+                       **({"cv": s["code_variants"]} if s.get("code_variants") else {}),
+                       **({"n": s["count"]} if isinstance(s.get("count"), dict) else {}),
+                       # решение Fable 26.11: «Получилось, если…», ловушка под значением, крупное значение (адрес), список мест
+                       **({"ok": bix(s, "ok")} if bix(s, "ok") else {}),
+                       **({"tr": bix(s, "trap")} if bix(s, "trap") else {}),
+                       **({"bv": str(s["big"]), **({"bn": bix(s, "big_note")} if bix(s, "big_note") else {})} if s.get("big") else {}),
+                       **({"tg": [{"p": bix(x, "p"), **({"a": x["a"]} if x.get("a") else {}), **({"v": x["v"]} if x.get("v") else {})}
+                                  for x in s["tags"] if bix(x, "p")], "need": int(s.get("need") or len(s["tags"]))} if s.get("tags") else {})})
+            for k in ("ok", "tr"):
+                if st[-1].get(k):
+                    nums_same(st[-1][k], f"{it.get('id')} шаг {i + 1} {k}")
+        ids = {x["id"] for x in st}
+        alt = h.get("alt") or {}
+        wh = h.get("whole") or {}
+        g = {"ta": bix(h, "action"), "rw": bix(h, "reward"),
+             **({"wh": [wh["yt"], int(wh.get("t") or 0), int(wh.get("min") or 0)]} if wh.get("yt") else {}),
+             **({"self": h["self"]} if h.get("self") else {}), "lv": h.get("difficulty") or "medium", "min": int(h.get("time_min") or 0) or None,
+             "req": [{"ty": r.get("type") if r.get("type") in GUIDE_REQ else "other", **({"ref": r["ref"]} if r.get("ref") else {}),
+                      "t": bix(r, "t")} for r in h.get("req") or [] if bix(r, "t")],
+             "st": st,
+             "fx": [{"t": bix(f, "t"), **({"s": [x for x in f.get("steps") or [] if x in ids]} if f.get("steps") else {})}
+                    for f in h.get("fails") or [] if bix(f, "t")],
+             "alt": ({"t": bix(alt, "t"), **({"nt": bix(alt, "note")} if bix(alt, "note") else {}),
+                      **({"v": [alt["video"]["yt"], int(alt["video"].get("t") or 0)]} if (alt.get("video") or {}).get("yt") else {})}
+                     if bix(alt, "t") else None),
+             "fr": int(h["free_steps"]) if h.get("free_steps") is not None else (len(st) if len(st) <= 3 or it.get("kind") == "reference" else 2),
+             "chk": h.get("checked") or it.get("found"),
+             **({"miss": bix(h, "miss_note") or True} if h.get("missable") else {})}
+        out["how"] = {k: v for k, v in g.items() if v not in (None, [], "")}
+    f = it.get("finder")
+    if isinstance(f, dict) and f.get("name") and not str(f["name"]).lower().startswith(("not established", "не установ")):
+        out["by"] = {"n": str(f["name"])[:60], "w": str(f.get("where") or "")[:40], "d": str(f.get("date") or "")[:10]}
+    vids = [[v["yt"], str(v.get("by") or "")[:40]] for v in it.get("videos") or [] if v.get("yt") and v.get("embed") is not False]
+    if vids:
+        out["v"] = vids[:4]
+    if it.get("src_names"):
+        out["sn"] = [str(x)[:30] for x in it["src_names"]][:10]
+    if it.get("kind"):
+        out["k"] = it["kind"]
+    if it.get("game_name"):
+        out["gn"] = str(it["game_name"]).split(" (")[0][:60]
+    return out
+
+
 def src0(item):
     s = item.get("sources")
     if isinstance(s, str):
@@ -671,6 +764,7 @@ def build(game, cfg):
             "_gxy": it.get("game_xy"), "_ggid": it.get("game_gid"), "_pair": bool(it.get("pair_photos")),
             "rk": {"prototype": "p", "reference": "r"}.get(it.get("real_kind"), "") or auto_rk(it),   # точка в жизни: прообраз / отсылка
             **({"dt": it["found"]} if it.get("found") else {}),
+            **guide_fields(it),   # 26.11.2026: пасхалка-инструкция «как получить» (основа гида прохождения)
         })
     if skipped:
         print(f"  пасхалки не в приложение: {len(skipped)} — " + ", ".join(skipped[:6]) + (" …" if len(skipped) > 6 else ""))

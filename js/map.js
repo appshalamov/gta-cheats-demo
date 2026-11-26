@@ -254,6 +254,7 @@ const W = {
   infrastructure: { en: 'Port / road', ru: 'Порт / дорога', es: 'Puerto / vía', pt: 'Porto / via', fr: 'Port / route', de: 'Hafen / Straße', it: 'Porto / strada', tr: 'Liman / yol', uk: 'Порт / дорога', pl: 'Port / droga', zh: '港口/道路', ja: '港・道路', ko: '항구/도로' },
   sign: { en: 'Sign', ru: 'Вывеска', es: 'Letrero', pt: 'Placa', fr: 'Enseigne', de: 'Schild', it: 'Insegna', tr: 'Tabela', uk: 'Вивіска', pl: 'Znak', zh: '招牌', ja: '看板', ko: '간판' },
   other: { en: 'Place', ru: 'Место', es: 'Lugar', pt: 'Lugar', fr: 'Lieu', de: 'Ort', it: 'Luogo', tr: 'Yer', uk: 'Місце', pl: 'Miejsce', zh: '地点', ja: '場所', ko: '장소' },
+  steps: { en: 'Step by step', ru: 'По шагам', es: 'Paso a paso', pt: 'Passo a passo', de: 'Schritt für Schritt', fr: 'Pas à pas', it: 'Passo dopo passo', uk: 'Покроково', pl: 'Krok po kroku', tr: 'Adım adım' },
   egg: { en: 'Easter egg', ru: 'Пасхалка', es: 'Easter egg', pt: 'Easter egg', fr: 'Easter egg', de: 'Easter Egg', it: 'Easter egg', tr: 'Sürpriz', uk: 'Пасхалка', pl: 'Easter egg', zh: '彩蛋', ja: 'イースターエッグ', ko: '이스터에그' },
 };
 const devLang = () => (navigator.language || 'en').slice(0, 2).toLowerCase();
@@ -291,6 +292,7 @@ const IC = {
   spark: sv('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>'),
   link: sv('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
   help: sv('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17.5v.01"/>'),
+  list: sv('<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>'),
   egg: sv('<path d="M12 3c3.5 0 7 6 7 10.5A7 7 0 0 1 5 13.5C5 9 8.5 3 12 3z"/><path d="m7 13 2.5-2 2.5 2 2.5-2L17 13"/>'),
   // доступ
   public: sv('<circle cx="13" cy="4.5" r="1.8"/><path d="m9 21 2.5-6.5L14 17v4M10 9.5l3-1.5 2.5 3 2.5 1M11.5 14.5l1-5-3.5 1.5-1.5 3"/>'),
@@ -604,13 +606,18 @@ function nearbyRow(p, i) {
 }
 function eggSheet(e, i) {
   const yt = (e.m || []).map(ytLink).filter(Boolean);
-  const cta = yt.length
+  // инструкция «По шагам» (26.11.2026): главная кнопка открывает экран инструкции (js/guide.js через app.js, data-action="open-guide");
+  // ползунок «игра ⇄ жизнь», места рядом, «Открыть в Картах» — без изменений
+  const cta = e.how?.st?.length
+    ? `<button class="mp-cta" data-action="open-guide" data-key="egg:${game}:${esc(e.id)}" data-from="map">${IC.list}<span>${esc(w('steps'))}</span></button>`
+    : yt.length
     ? `<button class="mp-cta mp-cta-yt" data-mp="yt" data-v="${yt[0].id}" data-t="${yt[0].t}" data-l="${esc(yt[0].label)}">${IC.play}<span>${esc(w('seen'))} · ${esc(yt[0].label.split(' · ')[1] || '')}</span></button>`
     : `<a class="mp-cta" href="${panoLink(e.lat, e.lon, e.view)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>`;
   return `
     ${peekHead(txt(e.t), rp(e).split(',')[0], true)}
     ${heroBox('e' + i, e.pairs, gameList(e), realList(e), { g: txt(e.t), r: rp(e).split(',')[0] }, { egg: true })}
-    <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><h2>${esc(txt(e.t))}</h2></div></div>
+    <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><h2>${esc(txt(e.how?.ta) || txt(e.t))}</h2></div></div>
+    ${e.how?.rw ? `<p class="mp-text">${esc(txt(e.how.rw))}</p>` : ''}
     ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(rp(e).split(',')[0])}</b><small>${esc(rp(e).split(',').slice(1).join(',').trim())}</small></div></div>` : ''}
     ${gameBlock(e.gm, e.ga, '', '', { k: 'e', i, real: rp(e) })}
     <div class="mp-picto"><span class="mp-pic">${meter(e.cf)}<small>${esc(w(e.cf || 'likely'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel(e)}</small></span>` : ''}</div>

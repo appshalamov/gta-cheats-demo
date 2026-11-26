@@ -71,7 +71,8 @@ def main():
                 for sub, w, h, q in SIZES:
                     to_webp(fp, ROOT / base / sub / f"{nid}.webp", w, h, q)
                 # подпись — без языка («© Rockstar Games»): «официальный скриншот …» давал русский в EN (23.11.2026)
-                rec["img"] = {"file": f"{base}{nid}.webp", "thumb": f"{base}t/{nid}.webp", "credit": "© Rockstar Games"}
+                # своё фото из жизни (Commons) — подпись автора и лицензии из записи (26.11.2026: новости о находках сообщества)
+                rec["img"] = {"file": f"{base}{nid}.webp", "thumb": f"{base}t/{nid}.webp", "credit": n.get("credit") or "© Rockstar Games"}
         if n.get("key"):
             kind, kg, kid = n["key"].split(":", 2)
             if kg not in places:
