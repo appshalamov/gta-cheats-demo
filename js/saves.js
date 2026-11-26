@@ -60,7 +60,8 @@ const base = () => new URL('.', document.baseURI).href;
 const bare = (id) => String(id || '').replace(/^[mc]:/, '');
 const num = (c) => +String(c ?? '').replace(/\D/g, '') || 0;
 const HOST = { 'powerpyx.com': 'PowerPyx', 'bloxodes.com': 'Bloxodes', 'videogameschronicle.com': 'VGC', 'gtabase.com': 'GTABase', 'kotaku.com': 'Kotaku',
-  'dexerto.com': 'Dexerto', 'ibtimes.com.au': 'IBTimes', 'beebom.com': 'Beebom', 'game8.jp': 'Game8', 'ofzenandcomputing.com': 'Of Zen', 'playstation.com': 'PlayStation' };
+  'dexerto.com': 'Dexerto', 'ibtimes.com.au': 'IBTimes', 'beebom.com': 'Beebom', 'game8.jp': 'Game8', 'ofzenandcomputing.com': 'Of Zen', 'playstation.com': 'PlayStation',
+  'gamesradar.com': 'GamesRadar', 'learn.microsoft.com': 'Microsoft', 'cloudwards.net': 'Cloudwards', 'thewindowsclub.com': 'TheWindowsClub' };
 const srcName = (u) => { try { const h = new URL(u).hostname.replace(/^www\./, ''); return HOST[h] || h; } catch { return ''; } };
 
 // ── данные ──
