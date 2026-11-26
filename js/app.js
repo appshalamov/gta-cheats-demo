@@ -469,6 +469,7 @@ async function openGuideKey(key, from = '', linked = false) {
     share: (x) => shareText(`${guideTitle(x)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=guide:${g}:${x.id}`),
     event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
     onClose: () => { if (ui.tab === 'feed') renderFeed(); else if (ui.tab === 'home') renderHub(); },
+    after: (x) => cnShootHTML(`guide:${g}:${x.id}`),   // «Снять про это» — только автору с рефкодом, под ?sbmock=partner (решение Fable «система гида» §4)
   });
 }
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
@@ -682,10 +683,13 @@ function paintHub(box, isMap, pd, newsAll, favPreview) {
     <div class="hub-foot">${t('hub_foot')}</div>`;
   cnHome();
 }
+// «Снять про это» в инструкции «По шагам»: автор подтверждён тем же homeNow (рефкод + ?sbmock=partner)
+let cnAuthor = false;
+const cnShootHTML = (key) => (cnAuthor ? `<button class="g-shoot" data-action="cn-shoot" data-key="${esc(key)}">${I.video}<span>${getLang() === 'en' ? 'Film this' : 'Снять про это'}<small>${getLang() === 'en' ? 'Video plan, materials and a link with your code' : 'План ролика, материалы и ссылка с вашим кодом'}</small></span>${I.chevron}</button>` : '');
 // «Снимать сейчас: N» на Главной у автора с рефкодом (ветка feature/guide-creators, 05 п. 2): раздел креаторов грузим, только если открыт ?sbmock=partner
 function cnHome() {
   if (!/[?&]sbmock=partner\b/.test(location.search)) return;   // демка: только под ?sbmock=partner (решение Fable «система гида»)
-  crMod().then((m) => { crLoaded = true; m.init(crCtx()); return m.homeNow(); }).then((h) => { const b = document.getElementById('cn-home'); if (b && h) { b.innerHTML = h; b.hidden = false; } }).catch(() => { });
+  crMod().then((m) => { crLoaded = true; m.init(crCtx()); return m.homeNow(); }).then((h) => { const b = document.getElementById('cn-home'); cnAuthor = !!h; if (b && h) { b.innerHTML = h; b.hidden = false; } }).catch(() => { });
 }
 
 // Все читы (экран внутри Главной)
@@ -1890,6 +1894,7 @@ document.addEventListener('click', async (e) => {
     case 'open-news': haptic(); openNews(el.dataset.id); break;
     case 'open-guide': haptic(); openGuideKey(el.dataset.key, el.dataset.from || ui.tab); break;
     case 'cn-home': haptic(); window.SB.openCreator('cn_now'); break;
+    case 'cn-shoot': haptic(); guideMod().then((m) => m.closeGuide()); window.SB.openCreator('cn_find', { guide: el.dataset.key }); break;
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
     case 'fav-place': {
       e.stopPropagation(); toggleFavPlace(el.dataset.key);

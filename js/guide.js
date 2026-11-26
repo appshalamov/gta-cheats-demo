@@ -107,6 +107,7 @@ function render() {
     <ol class="g-steps">${st.map((x, i) => (i === wall ? `<li class="g-wall"><p>${esc(s('wall', { a: fr + 1, b: st.length }))}</p><button class="g-pro" data-g="pw">${esc(s('get_pro'))}</button></li>` : '')
       + stepHTML(x, i, p, (started && i === ci) || p.o === i)).join('')}</ol>
     ${ci >= st.length ? `<p class="g-fin">${I.check}<span>${esc(O.k === 'vehicle' ? s('fin_car') : s('fin'))}</span></p>` : ''}
+    ${C.after?.(O) || ''}
     <section class="g-sec g-foot">
       ${h.alt && free() ? `<details class="g-alt"><summary>${esc(s('alt'))}</summary><p>${esc(tx(h.alt.t))}</p>${h.alt.nt ? `<p class="g-note">${esc(tx(h.alt.nt))}</p>` : ''}
         ${h.alt.v ? `<button class="g-tb" data-g="video" data-v="${esc(h.alt.v[0])}" data-t="${h.alt.v[1]}">${I.play}<span>${esc(s('video_at', { t: mmss(h.alt.v[1]) }))}</span></button>` : ''}</details>` : ''}

@@ -173,7 +173,9 @@ function srcRow(s, f) {
   return `<div class="cn-src"><b>${esc(what)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}${permTag(s.perm)}${btn}</div>`;
 }
 async function findHTML(a) {
-  const f = byId(a.id) || FINDS[0], P = H.P(), i = FINDS.indexOf(f), nx = FINDS[(i + 1) % FINDS.length];
+  const f = byId(a.id) || FINDS.find((x) => a.guide && x.guide === a.guide);   // из инструкции «По шагам» — по ключу guide:
+  if (!f) return nowHTML({});   // находки по этой инструкции в «Снимать сейчас» нет — список
+  const P = H.P(), i = FINDS.indexOf(f), nx = FINDS[(i + 1) % FINDS.length];
   const first = f.who.where ? tx('first_by', { who: f.who.by, where: f.who.where, d: dd(f.who.d) }) : tx('first_none', { who: f.who.by, d: dd(f.who.d) });
   const lnk = P?.ref_code ? `${H.link(P.ref_code)}&open=${f.guide || 'find:gta6:' + f.id}` : '';
   const plan = `<h2 class="cr-h">${esc(tx('plan_h'))}</h2><div class="cn-plan">
