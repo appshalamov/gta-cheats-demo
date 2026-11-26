@@ -66,6 +66,7 @@ window.SB.prewarmMap = (g = MAP_OF(store.game)) => {
   return window.SB.prewarmMap.ready;
 };
 window.SB.openPlaceVideos = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.openPlaceVideos(world, placeId); }); };
+window.SB.openGuideKey = (k) => openGuideKey(k, 'creators');   // «По шагам» из раздела креаторов (js/creators.js)
 window.SB.openCreator = (id, args) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.openCreator(id, args); }); };
 window.SB.shootPlace = (world, placeId) => { crLoaded = true; return crMod().then((m) => { m.init(crCtx()); return m.shootPlace(world, placeId); }); };   // «Снять про это» из карточки места
 // для сессии карты: «Поправить» в карточке места и новое место долгим тапом (форма вклада, 08 №12)
@@ -667,6 +668,7 @@ function paintHub(box, isMap, pd, newsAll, favPreview) {
   box.innerHTML = `
     ${forecastBanner()}
     ${!news ? hubSection(t('hub_news'), '', more('news'), skRow(' ncard')) : news.length ? hubSection(t('hub_news'), esc(agoText(newsUpdated())), more('news'), `<div class="hscroll" data-sec="news">${news.map(newsCard).join('')}</div>`) : ''}
+    <div id="cn-home" hidden></div>
     ${noPd ? hubSection(t('hub_newmap'), t('hub_newmap_sub'), more('newmap'), skRow()) : fresh.length ? hubSection(t('hub_newmap'), t('hub_newmap_sub'), more('newmap'), `<div class="hscroll" data-sec="newmap">${fresh.map((o) => placeCard(o)).join('')}</div>`) : ''}
     ${hubSection(t('hub_cheats'), `<button class="hub-plat" data-action="switch">${esc(L(PLATFORMS[store.platform]))}<i class="gsw-chev">${I.chevron}</i></button>`, `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
@@ -678,6 +680,13 @@ function paintHub(box, isMap, pd, newsAll, favPreview) {
     ${favCount ? hubSection(t('hub_favs'), '', `<button class="hub-more" data-action="tab" data-tab="fav">${t('see_all')}${I.chevron}</button>`,
       favPreview ? `<div class="hscroll">${favPreview.slice(0, 10).map((x) => (x.kind ? placeCard(x, { game: x.game !== store.game }) : miniCheat(x))).join('')}</div>` : skRow()) : ''}
     <div class="hub-foot">${t('hub_foot')}</div>`;
+  cnHome();
+}
+// «Снимать сейчас: N» на Главной у автора с рефкодом (ветка feature/guide-creators, 05 п. 2): раздел креаторов грузим, только если на устройстве есть профиль автора
+function cnHome() {
+  let hint = /[?&]sbmock=/.test(location.search); try { hint ||= !!localStorage.getItem('sb.beta.v1'); } catch { }
+  if (!hint) return;
+  crMod().then((m) => { crLoaded = true; m.init(crCtx()); return m.homeNow(); }).then((h) => { const b = document.getElementById('cn-home'); if (b && h) { b.innerHTML = h; b.hidden = false; } }).catch(() => { });
 }
 
 // Все читы (экран внутри Главной)
@@ -1881,6 +1890,7 @@ document.addEventListener('click', async (e) => {
     }
     case 'open-news': haptic(); openNews(el.dataset.id); break;
     case 'open-guide': haptic(); openGuideKey(el.dataset.key, el.dataset.from || ui.tab); break;
+    case 'cn-home': haptic(); window.SB.openCreator('cn_now'); break;
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
     case 'fav-place': {
       e.stopPropagation(); toggleFavPlace(el.dataset.key);
