@@ -11,7 +11,7 @@ const S = {
     title: 'Прохождение', sub: 'Что сделать перед следующими миссиями. Дальше вашего места ничего не раскрываем.',
     where: 'Где вы в игре', last: 'Последняя пройденная', none: 'Ещё ничего не прошли', change: 'Изменить', set: 'Отметить, где я',
     set_sub: 'Отметьте последнюю пройденную миссию — покажем, что важно сделать до следующих.',
-    now: 'Сделать сейчас', now0: 'Сейчас ничего не упустите. Проходите дальше.', until: 'До миссии «{m}»', until_any: 'В любой момент',
+    now: 'Сделать сейчас', now0: 'Сейчас ничего не упустите. Проходите дальше.', until: 'До миссии «{m}»', until_any: 'В любой момент', until_ch: 'До конца главы {n}',
     during: 'Во время миссии «{m}»', missable: 'Можно упустить навсегда', steps: '{n} из {m} сделано',
     next: 'Следующая миссия', hidden: 'Название скрыто, чтобы не было спойлера', show: 'Показать название', passed: 'Прошёл «{m}»', passed0: 'Прошёл эту миссию',
     later: 'Ещё {n} подсказок откроются дальше по сюжету', marked: 'Отмечено. Новых подсказок: {n}',
@@ -25,7 +25,7 @@ const S = {
     title: 'Walkthrough', sub: 'What to do before your next missions. Nothing past your point is revealed.',
     where: 'Where you are', last: 'Last completed', none: 'Nothing completed yet', change: 'Change', set: 'Mark where I am',
     set_sub: 'Mark the last mission you finished, and we will show what to do before the next ones.',
-    now: 'Do it now', now0: "Nothing to miss right now. Keep playing.", until: 'Before “{m}”', until_any: 'Any time',
+    now: 'Do it now', now0: "Nothing to miss right now. Keep playing.", until: 'Before “{m}”', until_any: 'Any time', until_ch: 'Before the end of Chapter {n}',
     during: 'During “{m}”', missable: 'Missable', steps: '{n} of {m} done',
     next: 'Next mission', hidden: 'Title hidden to avoid spoilers', show: 'Show title', passed: 'Finished “{m}”', passed0: 'Finished this mission',
     later: '{n} more tips unlock later in the story', marked: 'Saved. New tips: {n}',
@@ -95,7 +95,9 @@ const chOf = (m) => D.ch.find((c) => c.id === m.ch);
 function tipRow(t) {
   const n = t.how?.st?.length || 0, d = C.done?.({ game: D.game, id: `walk-${t.id}`, how: t.how }) || 0;
   const u = t.until ? D.mid[t.until] : null;
-  const when = !u ? s('until_any') : t.dur ? s('during', { m: mTitle(u) }) : s('until', { m: mTitle(u) });
+  // срок «до первой миссии следующей главы» = «до конца главы»: название следующей главы не раскрываем
+  const chEnd = u && u.n === 1 && !t.dur ? D.ch.find((c) => c.id === u.ch) : null;
+  const when = !u ? s('until_any') : chEnd ? s('until_ch', { n: chEnd.n - 1 }) : t.dur ? s('during', { m: mTitle(u) }) : s('until', { m: mTitle(u) });
   return `<button class="w-tip${t.miss ? ' is-miss' : ''}" data-w="tip" data-id="${esc(t.id)}">
     <span class="w-tt"><b>${esc(tx(t.t))}</b><small>${esc(tx(t.rw))}</small>
       <small class="w-when">${t.miss ? `<span class="w-mi">${C.I.alert}${esc(s('missable'))}. ${esc(when)}</span>` : `<span>${esc(when)}</span>`}${n && d ? `<span class="w-dn">${esc(s('steps', { n: Math.floor(d), m: n }))}</span>` : ''}</small></span>
