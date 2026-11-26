@@ -155,10 +155,11 @@ export function stateLine(game = 'gta6', lang = 'ru') {
   for (const [key, v] of Object.entries(gd)) {
     const [g, id] = key.split(':'); if (g !== game || !v || (!v.s && !(v.d || []).length)) continue;
     const r = items.find((x) => x.k === `guide:${game}:${id}`); if (!r || !r.steps_n) continue;
-    const done = (v.d || []).length; if (done >= r.steps_n) continue;
-    if (!started || (v.at || 0) > started.at) started = { r, a: done + 1, at: v.at || 0 };
+    const n = (r.paths || []).find((x) => x.id === v.path)?.n || r.steps_n;   // выбранный путь (квест / баг) — его число шагов
+    const done = (v.d || []).length; if (done >= n) continue;
+    if (!started || (v.at || 0) > started.at) started = { r, a: done + 1, n, at: v.at || 0 };
   }
-  if (started) lines.push({ type: 'cont', k: started.r.k, text: fill(L.cont, { t: tx(started.r.t, lang), a: started.a, b: started.r.steps_n }) });
+  if (started) lines.push({ type: 'cont', k: started.r.k, text: fill(L.cont, { t: tx(started.r.t, lang), a: started.a, b: started.n }) });
   if (lines.length === 2) return lines;
   if (lines.length === 1) return lines.slice(0, 1);
   // (3) отметка есть: дела, открытые после позиции и действующие до следующей точки

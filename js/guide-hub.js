@@ -53,7 +53,9 @@ export function tocHTML(game, lang, esc, I, progressOf) {
     ${has(['ending', 'fork']) ? row(`endings:${game}`, T.endings, (typeof window !== 'undefined' && window.SB?.endingsLine?.(game, lang)) || '') : ''}
     ${guides.length ? `<h3>${esc(T.steps)}</h3>${guides.map((g) => {
       const d = progressOf ? progressOf(g) : -1;
-      const sub = d >= 0 && d < g.steps_n ? fill(T.cont, { a: d + 1, b: g.steps_n }) : tx(g.sub, lang);
+      let path = ''; try { path = JSON.parse(localStorage.getItem('sb.gd') || '{}')[g.k.split(':').slice(1).join(':')]?.path || ''; } catch { }
+      const n = (g.paths || []).find((x) => x.id === path)?.n || g.steps_n;
+      const sub = d >= 0 && d < n ? fill(T.cont, { a: d + 1, b: n }) : tx(g.sub, lang);
       return row(g.k, tx(g.t, lang), sub);
     }).join('')}` : ''}
     ${sets.length ? row(`set:${game}`, T.settings, plural(lang, sets.length, T.n_tips)) : ''}   

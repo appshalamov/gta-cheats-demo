@@ -457,7 +457,8 @@ function guideDone(o) {   // сколько шагов пройдено (про�
   try { const p = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${o.game}:${o.id}`]; if (!p) return -1; return o.how.st.filter((x) => (p.d || []).includes(x.id)).length; } catch { return -1; }
 }
 function guideMeta(o) {
-  const n = o.how.st.length, d = guideDone(o);
+  let path = ''; try { path = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${o.game}:${o.id}`]?.path || ''; } catch { }
+  const n = ((o.how.pa || []).find((x) => x.id === path) || o.how).st.length, d = guideDone(o);   // число шагов выбранного пути
   if (d >= 0 && d < n) return tf('g_cont', { n: d + 1, m: n });
   return o.how.min ? tf('g_meta', { s: tn(n, 'n_steps'), m: o.how.min }) : tn(n, 'n_steps');
 }
