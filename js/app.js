@@ -477,9 +477,8 @@ window.SB.openWalk = (from = 'sb') => openWalk(from);   // для оглавле
 // ядро гида: ключ walk:gta6[:<подсказка>] открывает «Прохождение» (и сразу подсказку); таблицу ключей ведёт сборщик (guide-core)
 let core = null;
 import('./guide-core.js').then((m) => { core = m; m.registerOpener('walk', (k) => openWalk('key', k.game || 'gta6', k.id || '')); }).catch(() => { });
-const posCtx = () => ({ lang: getLang(), I, haptic, event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
-  // строки guide-progress в шторке «Где вы в игре»: подключаются, когда в сборке есть js/progress.js (ветка feature/guide-progress)
-  mountProgress: window.SB.hasProgress ? (el, o) => import('./progress.js').then((m) => m.mountRows(el, { ...o, platform: store.platform })) : null });
+// строки guide-progress («По проценту», «С консоли») приходят в шторку через ядро: registerPickRow → core.pickRowsList
+const posCtx = () => ({ lang: getLang(), I, haptic, event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } } });
 window.SB.pickPos = (opts = {}) => walkMod().then((w) => w.pickPos(posCtx(), store.game, opts));   // общая шторка «Где вы в игре»
 // ── «Прохождение» (js/walk.js): игрок отмечает последнюю миссию, экран показывает подсказки «перед миссией» (инструкции «По шагам»)
 async function openWalk(from = '', g = 'gta6', tipId = '') {

@@ -63,7 +63,7 @@
 .w-sheet[hidden] { display: none; }
 
 /* решение Fable 26.11: общая шторка «Где вы в игре» (pickPos — одна на приложение), три группы, янтарный блок, серая строка «Один источник» */
-#gpos { position: fixed; inset: 0; z-index: 46; visibility: hidden; }
+#gpos { position: fixed; inset: 0; z-index: 44; visibility: hidden; }   /* выше #walk 39 и #guide 40, ниже уточнения guide-progress #pg 45 */
 #gpos.open { visibility: visible; }
 .gp-bg { position: absolute; inset: 0; background: rgba(0,0,0,.45); opacity: 0; transition: opacity .25s; }
 #gpos.open .gp-bg { opacity: 1; }

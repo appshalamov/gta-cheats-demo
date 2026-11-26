@@ -117,6 +117,7 @@ let P = null;   // открытая шторка
 export async function pickPos(ctx, game = 'gta6', opts = {}) {
   css();
   const d = await loadGuide(game); if (!d) return null;
+  try { await window.SB?.registerProgressRows?.(); } catch { }   // строки guide-progress регистрируются в ядре лениво — до отрисовки
   closePick();
   const lg = ctx.lang, I = ctx.I || ICONS, p = getProg(game);
   const cur = p?.m || (p?.c ? '' : p ? 'start' : ''), sel = p?.m ? d.mid[p.m]?.ch : p?.c || 'c1';
@@ -136,13 +137,10 @@ export async function pickPos(ctx, game = 'gta6', opts = {}) {
         ${o ? `${ms.some((m) => m.o) || c.n <= 2 ? '' : `<p class="g-note">${esc(s('ch_soon', {}, lg))}</p>`}
           <button class="w-opt${p?.c === c.id ? ' on' : ''}" data-p="setc" data-c="${c.id}"><span>${esc(s('ch_here', {}, lg))}</span>${I.check}</button>
           <ol class="w-ms">${ms.map((m) => `<li><button class="w-opt${cur === `m:${m.id}` ? ' on' : ''}" data-p="set" data-m="m:${m.id}"><span><em>${m.n}</em>${esc(tx(m.t, lg))}</span>${I.check}</button></li>`).join('')}</ol>` : ''}</div>`;
-    }).join('')}<div id="pg-rows"></div></div></div>`;
-  // строки guide-progress («По проценту из игры», «Подтянуть с консоли») — в конце шторки, раскрываются на месте.
-  // Подключение в app.js: ctx.mountProgress = (el, o) => import('./progress.js').then((m) => m.mountRows(el, { ...o, platform: store.platform }))
-  const mount = () => { const box = el.querySelector('#pg-rows'); if (box && ctx.mountProgress) ctx.mountProgress(box, { lang: lg, I, game, haptic: ctx.haptic, event: ctx.event, onSaved: saved }); };
+    }).join('')}</div></div>`;
   const saved = () => { const got = getProg(game); P = null; el.classList.remove('open'); setTimeout(() => el.remove(), 300); if (history.state?.gpos) history.back(); opts.onDone?.(got); P0?.(got); };
   let P0 = null;
-  el.innerHTML = html(); document.body.appendChild(el); mount();
+  el.innerHTML = html(); document.body.appendChild(el);
   history.pushState({ gpos: 1 }, '');   // «назад» закрывает шторку, а не экран под ней
   requestAnimationFrame(() => el.classList.add('open'));
   return new Promise((res) => {
@@ -151,7 +149,7 @@ export async function pickPos(ctx, game = 'gta6', opts = {}) {
       const b = e.target.closest('[data-p]'); if (!b) return;
       const a = b.dataset.p;
       if (a === 'close') { closePick(); return; }
-      if (a === 'ch') { open = open === b.dataset.c ? '' : b.dataset.c; const y = el.querySelector('.g-sheet').scrollTop; el.innerHTML = html(); mount(); el.querySelector('.g-sheet').scrollTop = y; return; }
+      if (a === 'ch') { open = open === b.dataset.c ? '' : b.dataset.c; const y = el.querySelector('.g-sheet').scrollTop; el.innerHTML = html(); el.querySelector('.g-sheet').scrollTop = y; return; }
       if (a === 'row') {   // строка модуля (guide-progress: «По проценту», «С консоли») — свой ввод, потом позиция в ядро
         const r = (core.pickRowsList?.() || []).find((q) => q.id === b.dataset.id); const v = r ? await r.onTap(game) : null;
         if (v) { core.setPos(game, v); saved(); } return;
