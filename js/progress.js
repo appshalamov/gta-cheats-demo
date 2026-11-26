@@ -1,7 +1,8 @@
 // Прогресс «где я в сюжете» без ручного списка (26.11.2026, «Гид по игре», сессия guide-progress).
 // Итог и выбор пути — «Гид по игре — система (26.11.2026)/Итог для Fable — прогресс PS и Xbox.md», правила —
 // «Решение Fable — система гида.md» (раздел 1: строка внутри шторки «Где вы», не отдельный экран; раздел 3: sb.gp; раздел 7: консоли).
-// Две строки для шторки «Где вы» (pickPos() у guide-walkthrough): mountRows(el, ctx).
+// Две строки для общей шторки «Где вы» (js/guide-core.js pickPos): registerRows(ctx) → registerPickRow; позицию пишет ядро (setPos).
+// Запасной вход — mountRows(el, ctx) в любой контейнер.
 //  1) «По проценту из игры»: Пауза → Прогресс → Статистика → «Сюжет» N % → стартовая миссия с запасом назад →
 //     «Прошли «X»? Да / Нет, я на ней» по одной (названий впереди не видно) → sb.gp via:'pct'.
 //  2) «Подтянуть с PlayStation | Xbox» (сразу под платформу из Настроек; в выпуске 1 — только под ?sbmock=<имя>, напр. ?sbmock=progress, тестовые профили sb-test-*):
@@ -9,6 +10,8 @@
 //     то же уточнение по одной → sb.gp via:'psn'|'xbox'. Только сюжет; побочные линии — позже.
 // sb.gp = {gta6:{m:'m:<id>'|null | c:'c<N>', via:'self'|'pct'|'psn'|'xbox', at, t}}. Ручная отметка сильнее всего; pct и консоль — только вперёд.
 // Ссылка ?open=progress открывает те же строки в своей шторке (openProgress).
+
+import { registerPickRow, setBase, base as coreBase, setPos, pos as corePos, rankOf } from './guide-core.js';
 
 const S = {
   ru: {
@@ -51,7 +54,7 @@ const S = {
 export const API = 'https://progress.sbgta.app';      // server/progress-worker (не выложен: нужен служебный аккаунт, см. Итог для Fable)
 const KEY = 'sb.gp', LINK = 'sb.gl';
 
-let C = null, D = null, root = null, sheet = null, V = {};
+let C = null, D = null, root = null, sheet = null, V = {}, resolver = null;
 const lang = () => (C?.lang === 'ru' ? 'ru' : 'en');
 const s = (k, v = {}) => { let x = S[lang()][k] ?? S.en[k] ?? k; for (const [a, b] of Object.entries(v)) x = x.split(`{${a}}`).join(b); return x; };
 const tx = (o) => (o ? o[lang()] || o.en || o.ru || '' : '');
@@ -90,7 +93,7 @@ export function index(tro, mis, game = 'gta6') {
     if (i >= 0) marks.push({ t, i });
   }
   marks.sort((a, b) => a.i - b.i);
-  return { game, tro, order, ch: mis.ch || [], marks, tByName, mid: Object.fromEntries(order.map((m) => [mid(m.id), m])) };
+  return { game, tro, raw: mis, order, ch: mis.ch || [], marks, tByName, mid: Object.fromEntries(order.map((m) => [mid(m.id), m])) };
 }
 // трофеи → место в сюжете. earned: [{name|k, at}] (имя EN или ключ k из trophies.json)
 export function fromEarned(d, earned) {
@@ -111,22 +114,21 @@ export function fromPercent(d, pct) {
   return Math.max(-1, Math.min(d.order.length - 1, Math.round(p / 100 * d.order.length) - 1));
 }
 const ref = (m) => `m:${String(m.id).replace(/^m:/, '')}`;
-export function getProg(game = 'gta6') { return rd(KEY)[game] || null; }
-function posOf(d, p) {
-  if (!p) return null;
-  if (p.m) { const m = d.mid[p.m.replace(/^m:/, '')]; return m ? d.order.indexOf(m) : null; }
-  if (p.c) { let k = -1; d.order.forEach((m, i) => { const ch = d.ch.find((c) => c.id === p.c); if (ch && d.ch.find((c) => c.id === m.ch)?.n < ch.n) k = i; }); return k; }
-  return -1;
-}
-// запись в общий ключ (Решение Fable, раздел 3): ручная отметка — всегда (в том числе назад);
-// процент и консоль двигают только вперёд и не затирают отметку, которая дальше или там же
+export function getProg(game = 'gta6') { return corePos(game); }
+// запись позиции — через ядро гида (js/guide-core.js setPos, правила раздела 3): ручная — всегда, в том числе назад;
+// процент и консоль — только вперёд и не затирают отметку там же или дальше. i = -1 — самое начало (глава 1).
+const posFor = (d, i) => (i >= 0 ? { m: ref(d.order[i]), t: d.order[i].t } : { c: d.ch[0]?.id || 'c1' });
 export function save(d, i, via) {
-  const all = rd(KEY), cur = all[d.game], ci = posOf(d, cur);
-  if (via !== 'self' && ci != null && ci >= i) return false;
-  const m = i >= 0 ? d.order[i] : null;
-  all[d.game] = m ? { m: ref(m), via, at: Date.now(), t: m.t } : { m: null, via, at: Date.now() };
-  wr(KEY, all);
-  return true;
+  if (!coreBase(d.game)) setBase(d.game, d.raw);
+  return setPos(d.game, { ...posFor(d, i), via });
+}
+// сдвинет ли запись позицию (для подсказки «Ваша отметка уже дальше» до закрытия шторки)
+export function wouldMove(d, i, via) {
+  if (via === 'self') return true;
+  if (!coreBase(d.game)) setBase(d.game, d.raw);
+  const cur = corePos(d.game); if (!cur) return true;
+  const a = rankOf(d.game, cur.m || cur.c), p = posFor(d, i), b = rankOf(d.game, p.m || p.c);
+  return !(a >= 0 && b >= 0 && b <= a);
 }
 // процент → с какой миссии начать вопросы: оценка с запасом назад (2 миссии), чтобы не показать название впереди игрока
 export const pctStart = (d, pct) => Math.max(-1, fromPercent(d, pct) - 2);
@@ -225,6 +227,11 @@ function onClick(e) {
     case 'yes': V.i = V.q; V.q = V.q + 1 < V.lim ? V.q + 1 : null; paint(); C.haptic?.(); break;
     case 'here': V.stop = true; paint(); break;
     case 'save': {
+      if (resolver) {                                  // строка шторки «Где вы» ядра: позицию пишет pickPos через setPos
+        if (!wouldMove(D, V.i, V.via)) { V.done = s('keep'); paint(); break; }
+        const r = resolver; resolver = null; C.event?.('progress_save', { via: V.via, i: V.i, ok: true });
+        sheet.hidden = true; r({ ...posFor(D, V.i), via: V.via }); break;
+      }
       const ok = save(D, V.i, V.via); V.done = ok ? s('saved') : s('keep'); paint();
       C.onSaved?.(getProg(D.game)); C.event?.('progress_save', { via: V.via, i: V.i, ok }); break;
     }
@@ -249,4 +256,21 @@ export async function openProgress(ctx, game = 'gta6') {
   C.event?.('progress_open', { from: ctx.from || '' });
   return true;
 }
-export function close() { if (sheet) sheet.hidden = true; C?.onClose?.(); }
+export function close() { if (sheet) sheet.hidden = true; if (resolver) { const r = resolver; resolver = null; r(null); } C?.onClose?.(); }
+
+// ---------- строки ядра: registerPickRow (Решение Fable, js/guide-core.js pickPos) ----------
+// ctx = {lang, I, platform: 'playstation'|'xbox' | () => …, haptic, event}. Строка «По проценту» — всегда, «Подтянуть с консоли» — только под ?sbmock.
+// onTap открывает уточнение поверх «Где вы» и отдаёт ядру {m|c, via} после «Сохранить» (null — закрыли).
+const rowHTML = (lang, b, sm) => `<span class="pg-tt"><b>${esc(b)}</b><small>${esc(sm)}</small></span>`;
+const platOf = (ctx) => { const p = typeof ctx.platform === 'function' ? ctx.platform() : ctx.platform; return p === 'xbox' ? 'xbox' : 'psn'; };
+const sx = (lang, k, v = {}) => { let x = (S[lang] || S.en)[k] ?? S.en[k]; for (const [a, b] of Object.entries(v)) x = x.split(`{${a}}`).join(b); return x; };
+export function registerRows(ctx) {
+  registerPickRow({ id: 'progress-pct', html: (lang) => rowHTML(lang, sx(lang, 'pct'), sx(lang, 'pct_s')), onTap: (game) => ask(ctx, game, 'pct') });
+  if (consoleOn()) registerPickRow({ id: 'progress-console', html: (lang) => rowHTML(lang, sx(lang, 'con', { p: sx(lang, platOf(ctx)) }), sx(lang, 'con_s')), onTap: (game) => ask(ctx, game, 'con') });
+}
+async function ask(ctx, game, open) {
+  if (resolver) { const r = resolver; resolver = null; r(null); }
+  await openProgress({ ...ctx, platform: typeof ctx.platform === 'function' ? ctx.platform() : ctx.platform, con: open === 'con', from: 'pick' }, game);
+  if (open === 'pct') { V.open = 'pct'; paint(); }
+  return new Promise((res) => { resolver = res; });
+}

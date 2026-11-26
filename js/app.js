@@ -481,7 +481,11 @@ async function openProgressUI(from = '', platform = null) {
     openWalk: () => window.SB?.openWalk?.(), openWalkPick: () => window.SB?.openWalk?.('pick'), openFeed: (k) => window.SB?.openFeed?.(k),
   });
 }
-window.SB = Object.assign(window.SB || {}, { openProgress: openProgressUI });
+// строки «По проценту из игры» и «Подтянуть с консоли» (только ?sbmock) для общей шторки «Где вы» (guide-core pickPos): вызвать до pickPos
+const progressRows = () => import('./progress.js').then((m) => m.registerRows({
+  lang: getLang(), I, haptic, platform: () => store.platform, event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+})).catch(() => { });
+window.SB = Object.assign(window.SB || {}, { openProgress: openProgressUI, registerProgressRows: progressRows });
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
 function eggRow(o) {
   if (hasGuide(o)) {
