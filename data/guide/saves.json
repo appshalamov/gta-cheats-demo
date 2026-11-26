@@ -1,163 +1,745 @@
 {
-  "v": 1,
-  "upd": "2026-11-26",
-  "game": "gta6",
-  "base": null,
-  "_base": "при слиянии с feature/guide-walkthrough поставить \"data/guide/missions.json\"",
-  "_note": "Предупреждения и сохранения (guide-saves, 26.11.2026). Миссии — по id из data/guide/missions.json (ведёт guide-walkthrough); пока его нет, порядок берётся из ms[] ниже. st: ok — 2+ источника, one — 1 источник или источники расходятся. lvl: 1 — теряется навсегда, 2 — неудобно, но не смертельно. sp: 1 — спойлер. Ресёрч — «Гид по игре — система (26.11.2026)/Сохранения — ресёрч/».",
-  "ms": [
-    { "id": "tourist-trap", "o": 10, "ch": 1, "t": { "ru": "Tourist Trap", "en": "Tourist Trap" } },
-    { "id": "discharge-time", "o": 12, "ch": 1, "t": { "ru": "Discharge Time", "en": "Discharge Time" } },
-    { "id": "checking-out", "o": 43, "ch": 2, "t": { "ru": "Checking Out", "en": "Checking Out" } },
-    { "id": "race-against-yago", "o": 60, "ch": 3, "t": { "ru": "Race Against Yago", "en": "Race Against Yago" } },
-    { "id": "final", "o": 99, "ch": 5, "sp": 1, "t": { "ru": "Последняя миссия", "en": "The final mission" } }
-  ],
-  "warn": [
+ "v": 2,
+ "game": "gta6",
+ "upd": "2026-11-27",
+ "base": "data/guide/missions.json",
+ "_note": "Справочник «Не упустить навсегда» (guide-saves; решение Fable 26.11, раздел «Что сделать в ветках»). Миссии — id базы guide-walkthrough (data/guide/missions.json). pnr[] — точки невозврата: что закрывается (t, why), вид потери для игрока без отметки (lt), дела для галочек в янтарном блоке «Прохождения» (items — только то, чего нет в tips базы миссий). Поля для указателя (build_guide_index.py): kind, k, m, until, ch, sp, lvl, st (own|ok|one|dispute|rumor), src, kw, next, free; у bug — v, upd, chk. Ресёрч — «Гид по игре — система (26.11.2026)/Сохранения — ресёрч/». У save.* служебные поля указателя — в ix (st там — статус источников, а st самого объекта — шаги «По шагам»).",
+ "pnr": [
+  {
+   "id": "tourist-trap",
+   "kind": "warn",
+   "k": "saves:gta6:tourist-trap",
+   "m": "tourist-trap",
+   "until": "tourist-trap",
+   "ch": 1,
+   "lvl": 1,
+   "st": "ok",
+   "lt": {
+    "ru": "дела в Key Lento",
+    "en": "Key Lento side activities"
+   },
+   "t": {
+    "ru": "Tourist Trap запускает конец главы 1",
+    "en": "Tourist Trap starts the end of Chapter 1"
+   },
+   "why": {
+    "ru": "Дальше подряд Home Sweet Home и Discharge Time. Побочные дела главы 1 закроются, на несколько часов не будет игры за обоих героев. Переиграть миссии из меню нельзя.",
+    "en": "Home Sweet Home and Discharge Time follow back to back. Chapter 1 side activities close and for several hours you can't switch heroes. You can't replay missions from a menu."
+   },
+   "items": [
     {
-      "id": "save-before-tourist-trap", "m": "tourist-trap", "k": "pnr", "lvl": 1, "st": "ok",
-      "t": { "ru": "Сохраниться вручную в новый слот", "en": "Make a manual save in a new slot" },
-      "why": { "ru": "Tourist Trap запускает конец главы 1: Home Sweet Home и Discharge Time. Переиграть миссии из меню нельзя — только загрузить своё сохранение.", "en": "Tourist Trap starts the end of Chapter 1: Home Sweet Home and Discharge Time. You can't replay missions from a menu — only load your own save." },
-      "src": ["https://www.powerpyx.com/gta-6-grand-theft-auto-vi/", "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions", "https://www.dexerto.com/wikis/gta-6/how-to-replay-missions/"]
+     "id": "save-tourist-trap",
+     "lvl": 1,
+     "st": "ok",
+     "t": {
+      "ru": "Сохраниться вручную в новый слот",
+      "en": "Make a manual save in a new slot"
+     },
+     "why": {
+      "ru": "Повтора миссий нет — назад только через этот слот.",
+      "en": "There's no mission replay — this slot is your way back."
+     },
+     "src": [
+      "https://www.powerpyx.com/gta-6-grand-theft-auto-vi/",
+      "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions",
+      "https://www.dexerto.com/wikis/gta-6/how-to-replay-missions/"
+     ]
     },
     {
-      "id": "shirleys-rum", "m": "tourist-trap", "k": "side", "lvl": 1, "st": "one",
-      "t": { "ru": "Пройти Get Shirley's Rum и Steal the Scooter", "en": "Do Get Shirley's Rum and Steal the Scooter" },
-      "why": { "ru": "Закроются, как только начнёте Tourist Trap. Наград и трофеев за них нет — только ради истории.", "en": "They close the moment you start Tourist Trap. No rewards or trophies — story only." },
-      "src": ["https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"]
+     "id": "balcony-meditation",
+     "lvl": 2,
+     "st": "dispute",
+     "t": {
+      "ru": "Помедитировать на балконе у Джейсона",
+      "en": "Meditate on Jason's balcony"
+     },
+     "why": {
+      "ru": "Для трофея Positive Mental Attitude. По одному гайду медитации есть и в открытом мире, по другому — только в главе 1. Надёжнее сделать сейчас.",
+      "en": "For the Positive Mental Attitude trophy. One guide says meditation spots exist in free roam, another says Chapter 1 only. Safer to do it now."
+     },
+     "src": [
+      "https://www.powerpyx.com/gta-6-grand-theft-auto-vi/",
+      "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"
+     ]
     },
     {
-      "id": "balcony-meditation", "m": "tourist-trap", "k": "trophy", "lvl": 2, "st": "one",
-      "t": { "ru": "Помедитировать на балконе у Джейсона", "en": "Meditate on Jason's balcony" },
-      "why": { "ru": "Для трофея Positive Mental Attitude. По одному гайду медитации есть и в открытом мире, по другому — только в главе 1. Надёжнее сделать сейчас.", "en": "For the Positive Mental Attitude trophy. One guide says meditation spots exist in free roam, another says Chapter 1 only. Safer to do it now." },
-      "src": ["https://www.powerpyx.com/gta-6-grand-theft-auto-vi/", "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"]
+     "id": "key-lento-cash",
+     "lvl": 2,
+     "st": "dispute",
+     "t": {
+      "ru": "Положить наличные на счёт",
+      "en": "Put your cash in the bank"
+     },
+     "why": {
+      "ru": "Наличные пропадают при смерти, а по одному гайду — и при смене главы. Деньги на счёте в безопасности.",
+      "en": "Cash is lost when you die and, per one guide, when the chapter changes. Money in the bank is safe."
+     },
+     "src": [
+      "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"
+     ]
     },
     {
-      "id": "key-lento-cash", "m": "tourist-trap", "k": "money", "lvl": 2, "st": "one",
-      "t": { "ru": "Положить наличные на счёт", "en": "Put your cash in the bank" },
-      "why": { "ru": "Наличные пропадают при смерти, а по одному гайду — и при смене главы. Деньги на счёте в безопасности.", "en": "Cash is lost when you die and, per one guide, when the chapter changes. Money in the bank is safe." },
-      "src": ["https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"]
-    },
-    {
-      "id": "ue-vehicles", "m": "tourist-trap", "k": "vehicle", "lvl": 2, "st": "one",
-      "t": { "ru": "Закончить дела в Key Lento за обоих героев", "en": "Finish what you want in Key Lento with both heroes" },
-      "why": { "ru": "Несколько часов главы 2 нельзя будет играть за обоих и брать транспорт Ultimate Edition. Вернуться в Key Lento можно позже.", "en": "For several hours of Chapter 2 you can't switch heroes or use the Ultimate Edition vehicles. You can return to Key Lento later." },
-      "src": ["https://www.videogameschronicle.com/guide/gta-6-chapter-1-warning-read-this-before-finishing-chapter-1-of-gta-6/"]
-    },
-    {
-      "id": "motel-items", "m": "checking-out", "k": "collect", "lvl": 1, "st": "ok",
-      "t": { "ru": "Забрать вещи и наряды из Starlet Motel и карточки №1 и №2", "en": "Take your outfits and items from the Starlet Motel and cards #1 and #2" },
-      "why": { "ru": "После Checking Out мотель навсегда перестаёт быть домом.", "en": "After Checking Out the motel stops being your home for good." },
-      "src": ["https://www.gtabase.com/gta-6/missions/checking-out", "https://www.powerpyx.com/?p=369781"]
-    },
-    {
-      "id": "save-before-checking-out", "m": "checking-out", "k": "pnr", "lvl": 1, "st": "ok",
-      "t": { "ru": "Сохраниться вручную в новый слот", "en": "Make a manual save in a new slot" },
-      "why": { "ru": "Конец главы 2 и переезд в Вайс-Сити. Для старта миссии нужны $15 000 и все остальные миссии главы.", "en": "End of Chapter 2 and the move to Vice City. To start it you need $15,000 and every other Chapter 2 mission." },
-      "src": ["https://www.gtabase.com/gta-6/missions/checking-out", "https://www.powerpyx.com/?p=369781"]
-    },
-    {
-      "id": "yago-timer", "m": "race-against-yago", "when": "during", "k": "side", "lvl": 2, "st": "one",
-      "t": { "ru": "Race Against Yago — успеть по времени", "en": "Race Against Yago — make it in time" },
-      "why": { "ru": "Миссия с таймером. По одному гайду проигрыш может закрыть следующие миссии Яго. За первое место — $3 800.", "en": "A timed mission. One guide says losing may close Yago's later missions. First place pays $3,800." },
-      "src": ["https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"]
-    },
-    {
-      "id": "side-lines", "m": "final", "k": "side", "lvl": 2, "st": "one", "sp": 1,
-      "t": { "ru": "Закончить линии Энди, Брета, Тайрона и пилота Пита", "en": "Finish the Andy, Bret, Tyrone and Pilot Pete lines" },
-      "why": { "ru": "По одному гайду после концовки один из героев может быть недоступен.", "en": "One guide says one of the heroes may be unavailable after the ending." },
-      "src": ["https://bloxodes.com/articles/gta-6-missable-trophies-and-missions", "https://www.powerpyx.com/gta-6-grand-theft-auto-vi/"]
-    },
-    {
-      "id": "save-before-final", "m": "final", "k": "pnr", "lvl": 1, "st": "ok", "sp": 1,
-      "t": { "ru": "Отдельное сохранение перед финалом", "en": "A separate save before the finale" },
-      "why": { "ru": "Перед последней миссией игра спросит, идти ли до конца. После титров вернёт к этому вопросу, но выбор в концовке остаётся — другой вариант только через своё сохранение.", "en": "Before the last mission the game asks if you're ready. After the credits it returns you to that point, but your ending choice sticks — the other option only via your own save." },
-      "src": ["https://kotaku.com/yes-you-can-keep-playing-gta-6-after-the-credits-roll-and-dont-worry-thats-not-a-spoiler-2000756333", "https://www.dexerto.com/wikis/gta-6/how-to-replay-missions/"]
+     "id": "ue-vehicles",
+     "lvl": 2,
+     "st": "one",
+     "t": {
+      "ru": "Закончить дела в Key Lento за обоих героев",
+      "en": "Finish what you want in Key Lento with both heroes"
+     },
+     "why": {
+      "ru": "Несколько часов главы 2 нельзя будет играть за обоих и брать транспорт Ultimate Edition. Вернуться в Key Lento можно позже.",
+      "en": "For several hours of Chapter 2 you can't switch heroes or use the Ultimate Edition vehicles. You can return to Key Lento later."
+     },
+     "src": [
+      "https://www.videogameschronicle.com/guide/gta-6-chapter-1-warning-read-this-before-finishing-chapter-1-of-gta-6/"
+     ]
     }
-  ],
-  "always": [
-    {
-      "id": "black-icons", "k": "side", "lvl": 1, "st": "ok",
-      "t": { "ru": "Миссии с чёрной иконкой и розовой буквой брать, пока они на карте", "en": "Do missions with a black icon and pink letter while they're on the map" },
-      "why": { "ru": "Исчезают по ходу сюжета. Для 100 % они не нужны.", "en": "They disappear as the story moves on. Not needed for 100%." },
-      "src": ["https://www.powerpyx.com/gta-6-grand-theft-auto-vi/", "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"]
-    },
-    {
-      "id": "hourglass", "k": "side", "lvl": 2, "st": "ok",
-      "t": { "ru": "Задания с песочными часами — сразу", "en": "Hourglass missions — right away" },
-      "why": { "ru": "Проваливаются по времени. На трофеи не влияют.", "en": "They expire. They don't affect trophies." },
-      "src": ["https://www.powerpyx.com/gta-6-grand-theft-auto-vi/", "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"]
-    },
-    {
-      "id": "fences", "k": "money", "lvl": 2, "st": "ok",
-      "t": { "ru": "Продавать краденое скупщикам заранее", "en": "Sell stolen goods to fences early" },
-      "why": { "ru": "Часть скупщиков закрывается навсегда после сюжетных миссий.", "en": "Some fences close for good after story missions." },
-      "src": ["https://www.powerpyx.com/gta-6-grand-theft-auto-vi/", "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"]
-    },
-    {
-      "id": "irredeemable", "k": "choice", "lvl": 2, "st": "ok",
-      "t": { "ru": "Не устраивать бойню без нужды", "en": "Don't go on rampages for no reason" },
-      "why": { "ru": "Профиль «Irredeemable Criminal» не снимается: полиция злее до конца игры. Трофеи он не закрывает.", "en": "The Irredeemable Criminal profile is permanent: police stay tougher for the rest of the game. It doesn't lock trophies." },
-      "src": ["https://www.powerpyx.com/gta-6-grand-theft-auto-vi/", "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"]
-    }
-  ],
-  "trophies": {
-    "t": { "ru": "Трофей по-настоящему упустить почти нельзя: всё для 100 % добирается после титров. Под вопросом только Positive Mental Attitude — он в списке выше.", "en": "You can barely miss a trophy for real: everything for 100% is available after the credits. Only Positive Mental Attitude is in question — it's in the list above." },
-    "src": ["https://www.powerpyx.com/gta-6-grand-theft-auto-vi/", "https://kotaku.com/yes-you-can-keep-playing-gta-6-after-the-credits-roll-and-dont-worry-thats-not-a-spoiler-2000756333"]
+   ],
+   "src": [
+    "https://www.powerpyx.com/gta-6-grand-theft-auto-vi/",
+    "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions",
+    "https://www.videogameschronicle.com/guide/gta-6-chapter-1-warning-read-this-before-finishing-chapter-1-of-gta-6/"
+   ],
+   "next": [
+    "walk:gta6",
+    "saves:gta6:playstation"
+   ]
   },
-  "bugs": [
+  {
+   "id": "checking-out",
+   "kind": "warn",
+   "k": "saves:gta6:checking-out",
+   "m": "checking-out",
+   "until": "checking-out",
+   "ch": 2,
+   "lvl": 1,
+   "st": "ok",
+   "lt": {
+    "ru": "дом и вещи",
+    "en": "your home and belongings"
+   },
+   "t": {
+    "ru": "После Checking Out мотель перестаёт быть домом",
+    "en": "After Checking Out the motel is no longer your home"
+   },
+   "why": {
+    "ru": "Конец главы 2 и переезд в Вайс-Сити. Наряды, вещи и коллекционные карточки №1 и №2 в мотеле останутся там навсегда. Для старта миссии нужны $15 000 и все остальные миссии главы.",
+    "en": "End of Chapter 2 and the move to Vice City. Outfits, items and collectible cards #1 and #2 at the motel stay there for good. To start it you need $15,000 and every other Chapter 2 mission."
+   },
+   "items": [
     {
-      "id": "power-off", "st": "ok",
-      "t": { "ru": "Выключили консоль — потеряли часы игры", "en": "Turned the console off — lost hours of play" },
-      "fix": { "ru": "Автосохранение бывает только после больших миссий. Перед выходом сохраняйтесь вручную: пауза → Игра → Сохранить игру.", "en": "Autosave only happens after big missions. Save manually before quitting: Pause → Game → Save Game." },
-      "src": ["https://kotaku.com/be-careful-with-auto-saving-in-gta-6-it-doesnt-happen-as-often-as-you-think-2000758487", "https://www.giga.de/games/speichern-in-gta-6-wer-diesen-fehler-macht-kann-etliche-stunden-spielfortschritt-verlieren--01M7T3PNN14EX5ASCBY3K02JQM", "https://www.techloy.com/gta-6-save-autosave-recover-progress/"]
+     "id": "motel-items",
+     "lvl": 1,
+     "st": "ok",
+     "t": {
+      "ru": "Забрать вещи и наряды из Starlet Motel и карточки №1 и №2",
+      "en": "Take your outfits and items from the Starlet Motel and cards #1 and #2"
+     },
+     "why": {
+      "ru": "После Checking Out мотель навсегда перестаёт быть домом.",
+      "en": "After Checking Out the motel stops being your home for good."
+     },
+     "src": [
+      "https://www.gtabase.com/gta-6/missions/checking-out",
+      "https://www.powerpyx.com/?p=369781"
+     ]
     },
     {
-      "id": "load-overwrites-auto", "st": "ok",
-      "t": { "ru": "Загрузили старое сохранение — пропал автосейв", "en": "Loaded an old save — the autosave was gone" },
-      "fix": { "ru": "Загрузка ручного слота заменяет автосохранение. Сначала сохраните текущую игру в новый слот.", "en": "Loading a manual slot replaces the autosave. Save your current game to a new slot first." },
-      "src": ["https://www.dexerto.com/wikis/gta-6/how-to-save/", "https://www.ibtimes.com.au/gta-6-how-save-game-manual-autosave-1878933"]
-    },
-    {
-      "id": "patch-autosave", "st": "one", "patch": "01.002.002",
-      "t": { "ru": "Автосохранение срабатывало не всегда", "en": "Autosave didn't always trigger" },
-      "fix": { "ru": "Возможно, исправлено в обновлении 01.002.002 от 23.11 — пока это пишет один трекер патчей. Проверьте версию игры и всё равно сохраняйтесь вручную.", "en": "Possibly fixed in update 01.002.002 from Nov 23 — only one patch tracker says so. Check your game version and keep saving manually." },
-      "src": ["https://beebom.com/gta-6-patch-notes-updates-tracker/"]
+     "id": "save-checking-out",
+     "lvl": 1,
+     "st": "ok",
+     "t": {
+      "ru": "Сохраниться вручную в новый слот",
+      "en": "Make a manual save in a new slot"
+     },
+     "why": {
+      "ru": "Конец главы 2 — держите слот до переезда.",
+      "en": "End of Chapter 2 — keep a slot from before the move."
+     },
+     "src": [
+      "https://www.gtabase.com/gta-6/missions/checking-out",
+      "https://www.powerpyx.com/?p=369781"
+     ]
     }
-  ],
-  "rules": [
-    { "ru": "Перед важной миссией — новый ручной слот, а не поверх старого.", "en": "Before a key mission, use a new manual slot — don't overwrite." },
-    { "ru": "Автосохранению не доверяйте: оно одно и перезаписывается само.", "en": "Don't rely on the autosave: there's only one and it overwrites itself." },
-    { "ru": "Перед загрузкой старого слота сохраните текущую игру.", "en": "Before loading an old slot, save your current game." }
-  ],
-  "save": {
-    "playstation": {
-      "ta": { "ru": "Как грамотно сохраняться на PS5", "en": "How to save properly on PS5" },
-      "rw": { "ru": "15 ручных слотов в игре плюс облако PS Plus. Копию одной игры на флешку PS5 не делает.", "en": "15 manual slots in the game plus PS Plus cloud. PS5 can't copy a single game's save to USB." },
-      "min": 3,
-      "st": [
-        { "id": "ps-1", "t": { "ru": "Выйдите из миссии в свободную игру, нажмите Options → вкладка «Игра» → «Сохранить игру»", "en": "Get out of the mission into free roam, press Options → Game tab → Save Game" }, "ok": { "ru": "в слоте появились дата и время", "en": "the slot shows the date and time" }, "tr": { "ru": "В миссии, погоне и бою пункт серый — сначала закончите или выйдите.", "en": "During a mission, chase or fight it's greyed out — finish or leave first." } },
-        { "id": "ps-2", "t": { "ru": "Перед важной миссией выберите новый слот, а не старый", "en": "Before a key mission pick a new slot, not an old one" }, "ok": { "ru": "у вас есть слот «перед миссией», который вы больше не трогаете", "en": "you have a 'before the mission' slot you never touch again" }, "tr": { "ru": "Автосохранение — отдельный слот и перезаписывается само. Это не копия.", "en": "The autosave is a separate slot and overwrites itself. It's not a backup." } },
-        { "id": "ps-3", "t": { "ru": "Включите облако: Настройки → Сохранённые данные и настройки игр/приложений → Сохранённые данные (PS5) → Синхронизировать сохранённые данные → Автосинхронизация", "en": "Turn on the cloud: Settings → Saved Data and Game/App Settings → Saved Data (PS5) → Sync Saved Data → Auto-Sync Saved Data" }, "ok": { "ru": "переключатель «Включить автосинхронизацию» включён", "en": "Enable Auto-Sync is on" }, "tr": { "ru": "Нужна подписка PS Plus. Синхронизация идёт, когда вы закрываете игру или консоль уходит в режим покоя.", "en": "Needs PS Plus. Syncing happens when you close the game or the console goes to rest mode." } },
-        { "id": "ps-4", "t": { "ru": "Перед финалом загрузите сохранение в облако вручную: на главном экране выделите GTA VI → Options → «Загрузить или скачать сохранённые данные»", "en": "Before the finale upload your save by hand: on the home screen highlight GTA VI → Options → Upload/Download Saved Data" }, "ok": { "ru": "в облаке сохранение с сегодняшней датой", "en": "the cloud save shows today's date" } },
-        { "id": "ps-5", "t": { "ru": "Перед тем как загрузить старый слот, сохраните текущую игру в новый", "en": "Before loading an old slot, save your current game to a new one" }, "tr": { "ru": "Загрузка старого слота заменяет автосохранение.", "en": "Loading an old slot replaces the autosave." } },
-        { "id": "ps-6", "t": { "ru": "Нет PS Plus — держите 2–3 ручных слота. Полная копия консоли: Настройки → Система → Системное программное обеспечение → Резервное копирование и восстановление", "en": "No PS Plus — keep 2–3 manual slots. Full console backup: Settings → System → System Software → Back Up and Restore" }, "tr": { "ru": "Восстановление из полной копии стирает всё на консоли.", "en": "Restoring a full backup erases everything on the console." } }
-      ],
-      "src": ["https://www.playstation.com/ru-ru/support/subscriptions/ps5-ps-plus-cloud-storage/", "https://www.playstation.com/en-us/support/subscriptions/ps5-ps-plus-cloud-storage/", "https://www.gamesradar.com/ps5-doesnt-allow-save-files-backups-to-usb-sticks", "https://www.dexerto.com/wikis/gta-6/how-to-save/", "https://www.ibtimes.com.au/gta-6-how-save-game-manual-autosave-1878933"]
-    },
-    "xbox": {
-      "ta": { "ru": "Как грамотно сохраняться на Xbox", "en": "How to save properly on Xbox" },
-      "rw": { "ru": "15 ручных слотов в игре. Облако Xbox включено само и бесплатно.", "en": "15 manual slots in the game. Xbox cloud saves are on by default and free." },
-      "min": 3,
-      "st": [
-        { "id": "xb-1", "t": { "ru": "Выйдите из миссии в свободную игру, нажмите кнопку Menu → вкладка «Игра» → «Сохранить игру»", "en": "Get out of the mission into free roam, press Menu → Game tab → Save Game" }, "ok": { "ru": "в слоте появились дата и время", "en": "the slot shows the date and time" }, "tr": { "ru": "В миссии, погоне и бою пункт серый — сначала закончите или выйдите.", "en": "During a mission, chase or fight it's greyed out — finish or leave first." } },
-        { "id": "xb-2", "t": { "ru": "Перед важной миссией выберите новый слот, а не старый", "en": "Before a key mission pick a new slot, not an old one" }, "ok": { "ru": "у вас есть слот «перед миссией», который вы больше не трогаете", "en": "you have a 'before the mission' slot you never touch again" }, "tr": { "ru": "Автосохранение — отдельный слот и перезаписывается само. Это не копия.", "en": "The autosave is a separate slot and overwrites itself. It's not a backup." } },
-        { "id": "xb-3", "t": { "ru": "Выходите из игры при включённом интернете и не выдёргивайте консоль сразу — сохранение уйдёт в облако", "en": "Quit the game while online and don't unplug the console right away — the save goes to the cloud" }, "ok": { "ru": "на другой консоли или после переустановки прогресс на месте", "en": "your progress is there on another console or after a reinstall" }, "tr": { "ru": "Game Pass Ultimate для облачных сохранений не нужен.", "en": "You don't need Game Pass Ultimate for cloud saves." } },
-        { "id": "xb-4", "t": { "ru": "Перед тем как загрузить старый слот, сохраните текущую игру в новый", "en": "Before loading an old slot, save your current game to a new one" }, "tr": { "ru": "Загрузка старого слота заменяет автосохранение.", "en": "Loading an old slot replaces the autosave." } },
-        { "id": "xb-5", "t": { "ru": "Если консоль спросит, какую версию оставить, — выберите более позднюю дату", "en": "If the console asks which version to keep, pick the later date" }, "tr": { "ru": "Сначала дайте второй консоли закончить синхронизацию.", "en": "Let the other console finish syncing first." } },
-        { "id": "xb-6", "t": { "ru": "В «Мои игры и приложения» → GTA VI → Управление игрой → Сохранённые данные никогда не нажимайте «Удалить везде»", "en": "In My games & apps → GTA VI → Manage game → Saved data never press Delete everywhere" }, "tr": { "ru": "«Удалить везде» стирает и облачную копию.", "en": "Delete everywhere wipes the cloud copy too." } }
-      ],
-      "src": ["https://learn.microsoft.com/gaming/gdk/docs/features/common/game-save/game-saves-technical-overview", "https://www.cloudwards.net/how-to-use-xbox-cloud-storage/", "https://www.thewindowsclub.com/how-to-delete-saved-game-data-on-xbox-series-x-s", "https://www.dexerto.com/wikis/gta-6/how-to-save/", "https://www.ibtimes.com.au/gta-6-how-save-game-manual-autosave-1878933"]
-    }
+   ],
+   "src": [
+    "https://www.gtabase.com/gta-6/missions/checking-out",
+    "https://www.powerpyx.com/?p=369781"
+   ],
+   "next": [
+    "walk:gta6",
+    "saves:gta6:playstation"
+   ]
   },
-  "sn": ["PowerPyx", "GTABase", "Kotaku", "VGC", "Dexerto", "IBTimes", "Bloxodes", "PlayStation", "Microsoft"]
+  {
+   "id": "finale",
+   "kind": "warn",
+   "k": "saves:gta6:finale",
+   "m": "the-end-of-the-road",
+   "until": "the-end-of-the-road",
+   "ch": 5,
+   "lvl": 1,
+   "st": "ok",
+   "sp": 2,
+   "lt": {
+    "ru": "выбор концовки",
+    "en": "your ending choice"
+   },
+   "t": {
+    "ru": "Перед финалом игра спросит, идти ли до конца",
+    "en": "Before the finale the game asks if you're ready"
+   },
+   "why": {
+    "ru": "После титров игра вернёт к этому вопросу, но выбор в концовке останется. Другой вариант — только через своё сохранение до выбора.",
+    "en": "After the credits it returns you to that point, but your ending choice sticks. The other option only via your own save from before the choice."
+   },
+   "items": [
+    {
+     "id": "save-finale",
+     "lvl": 1,
+     "st": "ok",
+     "t": {
+      "ru": "Сохраниться вручную в новый слот",
+      "en": "Make a manual save in a new slot"
+     },
+     "why": {
+      "ru": "Держите отдельный слот до финального выбора.",
+      "en": "Keep a separate slot from before the final choice."
+     },
+     "src": [
+      "https://kotaku.com/yes-you-can-keep-playing-gta-6-after-the-credits-roll-and-dont-worry-thats-not-a-spoiler-2000756333",
+      "https://www.dexerto.com/wikis/gta-6/how-to-replay-missions/"
+     ]
+    },
+    {
+     "id": "side-lines",
+     "lvl": 2,
+     "st": "one",
+     "sp": 1,
+     "t": {
+      "ru": "Закончить линии Энди, Брета, Тайрона и пилота Пита",
+      "en": "Finish the Andy, Bret, Tyrone and Pilot Pete lines"
+     },
+     "why": {
+      "ru": "По одному гайду после концовки один из героев может быть недоступен.",
+      "en": "One guide says one of the heroes may be unavailable after the ending."
+     },
+     "src": [
+      "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions",
+      "https://www.powerpyx.com/gta-6-grand-theft-auto-vi/"
+     ]
+    }
+   ],
+   "src": [
+    "https://kotaku.com/yes-you-can-keep-playing-gta-6-after-the-credits-roll-and-dont-worry-thats-not-a-spoiler-2000756333",
+    "https://www.dexerto.com/wikis/gta-6/how-to-replay-missions/"
+   ],
+   "next": [
+    "endings:gta6",
+    "saves:gta6:playstation"
+   ]
+  }
+ ],
+ "always": [
+  {
+   "id": "black-icons",
+   "k": "side",
+   "lvl": 1,
+   "st": "ok",
+   "t": {
+    "ru": "Миссии с чёрной иконкой и розовой буквой брать, пока они на карте",
+    "en": "Do missions with a black icon and pink letter while they're on the map"
+   },
+   "why": {
+    "ru": "Исчезают по ходу сюжета. Для 100 % они не нужны.",
+    "en": "They disappear as the story moves on. Not needed for 100%."
+   },
+   "src": [
+    "https://www.powerpyx.com/gta-6-grand-theft-auto-vi/",
+    "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"
+   ],
+   "kind": "warn"
+  },
+  {
+   "id": "hourglass",
+   "k": "side",
+   "lvl": 2,
+   "st": "ok",
+   "t": {
+    "ru": "Задания с песочными часами — сразу",
+    "en": "Hourglass missions — right away"
+   },
+   "why": {
+    "ru": "Проваливаются по времени. На трофеи не влияют.",
+    "en": "They expire. They don't affect trophies."
+   },
+   "src": [
+    "https://www.powerpyx.com/gta-6-grand-theft-auto-vi/",
+    "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"
+   ],
+   "kind": "warn"
+  },
+  {
+   "id": "fences",
+   "k": "money",
+   "lvl": 2,
+   "st": "ok",
+   "t": {
+    "ru": "Продавать краденое скупщикам заранее",
+    "en": "Sell stolen goods to fences early"
+   },
+   "why": {
+    "ru": "Часть скупщиков закрывается навсегда после сюжетных миссий.",
+    "en": "Some fences close for good after story missions."
+   },
+   "src": [
+    "https://www.powerpyx.com/gta-6-grand-theft-auto-vi/",
+    "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"
+   ],
+   "kind": "warn"
+  },
+  {
+   "id": "irredeemable",
+   "k": "choice",
+   "lvl": 2,
+   "st": "ok",
+   "t": {
+    "ru": "Не устраивать бойню без нужды",
+    "en": "Don't go on rampages for no reason"
+   },
+   "why": {
+    "ru": "Профиль «Irredeemable Criminal» не снимается: полиция злее до конца игры. Трофеи он не закрывает.",
+    "en": "The Irredeemable Criminal profile is permanent: police stay tougher for the rest of the game. It doesn't lock trophies."
+   },
+   "src": [
+    "https://www.powerpyx.com/gta-6-grand-theft-auto-vi/",
+    "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"
+   ],
+   "kind": "warn"
+  },
+  {
+   "id": "timed",
+   "k": "side",
+   "lvl": 2,
+   "st": "one",
+   "t": {
+    "ru": "Задания с таймером — успеть с первого раза",
+    "en": "Timed missions — make it first time"
+   },
+   "why": {
+    "ru": "Например, Race Against Yago в главе 3: по одному гайду проигрыш может закрыть следующие миссии Яго.",
+    "en": "For example Race Against Yago in Chapter 3: one guide says losing may close Yago's later missions."
+   },
+   "src": [
+    "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions"
+   ],
+   "kind": "warn"
+  }
+ ],
+ "trophies": {
+  "t": {
+   "ru": "Трофей по-настоящему упустить почти нельзя: всё для 100 % добирается после титров. Под вопросом только Positive Mental Attitude — он в списке выше.",
+   "en": "You can barely miss a trophy for real: everything for 100% is available after the credits. Only Positive Mental Attitude is in question — it's in the list above."
+  },
+  "src": [
+   "https://www.powerpyx.com/gta-6-grand-theft-auto-vi/",
+   "https://kotaku.com/yes-you-can-keep-playing-gta-6-after-the-credits-roll-and-dont-worry-thats-not-a-spoiler-2000756333"
+  ]
+ },
+ "rules": [
+  {
+   "ru": "Перед важной миссией — новый ручной слот, а не поверх старого.",
+   "en": "Before a key mission, use a new manual slot — don't overwrite."
+  },
+  {
+   "ru": "Автосохранению не доверяйте: оно одно и перезаписывается само.",
+   "en": "Don't rely on the autosave: there's only one and it overwrites itself."
+  },
+  {
+   "ru": "Перед загрузкой старого слота сохраните текущую игру.",
+   "en": "Before loading an old slot, save your current game."
+  }
+ ],
+ "bugs": [
+  {
+   "id": "power-off",
+   "st": "ok",
+   "t": {
+    "ru": "Выключили консоль — потеряли часы игры",
+    "en": "Turned the console off — lost hours of play"
+   },
+   "fix": {
+    "ru": "Автосохранение бывает только после больших миссий. Перед выходом сохраняйтесь вручную: пауза → Игра → Сохранить игру.",
+    "en": "Autosave only happens after big missions. Save manually before quitting: Pause → Game → Save Game."
+   },
+   "src": [
+    "https://kotaku.com/be-careful-with-auto-saving-in-gta-6-it-doesnt-happen-as-often-as-you-think-2000758487",
+    "https://www.giga.de/games/speichern-in-gta-6-wer-diesen-fehler-macht-kann-etliche-stunden-spielfortschritt-verlieren--01M7T3PNN14EX5ASCBY3K02JQM",
+    "https://www.techloy.com/gta-6-save-autosave-recover-progress/"
+   ],
+   "kind": "bug",
+   "v": "01.002.002",
+   "upd": "2026-11-26",
+   "chk": "2026-11-26"
+  },
+  {
+   "id": "load-overwrites-auto",
+   "st": "ok",
+   "t": {
+    "ru": "Загрузили старое сохранение — пропал автосейв",
+    "en": "Loaded an old save — the autosave was gone"
+   },
+   "fix": {
+    "ru": "Загрузка ручного слота заменяет автосохранение. Сначала сохраните текущую игру в новый слот.",
+    "en": "Loading a manual slot replaces the autosave. Save your current game to a new slot first."
+   },
+   "src": [
+    "https://www.dexerto.com/wikis/gta-6/how-to-save/",
+    "https://www.ibtimes.com.au/gta-6-how-save-game-manual-autosave-1878933"
+   ],
+   "kind": "bug",
+   "v": "01.002.002",
+   "upd": "2026-11-26",
+   "chk": "2026-11-26"
+  },
+  {
+   "id": "patch-autosave",
+   "st": "one",
+   "patch": "01.002.002",
+   "t": {
+    "ru": "Автосохранение срабатывало не всегда",
+    "en": "Autosave didn't always trigger"
+   },
+   "fix": {
+    "ru": "Возможно, исправлено в обновлении 01.002.002 от 23.11 — пока это пишет один трекер патчей. Проверьте версию игры и всё равно сохраняйтесь вручную.",
+    "en": "Possibly fixed in update 01.002.002 from Nov 23 — only one patch tracker says so. Check your game version and keep saving manually."
+   },
+   "src": [
+    "https://beebom.com/gta-6-patch-notes-updates-tracker/"
+   ],
+   "kind": "bug",
+   "v": "01.002.002",
+   "upd": "2026-11-26",
+   "chk": "2026-11-26"
+  }
+ ],
+ "save": {
+  "playstation": {
+   "ta": {
+    "ru": "Как грамотно сохраняться на PS5",
+    "en": "How to save properly on PS5"
+   },
+   "rw": {
+    "ru": "15 ручных слотов в игре плюс облако PS Plus. Копию одной игры на флешку PS5 не делает.",
+    "en": "15 manual slots in the game plus PS Plus cloud. PS5 can't copy a single game's save to USB."
+   },
+   "min": 3,
+   "st": [
+    {
+     "id": "ps-1",
+     "t": {
+      "ru": "Выйдите из миссии в свободную игру, нажмите Options → вкладка «Игра» → «Сохранить игру»",
+      "en": "Get out of the mission into free roam, press Options → Game tab → Save Game"
+     },
+     "ok": {
+      "ru": "в слоте появились дата и время",
+      "en": "the slot shows the date and time"
+     },
+     "tr": {
+      "ru": "В миссии, погоне и бою пункт серый — сначала закончите или выйдите.",
+      "en": "During a mission, chase or fight it's greyed out — finish or leave first."
+     }
+    },
+    {
+     "id": "ps-2",
+     "t": {
+      "ru": "Перед важной миссией выберите новый слот, а не старый",
+      "en": "Before a key mission pick a new slot, not an old one"
+     },
+     "ok": {
+      "ru": "у вас есть слот «перед миссией», который вы больше не трогаете",
+      "en": "you have a 'before the mission' slot you never touch again"
+     },
+     "tr": {
+      "ru": "Автосохранение — отдельный слот и перезаписывается само. Это не копия.",
+      "en": "The autosave is a separate slot and overwrites itself. It's not a backup."
+     }
+    },
+    {
+     "id": "ps-3",
+     "t": {
+      "ru": "Включите облако: Настройки → Сохранённые данные и настройки игр/приложений → Сохранённые данные (PS5) → Синхронизировать сохранённые данные → Автосинхронизация",
+      "en": "Turn on the cloud: Settings → Saved Data and Game/App Settings → Saved Data (PS5) → Sync Saved Data → Auto-Sync Saved Data"
+     },
+     "ok": {
+      "ru": "переключатель «Включить автосинхронизацию» включён",
+      "en": "Enable Auto-Sync is on"
+     },
+     "tr": {
+      "ru": "Нужна подписка PS Plus. Синхронизация идёт, когда вы закрываете игру или консоль уходит в режим покоя.",
+      "en": "Needs PS Plus. Syncing happens when you close the game or the console goes to rest mode."
+     }
+    },
+    {
+     "id": "ps-4",
+     "t": {
+      "ru": "Перед финалом загрузите сохранение в облако вручную: на главном экране выделите GTA VI → Options → «Загрузить или скачать сохранённые данные»",
+      "en": "Before the finale upload your save by hand: on the home screen highlight GTA VI → Options → Upload/Download Saved Data"
+     },
+     "ok": {
+      "ru": "в облаке сохранение с сегодняшней датой",
+      "en": "the cloud save shows today's date"
+     }
+    },
+    {
+     "id": "ps-5",
+     "t": {
+      "ru": "Перед тем как загрузить старый слот, сохраните текущую игру в новый",
+      "en": "Before loading an old slot, save your current game to a new one"
+     },
+     "tr": {
+      "ru": "Загрузка старого слота заменяет автосохранение.",
+      "en": "Loading an old slot replaces the autosave."
+     }
+    },
+    {
+     "id": "ps-6",
+     "t": {
+      "ru": "Нет PS Plus — держите 2–3 ручных слота. Полная копия консоли: Настройки → Система → Системное программное обеспечение → Резервное копирование и восстановление",
+      "en": "No PS Plus — keep 2–3 manual slots. Full console backup: Settings → System → System Software → Back Up and Restore"
+     },
+     "tr": {
+      "ru": "Восстановление из полной копии стирает всё на консоли.",
+      "en": "Restoring a full backup erases everything on the console."
+     }
+    }
+   ],
+   "src": [
+    "https://www.playstation.com/ru-ru/support/subscriptions/ps5-ps-plus-cloud-storage/",
+    "https://www.playstation.com/en-us/support/subscriptions/ps5-ps-plus-cloud-storage/",
+    "https://www.gamesradar.com/ps5-doesnt-allow-save-files-backups-to-usb-sticks",
+    "https://www.dexerto.com/wikis/gta-6/how-to-save/",
+    "https://www.ibtimes.com.au/gta-6-how-save-game-manual-autosave-1878933"
+   ],
+   "ix": {
+    "kind": "save",
+    "k": "saves:gta6:playstation",
+    "st": "ok",
+    "free": true,
+    "plat": "playstation",
+    "next": [
+     "walk:gta6",
+     "endings:gta6"
+    ]
+   }
+  },
+  "xbox": {
+   "ta": {
+    "ru": "Как грамотно сохраняться на Xbox",
+    "en": "How to save properly on Xbox"
+   },
+   "rw": {
+    "ru": "15 ручных слотов в игре. Облако Xbox включено само и бесплатно.",
+    "en": "15 manual slots in the game. Xbox cloud saves are on by default and free."
+   },
+   "min": 3,
+   "st": [
+    {
+     "id": "xb-1",
+     "t": {
+      "ru": "Выйдите из миссии в свободную игру, нажмите кнопку Menu → вкладка «Игра» → «Сохранить игру»",
+      "en": "Get out of the mission into free roam, press Menu → Game tab → Save Game"
+     },
+     "ok": {
+      "ru": "в слоте появились дата и время",
+      "en": "the slot shows the date and time"
+     },
+     "tr": {
+      "ru": "В миссии, погоне и бою пункт серый — сначала закончите или выйдите.",
+      "en": "During a mission, chase or fight it's greyed out — finish or leave first."
+     }
+    },
+    {
+     "id": "xb-2",
+     "t": {
+      "ru": "Перед важной миссией выберите новый слот, а не старый",
+      "en": "Before a key mission pick a new slot, not an old one"
+     },
+     "ok": {
+      "ru": "у вас есть слот «перед миссией», который вы больше не трогаете",
+      "en": "you have a 'before the mission' slot you never touch again"
+     },
+     "tr": {
+      "ru": "Автосохранение — отдельный слот и перезаписывается само. Это не копия.",
+      "en": "The autosave is a separate slot and overwrites itself. It's not a backup."
+     }
+    },
+    {
+     "id": "xb-3",
+     "t": {
+      "ru": "Выходите из игры при включённом интернете и не выдёргивайте консоль сразу — сохранение уйдёт в облако",
+      "en": "Quit the game while online and don't unplug the console right away — the save goes to the cloud"
+     },
+     "ok": {
+      "ru": "на другой консоли или после переустановки прогресс на месте",
+      "en": "your progress is there on another console or after a reinstall"
+     },
+     "tr": {
+      "ru": "Game Pass Ultimate для облачных сохранений не нужен.",
+      "en": "You don't need Game Pass Ultimate for cloud saves."
+     }
+    },
+    {
+     "id": "xb-4",
+     "t": {
+      "ru": "Перед тем как загрузить старый слот, сохраните текущую игру в новый",
+      "en": "Before loading an old slot, save your current game to a new one"
+     },
+     "tr": {
+      "ru": "Загрузка старого слота заменяет автосохранение.",
+      "en": "Loading an old slot replaces the autosave."
+     }
+    },
+    {
+     "id": "xb-5",
+     "t": {
+      "ru": "Если консоль спросит, какую версию оставить, — выберите более позднюю дату",
+      "en": "If the console asks which version to keep, pick the later date"
+     },
+     "tr": {
+      "ru": "Сначала дайте второй консоли закончить синхронизацию.",
+      "en": "Let the other console finish syncing first."
+     }
+    },
+    {
+     "id": "xb-6",
+     "t": {
+      "ru": "В «Мои игры и приложения» → GTA VI → Управление игрой → Сохранённые данные никогда не нажимайте «Удалить везде»",
+      "en": "In My games & apps → GTA VI → Manage game → Saved data never press Delete everywhere"
+     },
+     "tr": {
+      "ru": "«Удалить везде» стирает и облачную копию.",
+      "en": "Delete everywhere wipes the cloud copy too."
+     }
+    }
+   ],
+   "src": [
+    "https://learn.microsoft.com/gaming/gdk/docs/features/common/game-save/game-saves-technical-overview",
+    "https://www.cloudwards.net/how-to-use-xbox-cloud-storage/",
+    "https://www.thewindowsclub.com/how-to-delete-saved-game-data-on-xbox-series-x-s",
+    "https://www.dexerto.com/wikis/gta-6/how-to-save/",
+    "https://www.ibtimes.com.au/gta-6-how-save-game-manual-autosave-1878933"
+   ],
+   "ix": {
+    "kind": "save",
+    "k": "saves:gta6:xbox",
+    "st": "ok",
+    "free": true,
+    "plat": "xbox",
+    "next": [
+     "walk:gta6",
+     "endings:gta6"
+    ]
+   }
+  },
+  "code": {
+   "st": [
+    {
+     "id": "cd-1",
+     "t": {
+      "ru": "Выйдите в свободную игру и сохранитесь в новый слот: пауза → «Игра» → «Сохранить игру»",
+      "en": "Go to free roam and save to a new slot: Pause → Game → Save Game"
+     },
+     "ok": {
+      "ru": "есть слот без кодов с сегодняшней датой",
+      "en": "you have a cheat-free slot with today's date"
+     },
+     "tr": {
+      "ru": "Не сохраняйтесь поверх основного слота после ввода кода.",
+      "en": "Don't save over your main slot after using a cheat."
+     }
+    },
+    {
+     "id": "cd-2",
+     "t": {
+      "ru": "Вводите код и играйте в этой копии",
+      "en": "Enter the cheat and play on this copy"
+     },
+     "tr": {
+      "ru": "Если сохранение не даёт записать — значит, код отключил его до перезагрузки.",
+      "en": "If the game won't let you save, the cheat has turned saving off until you reload."
+     }
+    },
+    {
+     "id": "cd-3",
+     "t": {
+      "ru": "За трофеями и сюжетом возвращайтесь в слот без кодов: пауза → «Игра» → «Загрузить игру»",
+      "en": "For trophies and story go back to the cheat-free slot: Pause → Game → Load Game"
+     },
+     "ok": {
+      "ru": "трофеи снова выдаются",
+      "en": "trophies unlock again"
+     }
+    }
+   ],
+   "ta": {
+    "ru": "Как сохраниться перед кодом",
+    "en": "How to save before a cheat"
+   },
+   "rw": {
+    "ru": "Источники спорят, что именно отключает код: Game8 и Of Zen — трофеи в этом сохранении, IBTimes — ещё и сохранение. Отдельный слот без кодов решает оба случая.",
+    "en": "Sources disagree on what a cheat turns off: Game8 and Of Zen say trophies in that save, IBTimes says saving too. A separate cheat-free slot covers both."
+   },
+   "min": 2,
+   "src": [
+    "https://www.ibtimes.com.au/gta-6-how-save-game-manual-autosave-1878933",
+    "https://game8.jp/gta6",
+    "https://www.ofzenandcomputing.com/"
+   ],
+   "ix": {
+    "kind": "save",
+    "k": "saves:gta6:before-code",
+    "st": "dispute",
+    "free": true,
+    "next": [
+     "cheats:gta6",
+     "saves:gta6:all"
+    ]
+   }
+  }
+ },
+ "sn": [
+  "PowerPyx",
+  "GTABase",
+  "Kotaku",
+  "VGC",
+  "Dexerto",
+  "IBTimes",
+  "Bloxodes",
+  "PlayStation",
+  "Microsoft"
+ ],
+ "k": "saves:gta6:all",
+ "kw": {
+  "ru": [
+   "как сохраниться gta 6",
+   "сохранение gta 6",
+   "точки невозврата gta 6",
+   "что можно пропустить gta 6",
+   "автосохранение gta 6",
+   "нельзя перепройти миссию",
+   "облако ps plus gta 6",
+   "пропал прогресс gta 6"
+  ],
+  "en": [
+   "gta 6 how to save",
+   "gta 6 save game",
+   "gta 6 point of no return",
+   "gta 6 missable",
+   "gta 6 autosave",
+   "gta 6 replay mission",
+   "gta 6 cloud save",
+   "gta 6 lost progress"
+  ]
+ }
 }

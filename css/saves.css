@@ -15,18 +15,11 @@
 .sv-list { list-style: none; margin: 0; padding: 0; }
 .sv-w { display: flex; gap: 6px; padding: 12px 0; border-top: 1px solid var(--line); }
 .sv-w:first-child { border-top: 0; }
-.sv-tc { margin-top: -8px; }
-.sv-w.is-done .sv-tc { color: var(--accent-ink); }
-.sv-w.is-done .sv-tc::before { background: var(--accent); border-color: var(--accent); }
 .sv-wb { flex: 1 1 auto; min-width: 0; }
 .sv-t { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.35; }
 .sv-why { margin: 4px 0 0; font-size: 15px; line-height: 1.45; color: var(--text-2); }
 .sv-lv { margin: 6px 0 0; font-size: 13px; font-weight: 650; color: var(--text-3, var(--text-2)); }
 .sv-w.is-l1 .sv-lv { color: var(--warn); }
-.sv-lv span { font-weight: 500; color: var(--text-3, var(--text-2)); }
-.sv-lv span::before { content: ", "; }
-.sv-w.is-done .sv-t { color: var(--text-2); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--text-2) 50%, transparent); }
-.sv-w.is-done .sv-why, .sv-w.is-done .sv-lv { display: none; }
 .sv-sp { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0; font-size: 15px; font-weight: 650; color: var(--text-2); background: none; }
 .sv-sp svg { width: 18px; height: 18px; }
 
@@ -53,10 +46,22 @@
 .sv-bugs b { display: block; font-size: 16px; font-weight: 700; line-height: 1.35; }
 .sv-bugs span { display: block; margin-top: 4px; font-size: 15px; line-height: 1.45; color: var(--text-2); }
 
-.sv-ms { list-style: none; margin: 6px 0 0; padding: 0; }
-.sv-ms button { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 48px; padding: 0; font-size: 16px; text-align: left; color: var(--text); background: none; border-top: 1px solid var(--line); }
-.sv-ms button.on { font-weight: 750; color: var(--accent); }
-.sv-ms button svg { width: 18px; height: 18px; }
-.sv-msc { margin: 14px 0 2px; font-size: 15px; font-weight: 700; color: var(--text-2); }
 .sv-hid { font-size: 17px; font-weight: 750; }
 .sv-h3 .sv-sp { min-height: 32px; font-size: 14px; }
+
+/* справочник (решение Fable 26.11): точки невозврата по главам, статус источника, «Всё ещё после…» */
+.sv-pnr { padding: 14px 0 6px; border-top: 1px solid var(--line); }
+.sv-pnr:first-of-type { border-top: 0; padding-top: 4px; }
+.sv-pnr .sv-h3 { margin-top: 0; }
+.sv-pt { margin: 2px 0 0; font-size: 16px; font-weight: 650; line-height: 1.4; color: var(--warn); }
+.sv-pnr > .sv-why { margin-bottom: 4px; }
+.sv-pnr.is-past .sv-pt, .sv-pnr.is-past .sv-h3 { color: var(--text-2); }
+.sv-pnr .sv-list { margin-left: 2px; }
+.sv-wb { padding-left: 0; }
+.sv-st { display: block; margin-top: 2px; font-weight: 500; color: var(--text-3, var(--text-2)); }
+.sv-st.is-dis { color: var(--warn); }
+.sv-stale { margin-top: 6px; }
+.sv-stale p { font-size: 15px; font-weight: 500; color: var(--text-2); }
+.sv-stale span { display: flex; gap: 16px; }
+.sv-soon { margin: 12px 0 0; }
+.sv-bugs small { display: block; margin-top: 4px; font-size: 13px; color: var(--text-3, var(--text-2)); }

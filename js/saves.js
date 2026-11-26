@@ -1,60 +1,65 @@
-// «Не упустить навсегда» — предупреждения и сохранения (26.11.2026, «Гид по игре», функция guide-saves). Черновик для решения Fable.
-// Данные — data/guide/saves.json (warn[] привязаны к миссиям по id из data/guide/missions.json, его ведёт guide-walkthrough;
-// пока его нет — порядок из saves.json ms[]). Прогресс игрока — общий ключ sb.gp {игра: {m: id последней пройденной, at}};
-// отметки «сделал» — sb.gs {игра: [id]}. Инструкция «как сохраняться» открывается тем же экраном «По шагам» (js/guide.js).
-// Для экрана миссии гида: savesFor(game, missionId) → { miss, req } — подставить в how.miss и how.req, guide.js рисует сам.
-// Для Главной: nextWarn(game) → ближайшая точка невозврата впереди (или null).
+// «Не упустить навсегда» — справочник сохранений и точек невозврата (guide-saves, «Гид по игре»; «Решение Fable — система гида.md», 26.11.2026).
+// Справочник, а не список дел: правила сохранений, «Как сохраняться» (PS5/Xbox) и «перед кодом» — экраном «По шагам» (js/guide.js),
+// все точки невозврата по главам, «Всегда», трофеи, баги. Срочное отсюда показывает «Прохождение» (guide-walkthrough) янтарным блоком
+// через nextWarn/savesFor, галочки дел — sb.gs (toggleDone). Позиция игрока — общий ключ sb.gp, отметку меняет общая шторка «Где вы»
+// (window.SB.pickPos — guide-walkthrough / guide-core), своей шторки нет. Спойлеры — правило Fable (canShow из guide-core, пока его нет — своё такое же).
+// Данные: data/guide/saves.json, миссии — data/guide/missions.json (путь в saves.json base).
 
 const S = {
   ru: {
     title: 'Не упустить навсегда', close: 'Закрыть', share: 'Поделиться',
-    lead: 'Миссии в GTA 6 не переиграть: повтора из меню нет. Назад — только через своё ручное сохранение. Вот что сделать до точек невозврата.',
-    meta: '{n} предупреждений, {k} — навсегда', trust: 'Сверено по {n} гайдам и справке PlayStation и Xbox',
-    where: 'Где вы сейчас', where_none: 'Отметьте последнюю пройденную миссию — покажем, что сделать до следующей точки невозврата.',
-    where_set: 'Пройдена «{m}», глава {c}', change: 'Изменить', pick: 'Отметить, где я', pick_t: 'Последняя пройденная миссия', start0: 'Ещё не начинал',
-    soon: 'До «{m}»', soon_h: 'До точки невозврата', soon_n: 'через {n} миссии|через {n} миссию|через {n} миссий', soon_0: 'следующая миссия',
-    how_t: 'Сохраниться грамотно', how_btn: 'Как сохраняться на {p}', how_meta: '{n} шагов, около {m} минут',
-    by_m: 'По миссиям', before: 'До «{m}»', ch: 'глава {c}', past: 'Позади', past_t: 'Уже пройдено. Если не успели — поможет только ручное сохранение до этой миссии.',
+    lead: 'Миссии в GTA 6 не переиграть: повтора из меню нет. Назад — только через своё ручное сохранение. Здесь все точки невозврата и как сохраняться, чтобы не потерять часы игры.',
+    where: 'Где вы', where_none: 'Отметьте, где вы в игре, — покажем, сколько осталось до ближайшей точки невозврата.', where_set: 'Глава {c}. После «{m}»',
+    where_c: 'Начало главы {c}', change: 'Изменить', mark: 'Отметить, где я', still: 'Всё ещё после «{m}»?', yes: 'Да',
+    soon: 'Через {n} — точка невозврата: {l}', soon_0: 'Следующая миссия — точка невозврата: {l}', to_walk: 'Что сделать — в «Прохождении»',
+    n_m: '{n} миссии|{n} миссию|{n} миссий',
+    how_t: 'Сохраниться грамотно', how_btn: 'Как сохраняться на {p}', how_meta: '{n} шага, около {m} минут|{n} шаг, около {m} минут|{n} шагов, около {m} минут',
+    code_btn: 'Как сохраниться перед кодом',
+    pnr_t: 'Точки невозврата', ch: 'Глава {c}', hid: 'Название скрыто — открыть', passed: 'Пройдено',
     always: 'Всегда, в любой главе', trophies: 'Трофеи', bugs: 'Баги сохранений', next: 'Дальше',
-    lv1: 'навсегда', lv2: 'можно вернуть', one: 'по одному гайду — проверяем', sp: 'Спойлер — нажмите, чтобы открыть', sp_m: 'Название миссии скрыто — открыть', n_w: '{n} пункта|{n} пункт|{n} пунктов', hid_m: 'Миссия (название скрыто)', ch_t: 'Глава {c}',
-    done: 'Сделано', undo: 'Отметить как не сделано', sources: 'Источники', report: 'Сообщить об ошибке', report_ok: 'Спасибо, проверим',
-    n_bug: 'Баг перепроверим после следующего патча',
-    nx_egg: 'Угнать Bugatti по шагам', nx_eggs: 'Все пасхалки GTA 6', nx_codes: 'Коды GTA 6: деньги, оружие, сбросить розыск',
-    nx_walk: 'Гид прохождения: следующая миссия', nx_end: 'Концовки: какой выбор на что влияет',
+    lv1: 'навсегда', lv2: 'можно вернуть', one: 'Один источник: {s}. Проверяем', dispute: 'Источники спорят', rumor: 'Слух, проверяем',
+    chk: 'Проверено {d}, версия игры {v}', sources: 'Источники', report: 'Сообщить об ошибке', report_ok: 'Спасибо, проверим',
+    nx_walk: 'Прохождение: что сделать до следующей миссии', nx_end: 'Концовки: сохранитесь до выбора', nx_egg: 'Угнать Bugatti по шагам',
+    nx_eggs: 'Все пасхалки GTA 6', nx_codes: 'Коды GTA 6: деньги, оружие, сбросить розыск',
   },
   en: {
     title: "Don't miss it forever", close: 'Close', share: 'Share',
-    lead: "You can't replay GTA 6 missions from a menu. The only way back is your own manual save. Here's what to do before each point of no return.",
-    meta: '{n} warnings, {k} permanent', trust: 'Cross-checked across {n} guides and PlayStation and Xbox support',
-    where: 'Where you are', where_none: "Mark the last mission you finished — we'll show what to do before the next point of no return.",
-    where_set: 'Finished “{m}”, chapter {c}', change: 'Change', pick: 'Mark where I am', pick_t: 'Last mission you finished', start0: "Haven't started",
-    soon: 'Before “{m}”', soon_h: 'Before a point of no return', soon_n: 'in {n} mission|in {n} missions', soon_0: 'next mission',
-    how_t: 'Save the smart way', how_btn: 'How to save on {p}', how_meta: '{n} steps, about {m} min',
-    by_m: 'By mission', before: 'Before “{m}”', ch: 'chapter {c}', past: 'Behind you', past_t: 'Already done. If you missed something, only a manual save from before that mission helps.',
+    lead: "You can't replay GTA 6 missions from a menu. The only way back is your own manual save. Here are all the points of no return and how to save so you don't lose hours.",
+    where: 'Where you are', where_none: "Mark where you are in the game — we'll show how far the next point of no return is.", where_set: 'Chapter {c}. After “{m}”',
+    where_c: 'Start of chapter {c}', change: 'Change', mark: 'Mark where I am', still: 'Still after “{m}”?', yes: 'Yes',
+    soon: 'In {n}: point of no return — {l}', soon_0: 'Next mission is a point of no return — {l}', to_walk: 'What to do — in the Walkthrough',
+    n_m: '{n} mission|{n} missions',
+    how_t: 'Save the smart way', how_btn: 'How to save on {p}', how_meta: '{n} step, about {m} min|{n} steps, about {m} min',
+    code_btn: 'How to save before a cheat',
+    pnr_t: 'Points of no return', ch: 'Chapter {c}', hid: 'Name hidden — reveal', passed: 'Done',
     always: 'Any time, any chapter', trophies: 'Trophies', bugs: 'Save bugs', next: 'Next',
-    lv1: 'permanent', lv2: 'recoverable', one: 'one guide says — checking', sp: 'Spoiler — tap to reveal', sp_m: 'Mission name hidden — reveal', n_w: '{n} item|{n} items', hid_m: 'Mission (name hidden)', ch_t: 'Chapter {c}',
-    done: 'Done', undo: 'Mark as not done', sources: 'Sources', report: 'Report a mistake', report_ok: "Thanks, we'll check",
-    n_bug: "We'll recheck bugs after the next patch",
-    nx_egg: 'Steal the Bugatti step by step', nx_eggs: 'All GTA 6 easter eggs', nx_codes: 'GTA 6 cheats: money, weapons, lose wanted level',
-    nx_walk: 'Walkthrough: your next mission', nx_end: 'Endings: what each choice changes',
+    lv1: 'permanent', lv2: 'recoverable', one: 'One source: {s}. Checking', dispute: 'Sources disagree', rumor: 'Rumour, checking',
+    chk: 'Checked {d}, game version {v}', sources: 'Sources', report: 'Report a mistake', report_ok: "Thanks, we'll check",
+    nx_walk: 'Walkthrough: what to do before your next mission', nx_end: 'Endings: save before the choice', nx_egg: 'Steal the Bugatti step by step',
+    nx_eggs: 'All GTA 6 easter eggs', nx_codes: 'GTA 6 cheats: money, weapons, lose wanted level',
   },
 };
-const GP = 'sb.gp', GS = 'sb.gs';
-let C = null, D = null, M = null, layer = null, open1 = new Set();
+const GP = 'sb.gp', GS = 'sb.gs', DAY = 864e5;
+let C = null, D = null, layer = null, shown = new Set(), langK = 'ru';
 
-const L = () => (C?.lang === 'ru' ? 'ru' : C?.lang && S[C.lang] ? C.lang : 'en');
+const L = () => (langK === 'ru' ? 'ru' : 'en');
 const s = (k, v = {}) => { let x = S[L()][k] ?? S.en[k] ?? k; for (const [a, b] of Object.entries(v)) x = x.split(`{${a}}`).join(b); return x; };
-const plural = (k, n) => {   // «через 2 миссии» — формы ru: 2–4 | 1 | 5+
-  const f = s(k, { n }).split('|');
+function pl(k, n, v = {}) {   // формы: ru «2–4 | 1 | 5+», en «1 | много»
+  const f = s(k, { n, ...v }).split('|');
   if (L() !== 'ru') return f[n === 1 ? 0 : 1] || f[0];
   const a = n % 10, b = n % 100;
   return (a === 1 && b !== 11 ? f[1] : a >= 2 && a <= 4 && (b < 12 || b > 14) ? f[0] : f[2]) || f[0];
-};
+}
 const tx = (o) => (o ? o[L()] || o.en || o.ru || '' : '');
 const esc = (x) => String(x ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const jget = (k) => { try { return JSON.parse(localStorage.getItem(k) || '{}'); } catch { return {}; } };
 const jset = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { } };
 const base = () => new URL('.', document.baseURI).href;
+const bare = (id) => String(id || '').replace(/^[mc]:/, '');
+const num = (c) => +String(c ?? '').replace(/\D/g, '') || 0;
+const HOST = { 'powerpyx.com': 'PowerPyx', 'bloxodes.com': 'Bloxodes', 'videogameschronicle.com': 'VGC', 'gtabase.com': 'GTABase', 'kotaku.com': 'Kotaku',
+  'dexerto.com': 'Dexerto', 'ibtimes.com.au': 'IBTimes', 'beebom.com': 'Beebom', 'game8.jp': 'Game8', 'ofzenandcomputing.com': 'Of Zen', 'playstation.com': 'PlayStation' };
+const srcName = (u) => { try { const h = new URL(u).hostname.replace(/^www\./, ''); return HOST[h] || h; } catch { return ''; } };
 
 // ── данные ──
 const cache = {};
@@ -63,55 +68,61 @@ async function load(game) {
   const get = (p) => fetch(base() + p).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   const d = await get('data/guide/saves.json');
   if (!d || d.game !== game) return (cache[game] = null);
-  // база миссий гида прохождения: путь в saves.json base (null — ветки guide-walkthrough ещё нет, без лишнего запроса и 404)
-  const m = d.base ? await get(d.base) : null;
-  // миссии: из общей базы гида прохождения (контракт guide-walkthrough: m[] по порядку, ch "c1", id без «m:»), иначе запасной ms[] из saves.json
-  const raw = m?.m || m?.missions || [], num = (c) => +String(c ?? '').replace(/\D/g, '') || 0, bare = (id) => String(id || '').replace(/^m:/, '');
-  const list = raw.length ? raw.map((x, i) => ({ id: bare(x.id), o: i, ch: num(x.ch), t: x.t, pnr: x.pnr, sp: x.sp || 0 })) : d.ms.map((x) => ({ ...x, ch: num(x.ch) }));
+  const mb = d.base ? await get(d.base) : null;   // база миссий guide-walkthrough: m[] по порядку сюжета, ch "c1"
+  const list = (mb?.m || []).map((x, i) => ({ id: bare(x.id), i, ch: num(x.ch), t: x.t, sp: x.sp || 0 }));
   const mm = new Map(list.map((x) => [x.id, x]));
-  d.ms.forEach((x) => { if (!mm.has(x.id)) mm.set(x.id, { ...x, ch: num(x.ch), o: list.length + x.o }); });   // финал и т. п., которых ещё нет в общей базе
-  // подсказки гида прохождения «сделайте до миссии» (tips, miss — навсегда) показываем здесь же, свои warn[] они не повторяют
-  const own = new Set(d.warn.map((w) => w.id));
-  (m?.tips || []).filter((q) => (q.miss || q.lose) && q.until && !own.has(q.id)).forEach((q) => d.warn.push({
-    id: 't:' + q.id, m: bare(q.until), k: q.goal || 'side', lvl: q.miss ? 1 : 2, st: (q.c || 0) >= 2 ? 'ok' : 'one', sp: q.sp || 0,
-    t: q.t, why: q.lose || q.rw || { ru: '', en: '' }, src: q.s || [],
-  }));
-  return (cache[game] = { d, m: [...mm.values()].sort((a, b) => a.o - b.o), mm });
+  const chs = (mb?.ch || []).map((c) => ({ id: c.id, n: c.n, t: c.t }));
+  return (cache[game] = { d, list, mm, chs });
 }
-const progressM = (game) => (jget(GP)[game]?.m || '').replace(/^m:/, '') || null;
+
+// позиция: индекс последней пройденной миссии (-1 — нет отметки); отметка главы = начало главы (всё до неё пройдено)
+function pos(x, game) {
+  const core = window.SB?.guideCore; if (core?.pos) { const p = core.pos(game); if (p && typeof p.i === 'number') return p; }
+  const g = jget(GP)[game] || {};
+  if (g.m && x.mm.has(bare(g.m))) return { i: x.mm.get(bare(g.m)).i, m: x.mm.get(bare(g.m)), at: g.at || 0, set: true };
+  if (g.c) { const n = num(g.c), f = x.list.findIndex((q) => q.ch === n); return { i: f < 0 ? -1 : f - 1, c: n, at: g.at || 0, set: true }; }
+  return { i: -1, set: false };
+}
+// правило спойлеров (Fable): пройденное видно; следующая — если не sp 2; дальше — только sp 0; остальное — по тапу
+function canShow(m, p) {
+  const core = window.SB?.guideCore; if (core?.canShow) return core.canShow({ m: m.id, sp: m.sp }, p);
+  return m.sp === 0 || m.i <= p.i || (m.i === p.i + 1 && m.sp < 2);
+}
 const doneSet = (game) => new Set(jget(GS)[game] || []);
-function toggleDone(game, id) {
+export function toggleDone(game, id) {
   const all = jget(GS), set = new Set(all[game] || []);
   set.has(id) ? set.delete(id) : set.add(id); all[game] = [...set]; jset(GS, all); return set.has(id);
 }
-function setProgress(game, id) { const all = jget(GP); if (id) all[game] = { m: 'm:' + id, at: Date.now(), via: 'self' }; else delete all[game]; jset(GP, all); }
-
-// миссии с предупреждениями — по порядку; где игрок сейчас (o пройденной; -1 — не начинал)
-function groups(x, game) {
-  const cur = x.mm.get(progressM(game))?.o ?? -1;
-  const by = new Map();
-  x.d.warn.forEach((w) => { const m = x.mm.get(w.m); if (m) (by.get(m) || by.set(m, []).get(m)).push(w); });
-  return [...by.entries()].sort((a, b) => a[0].o - b[0].o)
-    .map(([m, ws]) => { const ahead = x.m.filter((q) => q.o > cur && q.o < m.o).length;
-      // правило гида прохождения: названия миссий дальше текущей + 1 не показываем, sp 2 — даже следующую
-      return { m, ws, past: m.o <= cur, ahead, hide: m.o > cur && (ahead > 0 || m.sp >= 2) }; });
+// точки невозврата по порядку сюжета с миссией из базы (запись без миссии в базе не показывается: сборка указателя её остановит)
+function pnrs(x, p) {
+  return x.d.pnr.map((r) => ({ r, m: x.mm.get(r.m) })).filter((q) => q.m).sort((a, b) => a.m.i - b.m.i)
+    .map((q) => ({ ...q, past: q.m.i <= p.i, ahead: q.m.i - p.i - 1 }));
 }
 
-// ── API для других экранов ──
-export async function savesFor(game, missionId, lang = 'ru') {
-  C = C || { lang }; const x = await load(game); if (!x) return null;
-  const ws = x.d.warn.filter((w) => w.m === missionId); if (!ws.length) return null;
-  const pick = (w) => ({ ru: w.t.ru, en: w.t.en });
-  const lv1 = ws.filter((w) => w.lvl === 1 && w.k !== 'pnr');
-  return {
-    miss: lv1.length ? { ru: lv1.map((w) => w.t.ru).join('. '), en: lv1.map((w) => w.t.en).join('. ') } : null,
-    req: ws.map((w) => ({ t: pick(w) })),
-  };
-}
-export async function nextWarn(game) {
+// ── API для «Прохождения» (янтарный блок), Главной (строка состояния) и указателя ──
+// ближайшая точка невозврата впереди: {id, m, ahead (миссий между), lt, t, items[{id,t,why,lvl,st,done}], k} или null
+export async function nextWarn(game, lang) {
+  if (lang) langK = lang;
   const x = await load(game); if (!x) return null;
-  const g = groups(x, game).find((q) => !q.past && q.ws.some((w) => w.lvl === 1));
-  return g ? { m: g.m, ahead: g.ahead, n: g.ws.length } : null;
+  const p = pos(x, game); if (!p.set) return null;
+  const q = pnrs(x, p).find((z) => !z.past); if (!q) return null;
+  const dn = doneSet(game);
+  return { id: q.r.id, m: q.m.id, ch: q.r.ch, ahead: q.ahead, lt: q.r.lt, t: q.r.t, k: q.r.k, show: canShow(q.m, p),
+    items: q.r.items.map((w) => ({ id: w.id, t: w.t, why: w.why, lvl: w.lvl, st: w.st, done: dn.has(w.id) })) };
+}
+// для экрана миссии: {miss, req} — подставить в how.miss / how.req, guide.js рисует сам
+export async function savesFor(game, missionId) {
+  const x = await load(game); if (!x) return null;
+  const r = x.d.pnr.find((q) => q.m === bare(missionId)); if (!r) return null;
+  return { miss: { ru: `${r.t.ru}. ${r.items.filter((w) => w.lvl === 1).map((w) => w.t.ru).join('. ')}`, en: `${r.t.en}. ${r.items.filter((w) => w.lvl === 1).map((w) => w.t.en).join('. ')}` },
+    req: r.items.map((w) => ({ t: w.t })), items: r.items, k: r.k };
+}
+// объекты «По шагам» для «Как сохраняться» и «перед кодом» — для openKey и указателя
+export async function howObj(game, which) {
+  const x = await load(game); if (!x) return null;
+  const h = x.d.save[which]; if (!h) return null;
+  // st — статус источников для общей строки доверия (4 состояния, guide.js у eggs-community); пока guide.js его не знает, «спорят» сказано в rw
+  return { id: `saves-${which}`, game, k: 'reference', t: h.ta, st: h.ix?.st || 'ok', free: true, sn: [...new Set((h.src || []).map(srcName))], how: { ta: h.ta, rw: h.rw, min: h.min, st: h.st } };
 }
 
 // ── экран ──
@@ -123,58 +134,61 @@ function css() {
 }
 const plat = () => (C.platform === 'xbox' ? 'xbox' : 'playstation');
 const platName = () => (plat() === 'xbox' ? 'Xbox' : 'PS5');
-
-function wHTML(w, done, spoil) {
-  const I = C.I, hid = spoil && w.sp && !open1.has(w.id);
-  if (hid) return `<li class="sv-w is-sp"><button class="sv-sp" data-s="spoil" data-id="${esc(w.id)}">${I.eye}<span>${esc(s('sp'))}</span></button></li>`;
-  return `<li class="sv-w${done ? ' is-done' : ''}${w.lvl === 1 ? ' is-l1' : ''}">
-    <button class="g-tc sv-tc" data-s="done" data-id="${esc(w.id)}" aria-pressed="${done}" aria-label="${esc(done ? s('undo') : s('done'))}">${I.check}</button>
-    <div class="sv-wb"><p class="sv-t">${esc(tx(w.t))}</p><p class="sv-why">${esc(tx(w.why))}</p>
-      <p class="sv-lv">${esc(w.lvl === 1 ? s('lv1') : s('lv2'))}${w.st === 'one' ? `<span>${esc(s('one'))}</span>` : ''}</p></div></li>`;
+function trust(w) {
+  if (w.st === 'one') return `<span class="sv-st">${esc(s('one', { s: srcName((w.src || [])[0]) || '—' }))}</span>`;
+  if (w.st === 'dispute') return `<span class="sv-st is-dis">${esc(s('dispute'))}</span>`;
+  if (w.st === 'rumor') return `<span class="sv-st">${esc(s('rumor'))}</span>`;
+  return '';
 }
+const wHTML = (w) => `<li class="sv-w${w.lvl === 1 ? ' is-l1' : ''}"><div class="sv-wb"><p class="sv-t">${esc(tx(w.t))}</p><p class="sv-why">${esc(tx(w.why))}</p>
+  <p class="sv-lv">${esc(w.lvl === 1 ? s('lv1') : s('lv2'))}${trust(w)}</p></div></li>`;
+
+function pnrHTML(q, p) {
+  const { r, m } = q, open = canShow(m, p) || shown.has(r.id);
+  const head = open ? `<h3 class="sv-h3">${esc(s('ch', { c: r.ch }))}. ${esc(tx(m.t))}${q.past ? `<small>${esc(s('passed'))}</small>` : ''}</h3>`
+    : `<h3 class="sv-h3">${esc(s('ch', { c: r.ch }))}: ${esc(tx(r.lt))}</h3>`;
+  if (!open) return `<div class="sv-pnr" data-id="${esc(r.id)}">${head}<button class="sv-sp" data-s="spoil" data-id="${esc(r.id)}">${C.I.eye}<span>${esc(s('hid'))}</span></button></div>`;
+  return `<div class="sv-pnr${q.past ? ' is-past' : ''}" data-id="${esc(r.id)}">${head}<p class="sv-pt">${esc(tx(r.t))}</p><p class="sv-why">${esc(tx(r.why))}</p>
+    <ul class="sv-list">${r.items.map(wHTML).join('')}</ul></div>`;
+}
+
 function render() {
-  const { d } = D, I = C.I, game = C.game, dn = doneSet(game), gs = groups(D, game), pm = D.mm.get(progressM(game));
-  const all = [...d.warn, ...d.always], k1 = all.filter((w) => w.lvl === 1).length;
-  const soon = gs.find((g) => !g.past && g.ahead <= 2 && pm);
-  const how = d.save[plat()];
-  const tn = (n) => plural('n_w', n);
-  const rowW = (ws) => `<ul class="sv-list">${ws.map((w) => wHTML(w, dn.has(w.id), true)).join('')}</ul>`;
+  const { d } = D, I = C.I, game = C.game, p = pos(D, game), qs = pnrs(D, p);
+  const soon = p.set ? qs.find((q) => !q.past && q.ahead <= 2) : null;
+  const how = d.save[plat()], code = d.save.code;
+  const stale = p.set && p.at && Date.now() - p.at > 3 * DAY && p.m;
+  const whereTxt = p.m ? s('where_set', { c: p.m.ch, m: tx(p.m.t) }) : p.c ? s('where_c', { c: p.c }) : '';
   const nx = [
     window.SB?.openWalk ? ['walk', s('nx_walk')] : null,
     window.SB?.openEndings ? ['end', s('nx_end')] : null,
     ['egg', s('nx_egg')], ['eggs', s('nx_eggs')], ['codes', s('nx_codes')],
   ].filter(Boolean).slice(0, 3);
+  const canPick = !!(window.SB?.pickPos || window.SB?.openWalk);
   layer.innerHTML = `<div class="g-scroll" id="sv-scroll">
     <header class="g-top"><button class="g-ib" data-s="close" aria-label="${esc(s('close'))}">${I.chevron}</button>
       <button class="g-ib" data-s="share" aria-label="${esc(s('share'))}">${I.share}</button></header>
     <h1 class="g-h1">${esc(s('title'))}</h1>
     <p class="g-rw">${esc(s('lead'))}</p>
-    <p class="g-meta">${esc(s('meta', { n: all.length, k: k1 }))}</p>
-    <p class="g-trust">${I.check}<span>${esc(s('trust', { n: (d.sn || []).length - 2 }))}</span></p>
 
     <section class="g-sec"><h2>${esc(s('where'))}</h2>
-      ${pm ? `<div class="sv-where"><p>${esc(s('where_set', { m: tx(pm.t), c: pm.ch }))}</p><button class="g-link" data-s="pick">${esc(s('change'))}</button></div>`
-        : `<p class="sv-p">${esc(s('where_none'))}</p><button class="g-link" data-s="pick">${I.pin}<span>${esc(s('pick'))}</span></button>`}
+      ${p.set ? `<div class="sv-where"><p>${esc(whereTxt)}</p>${canPick ? `<button class="g-link" data-s="pick">${esc(s('change'))}</button>` : ''}</div>
+        ${stale ? `<div class="sv-where sv-stale"><p>${esc(s('still', { m: tx(p.m.t) }))}</p><span><button class="g-link" data-s="still">${esc(s('yes'))}</button>${canPick ? `<button class="g-link" data-s="pick">${esc(s('change'))}</button>` : ''}</span></div>` : ''}`
+        : `<p class="sv-p">${esc(s('where_none'))}</p>${canPick ? `<button class="g-link" data-s="pick">${I.pin}<span>${esc(s('mark'))}</span></button>` : ''}`}
+      ${soon ? `<p class="g-miss sv-soon">${I.alert}<span>${esc(soon.ahead ? s('soon', { n: pl('n_m', soon.ahead), l: tx(soon.r.lt) }) : s('soon_0', { l: tx(soon.r.lt) }))}</span></p>
+        ${window.SB?.openWalk ? `<button class="g-link" data-s="nx" data-v="walk">${esc(s('to_walk'))}</button>` : ''}` : ''}
     </section>
-
-    ${soon ? `<section class="g-sec sv-soon"><p class="g-miss">${I.alert}<span>${esc(soon.hide && !open1.has('m:' + soon.m.id) ? s('soon_h') : s('soon', { m: tx(soon.m.t) }))}, ${esc(soon.ahead ? plural('soon_n', soon.ahead) : s('soon_0'))}</span></p>
-      ${soon.hide && !open1.has('m:' + soon.m.id) ? `<button class="sv-sp" data-s="spoil" data-id="m:${esc(soon.m.id)}">${C.I.eye}<span>${esc(s('sp_m'))}</span></button>` : rowW(soon.ws)}</section>` : ''}
 
     <section class="g-sec"><h2>${esc(s('how_t'))}</h2>
       <ol class="sv-rules">${d.rules.map((r) => `<li>${esc(tx(r))}</li>`).join('')}</ol>
-      <button class="sv-how" data-s="how">${I[plat() === 'xbox' ? 'xbox' : 'ps']}<span><b>${esc(s('how_btn', { p: platName() }))}</b><small>${esc(s('how_meta', { n: how.st.length, m: how.min }))}</small></span>${I.chevron}</button>
+      <button class="sv-how" data-s="how" data-v="${plat()}">${I[plat() === 'xbox' ? 'xbox' : 'ps']}<span><b>${esc(s('how_btn', { p: platName() }))}</b><small>${esc(pl('how_meta', how.st.length, { m: how.min }))}</small></span>${I.chevron}</button>
+      ${code ? `<button class="sv-how" data-s="how" data-v="code" id="sv-code">${I.gamepad}<span><b>${esc(s('code_btn'))}</b><small>${esc(pl('how_meta', code.st.length, { m: code.min }))}</small></span>${I.chevron}</button>` : ''}
     </section>
 
-    <section class="g-sec"><h2>${esc(s('by_m'))}</h2>
-      ${gs.filter((g) => !g.past && g !== soon).map((g) => `<h3 class="sv-h3">${g.hide && !open1.has('m:' + g.m.id) ? `<span class="sv-hid">${esc(s('ch_t', { c: g.m.ch }))}</span><small>${esc(tn(g.ws.length))}</small></h3><button class="sv-sp" data-s="spoil" data-id="m:${esc(g.m.id)}">${C.I.eye}<span>${esc(s('sp_m'))}</span></button>` : `${esc(s('before', { m: tx(g.m.t) }))}<small>${esc(s('ch', { c: g.m.ch }))}</small></h3>${rowW(g.ws)}`}`).join('')}
-      ${gs.some((g) => g.past) ? `<details class="g-alt sv-past"><summary>${esc(s('past'))}: ${gs.filter((g) => g.past).reduce((a, g) => a + g.ws.length, 0)}</summary><p class="g-note">${esc(s('past_t'))}</p>
-        ${gs.filter((g) => g.past).map((g) => `<h3 class="sv-h3">${esc(s('before', { m: tx(g.m.t) }))}<small>${esc(s('ch', { c: g.m.ch }))}</small></h3>${rowW(g.ws)}`).join('')}</details>` : ''}
-    </section>
-
-    <section class="g-sec"><h2>${esc(s('always'))}</h2>${rowW(d.always)}</section>
+    <section class="g-sec"><h2>${esc(s('pnr_t'))}</h2>${qs.map((q) => pnrHTML(q, p)).join('')}</section>
+    <section class="g-sec"><h2>${esc(s('always'))}</h2><ul class="sv-list">${d.always.map(wHTML).join('')}</ul></section>
     <section class="g-sec"><h2>${esc(s('trophies'))}</h2><p class="sv-p">${esc(tx(d.trophies.t))}</p></section>
-    <section class="g-sec"><h2>${esc(s('bugs'))}</h2><ul class="sv-bugs">${d.bugs.map((b) => `<li><b>${esc(tx(b.t))}</b><span>${esc(tx(b.fix))}</span></li>`).join('')}</ul>
-      <p class="g-note">${esc(s('n_bug'))}</p></section>
+    <section class="g-sec"><h2>${esc(s('bugs'))}</h2><ul class="sv-bugs">${d.bugs.map((b) => `<li><b>${esc(tx(b.t))}</b><span>${esc(tx(b.fix))}</span>
+      <small>${esc(s('chk', { d: C.date ? C.date(b.chk) : b.chk, v: b.v }))}${b.st === 'one' ? `. ${esc(s('one', { s: srcName(b.src[0]) }))}` : ''}</small></li>`).join('')}</ul></section>
 
     <section class="g-sec sv-next"><h2>${esc(s('next'))}</h2>
       ${nx.map(([a, t]) => `<button class="sv-nx" data-s="nx" data-v="${a}"><span>${esc(t)}</span>${I.chevron}</button>`).join('')}</section>
@@ -184,46 +198,31 @@ function render() {
       <button class="g-link" data-s="report">${esc(s('report'))}</button>
     </section>
   </div>
-  <div class="g-sheet" id="sv-pick" hidden></div>
-  <footer class="g-bar">${pm ? `<button class="g-main" data-s="how">${esc(s('how_btn', { p: platName() }))}</button>`
-    : `<button class="g-main" data-s="pick">${esc(s('pick'))}</button>`}</footer>`;
+  <footer class="g-bar"><button class="g-main" data-s="how" data-v="${plat()}">${esc(s('how_btn', { p: platName() }))}</button></footer>`;
 }
 function rerender() { const y = layer.querySelector('#sv-scroll')?.scrollTop || 0; render(); layer.querySelector('#sv-scroll').scrollTop = y; }
 
-function openPick() {
-  const box = layer.querySelector('#sv-pick'), cur = progressM(C.game), co = D.mm.get(cur)?.o ?? -1;
-  const byCh = new Map(); D.m.forEach((m) => (byCh.get(m.ch) || byCh.set(m.ch, []).get(m.ch)).push(m));
-  box.innerHTML = `<div class="g-sh-in"><div class="g-sh-top"><b>${esc(s('pick_t'))}</b><button class="g-ib" data-s="unpick" aria-label="${esc(s('close'))}">${C.I.close}</button></div>
-    <ul class="sv-ms"><li><button data-s="setm" data-id="" class="${cur ? '' : 'on'}">${esc(s('start0'))}</button></li>
-    ${[...byCh.entries()].map(([c, ms]) => `<li class="sv-msc">${esc(s('ch_t', { c }))}</li>${ms.map((m) => `<li><button data-s="setm" data-id="${esc(m.id)}" class="${m.id === cur ? 'on' : ''}">${esc((m.sp >= 1 && m.o > co + 1) || (m.sp >= 2 && m.o > co) ? s('hid_m') : tx(m.t))}${m.id === cur ? C.I.check : ''}</button></li>`).join('')}`).join('')}</ul></div>`;
-  box.hidden = false;
-}
-
 async function onClick(e) {
   const b = e.target.closest('[data-s]'); if (!b || !layer.contains(b)) return;
-  const a = b.dataset.s, id = b.dataset.id;
+  const a = b.dataset.s, v = b.dataset.v;
   switch (a) {
     case 'close': closeSaves(); break;
     case 'share': C.share?.(); break;
-    case 'pick': openPick(); break;
-    case 'unpick': layer.querySelector('#sv-pick').hidden = true; break;
-    case 'setm': C.haptic?.(); setProgress(C.game, id); layer.querySelector('#sv-pick').hidden = true; rerender(); C.event?.('saves_progress', { m: id }); break;
-    case 'done': { C.haptic?.(); const on = toggleDone(C.game, id); rerender(); C.event?.('saves_done', { id, on }); break; }
-    case 'spoil': open1.add(id); rerender(); break;
-    case 'how': {
-      const h = D.d.save[plat()];
-      C.openHow?.({ id: `saves-${plat()}`, game: C.game, k: 'reference', t: h.ta, sn: [], how: { ta: h.ta, rw: h.rw, min: h.min, st: h.st } });
-      C.event?.('saves_how', { p: plat() });
-      break;
-    }
-    case 'nx': C.event?.('saves_next', { v: b.dataset.v }); C.next?.(b.dataset.v); break;
+    case 'pick': C.haptic?.(); if (window.SB?.pickPos) window.SB.pickPos(C.game, () => rerender()); else window.SB?.openWalk?.(); break;
+    case 'still': { const all = jget(GP); if (all[C.game]) { all[C.game].at = Date.now(); jset(GP, all); } rerender(); break; }
+    case 'spoil': shown.add(b.dataset.id); rerender(); C.event?.('saves_spoil', { id: b.dataset.id }); break;
+    case 'how': { const o = await howObj(C.game, v); if (o) C.openHow?.(o); C.event?.('saves_how', { v }); break; }
+    case 'nx': C.event?.('saves_next', { v }); C.next?.(v); break;
     case 'report': C.toast?.(s('report_ok')); C.event?.('saves_report', {}); break;
   }
 }
 
-export async function openSaves(ctx) {
-  C = ctx; css();
+// key: all | <id точки невозврата> (прокрутить к ней) | playstation | xbox | code / before-code (сразу «По шагам»)
+export async function openSaves(ctx, key = 'all') {
+  C = ctx; langK = ctx.lang; css();
   D = await load(ctx.game); if (!D) return false;
+  if (key === 'before-code') key = 'code';
+  if (['playstation', 'xbox', 'code'].includes(key)) { const o = await howObj(ctx.game, key); if (o) { C.openHow?.(o); return true; } }
   layer = document.getElementById('saves');
   if (!layer) {
     layer = document.createElement('div'); layer.id = 'saves'; layer.setAttribute('role', 'dialog'); layer.setAttribute('aria-modal', 'true');
@@ -233,7 +232,9 @@ export async function openSaves(ctx) {
   requestAnimationFrame(() => layer.classList.add('open'));
   document.documentElement.classList.add('guide-open');
   history.pushState({ saves: 1 }, '');
-  C.event?.('saves_open', { from: ctx.from || '' });
+  if (key !== 'all') { shown.add(key); rerender(); requestAnimationFrame(() => { const el = layer.querySelector(`.sv-pnr[data-id="${CSS.escape(key)}"]`), sc = layer.querySelector('#sv-scroll');
+    if (el && sc) sc.scrollTop = el.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 64; }); }
+  C.event?.('saves_open', { from: ctx.from || '', key });
   return true;
 }
 export function closeSaves(fromPop = false) {
