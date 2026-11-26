@@ -1,0 +1,1217 @@
+{
+ "v": 1,
+ "game": "gta6",
+ "upd": "2026-11-26",
+ "_note": "Черновик ветки feature/guide-endings. Ресёрч и источники — «Гид по игре — система (26.11.2026)/Концовки — ресёрч/01–04». st: ok — ≥2 независимых источника, one — один, dispute — источники спорят, rumor — слух. Миссии — по id из data/guide/missions.json (guide-walkthrough), mt — запасное название, пока базы нет. Главы и id миссий — по контракту guide-walkthrough (side-session-notes «guide-walkthrough — база миссий (контракт).md»): ch c1…c5, миссия m:<kebab id>; прогресс игрока — sb.gp.",
+ "t": {
+  "ru": "Концовки GTA 6",
+  "en": "GTA 6 endings"
+ },
+ "rw": {
+  "ru": "Отмечайте, что вы выбрали, и сразу видно, какие концовки ещё открыты. Пройденное — открыто, остальное — по тапу.",
+  "en": "Mark what you chose and see which endings are still open. What you've played is open, the rest is one tap away."
+ },
+ "found": {
+  "n": "8",
+  "st": "dispute",
+  "note": {
+   "ru": "Число «23» не подтверждается: гайды насчитывают от 4 до 20, потому что считают по-разному (финалы, эпилоги «два года спустя», ветки сцен). Rockstar числа не называла. Мы считаем 8 разных финалов, которые описаны минимум в двух гайдах, и один слух отдельно. Эпилоги при $2 000 000 — внутри финалов.",
+   "en": "The “23” figure doesn't hold up: guides count anywhere from 4 to 20 because they count differently (finales, “two years later” epilogues, scene branches). Rockstar hasn't given a number. We count 8 distinct finales described by at least two guides, plus one rumor listed separately. The $2,000,000 epilogues are inside the finales."
+  }
+ },
+ "src": [
+  "GTA Base",
+  "Fextralife",
+  "Beebom",
+  "ComicBook",
+  "CBR",
+  "GTAScoop",
+  "Libertycity",
+  "gameblog.fr",
+  "games.gg",
+  "Kotaku",
+  "VGC",
+  "gta6.house"
+ ],
+ "chapters": [
+  {
+   "id": "c1",
+   "n": 1,
+   "t": {
+    "ru": "Just Like Paradise",
+    "en": "Just Like Paradise"
+   }
+  },
+  {
+   "id": "c2",
+   "n": 2,
+   "t": {
+    "ru": "Paradise Lost",
+    "en": "Paradise Lost"
+   }
+  },
+  {
+   "id": "c3",
+   "n": 3,
+   "t": {
+    "ru": "Tits Ass Drug Money",
+    "en": "Tits Ass Drug Money"
+   }
+  },
+  {
+   "id": "c4",
+   "n": 4,
+   "t": {
+    "ru": "Vice City, Baby",
+    "en": "Vice City, Baby"
+   }
+  },
+  {
+   "id": "c5",
+   "n": 5,
+   "t": {
+    "ru": "Top of the World, Ma",
+    "en": "Top of the World, Ma"
+   }
+  }
+ ],
+ "forks": [
+  {
+   "id": "hey-arnold",
+   "m": "hey-arnold",
+   "mt": {
+    "ru": "Hey Arnold!",
+    "en": "Hey Arnold!"
+   },
+   "ch": "c1",
+   "n": 1,
+   "q": {
+    "ru": "Что сделать с Арнольдом",
+    "en": "What to do with Arnold"
+   },
+   "hint": {
+    "ru": "Влияет на криминальный профиль, а он — на финал.",
+    "en": "Shapes your criminal profile, which shapes the finale."
+   },
+   "opts": [
+    {
+     "id": "spare",
+     "t": {
+      "ru": "Пощадить",
+      "en": "Spare him"
+     },
+     "eff": {
+      "ru": "Профиль мягче. В главе 4 Брайан мирится и присылает $10 000.",
+      "en": "Softer profile. In chapter 4 Brian makes peace and sends $10,000."
+     }
+    },
+    {
+     "id": "kill",
+     "t": {
+      "ru": "Убить",
+      "en": "Kill him"
+     },
+     "eff": {
+      "ru": "Профиль жёстче (Hardened).",
+      "en": "Harder profile (Hardened)."
+     }
+    }
+   ],
+   "src": [
+    "games.gg",
+    "gameblog.fr",
+    "Libertycity"
+   ],
+   "st": "ok"
+  },
+  {
+   "id": "poolside",
+   "m": "safe-word",
+   "mt": {
+    "ru": "Safe Word",
+    "en": "Safe Word"
+   },
+   "ch": "c3",
+   "n": 1,
+   "q": {
+    "ru": "Сцена у бассейна: участвовать или нет",
+    "en": "Poolside scene: join in or not"
+   },
+   "hint": {
+    "ru": "Влияет на отношения Джейсона и Люсии.",
+    "en": "Affects Jason and Lucia's relationship."
+   },
+   "opts": [
+    {
+     "id": "decline",
+     "t": {
+      "ru": "Отказаться",
+      "en": "Decline"
+     },
+     "eff": {
+      "ru": "Отношения не страдают.",
+      "en": "The relationship stays safe."
+     }
+    },
+    {
+     "id": "join",
+     "t": {
+      "ru": "Участвовать",
+      "en": "Join in"
+     },
+     "eff": {
+      "ru": "Риск для отношений.",
+      "en": "Risky for the relationship."
+     }
+    }
+   ],
+   "src": [
+    "games.gg",
+    "Libertycity"
+   ],
+   "st": "ok"
+  },
+  {
+   "id": "rel",
+   "kind": "state",
+   "m": "operation-savage-glory",
+   "mt": {
+    "ru": "перед финалом",
+    "en": "before the finale"
+   },
+   "ch": "c5",
+   "n": 1,
+   "q": {
+    "ru": "Какие отношения у Джейсона и Люсии",
+    "en": "Jason and Lucia's relationship level"
+   },
+   "hint": {
+    "ru": "Растут от общих миссий, ночёвок в одном убежище и ответов на сообщения. В конце главы 5 замирают.",
+    "en": "Grows with joint missions, nights in the same safehouse and replying to texts. Locks at the end of chapter 5."
+   },
+   "opts": [
+    {
+     "id": "r1",
+     "t": {
+      "ru": "Running on Empty (1)",
+      "en": "Running on Empty (1)"
+     }
+    },
+    {
+     "id": "r2",
+     "t": {
+      "ru": "Partners in Crime (2)",
+      "en": "Partners in Crime (2)"
+     }
+    },
+    {
+     "id": "r3",
+     "t": {
+      "ru": "Crazy in Love (3)",
+      "en": "Crazy in Love (3)"
+     }
+    },
+    {
+     "id": "r4",
+     "t": {
+      "ru": "Hot Together (4)",
+      "en": "Hot Together (4)"
+     }
+    }
+   ],
+   "src": [
+    "VGC",
+    "Beebom",
+    "games.gg",
+    "gameblog.fr"
+   ],
+   "st": "ok",
+   "qs": {
+    "ru": "Отношения",
+    "en": "Relationship"
+   }
+  },
+  {
+   "id": "sav",
+   "kind": "state",
+   "m": "operation-savage-glory",
+   "mt": {
+    "ru": "перед финалом",
+    "en": "before the finale"
+   },
+   "ch": "c5",
+   "n": 2,
+   "q": {
+    "ru": "Сколько на счёте BuckMe Family Savings",
+    "en": "How much is in BuckMe Family Savings"
+   },
+   "hint": {
+    "ru": "Считается только общий счёт. Наличные и личные счета не идут. Внесённое не снять.",
+    "en": "Only the shared account counts. Cash and personal accounts don't. Deposits can't be withdrawn."
+   },
+   "opts": [
+    {
+     "id": "s0",
+     "t": {
+      "ru": "Меньше $500 000",
+      "en": "Under $500,000"
+     }
+    },
+    {
+     "id": "s1",
+     "t": {
+      "ru": "$500 000 – $2 000 000",
+      "en": "$500,000 – $2,000,000"
+     }
+    },
+    {
+     "id": "s2",
+     "t": {
+      "ru": "$2 000 000 и больше",
+      "en": "$2,000,000 or more"
+     }
+    }
+   ],
+   "src": [
+    "Beebom",
+    "gta6.house",
+    "GTA Base",
+    "Fextralife"
+   ],
+   "st": "dispute",
+   "dispute": {
+    "ru": "Порог $2 000 000 у большинства, у ComicBook и CBR — $2 500 000, Beebom советует запас до $3 000 000.",
+    "en": "Most say $2,000,000; ComicBook and CBR say $2,500,000; Beebom suggests a buffer up to $3,000,000."
+   },
+   "qs": {
+    "ru": "Family Savings",
+    "en": "Family Savings"
+   }
+  },
+  {
+   "id": "pj",
+   "kind": "state",
+   "m": "operation-savage-glory",
+   "mt": {
+    "ru": "перед финалом",
+    "en": "before the finale"
+   },
+   "ch": "c5",
+   "n": 3,
+   "q": {
+    "ru": "Криминальный профиль Джейсона",
+    "en": "Jason's criminal profile"
+   },
+   "hint": {
+    "ru": "Зависит от стиля игры: лишние убийства делают профиль жёстче.",
+    "en": "Depends on how you play: needless kills make it harsher."
+   },
+   "opts": [
+    {
+     "id": "pro",
+     "t": {
+      "ru": "Professional",
+      "en": "Professional"
+     }
+    },
+    {
+     "id": "mid",
+     "t": {
+      "ru": "Hardened или Violent",
+      "en": "Hardened or Violent"
+     }
+    },
+    {
+     "id": "psy",
+     "t": {
+      "ru": "Psycho или Irredeemable",
+      "en": "Psycho or Irredeemable"
+     }
+    }
+   ],
+   "src": [
+    "games.gg",
+    "gameblog.fr",
+    "Fextralife",
+    "Beebom"
+   ],
+   "st": "ok",
+   "qs": {
+    "ru": "Профиль Джейсона",
+    "en": "Jason's profile"
+   }
+  },
+  {
+   "id": "pl",
+   "kind": "state",
+   "m": "operation-savage-glory",
+   "mt": {
+    "ru": "перед финалом",
+    "en": "before the finale"
+   },
+   "ch": "c5",
+   "n": 4,
+   "q": {
+    "ru": "Криминальный профиль Люсии",
+    "en": "Lucia's criminal profile"
+   },
+   "opts": [
+    {
+     "id": "pro",
+     "t": {
+      "ru": "Professional",
+      "en": "Professional"
+     }
+    },
+    {
+     "id": "mid",
+     "t": {
+      "ru": "Hardened или Violent",
+      "en": "Hardened or Violent"
+     }
+    },
+    {
+     "id": "psy",
+     "t": {
+      "ru": "Psycho или Irredeemable",
+      "en": "Psycho or Irredeemable"
+     }
+    }
+   ],
+   "src": [
+    "games.gg",
+    "gameblog.fr",
+    "Fextralife",
+    "Beebom"
+   ],
+   "st": "ok",
+   "qs": {
+    "ru": "Профиль Люсии",
+    "en": "Lucia's profile"
+   }
+  },
+  {
+   "id": "meet-abe",
+   "m": "operation-savage-glory",
+   "mt": {
+    "ru": "Operation Savage Glory",
+    "en": "Operation Savage Glory"
+   },
+   "ch": "c5",
+   "n": 5,
+   "pnr": true,
+   "q": {
+    "ru": "Запрос «Meet Abe»: начать финал",
+    "en": "The “Meet Abe” prompt: start the finale"
+   },
+   "save": {
+    "ru": "Сохранитесь вручную до «Proceed»: дальше финал идёт подряд, отношения, профили и счёт уже не изменить.",
+    "en": "Save manually before “Proceed”: the finale runs straight through, and relationship, profiles and savings are locked."
+   },
+   "opts": [
+    {
+     "id": "postpone",
+     "t": {
+      "ru": "Postpone: ещё побыть в мире",
+      "en": "Postpone: stay in the world"
+     },
+     "eff": {
+      "ru": "Можно докопить и поднять отношения.",
+      "en": "You can still save up and build the relationship."
+     }
+    },
+    {
+     "id": "proceed",
+     "t": {
+      "ru": "Proceed: начать финал",
+      "en": "Proceed: start the finale"
+     },
+     "eff": {
+      "ru": "Дальше «Protective Custody» и «The End of the Road» подряд.",
+      "en": "“Protective Custody” and “The End of the Road” follow back to back."
+     }
+    }
+   ],
+   "src": [
+    "Kotaku",
+    "gameblog.fr",
+    "gta6.house",
+    "Libertycity"
+   ],
+   "st": "ok"
+  },
+  {
+   "id": "breakup",
+   "m": "protective-custody",
+   "mt": {
+    "ru": "Protective Custody",
+    "en": "Protective Custody"
+   },
+   "ch": "c5",
+   "n": 6,
+   "q": {
+    "ru": "Начало миссии: остаться вместе или разойтись",
+    "en": "Mission start: stay together or split up"
+   },
+   "opts": [
+    {
+     "id": "stay",
+     "t": {
+      "ru": "Остаться вместе",
+      "en": "Stay together"
+     }
+    },
+    {
+     "id": "split",
+     "t": {
+      "ru": "Разойтись",
+      "en": "Split up"
+     },
+     "eff": {
+      "ru": "Открывает отдельный финал Джейсона.",
+      "en": "Opens a separate ending for Jason."
+     }
+    }
+   ],
+   "src": [
+    "Beebom",
+    "GTA Base",
+    "GTAScoop"
+   ],
+   "st": "dispute",
+   "dispute": {
+    "ru": "Развилку подтверждают три гайда, условия расходятся.",
+    "en": "Three guides confirm the choice, conditions differ."
+   }
+  },
+  {
+   "id": "mendez",
+   "m": "protective-custody",
+   "mt": {
+    "ru": "Protective Custody",
+    "en": "Protective Custody"
+   },
+   "ch": "c5",
+   "n": 7,
+   "pnr": true,
+   "q": {
+    "ru": "Мендес: стрелять или принять сделку",
+    "en": "Méndez: shoot or take the deal"
+   },
+   "save": {
+    "ru": "Сохранитесь перед «Protective Custody».",
+    "en": "Save before “Protective Custody”."
+   },
+   "opts": [
+    {
+     "id": "shoot",
+     "t": {
+      "ru": "Shoot: стрелять сразу",
+      "en": "Shoot right away"
+     },
+     "eff": {
+      "ru": "Дальше мост в «The End of the Road».",
+      "en": "Leads to the bridge in “The End of the Road”."
+     }
+    },
+    {
+     "id": "deal",
+     "t": {
+      "ru": "Take Deal: подождать 30–60 секунд",
+      "en": "Take Deal: wait 30–60 seconds"
+     },
+     "eff": {
+      "ru": "Дальше ветка сделки: башня или болото.",
+      "en": "Leads to the deal branch: tower or swamp."
+     }
+    }
+   ],
+   "src": [
+    "Fextralife",
+    "Beebom",
+    "gta6.house",
+    "gameblog.fr"
+   ],
+   "st": "ok"
+  },
+  {
+   "id": "bridge",
+   "m": "the-end-of-the-road",
+   "mt": {
+    "ru": "The End of the Road",
+    "en": "The End of the Road"
+   },
+   "ch": "c5",
+   "n": 8,
+   "pnr": true,
+   "after": {
+    "mendez": "shoot"
+   },
+   "q": {
+    "ru": "Мост: сдаться или прорываться",
+    "en": "The bridge: give up or break through"
+   },
+   "opts": [
+    {
+     "id": "swim",
+     "t": {
+      "ru": "Swim For It",
+      "en": "Swim For It"
+     },
+     "eff": {
+      "ru": "Исход решают отношения, профиль и счёт.",
+      "en": "The outcome depends on relationship, profile and savings."
+     }
+    },
+    {
+     "id": "nosurrender",
+     "t": {
+      "ru": "No Surrender",
+      "en": "No Surrender"
+     },
+     "eff": {
+      "ru": "Самый короткий путь, условий нет.",
+      "en": "The shortest path, no conditions."
+     }
+    }
+   ],
+   "src": [
+    "games.gg",
+    "gameblog.fr",
+    "Fextralife",
+    "Beebom",
+    "Libertycity"
+   ],
+   "st": "ok"
+  },
+  {
+   "id": "tower",
+   "m": "protective-custody",
+   "mt": {
+    "ru": "Protective Custody, башня",
+    "en": "Protective Custody, tower"
+   },
+   "ch": "c5",
+   "n": 9,
+   "after": {
+    "mendez": "deal"
+   },
+   "q": {
+    "ru": "Перестрелка на башне: что делает Люсия",
+    "en": "Tower shootout: what Lucia does"
+   },
+   "opts": [
+    {
+     "id": "none",
+     "t": {
+      "ru": "Ничего не менять, держаться сделки",
+      "en": "Change nothing, stick to the deal"
+     }
+    },
+    {
+     "id": "stay",
+     "t": {
+      "ru": "Stay Down",
+      "en": "Stay Down"
+     }
+    },
+    {
+     "id": "defend",
+     "t": {
+      "ru": "Defend Jason",
+      "en": "Defend Jason"
+     }
+    }
+   ],
+   "src": [
+    "Fextralife",
+    "Beebom",
+    "gameblog.fr",
+    "Libertycity"
+   ],
+   "st": "dispute",
+   "dispute": {
+    "ru": "Beebom ставит эту сцену на ветку выстрела, остальные — на ветку сделки.",
+    "en": "Beebom places this scene on the shoot branch, the others on the deal branch."
+   }
+  }
+ ],
+ "endings": [
+  {
+   "id": "two-years-later",
+   "n": 1,
+   "kind": "best",
+   "t": {
+    "ru": "Два года спустя",
+    "en": "Two Years Later"
+   },
+   "tease": {
+    "ru": "Финал, где семья остаётся вместе. Нужны деньги, отношения и чистая репутация.",
+    "en": "The finale where the family stays together. Needs money, relationship and a clean record."
+   },
+   "d": {
+    "ru": "Джейсон сдаётся без оружия, Люсия на сбережения вытаскивает его, через два года семья вместе с сыном. Единственный финал, где оба живы и вместе.",
+    "en": "Jason surrenders unarmed, Lucia uses the savings to get him out, and two years later the family is together with their son. The only finale where both live and stay together."
+   },
+   "need": [
+    {
+     "f": "rel",
+     "o": [
+      "r4"
+     ]
+    },
+    {
+     "f": "sav",
+     "o": [
+      "s2"
+     ]
+    },
+    {
+     "f": "pj",
+     "o": [
+      "pro"
+     ]
+    },
+    {
+     "f": "pl",
+     "o": [
+      "pro"
+     ]
+    },
+    {
+     "f": "mendez",
+     "o": [
+      "shoot"
+     ]
+    },
+    {
+     "f": "bridge",
+     "o": [
+      "swim"
+     ]
+    }
+   ],
+   "keep": {
+    "ru": "Свободная игра за обоих, чек-лист 100 % и коды открываются после титров.",
+    "en": "Free roam as both, the 100% checklist and cheats unlock after the credits."
+   },
+   "src": [
+    "GTA Base",
+    "CBR",
+    "ComicBook",
+    "Beebom",
+    "GTAScoop",
+    "Fextralife"
+   ],
+   "st": "ok"
+  },
+  {
+   "id": "jason-takes-the-fall",
+   "n": 2,
+   "kind": "good",
+   "t": {
+    "ru": "Джейсон берёт вину на себя",
+    "en": "Jason Takes the Fall"
+   },
+   "tease": {
+    "ru": "Почти лучший финал: всё сделано правильно, кроме одного.",
+    "en": "Nearly the best finale: everything right but one thing."
+   },
+   "d": {
+    "ru": "Люсия уходит с сыном, Джейсон в тюрьме. Обычно не хватило денег на счёте. Можно докопить и переиграть финал.",
+    "en": "Lucia leaves with their son, Jason goes to prison. Usually the savings fell short. You can save up and replay the finale."
+   },
+   "need": [
+    {
+     "f": "rel",
+     "o": [
+      "r3",
+      "r4"
+     ]
+    },
+    {
+     "f": "sav",
+     "o": [
+      "s0",
+      "s1"
+     ]
+    },
+    {
+     "f": "pj",
+     "o": [
+      "pro",
+      "mid"
+     ]
+    },
+    {
+     "f": "mendez",
+     "o": [
+      "shoot"
+     ]
+    },
+    {
+     "f": "bridge",
+     "o": [
+      "swim"
+     ]
+    }
+   ],
+   "src": [
+    "ComicBook",
+    "GTA Base",
+    "Beebom",
+    "GTAScoop"
+   ],
+   "st": "ok"
+  },
+  {
+   "id": "failed-escape",
+   "n": 3,
+   "kind": "bad",
+   "t": {
+    "ru": "Провал сдачи",
+    "en": "Failed Escape"
+   },
+   "tease": {
+    "ru": "Сдаться не выходит, если на руках слишком много крови.",
+    "en": "Giving up fails when there's too much blood on your hands."
+   },
+   "d": {
+    "ru": "Джейсон выходит с оружием, полиция убивает обоих. При $2 000 000 на счёте деньги получает семья.",
+    "en": "Jason steps out armed and police kill them both. With $2,000,000 saved, the money goes to the family."
+   },
+   "need": [
+    {
+     "f": "pj",
+     "o": [
+      "psy"
+     ]
+    },
+    {
+     "f": "mendez",
+     "o": [
+      "shoot"
+     ]
+    },
+    {
+     "f": "bridge",
+     "o": [
+      "swim"
+     ]
+    }
+   ],
+   "src": [
+    "ComicBook",
+    "GTA Base",
+    "Beebom",
+    "Fextralife"
+   ],
+   "st": "dispute",
+   "dispute": {
+    "ru": "Часть гайдов связывает финал с профилем, часть — с тем, что не успели нажать Exit.",
+    "en": "Some guides tie it to the profile, others to missing the Exit prompt."
+   }
+  },
+  {
+   "id": "no-surrender",
+   "n": 4,
+   "kind": "bad",
+   "t": {
+    "ru": "Не сдаваться",
+    "en": "No Surrender"
+   },
+   "tease": {
+    "ru": "Финал в духе Бонни и Клайда.",
+    "en": "A Bonnie and Clyde kind of finale."
+   },
+   "d": {
+    "ru": "Таран блокпоста, оба погибают. Сына растит семья Люсии, при $2 000 000 — в большом доме.",
+    "en": "They ram the roadblock and both die. Lucia's family raises their son, in a big house if $2,000,000 was saved."
+   },
+   "need": [
+    {
+     "f": "mendez",
+     "o": [
+      "shoot"
+     ]
+    },
+    {
+     "f": "bridge",
+     "o": [
+      "nosurrender"
+     ]
+    }
+   ],
+   "src": [
+    "games.gg",
+    "gameblog.fr",
+    "Fextralife",
+    "Libertycity",
+    "Beebom"
+   ],
+   "st": "ok"
+  },
+  {
+   "id": "the-swamp",
+   "n": 5,
+   "kind": "worst",
+   "t": {
+    "ru": "Болото",
+    "en": "The Swamp"
+   },
+   "tease": {
+    "ru": "Что будет, если поверить не тому человеку.",
+    "en": "What happens when you trust the wrong man."
+   },
+   "d": {
+    "ru": "Мендес увозит обоих в болота и убивает. Самый тёмный финал.",
+    "en": "Méndez takes them both to the swamp and kills them. The darkest finale."
+   },
+   "need": [
+    {
+     "f": "mendez",
+     "o": [
+      "deal"
+     ]
+    },
+    {
+     "f": "tower",
+     "o": [
+      "none"
+     ]
+    }
+   ],
+   "src": [
+    "ComicBook",
+    "GTA Base",
+    "Beebom",
+    "Fextralife",
+    "gameblog.fr"
+   ],
+   "st": "ok"
+  },
+  {
+   "id": "the-sacrifice",
+   "n": 6,
+   "kind": "neutral",
+   "t": {
+    "ru": "Жертва",
+    "en": "The Sacrifice"
+   },
+   "tease": {
+    "ru": "Один из двоих уходит, другой выживает.",
+    "en": "One of them is lost, the other survives."
+   },
+   "d": {
+    "ru": "Джейсона убивают, Люсия принимает сделку и выходит. Без денег возвращается к криминалу.",
+    "en": "Jason is killed, Lucia takes the deal and walks. Without savings she goes back to crime."
+   },
+   "need": [
+    {
+     "f": "mendez",
+     "o": [
+      "deal"
+     ]
+    },
+    {
+     "f": "tower",
+     "o": [
+      "stay"
+     ]
+    }
+   ],
+   "src": [
+    "ComicBook",
+    "GTA Base",
+    "GTAScoop",
+    "Fextralife"
+   ],
+   "st": "ok"
+  },
+  {
+   "id": "defend-jason",
+   "n": 7,
+   "kind": "bad",
+   "t": {
+    "ru": "Защитить Джейсона",
+    "en": "Defend Jason"
+   },
+   "tease": {
+    "ru": "Верность до конца.",
+    "en": "Loyal to the end."
+   },
+   "d": {
+    "ru": "Оба гибнут в перестрелке на башне. При $2 000 000 деньги получает семья.",
+    "en": "Both die in the tower shootout. With $2,000,000 saved, the money goes to the family."
+   },
+   "need": [
+    {
+     "f": "mendez",
+     "o": [
+      "deal"
+     ]
+    },
+    {
+     "f": "tower",
+     "o": [
+      "defend"
+     ]
+    }
+   ],
+   "src": [
+    "ComicBook",
+    "GTA Base",
+    "GTAScoop",
+    "Fextralife",
+    "Libertycity"
+   ],
+   "st": "ok"
+  },
+  {
+   "id": "jason-and-rocco",
+   "n": 8,
+   "kind": "secret",
+   "t": {
+    "ru": "Джейсон и Рокко",
+    "en": "Jason and Rocco"
+   },
+   "tease": {
+    "ru": "Скрытый финал, если пути героев разойдутся.",
+    "en": "A hidden finale if the heroes go separate ways."
+   },
+   "d": {
+    "ru": "Люсия сдаётся и возвращается к сыну, Джейсон с собакой Рокко уезжает из Леониды.",
+    "en": "Lucia turns herself in and goes back to their son, Jason leaves Leonida with Rocco the dog."
+   },
+   "need": [
+    {
+     "f": "breakup",
+     "o": [
+      "split"
+     ]
+    },
+    {
+     "f": "sav",
+     "o": [
+      "s1",
+      "s2"
+     ]
+    },
+    {
+     "f": "mendez",
+     "o": [
+      "deal"
+     ]
+    }
+   ],
+   "src": [
+    "Beebom",
+    "GTA Base",
+    "GTAScoop",
+    "gameblog.fr"
+   ],
+   "st": "dispute",
+   "dispute": {
+    "ru": "Финал есть у четырёх гайдов, условия расходятся (сумма от $500 000, профили).",
+    "en": "Four guides list it, conditions differ ($500,000 and up, profiles)."
+   }
+  },
+  {
+   "id": "lucia-in-jail",
+   "n": 9,
+   "kind": "rumor",
+   "t": {
+    "ru": "Люсия в тюрьме (слух)",
+    "en": "Lucia in Jail (rumor)"
+   },
+   "tease": {
+    "ru": "Слух: финал при слабых отношениях.",
+    "en": "Rumor: a finale for a weak relationship."
+   },
+   "d": {
+    "ru": "Джейсон на свободе растит сына, Люсия в тюрьме. Пересказ из соцсетей, гайды пишут, что не проверено.",
+    "en": "Jason is free and raises their son, Lucia is in prison. Retold from social media, guides say it's unverified."
+   },
+   "need": [
+    {
+     "f": "rel",
+     "o": [
+      "r1",
+      "r2"
+     ]
+    },
+    {
+     "f": "mendez",
+     "o": [
+      "shoot"
+     ]
+    },
+    {
+     "f": "bridge",
+     "o": [
+      "swim"
+     ]
+    }
+   ],
+   "src": [
+    "Beebom",
+    "U7BUY"
+   ],
+   "st": "rumor"
+  }
+ ],
+ "best": {
+  "e": "two-years-later",
+  "why": {
+   "ru": "Единственный финал, где Джейсон и Люсия живы и вместе с сыном. Так считают почти все гайды. Rockstar канон не объявляла.",
+   "en": "The only finale where Jason and Lucia live and stay together with their son. Nearly every guide agrees. Rockstar hasn't named a canon ending."
+  },
+  "dispute": {
+   "ru": "Часть игроков считает лучшим «Джейсон и Рокко»: никто не погибает. Один гайд получил лучший финал при отношениях 3 из 4.",
+   "en": "Some players prefer “Jason and Rocco”: nobody dies. One guide got the best ending with a 3 of 4 relationship."
+  },
+  "before": [
+   {
+    "ru": "С главы 1 откладывайте на BuckMe Family Savings, цель — $2 000 000.",
+    "en": "From chapter 1, put money into BuckMe Family Savings, aim for $2,000,000."
+   },
+   {
+    "ru": "Больше времени вдвоём: общие миссии, одно убежище, ответы на сообщения.",
+    "en": "Spend time together: joint missions, one safehouse, reply to texts."
+   },
+   {
+    "ru": "Без лишних убийств: оба профиля Professional.",
+    "en": "No needless kills: keep both profiles Professional."
+   },
+   {
+    "ru": "Ручное сохранение в начале и в конце каждой главы.",
+    "en": "Save manually at the start and end of every chapter."
+   }
+  ],
+  "route": [
+   {
+    "f": "hey-arnold",
+    "o": "spare",
+    "tip": {
+     "ru": "Профиль остаётся чистым, позже приходит $10 000.",
+     "en": "Keeps your record clean, and $10,000 arrives later."
+    }
+   },
+   {
+    "f": "poolside",
+    "o": "decline",
+    "tip": {
+     "ru": "Безопаснее для отношений.",
+     "en": "Safer for the relationship."
+    }
+   },
+   {
+    "f": "rel",
+    "o": "r4",
+    "tip": {
+     "ru": "Если ниже — выберите Postpone и подтяните отношения до финала.",
+     "en": "If lower, pick Postpone and build it up before the finale."
+    }
+   },
+   {
+    "f": "sav",
+    "o": "s2",
+    "tip": {
+     "ru": "Если меньше — Postpone и докопить. Запас сверху не помешает.",
+     "en": "If less, Postpone and save up. A buffer doesn't hurt."
+    }
+   },
+   {
+    "f": "pj",
+    "o": "pro"
+   },
+   {
+    "f": "pl",
+    "o": "pro"
+   },
+   {
+    "f": "meet-abe",
+    "o": "proceed",
+    "tip": {
+     "ru": "Только когда всё выше выполнено, и после ручного сохранения.",
+     "en": "Only once everything above is done, and after a manual save."
+    }
+   },
+   {
+    "f": "breakup",
+    "o": "stay"
+   },
+   {
+    "f": "mendez",
+    "o": "shoot",
+    "tip": {
+     "ru": "Стреляйте сразу, не ждите: ожидание открывает сделку.",
+     "en": "Shoot right away: waiting opens the deal."
+    }
+   },
+   {
+    "f": "bridge",
+    "o": "swim",
+    "tip": {
+     "ru": "Затем Exit без оружия.",
+     "en": "Then Exit unarmed."
+    }
+   }
+  ]
+ },
+ "hidden": [
+  {
+   "t": {
+    "ru": "После титров игра возвращает к запросу «Meet Abe»: финал можно переиграть, отношения, профили и счёт — нет.",
+    "en": "After the credits the game returns to the “Meet Abe” prompt: you can replay the finale, but not the relationship, profiles or savings."
+   },
+   "st": "ok"
+  },
+  {
+   "t": {
+    "ru": "Доллары семье Люсии и помощь друзьям в главе 5 могут влиять на эпилог.",
+    "en": "Money for Lucia's family and helping friends in chapter 5 may affect the epilogue."
+   },
+   "st": "one"
+  },
+  {
+   "t": {
+    "ru": "Трофей за финал один и от концовки не зависит.",
+    "en": "There is one finale trophy and it doesn't depend on the ending."
+   },
+   "st": "ok"
+  }
+ ],
+ "next": [
+  {
+   "a": "open-feed",
+   "d": {
+    "v": "eggs"
+   },
+   "t": {
+    "ru": "Пасхалки и находки GTA 6 для свободной игры",
+    "en": "GTA 6 easter eggs and finds for free roam"
+   }
+  },
+  {
+   "a": "open-cheats",
+   "d": {
+    "cat": ""
+   },
+   "t": {
+    "ru": "Коды GTA 6 для свободной игры",
+    "en": "GTA 6 cheats for free roam"
+   }
+  },
+  {
+   "a": "tab",
+   "d": {
+    "tab": "map"
+   },
+   "t": {
+    "ru": "Места Майами из игры в жизни",
+    "en": "Miami spots from the game in real life"
+   }
+  }
+ ]
+}
