@@ -35,6 +35,7 @@ const mapMod = () => import('./map.js');
 const crMod = () => import('./league.js');
 const guideMod = () => import('./guide.js');   // инструкция «По шагам» — грузится при первом открытии
 const walkMod = () => import('./walk.js');   // «Прохождение» и общая шторка «Где вы в игре» (регистрируется в ядре: registerPickSheet)
+const savesMod = () => import('./saves.js');   // «Не упустить навсегда» — справочник сохранений (guide-saves)
 // «Гид по игре» (26.11.2026, решение «система гида»): ядро — позиция, спойлеры, ключи, «Дальше», строка состояния; раздел на Главной и оглавление
 import * as gcore from './guide-core.js';
 const ghubMod = () => import('./guide-hub.js');
@@ -521,6 +522,36 @@ async function openSetList() {
   openSheet(`<h2 class="pick-t">${esc(t('st_setguide'))}</h2><div class="opts">${d.guides.map((x) => `<button class="opt set-opt" data-action="open-guide" data-key="guide:gta6:${esc(x.id)}" data-from="settings">
     <span class="opt-t"><b>${esc(L(x.how.ta))}</b><small>${esc(L(x.how.rw) || '')}</small></span></button>`).join('')}</div>`, 'sheet-pick');
 }
+// «Не упустить навсегда» (js/saves.js): точки невозврата по миссиям, «как сохраняться» для выбранной платформы — тем же экраном «По шагам».
+// Ключи (решение Fable — общий указатель): saves:gta6:all | <id точки невозврата> | playstation | xbox | before-code. Вход в оглавлении гида и
+// «Дальше» из карточки кода (before-code) ставит сборщик (eggs-community, js/guide-core.js openKey); пока — ?open=saves:… и window.SB.openSaves(from, key).
+async function openSavesScreen(from = '', key = 'all') {
+  const g = 'gta6', m = await savesMod();
+  const how = async (o) => (await guideMod()).openGuide(o, {
+    lang: getLang(), I, from: 'saves', linked: true, access, haptic, toast, date: guideDate, imgUrl, credit,
+    paywall: () => openPaywall(mapPw()), share: () => shareText(`${guideTitle(o)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=saves:${g}:all`),
+    event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+    onClose: () => { if (m.isOpen()) document.documentElement.classList.add('guide-open'); },
+  });
+  const ok = await m.openSaves({
+    game: g, lang: getLang(), I, from, platform: store.platform, haptic, toast, date: guideDate,
+    share: () => shareText(`${getLang() === 'ru' ? 'Не упустить навсегда — GTA 6' : "Don't miss it forever — GTA 6"} — ${APP.shortName}\n${location.origin}${location.pathname}?open=saves:${g}:all`),
+    event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+    openHow: how,
+    next: (v) => {
+      if (v === 'walk') return window.SB.openWalk?.();
+      if (v === 'end') return window.SB.openEndings?.();
+      m.closeSaves();
+      if (v === 'egg') setTimeout(() => openGuideKey('guide:gta6:egg-bugatti-thrax-andrew-node', 'saves'), 380);
+      else if (v === 'eggs') { ui.feed = 'eggs'; ui.tab = 'feed'; renderAll(); }
+      else if (v === 'codes') { ui.tab = 'cheats'; renderAll(); }
+    },
+    onClose: () => { if (ui.tab === 'home') renderHub(); },
+  }, key);
+  if (!ok) toast(t('place_nf'));
+}
+window.SB.openSaves = openSavesScreen;
+gcore.registerOpener('saves', (k, ctx) => openSavesScreen(ctx?.from || 'link', k.id || 'all'));   // ключи saves:<игра>:<id> в общей таблице openKey
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
 function eggRow(o) {
   if (hasGuide(o)) {

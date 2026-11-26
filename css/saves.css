@@ -1,0 +1,67 @@
+/* «Не упустить навсегда» (js/saves.js, 26.11.2026). Тот же язык, что «По шагам» (css/guide.css): список на фоне, без рамок и пилюль,
+   янтарный — только для того, что теряется навсегда. Экран «как сохраняться» открывается поверх (#guide, z 39; пейвол выше). */
+#saves { position: fixed; left: 0; right: 0; top: 0; height: var(--app-h, 100dvh); z-index: 38; background: var(--bg); color: var(--text);
+  display: flex; flex-direction: column; transform: translateY(100%); visibility: hidden;
+  transition: transform .42s cubic-bezier(.2,.9,.25,1), visibility 0s linear .42s; }
+#saves.open { transform: none; visibility: visible; transition: transform .42s cubic-bezier(.2,.9,.25,1), visibility 0s; }
+@media (prefers-reduced-motion: reduce) { #saves, #saves.open { transition: visibility 0s; } }
+#saves .g-sheet[hidden] { display: none; }
+
+.sv-p { margin: 0; font-size: 16px; line-height: 1.45; color: var(--text-2); }
+.sv-where { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sv-where p { margin: 0; font-size: 17px; font-weight: 650; line-height: 1.35; }
+.sv-soon .g-miss { font-size: 17px; margin: 0 0 4px; }
+
+.sv-list { list-style: none; margin: 0; padding: 0; }
+.sv-w { display: flex; gap: 6px; padding: 12px 0; border-top: 1px solid var(--line); }
+.sv-w:first-child { border-top: 0; }
+.sv-wb { flex: 1 1 auto; min-width: 0; }
+.sv-t { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.35; }
+.sv-why { margin: 4px 0 0; font-size: 15px; line-height: 1.45; color: var(--text-2); }
+.sv-lv { margin: 6px 0 0; font-size: 13px; font-weight: 650; color: var(--text-3, var(--text-2)); }
+.sv-w.is-l1 .sv-lv { color: var(--warn); }
+.sv-sp { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0; font-size: 15px; font-weight: 650; color: var(--text-2); background: none; }
+.sv-sp svg { width: 18px; height: 18px; }
+
+.sv-h3 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin: 18px 0 2px; font-size: 17px; font-weight: 750; }
+.sv-h3 small { font-size: 14px; font-weight: 500; color: var(--text-2); }
+.sv-past summary { color: var(--text-2); }
+
+.sv-rules { margin: 0 0 6px; padding: 0 0 0 20px; }
+.sv-rules li { padding: 4px 0; font-size: 16px; line-height: 1.45; }
+.sv-rules li::marker { font: 700 15px var(--font-num); color: var(--accent); }
+.sv-how, .sv-nx { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 8px 0; text-align: left; color: var(--text); background: none; border-top: 1px solid var(--line); }
+.sv-how > svg:first-child { width: 26px; height: 26px; flex: none; color: var(--accent); }
+.sv-how > svg:last-child, .sv-nx svg { width: 18px; height: 18px; flex: none; color: var(--text-2); }
+.sv-how span { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; }
+.sv-how b { font-size: 17px; font-weight: 700; }
+.sv-how small { font-size: 14px; color: var(--text-2); }
+.sv-nx { min-height: 52px; }
+.sv-nx span { flex: 1 1 auto; font-size: 16px; font-weight: 650; }
+.sv-next h2 { margin-bottom: 2px; }
+
+.sv-bugs { list-style: none; margin: 0; padding: 0; }
+.sv-bugs li { padding: 10px 0; border-top: 1px solid var(--line); }
+.sv-bugs li:first-child { border-top: 0; }
+.sv-bugs b { display: block; font-size: 16px; font-weight: 700; line-height: 1.35; }
+.sv-bugs span { display: block; margin-top: 4px; font-size: 15px; line-height: 1.45; color: var(--text-2); }
+
+.sv-hid { font-size: 17px; font-weight: 750; }
+.sv-h3 .sv-sp { min-height: 32px; font-size: 14px; }
+
+/* справочник (решение Fable 26.11): точки невозврата по главам, статус источника, «Всё ещё после…» */
+.sv-pnr { padding: 14px 0 6px; border-top: 1px solid var(--line); }
+.sv-pnr:first-of-type { border-top: 0; padding-top: 4px; }
+.sv-pnr .sv-h3 { margin-top: 0; }
+.sv-pt { margin: 2px 0 0; font-size: 16px; font-weight: 650; line-height: 1.4; color: var(--warn); }
+.sv-pnr > .sv-why { margin-bottom: 4px; }
+.sv-pnr.is-past .sv-pt, .sv-pnr.is-past .sv-h3 { color: var(--text-2); }
+.sv-pnr .sv-list { margin-left: 2px; }
+.sv-wb { padding-left: 0; }
+.sv-st { display: block; margin-top: 2px; font-weight: 500; color: var(--text-3, var(--text-2)); }
+.sv-st.is-dis { color: var(--warn); }
+.sv-stale { margin-top: 6px; }
+.sv-stale p { font-size: 15px; font-weight: 500; color: var(--text-2); }
+.sv-stale span { display: flex; gap: 16px; }
+.sv-soon { margin: 12px 0 0; }
+.sv-bugs small { display: block; margin-top: 4px; font-size: 13px; color: var(--text-3, var(--text-2)); }
