@@ -1,0 +1,31 @@
+{
+ "_note": "Записи функции «Концовки» для указателя гида (tools/build_guide_index.py). Хозяин — guide-endings; данные экрана — endings-gta6.json. Ключ endings:gta6:<развилка> открывает экран концовок на этой развилке.",
+ "items": [
+  {
+   "k": "endings:gta6", "kind": "ending", "sp": 0, "st": "dispute", "src_n": 12, "upd": "2026-11-26",
+   "t": {"ru": "Концовки GTA 6", "en": "GTA 6 endings"},
+   "sub": {"ru": "Найдено 8. Какие ещё открыты и как прийти к лучшей", "en": "8 found. Which are still open and how to reach the best one"},
+   "kw": {"ru": ["концовки", "концовка", "лучшая концовка", "хорошая концовка", "все концовки", "как получить лучшую концовку", "финал", "сколько концовок"],
+          "en": ["endings", "ending", "best ending", "good ending", "all endings", "how to get the best ending", "finale", "how many endings"]},
+   "next": ["walk:gta6", "guide:gta6:egg-bugatti-thrax-andrew-node"]
+  },
+  {
+   "k": "endings:gta6:hey-arnold", "kind": "fork", "m": "m:hey-arnold", "ch": "c1", "sp": 0, "st": "ok", "src_n": 3, "upd": "2026-11-26",
+   "t": {"ru": "Hey Arnold!: выбор влияет на финал", "en": "Hey Arnold!: this choice shapes the ending"},
+   "sub": {"ru": "Что выбрать для лучшей концовки", "en": "What to pick for the best ending"},
+   "next": ["endings:gta6", "walk:gta6"]
+  },
+  {
+   "k": "endings:gta6:poolside", "kind": "fork", "m": "m:safe-word", "ch": "c3", "sp": 1, "from": "m:safe-word", "st": "ok", "src_n": 2, "upd": "2026-11-26",
+   "t": {"ru": "Сцена у бассейна влияет на отношения", "en": "The poolside scene affects the relationship"},
+   "sub": {"ru": "Отношения решают, какая концовка вам доступна", "en": "The relationship decides which ending you can get"},
+   "next": ["endings:gta6", "walk:gta6"]
+  },
+  {
+   "k": "endings:gta6:meet-abe", "kind": "fork", "m": "m:operation-savage-glory", "ch": "c5", "sp": 2, "from": "c5", "st": "ok", "src_n": 4, "upd": "2026-11-26",
+   "t": {"ru": "Перед финалом: проверьте 4 вещи", "en": "Before the finale: check 4 things"},
+   "sub": {"ru": "Отношения, счёт и профили решают концовку. Сохранитесь до «Proceed»", "en": "Relationship, savings and profiles decide the ending. Save before “Proceed”"},
+   "next": ["endings:gta6", "walk:gta6"]
+  }
+ ]
+}

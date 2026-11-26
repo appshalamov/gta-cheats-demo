@@ -1,6 +1,7 @@
 /* «Концовки и лучшее прохождение» (js/endings.js, 26.11.2026). Основа — css/guide.css (классы g-*), здесь слой #endings
    и то, чего нет в «По шагам»: счётчик открытых концовок, выбор главы, силуэты концовок, отметки «Источники спорят». */
-#endings { position: fixed; left: 0; right: 0; top: 0; height: var(--app-h, 100dvh); z-index: 40; background: var(--bg); color: var(--text);
+#endings { position: fixed; left: 0; right: 0; top: 0; height: var(--app-h, 100dvh); z-index: 39;   /* ниже пейвола (--z-paywall: 40): «Показать целиком в Pro» открывает его поверх */
+  background: var(--bg); color: var(--text);
   display: flex; flex-direction: column; transform: translateY(100%); visibility: hidden;
   transition: transform .42s cubic-bezier(.2,.9,.25,1), visibility 0s linear .42s; }
 #endings.open { transform: none; visibility: visible; transition: transform .42s cubic-bezier(.2,.9,.25,1), visibility 0s; }

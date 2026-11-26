@@ -6,12 +6,14 @@
 // Данные — data/guide/endings.json; миссии и главы — общая база data/guide/missions.json (ведёт guide-walkthrough), здесь только ссылки по id.
 // Прогресс — на телефоне, localStorage sb.ge: { <игра>: { ch: <n главы>, c: {<развилка>: <вариант>}, r: {<концовка>: 1|2}, rs: [<шаги маршрута>], all: 0|1 } }.
 
+import { pos, setPos, pickPos, loadBase, openKey } from './guide-core.js';   // ядро гида: позиция sb.gp, шторка «Где вы», ключи ?open=
+
 const S = {
   ru: {
     close: 'Закрыть', share: 'Поделиться', title: 'Концовки', found: 'Найдено {n}', found_note: 'Как считают', src_n: 'Собрано по {n} источникам',
     where: 'Докуда вы дошли', where_none: 'Отметьте главу, и откроются развилки, которые вы уже прошли', where_pick: 'Выбрать главу',
     ch: 'Глава {n}', ch_cur: 'Сейчас', ch_ahead: 'Название откроется, когда дойдёте',
-    open_n: 'Открыто {a} из {b}', best_ok: 'Лучшая концовка ещё возможна', best_lost: 'Лучшая концовка закрыта выбором в миссии «{m}»',
+    open_n: 'Открыто {a} из {b}', best_ok: 'Лучшая концовка ещё возможна', best_lost: 'Лучшая концовка закрыта выбором в миссии «{m}»', best_lost_n: 'Лучшая концовка закрыта выбором в следующей миссии',
     best_on: 'Вы идёте к лучшей концовке', forks: 'Развилки', forks_ahead: 'Впереди ещё {n}. Откроются, когда дойдёте.',
     pick: 'Что вы выбрали?', not_yet: 'Ещё не дошёл', change: 'Изменить', in_m: 'Миссия «{m}»', save: 'Сохранитесь перед этой миссией',
     pnr: 'Точка невозврата', effect: 'Что это меняет', endings: 'Концовки', hidden: 'Скрыта', hint: 'Намёк', show: 'Показать целиком',
@@ -19,17 +21,17 @@ const S = {
     best: 'Лучшее прохождение', best_why: 'Почему лучшая', best_route: 'Маршрут развилок', best_start: 'Показать маршрут',
     step_next: 'Следующая развилка, глава {n}', step_show: 'Показать, что выбрать', step_lock: 'Шаг в главе {n}',
     dispute: 'Источники спорят', one_src: 'Один источник: {s}. Проверяем', rumor: 'Слух, не проверено', best_tag: 'Лучшая',
-    check4: 'Перед финалом: проверьте 4 вещи', check4_sub: 'Отметьте, что у вас сейчас. Посмотреть можно в меню игры.', mark_it: 'Отметить',
+    after: 'После «{m}»', next_m: 'Следующая миссия', later_m: 'Миссия позже в главе {n}', check4: 'Перед финалом: проверьте 4 вещи', check4_sub: 'Отметьте, что у вас сейчас. Посмотреть можно в меню игры.', mark_it: 'Отметить',
     show_pro: 'Показать целиком в Pro', step_pro: 'Что выбрать — в Pro', free_one: 'Одна концовка целиком бесплатно', factors: 'Что ещё влияет', before: 'До финала',
     all: 'Показать всё сразу', all_off: 'Скрыть спойлеры', all_q: 'Откроются все концовки и развилки, включая ещё не пройденные.',
-    next: 'Дальше', back_hook: 'Новые находки о концовках проверяем каждый день', report: 'Сообщить об ошибке', report_ok: 'Спасибо, проверим',
+    next: 'Дальше', back_hook: 'Новые находки о концовках проверяем каждый день', soon: 'Этот раздел появится в следующем выпуске', report: 'Сообщить об ошибке', report_ok: 'Спасибо, проверим',
     sources: 'Источники', reset: 'Начать заново', start: 'Отметить, докуда дошёл', done: 'Готово',
   },
   en: {
     close: 'Close', share: 'Share', title: 'Endings', found: '{n} found', found_note: 'How we count', src_n: 'Collected from {n} sources',
     where: 'How far you are', where_none: 'Pick your chapter to unlock the choices you have already made', where_pick: 'Pick a chapter',
     ch: 'Chapter {n}', ch_cur: 'Now', ch_ahead: 'Name unlocks when you get there',
-    open_n: '{a} of {b} still open', best_ok: 'The best ending is still possible', best_lost: 'The best ending was closed by a choice in “{m}”',
+    open_n: '{a} of {b} still open', best_ok: 'The best ending is still possible', best_lost: 'The best ending was closed by a choice in “{m}”', best_lost_n: 'The best ending was closed by a choice in the next mission',
     best_on: 'You are on track for the best ending', forks: 'Choices', forks_ahead: '{n} more ahead. They unlock when you get there.',
     pick: 'What did you choose?', not_yet: 'Not there yet', change: 'Change', in_m: 'Mission “{m}”', save: 'Save before this mission',
     pnr: 'Point of no return', effect: 'What it changes', endings: 'Endings', hidden: 'Hidden', hint: 'Hint', show: 'Show all of it',
@@ -37,10 +39,10 @@ const S = {
     best: 'Best playthrough', best_why: 'Why it is the best', best_route: 'Route of choices', best_start: 'Show the route',
     step_next: 'Next choice, chapter {n}', step_show: 'Show what to pick', step_lock: 'Step in chapter {n}',
     dispute: 'Sources disagree', one_src: 'One source: {s}. Checking', rumor: 'Rumor, unverified', best_tag: 'Best',
-    check4: 'Before the finale: check 4 things', check4_sub: 'Mark where you are now. You can see it in the game menu.', mark_it: 'Mark',
+    after: 'After “{m}”', next_m: 'The next mission', later_m: 'A later mission in chapter {n}', check4: 'Before the finale: check 4 things', check4_sub: 'Mark where you are now. You can see it in the game menu.', mark_it: 'Mark',
     show_pro: 'Show all of it in Pro', step_pro: 'What to pick is in Pro', free_one: 'One ending in full for free', factors: 'What else matters', before: 'Before the finale',
     all: 'Show everything', all_off: 'Hide spoilers', all_q: 'All endings and choices will open, including ones you have not reached.',
-    next: 'Next', back_hook: 'We check new ending finds every day', report: 'Report a mistake', report_ok: "Thanks, we'll check",
+    next: 'Next', back_hook: 'We check new ending finds every day', soon: 'This section is coming in the next release', report: 'Report a mistake', report_ok: "Thanks, we'll check",
     sources: 'Sources', reset: 'Start over', start: 'Mark how far I am', done: 'Done',
   },
 };
@@ -55,14 +57,13 @@ const s = (k, v = {}) => {
 const tx = (o) => (o ? (typeof o === 'string' ? o : o[C.lang] || o.en || o.ru || '') : '');
 const esc = (x) => String(x ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const readAll = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
-// глава из общего прогресса гида прохождения (sb.gp: последняя пройденная миссия, сам или по трофеям PS/Xbox)
+// глава — только из общей позиции гида (sb.gp через guide-core: отметка вручную, по проценту, с консоли); своей отметки нет
 function gpCh() {
-  try {
-    const g = JSON.parse(localStorage.getItem('sb.gp') || '{}')[G] || {}, m = g.m && (M?.m || []).find((x) => `m:${x.id}` === g.m || x.id === g.m);
-    return m ? chN(m.ch) : g.c ? chN(g.c) : 0;
-  } catch { return 0; }
+  const g = pos(G); if (!g) return 0;
+  const m = g.m && (M?.m || []).find((x) => `m:${x.id}` === g.m || x.id === g.m);
+  return m ? chN(m.ch) : g.c ? chN(g.c) : 0;
 }
-function prog() { const p = readAll()[G] || {}; return { ch: Math.max(p.ch || 0, gpCh()), c: p.c || {}, r: p.r || {}, rs: p.rs || [], all: p.all || 0, of: p.of, fe: p.fe }; }
+function prog() { const p = readAll()[G] || {}; return { ch: gpCh(), c: p.c || {}, r: p.r || {}, rs: p.rs || [], all: p.all || 0, of: p.of, fe: p.fe }; }
 function setProg(p) { try { const a = readAll(); a[G] = { ...p, at: Date.now() }; localStorage.setItem(KEY, JSON.stringify(a)); } catch { } }
 
 // ── модель ──
@@ -70,9 +71,14 @@ function setProg(p) { try { const a = readAll(); a[G] = { ...p, at: Date.now() }
 const chapters = () => (M?.ch?.length ? M.ch.filter((c) => c.n > 0) : D.chapters || []).slice().sort((a, b) => a.n - b.n);
 const chN = (id) => chapters().find((c) => c.id === id)?.n ?? +(String(id).replace(/\D/g, '') || 99);
 const mission = (f) => (M?.m || []).find((m) => m.id === f.m || `m:${m.id}` === f.m);
-const mTitle = (f) => tx(mission(f)?.t) || tx(f.mt) || f.m;
+const mTitle = (f) => {
+  const m = mission(f), pr = posRank();
+  const r = m && M.rank[`m:${m.id}`];
+  if (m?.sp === 2 && pr != null && r > pr && !prog().all) return r === pr + 1 ? s('next_m') : s('later_m', { n: chN(m.ch) });   // название скрытой миссии впереди — спойлер
+  return tx(m?.t) || tx(f.mt) || f.m;
+};
 // где развилка: «Миссия «X»» или, у состояний (отношения, счёт, профили), их короткое имя
-const where = (f) => (f.qs ? tx(f.qs) : s('in_m', { m: mTitle(f) }));
+const where = (f) => { if (f.qs) return tx(f.qs); const t = mTitle(f), m = mission(f); return t === s('next_m') || (m && t === s('later_m', { n: chN(m.ch) })) ? t : s('in_m', { m: t }); };
 const real = () => D.endings.filter((e) => e.st !== 'rumor');   // слухи в счёт не идут
 const forkCh = (f) => (mission(f)?.ch ? chN(mission(f).ch) : chN(f.ch));
 const fork = (id) => D.forks.find((f) => f.id === id);
@@ -86,7 +92,16 @@ function state(e, p) {
   }
   return (e.need || []).length && met === e.need.length ? 'yours' : 'open';
 }
-const reached = (f, p) => p.all || forkCh(f) <= p.ch;
+// развилка видна, когда игрок дошёл до её миссии: выбор в миссии — с предыдущей, чтобы решить заранее (у скрытой миссии sp:2 название
+// не показываем: «Следующая миссия»),
+// «4 вещи» перед финалом — с главы 5. Без базы миссий — по главе.
+const posRank = () => { const g = pos(G); if (!g || !M?.rank) return null; return g.m ? (M.rank[g.m] ?? null) : g.c in (M.chFirst || {}) ? M.chFirst[g.c] - 1 : null; };
+function reached(f, p) {
+  if (p.all) return true;
+  const r = M?.rank?.[`m:${f.m}`], pr = posRank();
+  if (isState(f) || r == null || pr == null) return forkCh(f) <= p.ch;
+  return r <= pr + 1;
+}
 const bestE = () => D.endings.find((e) => e.id === D.best?.e);
 // какая развилка закрыла лучшую концовку
 function bestKiller(p) {
@@ -108,7 +123,7 @@ const onBranch = (f, p) => !f.after || Object.entries(f.after).every(([k, v]) =>
 // ── экран ──
 function topHTML(p) {
   const open = real().filter((e) => state(e, p) !== 'closed').length, b = bestE(), k = bestKiller(p);
-  const bs = b ? (k ? `<p class="g-miss">${C.I.alert}<span>${esc(s('best_lost', { m: mTitle(k) }))}</span></p>`
+  const bs = b ? (k ? `<p class="g-miss">${C.I.alert}<span>${esc(mTitle(k) === s('next_m') || /^(Миссия позже|A later mission)/.test(mTitle(k)) ? s('best_lost_n') : s('best_lost', { m: mTitle(k) }))}</span></p>`
     : state(b, p) === 'yours' ? `<p class="g-trust">${C.I.check}<span>${esc(s('best_on'))}</span></p>`
       : `<p class="g-trust">${C.I.check}<span>${esc(s('best_ok'))}</span></p>`) : '';
   return `<h1 class="g-h1">${esc(tx(D.t) || s('title'))}</h1>
@@ -117,10 +132,12 @@ function topHTML(p) {
     ${bs}
     ${D.found ? `<details class="g-alt e-found"><summary>${esc(s('found', { n: D.found.n }))}. ${esc(s('found_note'))}</summary><p>${esc(tx(D.found.note))}</p>${mark(D.found.st, null)}</details>` : ''}`;
 }
+// «После «Feng Shui»» — название последней пройденной миссии из sb.gp (её игрок уже видел)
+const posName = () => { const g = pos(G), m = g?.m && (M?.m || []).find((x) => `m:${x.id}` === g.m); return m ? s('after', { m: tx(m.t) }) : ''; };
 function whereHTML(p) {
   const ch = chapters(), cur = ch.find((c) => c.n === p.ch);
   return `<section class="g-sec"><h2>${esc(s('where'))}</h2>
-    ${cur ? `<button class="e-where" data-e="where"><span><b>${esc(s('ch', { n: cur.n }))}</b><small>${esc(tx(cur.t))}</small></span><i>${esc(s('change'))}</i></button>`
+    ${cur ? `<button class="e-where" data-e="where"><span><b>${esc(s('ch', { n: cur.n }))}</b><small>${esc(posName() || tx(cur.t))}</small></span><i>${esc(s('change'))}</i></button>`
       : `<p class="g-meta">${esc(s('where_none'))}</p><button class="g-pro e-where-go" data-e="where">${esc(s('where_pick'))}</button>`}</section>`;
 }
 function optHTML(f, o, p) {
@@ -194,7 +211,7 @@ function bestHTML(p) {
     <p class="e-h3">${esc(s('best_route'))}</p><ol class="g-steps">${rows}</ol></section>`;
 }
 function nextHTML() {
-  const rows = (D.next || []).filter((n) => n.a !== 'open-key' || C.openKey).slice(0, 3);   // ключ ?open= (справочник saves:) — только если ядро гида подключено
+  const rows = (D.next || []).slice(0, 3);
   if (!rows.length) return '';
   return `<section class="g-sec e-next"><h2>${esc(s('next'))}</h2>${rows.map((n) => `<button class="e-nx" data-e="nx" data-action="${esc(n.a)}"${Object.entries(n.d || {}).map(([k, v]) => ` data-${esc(k)}="${esc(v)}"`).join('')}>
       <span>${esc(tx(n.t))}</span>${C.I.chevron}</button>`).join('')}
@@ -217,7 +234,7 @@ function render() {
       <button class="g-link" data-e="all">${esc(s(p.all ? 'all_off' : 'all'))}</button>
       ${(D.src || []).length ? `<p class="g-note">${esc(s('src_n', { n: D.src.length }))}: ${esc(D.src.join(', '))}</p>` : ''}
       <button class="g-link" data-e="report">${esc(s('report'))}</button>
-      ${p.ch || Object.keys(p.c).length ? `<button class="g-link e-reset" data-e="reset">${esc(s('reset'))}</button>` : ''}
+      ${Object.keys(p.c).length ? `<button class="g-link e-reset" data-e="reset">${esc(s('reset'))}</button>` : ''}
     </section><div class="g-pad"></div>
   </div>
   <div class="g-sheet" id="e-sheet" hidden></div>
@@ -239,9 +256,13 @@ function onClick(e) {
   switch (a) {
     case 'close': closeEndings(); break;
     case 'share': C.share?.(); break;
-    case 'where': whereSheet(); break;
+    case 'where':   // общая шторка «Где вы» (guide-core.pickPos); без базы миссий — запасная шторка глав, тоже пишет sb.gp
+      if (M?.m?.length) pickPos(G, { lang: C.lang, esc, openSheet: (html, cls) => { sheet.innerHTML = `<div class="g-sh-in ${cls || ''}"><div class="g-sh-top"><b></b><button class="g-ib" data-e="unsheet" aria-label="${esc(s('close'))}">${C.I.close}</button></div>${html}</div>`; sheet.hidden = false; }, closeSheet: () => { sheet.hidden = true; } })
+        .then((v) => { if (v) { rerender(); C.event?.('endings_pos', { via: 'self' }); } });
+      else whereSheet();
+      break;
     case 'unsheet': sheet.hidden = true; break;
-    case 'ch': C.haptic(); p.ch = +b.dataset.n; setProg(p); sheet.hidden = true; rerender(); C.event?.('endings_ch', { ch: p.ch }); break;
+    case 'ch': C.haptic(); setPos(G, { c: `c${b.dataset.n}`, via: 'self' }); sheet.hidden = true; rerender(); C.event?.('endings_ch', { ch: +b.dataset.n }); break;
     case 'pick': {
       const f = b.dataset.f, o = b.dataset.o; C.haptic();
       if (p.c[f] === o) delete p.c[f]; else p.c[f] = o;
@@ -261,10 +282,10 @@ function onClick(e) {
       if (!p.all && !pro()) { C.event?.('endings_paywall', { all: 1 }); C.paywall?.(); break; }
       if (!p.all && !confirm(s('all_q'))) break;
       p.all = p.all ? 0 : 1; setProg(p); rerender(); break;
-    case 'reset': setProg({ ch: 0, c: {}, r: {}, rs: [], all: 0, fe: p.fe }); render(); break;   // бесплатная концовка остаётся той же
+    case 'reset': setProg({ c: {}, r: {}, rs: [], all: 0, fe: p.fe }); render(); break;   // свои выборы; позиция в игре (sb.gp) общая — её не трогаем, бесплатная концовка та же
     case 'report': C.toast(s('report_ok')); C.event?.('endings_report', {}); break;
     case 'nx': C.event?.('endings_next', { a: b.dataset.action, v: b.dataset.v || b.dataset.key || '' }); closeEndings();
-      if (b.dataset.action === 'open-key') C.openKey(b.dataset.key);   // иначе переход делает общий обработчик data-action в app.js
+      if (b.dataset.action === 'open-key' && !openKey(b.dataset.key, { from: 'endings' })) C.toast?.(s('soon'));   // ключ гида (saves:…) — через ядро; иначе — общий обработчик data-action
       break;
   }
 }
@@ -275,9 +296,8 @@ function css() {
   }
 }
 async function load(game) {
-  const j = (u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-  const [d, m] = await Promise.all([j(`data/guide/endings-${game}.json`), j(`data/guide/missions.json`)]);
-  return [d, m && (m[game] || m)];
+  const d = await fetch(`data/guide/endings-${game}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  return [d, await loadBase(game)];   // база миссий — одна на гид, грузит и хранит guide-core
 }
 export async function openEndings(game, ctx) {
   const [d, m] = await load(game);
@@ -288,7 +308,9 @@ export async function openEndings(game, ctx) {
     layer = document.createElement('div'); layer.id = 'endings'; layer.setAttribute('role', 'dialog'); layer.setAttribute('aria-modal', 'true');
     document.body.appendChild(layer); layer.addEventListener('click', onClick);
   }
+  if (ctx.focus && D.forks.some((f) => f.id === ctx.focus)) { const p = prog(); p.of = ctx.focus; setProg(p); }   // ключ endings:gta6:<развилка>
   render();
+  if (ctx.focus) requestAnimationFrame(() => { const el = layer.querySelector(`[data-f="${ctx.focus}"]`)?.closest('li'); const sc = layer.querySelector('#e-scroll'); if (el && sc) sc.scrollTop = el.getBoundingClientRect().top - sc.getBoundingClientRect().top - 80; });
   requestAnimationFrame(() => layer.classList.add('open'));
   document.documentElement.classList.add('guide-open');
   history.pushState({ endings: 1 }, '');

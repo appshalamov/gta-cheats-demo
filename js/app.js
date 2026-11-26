@@ -474,11 +474,11 @@ async function openGuideKey(key, from = '', linked = false) {
 // «Концовки и лучшее прохождение» (js/endings.js). Решение Fable «система гида»: строки на Главной нет, вход — оглавление «Гид по игре»
 // (data-action="open-endings" data-v="gta6"), подсказка у миссии с развилкой, справочник, поиск, ссылка ?open=endings:gta6.
 const END_ROW = { t: { ru: 'Концовки GTA 6', en: 'GTA 6 endings' } };
-async function openEndingsKey(g = 'gta6', from = '') {
+async function openEndingsKey(g = 'gta6', from = '', focus = '') {
   closeSheet();
   const m = await endingsMod();
   const ok = await m.openEndings(g, {
-    lang: getLang(), I, from, haptic, toast, access, linked: from === 'link',
+    lang: getLang(), I, from, focus, haptic, toast, access, linked: from === 'link',
     paywall: () => openPaywall(mapPw()),
     share: () => shareText(`${L(END_ROW.t)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=endings:${g}`),
     event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
@@ -486,6 +486,8 @@ async function openEndingsKey(g = 'gta6', from = '') {
   });
   if (!ok) toast(t('place_nf'));
 }
+// ключ endings:<игра>[:<развилка>] — в общей таблице ключей ядра гида (оглавление, «Дальше», подсказки миссий, поиск)
+import('./guide-core.js').then((c) => c.registerOpener('endings', (k, x = {}) => openEndingsKey(k.game, x.from || 'key', k.id))).catch(() => { });
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
 function eggRow(o) {
   if (hasGuide(o)) {
@@ -2098,7 +2100,7 @@ document.addEventListener('visibilitychange', () => {
   // ключ проверяем по виду: мусор в ?open= молча открывал пейвол карты (QA 20.11.2026)
   const openRaw = new URLSearchParams(location.search).get('open');
   const openKey = /^(place|egg|db|guide):(gta6|gta5):[\w.-]{1,120}$/.test(openRaw || '') ? openRaw : null;
-  if (openRaw === 'endings:gta6') { history.replaceState(null, '', location.pathname); openEndingsKey('gta6', 'link'); }
+  if (/^endings:gta6(:[\w-]{1,60})?$/.test(openRaw || '')) { history.replaceState(null, '', location.pathname); openEndingsKey('gta6', 'link', openRaw.split(':')[2] || ''); }
   else if (openRaw && !openKey) { history.replaceState(null, '', location.pathname); toast(t('place_nf')); }
   if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); if (openKey.startsWith('guide:')) openGuideKey(openKey, 'link', true); else openOnMap(openKey); }
   else if (/[?&#]admin\b/.test(location.search + location.hash)) {   // экран «Для админов» (только веб): ?admin или #admin
