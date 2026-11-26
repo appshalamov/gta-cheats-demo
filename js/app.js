@@ -492,6 +492,10 @@ async function openEndingsKey(g = 'gta6', from = '', focus = '') {
 }
 // ключ endings:<игра>[:<развилка>] — в общей таблице ключей ядра гида (оглавление, «Дальше», подсказки миссий, поиск)
 gcore.registerOpener('endings', (k, x = {}) => openEndingsKey(k.game, x.from || 'key', k.id));
+// подпись «Концовки» в оглавлении, пока js/endings.js не загружен: счёт, запомненный при последнем показе (sb.ge[игра].cnt); модуль заменит функцию
+window.SB.endingsLine = (g = 'gta6', lang = 'ru') => {
+  try { const c = (JSON.parse(localStorage.getItem('sb.ge') || '{}')[g] || {}).cnt; if (!c) return ''; return (lang === 'ru' ? 'Открыто {a} из {b}' : '{a} of {b} still open').replace('{a}', c[0]).replace('{b}', c[1]); } catch { return ''; }
+};
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
 function eggRow(o) {
   if (hasGuide(o)) {

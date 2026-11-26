@@ -63,7 +63,7 @@ function gpCh() {
   const m = g.m && (M?.m || []).find((x) => `m:${x.id}` === g.m || x.id === g.m);
   return m ? chN(m.ch) : g.c ? chN(g.c) : 0;
 }
-function prog() { const p = readAll()[G] || {}; return { ch: gpCh(), c: p.c || {}, r: p.r || {}, rs: p.rs || [], all: p.all || 0, of: p.of, fe: p.fe }; }
+function prog() { const p = readAll()[G] || {}; return { ch: gpCh(), c: p.c || {}, r: p.r || {}, rs: p.rs || [], all: p.all || 0, of: p.of, fe: p.fe, cnt: p.cnt }; }
 function setProg(p) { try { const a = readAll(); a[G] = { ...p, at: Date.now() }; localStorage.setItem(KEY, JSON.stringify(a)); } catch { } }
 
 // ── модель ──
@@ -217,8 +217,18 @@ function nextHTML() {
       <span>${esc(tx(n.t))}</span>${C.I.chevron}</button>`).join('')}
     <p class="g-note">${esc(s('back_hook'))}</p></section>`;
 }
+// подпись строки «Концовки» в оглавлении гида (guide-hub.js → window.SB.endingsLine): «Открыто 6 из 8»; счёт запоминается в sb.ge
+// при каждом показе экрана, чтобы оглавление видело его без загрузки этого модуля (заглушка в app.js читает то же)
+const LINE = { ru: 'Открыто {a} из {b}', en: '{a} of {b} still open' };
+export function endingsLine(game = 'gta6', lang = 'ru') {
+  const c = (readAll()[game] || {}).cnt; if (!c) return '';
+  return (LINE[lang] || LINE.en).replace('{a}', c[0]).replace('{b}', c[1]);
+}
+try { window.SB = window.SB || {}; window.SB.endingsLine = endingsLine; } catch { }
 function render() {
   const p = prog();
+  p.cnt = [real().filter((e) => state(e, p) !== 'closed').length, real().length];
+  if (String((readAll()[G] || {}).cnt) !== String(p.cnt)) setProg(p);
   layer.innerHTML = `<div class="g-scroll" id="e-scroll">
     <header class="g-top"><button class="g-ib" data-e="close" aria-label="${esc(s('close'))}">${C.I.chevron}</button>
       <button class="g-ib" data-e="share" aria-label="${esc(s('share'))}">${C.I.share}</button></header>
@@ -282,7 +292,7 @@ function onClick(e) {
       if (!p.all && !pro()) { C.event?.('endings_paywall', { all: 1 }); C.paywall?.(); break; }
       if (!p.all && !confirm(s('all_q'))) break;
       p.all = p.all ? 0 : 1; setProg(p); rerender(); break;
-    case 'reset': setProg({ c: {}, r: {}, rs: [], all: 0, fe: p.fe }); render(); break;   // свои выборы; позиция в игре (sb.gp) общая — её не трогаем, бесплатная концовка та же
+    case 'reset': setProg({ c: {}, r: {}, rs: [], all: 0, fe: p.fe, cnt: p.cnt }); render(); break;   // свои выборы; позиция в игре (sb.gp) общая — её не трогаем, бесплатная концовка та же
     case 'report': C.toast(s('report_ok')); C.event?.('endings_report', {}); break;
     case 'nx': C.event?.('endings_next', { a: b.dataset.action, v: b.dataset.v || b.dataset.key || '' }); closeEndings();
       if (b.dataset.action === 'open-key') openKey(b.dataset.key, { from: 'endings' });   // ключ гида (saves:…) — через ядро; иначе — общий обработчик data-action
