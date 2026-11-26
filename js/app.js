@@ -471,7 +471,8 @@ async function openGuideKey(key, from = '', linked = false) {
   });
 }
 // «Подтянуть прогресс с консоли» (js/progress.js, guide-progress 26.11.2026): PSN Online ID / Xbox Gamertag → место в сюжете → sb.gp.
-// Строки для шторки «Где вы» гида прохождения — import('./progress.js').mountRows(el, ctx); ссылка ?open=progress[:psn|:xbox] — своя шторка.
+// Ссылку ?open=progress[:psn|:xbox] ведёт ядро гида (registerOpener('progress') у сборщика → шторка «Где вы» с этими строками);
+// openProgressUI — запасной вход в отдельную шторку (window.SB.openProgress), из ссылок не вызывается.
 async function openProgressUI(from = '', platform = null) {
   const m = await import('./progress.js');
   m.openProgress({
@@ -2097,9 +2098,7 @@ document.addEventListener('visibilitychange', () => {
   // ключ проверяем по виду: мусор в ?open= молча открывал пейвол карты (QA 20.11.2026)
   const openRaw = new URLSearchParams(location.search).get('open');
   const openKey = /^(place|egg|db|guide):(gta6|gta5):[\w.-]{1,120}$/.test(openRaw || '') ? openRaw : null;
-  const pgLink = /^progress(:psn|:xbox)?$/.test(openRaw || '');
-  if (pgLink) { history.replaceState(null, '', location.pathname); openProgressUI('link', openRaw.split(':')[1] || null); }
-  else if (openRaw && !openKey) { history.replaceState(null, '', location.pathname); toast(t('place_nf')); }
+  if (openRaw && !openKey) { history.replaceState(null, '', location.pathname); toast(t('place_nf')); }
   if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); if (openKey.startsWith('guide:')) openGuideKey(openKey, 'link', true); else openOnMap(openKey); }
   else if (/[?&#]admin\b/.test(location.search + location.hash)) {   // экран «Для админов» (только веб): ?admin или #admin
     store.onboarded = true; save(); if (location.hash) history.replaceState(null, '', location.pathname + location.search); window.SB.openCreator('admin');
