@@ -477,7 +477,7 @@ async function findSetting(g, id) {
 function guideCtx(g, from, linked, shareKey, onClose) {
   return {
     lang: getLang(), I, from, linked, access, haptic, toast, date: guideDate, imgUrl, credit, platform: store.platform,
-    open: (k) => { if (!gcore.openKey(k)) toast(t('place_nf')); },   // одна таблица ключей (guide-core)
+    open: (k) => { guideMod().then((m) => m.closeGuide()); setTimeout(() => { if (!gcore.openKey(k, { from: 'guide' })) toast(t('place_nf')); }, 120); },   // сначала закрыть инструкцию, потом следующая серия (иначе экран под #guide)
     canOpen: (k) => gcore.hasOpener(gcore.parseOpen(k)?.kind),   // «Дальше» — только на то, что в сборке умеют открыть
     paywall: () => openPaywall(mapPw()),
     share: (x) => shareText(`${guideTitle(x)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=${shareKey(x)}`),
