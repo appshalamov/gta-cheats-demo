@@ -475,7 +475,8 @@ async function openGuideKey(key, from = '', linked = false) {
   m.openGuide({ ...o, game: g }, {
     lang: getLang(), I, from, linked: linked || store.linkKeys.includes(`guide:${g}:${id}`) || store.linkKeys.includes(`egg:${g}:${id}`),
     access, haptic, toast, date: guideDate, imgUrl, credit, platform: store.platform,
-    open: (k) => (/^(guide|egg):/.test(k) && /:set-|guide:/.test(k) ? openGuideKey(k, 'next') : k === 'settings-list' ? openSetList() : openOnMap(k)),
+    open: (k) => (/^guide:/.test(k) ? openGuideKey(k, 'next') : k === 'settings-list' ? openSetList() : openOnMap(k)),
+    canOpen: (k) => /^(guide|place|egg):(gta6|gta5):/.test(k) || k === 'settings-list',   // до guide-core (openKey) — только известные ключи
     paywall: () => openPaywall(mapPw()),
     share: (x) => shareText(`${guideTitle(x)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=guide:${g}:${x.id}`),
     event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },

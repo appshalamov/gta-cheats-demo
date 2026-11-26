@@ -69,7 +69,7 @@ MENU = {
     'btn': {
         'playstation': {'pause': 'OPTIONS', 'confirm': 'X', 'back': 'O', 'tab_next': 'R1', 'tab_prev': 'L1', 'up': '↑', 'down': '↓', 'left': '←', 'right': '→'},
         'xbox': {'pause': 'MENU', 'confirm': 'A', 'back': 'B', 'tab_next': 'RB', 'tab_prev': 'LB', 'up': '↑', 'down': '↓', 'left': '←', 'right': '→'},
-        'st': {'playstation': 'ok', 'xbox': 'ok'},
+        'st': {'playstation': 'ok', 'xbox': 'check'},   # Решение Fable — система гида: Xbox «сверяем», пока нет своей записи меню
         'sure': {'pause': 'ok', 'tab_next': 'ok', 'tab_prev': 'ok', 'back': 'ok', 'confirm': 'rule', 'up': 'rule', 'down': 'rule', 'left': 'rule', 'right': 'rule'},
     },
     'src': {'A': 'Настройки — ресёрч/A', 'note': 'порядок групп по S1; Restore Default — кнопка не названа, в схеме не показываем'},
@@ -150,6 +150,21 @@ GUIDES = [
              {'k': 'guide:gta6:set-driving', 't': T('Настроить вождение', 'Set up driving'), 's': T('Чтобы не разбить Thrax', "So you don't wreck the Thrax")}]}},
 ]
 
+ORDER = ['set-first', 'set-driving', 'set-aim', 'set-comfort', 'set-picture']
+BUG = {'k': 'guide:gta6:egg-bugatti-thrax-andrew-node', 't': T('Угнать Bugatti без трекера', 'Steal the Bugatti with no tracker'), 's': T('Thrax, по шагам', 'Thrax, step by step')}
+WALK = {'k': 'walk:gta6', 't': T('Прохождение: что сейчас важно', 'Walkthrough: what matters now'), 's': T('Дела до следующей миссии', 'Things to do before the next mission')}
+# поисковые фразы (указатель гида, kw ≥ 8 на язык); общие + свои у совета
+KW_ALL = {'ru': ['настройки gta 6', 'как настроить gta 6', 'лучшие настройки', 'настройки ps5', 'настройки xbox'],
+          'en': ['gta 6 settings', 'best gta 6 settings', 'how to set up gta 6', 'ps5 settings', 'xbox settings']}
+KW = {
+  'set-first': {'ru': ['первые часы', 'новичку', 'субтитры', 'размер текста', 'бег без кнопки'], 'en': ['beginner settings', 'first hours', 'subtitles', 'text size', 'auto run']},
+  'set-driving': {'ru': ['настройки вождения', 'как не разбить машину', 'вибрация геймпада', 'камера в машине', 'урон машины'], 'en': ['driving settings', 'vehicle damage', 'car camera', 'vibration', 'handling']},
+  'set-aim': {'ru': ['настройки прицела', 'чувствительность', 'помощь прицеливания', 'мёртвая зона', 'захват цели'], 'en': ['aim settings', 'sensitivity', 'aim assist', 'deadzone', 'lock-on']},
+  'set-comfort': {'ru': ['укачивает', 'тошнит от игры', 'размытие', 'тряска камеры', 'морская болезнь'], 'en': ['motion sickness', 'nausea', 'motion blur', 'camera shake', 'dizzy']},
+  'set-picture': {'ru': ['hdr', 'яркость', 'графика gta 6', 'режим производительности', '30 кадров'], 'en': ['hdr settings', 'brightness', 'graphics settings', 'performance mode', '30 fps']},
+}
+UPD = '2026-11-26'
+
 def check():
     idx = {it['id']: it for t in MENU['tabs'] for s in t['sec'] for it in s['it']}
     bad = []
@@ -172,6 +187,12 @@ def check():
 if __name__ == '__main__':
     bad = check()
     if bad: print('СТОП:\n ' + '\n '.join(bad)); sys.exit(1)
+    byid = {g['id']: g for g in GUIDES}
+    GUIDES[:] = [byid[i] for i in ORDER]
+    for n, g in enumerate(GUIDES):   # «Дальше»: следующий совет → Bugatti → Прохождение (таблица удержания Fable, раздел 4)
+        nx = GUIDES[(n + 1) % len(GUIDES)]
+        g['how']['next'] = [{'k': f"guide:gta6:{nx['id']}", 't': nx['how']['ta'], 's': nx['how']['rw']}, BUG, WALK]
+        g['how']['upd'] = UPD
     old = {}
     if os.path.exists(OUT):
         try: old = {g['id']: g['how'].get('vid') for g in json.load(open(OUT, encoding='utf-8'))['guides']}
@@ -180,5 +201,13 @@ if __name__ == '__main__':
     for g in GUIDES:
         for x in g['how']['st']: x['t'] = {'ru': idx[x['it']]['l'], 'en': idx[x['it']]['l']}; x['val'] = {'ru': x['set'], 'en': x['set']} if x['set'] is not None else {'ru': 'Настроить', 'en': 'Adjust'}; x['def'] = idx[x['it']]['v'] or None
         if old.get(g['id']): g['how']['vid'] = old[g['id']]
-    json.dump({'v': 1, 'game': 'gta6', 'upd': '2026-11-26', 'menu': MENU, 'guides': GUIDES}, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    index = []
+    for g in GUIDES:   # записи указателя гида (data/guide/index-<игра>.json собирает tools/build_guide_index.py сборщика)
+        h = g['how']; n_ok = min(len(x['src']) for x in h['st'])
+        kw = {l: KW_ALL[l] + KW[g['id']][l] for l in ('ru', 'en')}
+        assert all(len(kw[l]) >= 8 for l in kw), g['id']
+        index.append({'k': f"guide:gta6:{g['id']}", 'kind': 'set', 't': h['ta'], 'sub': h['rw'], 'sp': 0,
+                      'st': 'ok' if n_ok >= 2 else 'one', 'src_n': len(g['sn']), 'upd': UPD, 'steps_n': len(h['st']), 'min': h['min'],
+                      'free': True, 'kw': kw, 'next': [q['k'] for q in h['next']]})
+    json.dump({'v': 1, 'game': 'gta6', 'upd': UPD, 'menu': MENU, 'guides': GUIDES, 'index': index}, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print('ok', OUT, sum(len(g['how']['st']) for g in GUIDES), 'шагов в', len(GUIDES), 'советах')

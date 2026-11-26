@@ -1372,7 +1372,7 @@
    },
    "st": {
     "playstation": "ok",
-    "xbox": "ok"
+    "xbox": "check"
    },
    "sure": {
     "pause": "ok",
@@ -1392,6 +1392,224 @@
   }
  },
  "guides": [
+  {
+   "id": "set-first",
+   "sn": [
+    "playday.one",
+    "games.gg",
+    "VideoGamer",
+    "FD"
+   ],
+   "how": {
+    "ta": {
+     "ru": "Первые часы игры",
+     "en": "Your first hours"
+    },
+    "rw": {
+     "ru": "Пять настроек, чтобы не потеряться и всё понимать.",
+     "en": "Five settings so you never get lost and understand everything."
+    },
+    "min": 2,
+    "st": [
+     {
+      "id": "movespeed",
+      "it": "movespeed",
+      "set": "Jog",
+      "hn": {
+       "ru": "Бег без кнопки",
+       "en": "Jog by default"
+      },
+      "why": {
+       "ru": "Полный наклон стика — бег трусцой, не надо жать бег всё время.",
+       "en": "Full stick tilt jogs, no need to hold sprint."
+      },
+      "src": [
+       "playday.one",
+       "FD",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Movement Speed",
+       "en": "Movement Speed"
+      },
+      "val": {
+       "ru": "Jog",
+       "en": "Jog"
+      },
+      "def": "Walk"
+     },
+     {
+      "id": "textsize",
+      "it": "textsize",
+      "set": "Medium",
+      "hn": {
+       "ru": "Крупнее текст",
+       "en": "Bigger text"
+      },
+      "why": {
+       "ru": "По умолчанию текст мелкий. Large — если телевизор далеко.",
+       "en": "Default text is small. Large if the TV is far away."
+      },
+      "src": [
+       "playday.one",
+       "VideoGamer",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "UI Text Size",
+       "en": "UI Text Size"
+      },
+      "val": {
+       "ru": "Medium",
+       "en": "Medium"
+      },
+      "def": "Small"
+     },
+     {
+      "id": "subs",
+      "it": "subs",
+      "set": "On",
+      "hn": {
+       "ru": "Субтитры",
+       "en": "Subtitles"
+      },
+      "why": {
+       "ru": "Не пропустите задание в шуме погони.",
+       "en": "Don't miss instructions during a chase."
+      },
+      "src": [
+       "playday.one",
+       "VideoGamer",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Subtitles",
+       "en": "Subtitles"
+      },
+      "val": {
+       "ru": "On",
+       "en": "On"
+      },
+      "def": "Off"
+     },
+     {
+      "id": "subbg",
+      "it": "subbg",
+      "set": "Solid",
+      "hn": {
+       "ru": "Фон субтитров",
+       "en": "Subtitle background"
+      },
+      "why": {
+       "ru": "Белый текст читается и на ярком пляже.",
+       "en": "White text stays readable on a bright beach."
+      },
+      "src": [
+       "playday.one",
+       "games.gg"
+      ],
+      "t": {
+       "ru": "Background",
+       "en": "Background"
+      },
+      "val": {
+       "ru": "Solid",
+       "en": "Solid"
+      },
+      "def": "Off"
+     },
+     {
+      "id": "compass",
+      "it": "compass",
+      "set": "On",
+      "hn": {
+       "ru": "Компас",
+       "en": "Compass"
+      },
+      "why": {
+       "ru": "Видно направление к цели, проще ориентироваться в Леонида.",
+       "en": "Shows the direction to your goal across Leonida."
+      },
+      "src": [
+       "playday.one",
+       "games.gg"
+      ],
+      "hyp": 1,
+      "t": {
+       "ru": "Compass",
+       "en": "Compass"
+      },
+      "val": {
+       "ru": "On",
+       "en": "On"
+      },
+      "def": "Off"
+     }
+    ],
+    "next": [
+     {
+      "k": "guide:gta6:set-driving",
+      "t": {
+       "ru": "Настроить вождение",
+       "en": "Set up driving"
+      },
+      "s": {
+       "ru": "Чтобы не разбить Thrax и любую быструю машину.",
+       "en": "So you don't wreck the Thrax or any fast car."
+      }
+     },
+     {
+      "k": "guide:gta6:egg-bugatti-thrax-andrew-node",
+      "t": {
+       "ru": "Угнать Bugatti без трекера",
+       "en": "Steal the Bugatti with no tracker"
+      },
+      "s": {
+       "ru": "Thrax, по шагам",
+       "en": "Thrax, step by step"
+      }
+     },
+     {
+      "k": "walk:gta6",
+      "t": {
+       "ru": "Прохождение: что сейчас важно",
+       "en": "Walkthrough: what matters now"
+      },
+      "s": {
+       "ru": "Дела до следующей миссии",
+       "en": "Things to do before the next mission"
+      }
+     }
+    ],
+    "upd": "2026-11-26",
+    "vid": {
+     "playstation": {
+      "src": "img/guide/gta6/set-first-ps-{l}.mp4",
+      "len": "0:39",
+      "sec": 38.6,
+      "ch": {
+       "movespeed": 2,
+       "textsize": 10,
+       "subs": 16,
+       "subbg": 23,
+       "compass": 30
+      }
+     },
+     "xbox": {
+      "src": "img/guide/gta6/set-first-xb-{l}.mp4",
+      "len": "0:39",
+      "sec": 38.6,
+      "ch": {
+       "movespeed": 2,
+       "textsize": 10,
+       "subs": 16,
+       "subbg": 23,
+       "compass": 30
+      }
+     }
+    }
+   }
+  },
   {
    "id": "set-driving",
    "sn": [
@@ -1658,6 +1876,17 @@
     ],
     "next": [
      {
+      "k": "guide:gta6:set-aim",
+      "t": {
+       "ru": "Прицел: меньше промахов",
+       "en": "Aim: fewer misses"
+      },
+      "s": {
+       "ru": "Помощь прицела и чувствительность для геймпада.",
+       "en": "Aim assist and sensitivity for a controller."
+      }
+     },
+     {
       "k": "guide:gta6:egg-bugatti-thrax-andrew-node",
       "t": {
        "ru": "Угнать Bugatti без трекера",
@@ -1669,28 +1898,18 @@
       }
      },
      {
-      "k": "guide:gta6:set-comfort",
+      "k": "walk:gta6",
       "t": {
-       "ru": "Если укачивает в машине",
-       "en": "If driving makes you dizzy"
+       "ru": "Прохождение: что сейчас важно",
+       "en": "Walkthrough: what matters now"
       },
       "s": {
-       "ru": "9 настроек комфорта",
-       "en": "9 comfort settings"
-      }
-     },
-     {
-      "k": "guide:gta6:set-aim",
-      "t": {
-       "ru": "Прицел: меньше промахов",
-       "en": "Aim: fewer misses"
-      },
-      "s": {
-       "ru": "Стрельба из машины и пешком",
-       "en": "On foot and from the car"
+       "ru": "Дела до следующей миссии",
+       "en": "Things to do before the next mission"
       }
      }
     ],
+    "upd": "2026-11-26",
     "vid": {
      "playstation": {
       "src": "img/guide/gta6/set-driving-ps-{l}.mp4",
@@ -1939,28 +2158,40 @@
     ],
     "next": [
      {
-      "k": "guide:gta6:set-driving",
+      "k": "guide:gta6:set-comfort",
       "t": {
-       "ru": "Настроить вождение",
-       "en": "Set up driving"
+       "ru": "Чтобы не укачивало",
+       "en": "Stop motion sickness"
       },
       "s": {
-       "ru": "Чтобы не разбить Thrax",
-       "en": "So you don't wreck the Thrax"
+       "ru": "Включайте по одному и проверяйте 10 минут езды.",
+       "en": "Turn on one at a time and test for 10 minutes of driving."
       }
      },
      {
-      "k": "guide:gta6:set-first",
+      "k": "guide:gta6:egg-bugatti-thrax-andrew-node",
       "t": {
-       "ru": "Первые часы игры",
-       "en": "Your first hours"
+       "ru": "Угнать Bugatti без трекера",
+       "en": "Steal the Bugatti with no tracker"
       },
       "s": {
-       "ru": "5 настроек за 2 минуты",
-       "en": "5 settings in 2 minutes"
+       "ru": "Thrax, по шагам",
+       "en": "Thrax, step by step"
+      }
+     },
+     {
+      "k": "walk:gta6",
+      "t": {
+       "ru": "Прохождение: что сейчас важно",
+       "en": "Walkthrough: what matters now"
+      },
+      "s": {
+       "ru": "Дела до следующей миссии",
+       "en": "Things to do before the next mission"
       }
      }
     ],
+    "upd": "2026-11-26",
     "vid": {
      "playstation": {
       "src": "img/guide/gta6/set-aim-ps-{l}.mp4",
@@ -2258,22 +2489,34 @@
        "en": "Picture on your TV"
       },
       "s": {
-       "ru": "HDR и края экрана",
-       "en": "HDR and screen edges"
+       "ru": "Выбирать режим не нужно: на PS5, PS5 Pro и Xbox игра идёт в 30 кадрах. Настройте яркость и края.",
+       "en": "No mode to pick: PS5, PS5 Pro and Xbox all run at 30 fps. Set brightness and edges."
       }
      },
      {
-      "k": "guide:gta6:set-driving",
+      "k": "guide:gta6:egg-bugatti-thrax-andrew-node",
       "t": {
-       "ru": "Настроить вождение",
-       "en": "Set up driving"
+       "ru": "Угнать Bugatti без трекера",
+       "en": "Steal the Bugatti with no tracker"
       },
       "s": {
-       "ru": "Чтобы не разбить Thrax",
-       "en": "So you don't wreck the Thrax"
+       "ru": "Thrax, по шагам",
+       "en": "Thrax, step by step"
+      }
+     },
+     {
+      "k": "walk:gta6",
+      "t": {
+       "ru": "Прохождение: что сейчас важно",
+       "en": "Walkthrough: what matters now"
+      },
+      "s": {
+       "ru": "Дела до следующей миссии",
+       "en": "Things to do before the next mission"
       }
      }
     ],
+    "upd": "2026-11-26",
     "vid": {
      "playstation": {
       "src": "img/guide/gta6/set-comfort-ps-{l}.mp4",
@@ -2305,212 +2548,6 @@
        "killshot": 43,
        "crash": 49,
        "idle": 56
-      }
-     }
-    }
-   }
-  },
-  {
-   "id": "set-first",
-   "sn": [
-    "playday.one",
-    "games.gg",
-    "VideoGamer",
-    "FD"
-   ],
-   "how": {
-    "ta": {
-     "ru": "Первые часы игры",
-     "en": "Your first hours"
-    },
-    "rw": {
-     "ru": "Пять настроек, чтобы не потеряться и всё понимать.",
-     "en": "Five settings so you never get lost and understand everything."
-    },
-    "min": 2,
-    "st": [
-     {
-      "id": "movespeed",
-      "it": "movespeed",
-      "set": "Jog",
-      "hn": {
-       "ru": "Бег без кнопки",
-       "en": "Jog by default"
-      },
-      "why": {
-       "ru": "Полный наклон стика — бег трусцой, не надо жать бег всё время.",
-       "en": "Full stick tilt jogs, no need to hold sprint."
-      },
-      "src": [
-       "playday.one",
-       "FD",
-       "games.gg"
-      ],
-      "t": {
-       "ru": "Movement Speed",
-       "en": "Movement Speed"
-      },
-      "val": {
-       "ru": "Jog",
-       "en": "Jog"
-      },
-      "def": "Walk"
-     },
-     {
-      "id": "textsize",
-      "it": "textsize",
-      "set": "Medium",
-      "hn": {
-       "ru": "Крупнее текст",
-       "en": "Bigger text"
-      },
-      "why": {
-       "ru": "По умолчанию текст мелкий. Large — если телевизор далеко.",
-       "en": "Default text is small. Large if the TV is far away."
-      },
-      "src": [
-       "playday.one",
-       "VideoGamer",
-       "games.gg"
-      ],
-      "t": {
-       "ru": "UI Text Size",
-       "en": "UI Text Size"
-      },
-      "val": {
-       "ru": "Medium",
-       "en": "Medium"
-      },
-      "def": "Small"
-     },
-     {
-      "id": "subs",
-      "it": "subs",
-      "set": "On",
-      "hn": {
-       "ru": "Субтитры",
-       "en": "Subtitles"
-      },
-      "why": {
-       "ru": "Не пропустите задание в шуме погони.",
-       "en": "Don't miss instructions during a chase."
-      },
-      "src": [
-       "playday.one",
-       "VideoGamer",
-       "games.gg"
-      ],
-      "t": {
-       "ru": "Subtitles",
-       "en": "Subtitles"
-      },
-      "val": {
-       "ru": "On",
-       "en": "On"
-      },
-      "def": "Off"
-     },
-     {
-      "id": "subbg",
-      "it": "subbg",
-      "set": "Solid",
-      "hn": {
-       "ru": "Фон субтитров",
-       "en": "Subtitle background"
-      },
-      "why": {
-       "ru": "Белый текст читается и на ярком пляже.",
-       "en": "White text stays readable on a bright beach."
-      },
-      "src": [
-       "playday.one",
-       "games.gg"
-      ],
-      "t": {
-       "ru": "Background",
-       "en": "Background"
-      },
-      "val": {
-       "ru": "Solid",
-       "en": "Solid"
-      },
-      "def": "Off"
-     },
-     {
-      "id": "compass",
-      "it": "compass",
-      "set": "On",
-      "hn": {
-       "ru": "Компас",
-       "en": "Compass"
-      },
-      "why": {
-       "ru": "Видно направление к цели, проще ориентироваться в Леонида.",
-       "en": "Shows the direction to your goal across Leonida."
-      },
-      "src": [
-       "playday.one",
-       "games.gg"
-      ],
-      "hyp": 1,
-      "t": {
-       "ru": "Compass",
-       "en": "Compass"
-      },
-      "val": {
-       "ru": "On",
-       "en": "On"
-      },
-      "def": "Off"
-     }
-    ],
-    "next": [
-     {
-      "k": "guide:gta6:set-driving",
-      "t": {
-       "ru": "Настроить вождение",
-       "en": "Set up driving"
-      },
-      "s": {
-       "ru": "Чтобы не разбить Thrax",
-       "en": "So you don't wreck the Thrax"
-      }
-     },
-     {
-      "k": "guide:gta6:set-aim",
-      "t": {
-       "ru": "Прицел: меньше промахов",
-       "en": "Aim: fewer misses"
-      },
-      "s": {
-       "ru": "Помощь прицела",
-       "en": "Aim assist"
-      }
-     }
-    ],
-    "vid": {
-     "playstation": {
-      "src": "img/guide/gta6/set-first-ps-{l}.mp4",
-      "len": "0:39",
-      "sec": 38.6,
-      "ch": {
-       "movespeed": 2,
-       "textsize": 10,
-       "subs": 16,
-       "subbg": 23,
-       "compass": 30
-      }
-     },
-     "xbox": {
-      "src": "img/guide/gta6/set-first-xb-{l}.mp4",
-      "len": "0:39",
-      "sec": 38.6,
-      "ch": {
-       "movespeed": 2,
-       "textsize": 10,
-       "subs": 16,
-       "subbg": 23,
-       "compass": 30
       }
      }
     }
@@ -2617,28 +2654,40 @@
     ],
     "next": [
      {
-      "k": "guide:gta6:set-comfort",
+      "k": "guide:gta6:set-first",
       "t": {
-       "ru": "Чтобы не укачивало",
-       "en": "Stop motion sickness"
+       "ru": "Первые часы игры",
+       "en": "Your first hours"
       },
       "s": {
-       "ru": "9 настроек комфорта",
-       "en": "9 comfort settings"
+       "ru": "Пять настроек, чтобы не потеряться и всё понимать.",
+       "en": "Five settings so you never get lost and understand everything."
       }
      },
      {
-      "k": "guide:gta6:set-driving",
+      "k": "guide:gta6:egg-bugatti-thrax-andrew-node",
       "t": {
-       "ru": "Настроить вождение",
-       "en": "Set up driving"
+       "ru": "Угнать Bugatti без трекера",
+       "en": "Steal the Bugatti with no tracker"
       },
       "s": {
-       "ru": "Чтобы не разбить Thrax",
-       "en": "So you don't wreck the Thrax"
+       "ru": "Thrax, по шагам",
+       "en": "Thrax, step by step"
+      }
+     },
+     {
+      "k": "walk:gta6",
+      "t": {
+       "ru": "Прохождение: что сейчас важно",
+       "en": "Walkthrough: what matters now"
+      },
+      "s": {
+       "ru": "Дела до следующей миссии",
+       "en": "Things to do before the next mission"
       }
      }
     ],
+    "upd": "2026-11-26",
     "vid": {
      "playstation": {
       "src": "img/guide/gta6/set-picture-ps-{l}.mp4",
@@ -2662,6 +2711,258 @@
      }
     }
    }
+  }
+ ],
+ "index": [
+  {
+   "k": "guide:gta6:set-first",
+   "kind": "set",
+   "t": {
+    "ru": "Первые часы игры",
+    "en": "Your first hours"
+   },
+   "sub": {
+    "ru": "Пять настроек, чтобы не потеряться и всё понимать.",
+    "en": "Five settings so you never get lost and understand everything."
+   },
+   "sp": 0,
+   "st": "ok",
+   "src_n": 4,
+   "upd": "2026-11-26",
+   "steps_n": 5,
+   "min": 2,
+   "free": true,
+   "kw": {
+    "ru": [
+     "настройки gta 6",
+     "как настроить gta 6",
+     "лучшие настройки",
+     "настройки ps5",
+     "настройки xbox",
+     "первые часы",
+     "новичку",
+     "субтитры",
+     "размер текста",
+     "бег без кнопки"
+    ],
+    "en": [
+     "gta 6 settings",
+     "best gta 6 settings",
+     "how to set up gta 6",
+     "ps5 settings",
+     "xbox settings",
+     "beginner settings",
+     "first hours",
+     "subtitles",
+     "text size",
+     "auto run"
+    ]
+   },
+   "next": [
+    "guide:gta6:set-driving",
+    "guide:gta6:egg-bugatti-thrax-andrew-node",
+    "walk:gta6"
+   ]
+  },
+  {
+   "k": "guide:gta6:set-driving",
+   "kind": "set",
+   "t": {
+    "ru": "Настроить вождение",
+    "en": "Set up driving"
+   },
+   "sub": {
+    "ru": "Чтобы не разбить Thrax и любую быструю машину.",
+    "en": "So you don't wreck the Thrax or any fast car."
+   },
+   "sp": 0,
+   "st": "ok",
+   "src_n": 6,
+   "upd": "2026-11-26",
+   "steps_n": 9,
+   "min": 4,
+   "free": true,
+   "kw": {
+    "ru": [
+     "настройки gta 6",
+     "как настроить gta 6",
+     "лучшие настройки",
+     "настройки ps5",
+     "настройки xbox",
+     "настройки вождения",
+     "как не разбить машину",
+     "вибрация геймпада",
+     "камера в машине",
+     "урон машины"
+    ],
+    "en": [
+     "gta 6 settings",
+     "best gta 6 settings",
+     "how to set up gta 6",
+     "ps5 settings",
+     "xbox settings",
+     "driving settings",
+     "vehicle damage",
+     "car camera",
+     "vibration",
+     "handling"
+    ]
+   },
+   "next": [
+    "guide:gta6:set-aim",
+    "guide:gta6:egg-bugatti-thrax-andrew-node",
+    "walk:gta6"
+   ]
+  },
+  {
+   "k": "guide:gta6:set-aim",
+   "kind": "set",
+   "t": {
+    "ru": "Прицел: меньше промахов",
+    "en": "Aim: fewer misses"
+   },
+   "sub": {
+    "ru": "Помощь прицела и чувствительность для геймпада.",
+    "en": "Aim assist and sensitivity for a controller."
+   },
+   "sp": 0,
+   "st": "ok",
+   "src_n": 6,
+   "upd": "2026-11-26",
+   "steps_n": 7,
+   "min": 3,
+   "free": true,
+   "kw": {
+    "ru": [
+     "настройки gta 6",
+     "как настроить gta 6",
+     "лучшие настройки",
+     "настройки ps5",
+     "настройки xbox",
+     "настройки прицела",
+     "чувствительность",
+     "помощь прицеливания",
+     "мёртвая зона",
+     "захват цели"
+    ],
+    "en": [
+     "gta 6 settings",
+     "best gta 6 settings",
+     "how to set up gta 6",
+     "ps5 settings",
+     "xbox settings",
+     "aim settings",
+     "sensitivity",
+     "aim assist",
+     "deadzone",
+     "lock-on"
+    ]
+   },
+   "next": [
+    "guide:gta6:set-comfort",
+    "guide:gta6:egg-bugatti-thrax-andrew-node",
+    "walk:gta6"
+   ]
+  },
+  {
+   "k": "guide:gta6:set-comfort",
+   "kind": "set",
+   "t": {
+    "ru": "Чтобы не укачивало",
+    "en": "Stop motion sickness"
+   },
+   "sub": {
+    "ru": "Включайте по одному и проверяйте 10 минут езды.",
+    "en": "Turn on one at a time and test for 10 minutes of driving."
+   },
+   "sp": 0,
+   "st": "ok",
+   "src_n": 4,
+   "upd": "2026-11-26",
+   "steps_n": 9,
+   "min": 4,
+   "free": true,
+   "kw": {
+    "ru": [
+     "настройки gta 6",
+     "как настроить gta 6",
+     "лучшие настройки",
+     "настройки ps5",
+     "настройки xbox",
+     "укачивает",
+     "тошнит от игры",
+     "размытие",
+     "тряска камеры",
+     "морская болезнь"
+    ],
+    "en": [
+     "gta 6 settings",
+     "best gta 6 settings",
+     "how to set up gta 6",
+     "ps5 settings",
+     "xbox settings",
+     "motion sickness",
+     "nausea",
+     "motion blur",
+     "camera shake",
+     "dizzy"
+    ]
+   },
+   "next": [
+    "guide:gta6:set-picture",
+    "guide:gta6:egg-bugatti-thrax-andrew-node",
+    "walk:gta6"
+   ]
+  },
+  {
+   "k": "guide:gta6:set-picture",
+   "kind": "set",
+   "t": {
+    "ru": "Картинка на телевизоре",
+    "en": "Picture on your TV"
+   },
+   "sub": {
+    "ru": "Выбирать режим не нужно: на PS5, PS5 Pro и Xbox игра идёт в 30 кадрах. Настройте яркость и края.",
+    "en": "No mode to pick: PS5, PS5 Pro and Xbox all run at 30 fps. Set brightness and edges."
+   },
+   "sp": 0,
+   "st": "ok",
+   "src_n": 3,
+   "upd": "2026-11-26",
+   "steps_n": 3,
+   "min": 3,
+   "free": true,
+   "kw": {
+    "ru": [
+     "настройки gta 6",
+     "как настроить gta 6",
+     "лучшие настройки",
+     "настройки ps5",
+     "настройки xbox",
+     "hdr",
+     "яркость",
+     "графика gta 6",
+     "режим производительности",
+     "30 кадров"
+    ],
+    "en": [
+     "gta 6 settings",
+     "best gta 6 settings",
+     "how to set up gta 6",
+     "ps5 settings",
+     "xbox settings",
+     "hdr settings",
+     "brightness",
+     "graphics settings",
+     "performance mode",
+     "30 fps"
+    ]
+   },
+   "next": [
+    "guide:gta6:set-first",
+    "guide:gta6:egg-bugatti-thrax-andrew-node",
+    "walk:gta6"
+   ]
   }
  ]
 }
