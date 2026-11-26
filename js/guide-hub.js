@@ -50,13 +50,13 @@ export function tocHTML(game, lang, esc, I, progressOf) {
     ${warns.map((w) => `<button class="gh-row gh-warn" data-action="gopen" data-k="${esc(w.k)}">${I.alert}<span>${esc(w.text)}</span>${I.chevron}</button>`).join('')}
     ${b && has(['tip', 'warn']) ? row(`walk:${game}`, T.walk, '') : ''}
     ${has(['warn', 'save']) ? row(`saves:${game}:all`, T.saves, '') : ''}
-    ${has(['ending', 'fork']) ? row(`endings:${game}`, T.endings, '') : ''}
+    ${has(['ending', 'fork']) ? row(`endings:${game}`, T.endings, (typeof window !== 'undefined' && window.SB?.endingsLine?.(game, lang)) || '') : ''}
     ${guides.length ? `<h3>${esc(T.steps)}</h3>${guides.map((g) => {
       const d = progressOf ? progressOf(g) : -1;
       const sub = d >= 0 && d < g.steps_n ? fill(T.cont, { a: d + 1, b: g.steps_n }) : tx(g.sub, lang);
       return row(g.k, tx(g.t, lang), sub);
     }).join('')}` : ''}
-    ${sets.length ? row(sets[0].k, T.settings, plural(lang, sets.length, T.n_tips)) : ''}
+    ${sets.length ? row(`set:${game}`, T.settings, plural(lang, sets.length, T.n_tips)) : ''}   
     <h3>${esc(T.next)}</h3>
     <div class="gh-next">${row('codes', T.codes, '')}${row('map', T.map, '')}</div>
   </div>`;

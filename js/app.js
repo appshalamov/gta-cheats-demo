@@ -502,7 +502,14 @@ async function renderFeed() {
     html = (ago ? `<p class="feed-upd">${esc(ago)}</p>` : '') + list.map(newsRow).join('');
   } else if (MAP_GAMES.includes(store.game)) {
     const pd = await loadPlaces(store.game);
-    html = k === 'eggs' ? eggsNewFirst(pd).map(eggRow).join('') : newOnMap(pd).map((o) => placeRow(o)).join('');
+    if (k === 'eggs') {
+      const all = eggsNewFirst(pd), f = ui.eggf || 'all';
+      const isBug = (o) => o.k === 'bug' || (o.how?.pa || []).some((x) => x.bug);
+      const groups = { all, steps: all.filter(hasGuide), bugs: all.filter(isBug), refs: all.filter((o) => !hasGuide(o)) };
+      const chips = [['all', t('f_all')], ['steps', t('g_btn')], ['bugs', t('g_bugs')], ['refs', t('g_refs')]].filter(([v]) => v === 'all' || groups[v].length)
+        .map(([v, l]) => chip('egg-filter', v, `${l} <em>${groups[v].length}</em>`, f === v)).join('');
+      html = `<div class="frow feed-f">${chips}</div>` + (groups[f] || all).map(eggRow).join('');
+    } else html = newOnMap(pd).map((o) => placeRow(o)).join('');
   }
   if (my !== feedSeq) return;
   $('#feed-body').innerHTML = html || `<div class="empty">${esc(t('feed_empty'))}</div>`;
@@ -926,6 +933,18 @@ async function favItems() {
   return [...places, ...cheatsF];
 }
 let favSeq = 0;
+// начатые и пройденные инструкции (sb.gd) — для Избранного
+async function guidesStarted() {
+  let gd = {}; try { gd = JSON.parse(localStorage.getItem('sb.gd') || '{}'); } catch { }
+  const cur = [], done = [];
+  for (const [key, v] of Object.entries(gd)) {
+    const [g, id] = key.split(':'); if (!MAP_GAMES.includes(g) || !v || (!v.s && !(v.d || []).length)) continue;
+    const pd = await loadPlaces(g); const o = pd.eggs.find((x) => x.id === id); if (!hasGuide(o)) continue;
+    const st = (o.how.pa?.find((x) => x.id === v.path) || o.how).st;
+    (st.every((x) => (v.d || []).includes(x.id)) ? done : cur).push(o);
+  }
+  return { cur, done };
+}
 async function renderFavs() {
   const my = ++favSeq;
   const all = await favItems();
@@ -934,13 +953,17 @@ async function renderFavs() {
   const f = ui.favFilter || 'all';
   $('#fav-filters').innerHTML = all.length ? `<div class="frow">${[['all', t('f_all'), all.length], ['cheats', t('f_cheats'), cheatsF.length], ['places', t('f_places'), places.length]]
     .map(([k, l, n]) => chip('fav-filter', k, `${l} <em>${n}</em>`, f === k)).join('')}</div>` : '';
-  if (!all.length) {
+  if (!all.length && !(await guidesStarted()).cur.length) {
     $('#fav-list').innerHTML = `<div class="empty-big"><span class="eb-ic">${I.heart}</span><h3>${t('fav_empty_t')}</h3><p>${t('fav_empty')}</p>
       <div class="empty-acts"><button class="btn-primary" data-action="tab" data-tab="map">${I.map}${t('go_map')}</button><button class="btn-ghost" data-action="open-cheats" data-cat="">${I.gamepad}${t('browse_cheats')}</button></div></div>`;
     return;
   }
   const showP = f !== 'cheats' && places.length, showC = f !== 'places' && cheatsF.length;
-  $('#fav-list').innerHTML = (showP ? `<div class="s-sec"><div class="s-h">${t('f_places')} <em>${places.length}</em></div>${places.map((o) => placeRow(o, { game: true })).join('')}</div>` : '')
+  const gs = f === 'all' ? await guidesStarted() : { cur: [], done: [] };
+  if (my !== favSeq) return;
+  $('#fav-list').innerHTML = (gs.cur.length ? `<div class="s-sec"><div class="s-h">${t('g_started')} <em>${gs.cur.length}</em></div>${gs.cur.map(eggRow).join('')}</div>` : '')
+    + (gs.done.length ? `<div class="s-sec"><div class="s-h">${t('g_done')} <em>${gs.done.length}</em></div>${gs.done.map(eggRow).join('')}</div>` : '')
+    + (showP ? `<div class="s-sec"><div class="s-h">${t('f_places')} <em>${places.length}</em></div>${places.map((o) => placeRow(o, { game: true })).join('')}</div>` : '')
     + (showC ? `<div class="s-sec"><div class="s-h">${t('f_cheats')} <em>${cheatsF.length}</em></div>${cheatsF.map((c) => cardHTML(c, { badge: true })).join('')}</div>` : '')
     || `<div class="empty">${t('fav_filter_empty')}</div>`;
 }
@@ -1329,7 +1352,16 @@ function openCheat(id) {
     </div>
     ${how ? `<p class="d-how">${esc(t(how))}</p>` : ''}
     ${others ? `<details class="d-other"><summary><span>${t('other_platforms')}</span>${I.chevron}</summary><div class="plat-list">${others}</div></details>` : ''}
+    ${codeNext()}
   `, 'sheet-detail');
+}
+// «Дальше» в карточке кода (был тупик, решение «система гида» раздел 4): как сохраниться перед кодом → связанная инструкция
+function codeNext() {
+  const items = (gcore.index(store.game).items || []);
+  const save = items.find((x) => x.k === `saves:${store.game}:before-code`) || items.find((x) => x.kind === 'save' && /code|чит|код/i.test(`${x.k} ${x.t?.en}`));
+  const rows = [save, items.find((x) => x.kind === 'egg' || x.kind === 'bug')].filter(Boolean).slice(0, 2);
+  if (!rows.length) return '';
+  return `<div class="d-next"><p class="d-next-h">${esc(t('g_next'))}</p>${rows.map((r) => `<button class="gh-row" data-action="gopen" data-k="${esc(r.k)}">${I.play}<span>${esc(L(r.t))}</span>${I.chevron}</button>`).join('')}</div>`;
 }
 function howto(p) {   // GTA 6: телефон (↑) + зажать L1+R1 / LB+RB + стрелки, только после сюжета (18.11.2026)
   if (store.game === 'gta6' && GTA6.codes === 'live' && (p === 'playstation' || p === 'xbox')) return t(p === 'xbox' ? 'howto6_xbox' : 'howto6_ps');
@@ -1927,6 +1959,7 @@ document.addEventListener('click', async (e) => {
     case 'open-news': haptic(); openNews(el.dataset.id); break;
     case 'open-guide': haptic(); openGuideKey(el.dataset.key, el.dataset.from || ui.tab); break;
     case 'gopen': haptic(); gopen(el.dataset.k); break;
+    case 'egg-filter': haptic(); ui.eggf = v; renderFeed(); break;
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
     case 'fav-place': {
       e.stopPropagation(); toggleFavPlace(el.dataset.key);

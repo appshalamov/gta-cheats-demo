@@ -499,3 +499,6 @@ a.row:active { background: color-mix(in srgb, var(--text) 6%, transparent); }
 .g-pk-m, .g-pk-row { display: block; width: 100%; min-height: 48px; padding: 10px 0 10px 16px; text-align: left; background: none; color: var(--text); font-size: 16px; }
 .g-pk-m.on { color: var(--accent); font-weight: 700; }
 .g-pk-m small { margin-left: 8px; font-size: 13px; color: var(--text-2); }
+.feed-f { padding: 4px 16px 10px; }
+.d-next { margin-top: 18px; }
+.d-next-h { font-size: 13px; font-weight: 650; color: var(--text-2); margin: 0 0 2px; }
