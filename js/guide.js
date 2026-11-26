@@ -11,22 +11,26 @@ const S = {
     start: 'Начать', next: 'Сделано, дальше', finish: 'Готово', stuck: 'Не получается', still: 'Всё равно не выходит',
     ok: 'Получилось, если', video_at: 'Ролик с {t}', in_game: 'Где в игре', not_this: 'Не {c}', of: 'из',
     tags_n: '{a} из {b}', alt: 'Обходной путь (глитч)', sources: 'Источники', report: 'Сообщить об ошибке', report_ok: 'Спасибо, проверим',
-    self: 'Прошли сами {d}', collected: 'Собрано по {n} источникам, сами пока не проходили',
+    self: 'Прошли сами {d}', collected: 'Собрано по {n} источникам, сами пока не проходили', one: 'Один источник: {s}. Проверяем',
     wall: 'Дальше в Pro: шаги {a}–{b}, точные места и разбор ошибок', get_pro: 'Оформить Pro',
     fin_car: 'Готово. Машина ваша.', fin: 'Готово. Всё получилось.', again: 'Начать заново',
     meta: '{n} шагов, около {m} минут', meta0: '{n} шагов', missable: 'Можно упустить навсегда', no_fix: 'Для этого шага частых ошибок нет. Посмотрите ролик или общий список.',
     en_only: 'Инструкция на английском', offline: 'Ролики работают с сетью',
+    path_meta: '{n} шагов, около {m} минут', patch: 'могут закрыть патчем', quiet: 'Как заехать тихо', bugPart: 'Баг: сквозь дверь гаража',
+    questPart: 'Квест No Flusher', finPart: 'Гараж и регистрация', frame: 'кадр: {by}, YouTube', zoom: 'Открыть кадр',
   },
   en: {
     close: 'Close', share: 'Share', whole: 'Watch the whole route, {n} min', whole0: 'Watch the whole route', before: 'Before you go',
     start: 'Start', next: 'Done, next', finish: 'Finish', stuck: "I'm stuck", still: 'Still stuck',
     ok: 'It worked if', video_at: 'Video from {t}', in_game: 'In game', not_this: 'Not {c}', of: 'of',
     tags_n: '{a} of {b}', alt: 'Shortcut (glitch)', sources: 'Sources', report: 'Report a mistake', report_ok: "Thanks, we'll check",
-    self: 'We did it ourselves on {d}', collected: 'Collected from {n} sources, not yet tested by us',
+    self: 'We did it ourselves on {d}', collected: 'Collected from {n} sources, not yet tested by us', one: 'Single source: {s}. Checking',
     wall: 'The rest is in Pro: steps {a}–{b}, exact spots and fixes', get_pro: 'Get Pro',
     fin_car: 'Done. The car is yours.', fin: 'Done. You made it.', again: 'Start over',
     meta: '{n} steps, about {m} min', meta0: '{n} steps', missable: 'Missable', no_fix: 'No common mistakes for this step. Watch the video or the full list.',
     en_only: 'Guide in English', offline: 'Videos need a connection',
+    path_meta: '{n} steps, about {m} min', patch: 'may be patched out', quiet: 'Get in quietly', bugPart: 'Bug: through the garage door',
+    questPart: 'No Flusher quest', finPart: 'Garage and registration', frame: 'frame: {by}, YouTube', zoom: 'Open frame',
   },
 };
 const KEY = 'sb.gd', FIRST = 'sb.gd1';
@@ -42,17 +46,20 @@ const esc = (x) => String(x ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const mmss = (t) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 const kOf = (o) => `${o.game}:${o.id}`;
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
-function prog() { const p = read()[kOf(O)] || {}; return { d: p.d || [], t: p.t || {}, s: p.s || 0, o: p.o }; }
+function prog() { const p = read()[kOf(O)] || {}; return { d: p.d || [], t: p.t || {}, s: p.s || 0, o: p.o, path: p.path }; }
 function setProg(p) { try { const all = read(); all[kOf(O)] = { ...p, at: Date.now() }; localStorage.setItem(KEY, JSON.stringify(all)); } catch { } }
 // для строк ленты и шторки на карте: сколько шагов пройдено (0 — не начато)
 export function progressOf(o) { const p = read()[kOf(o)]; return p ? (o.how?.st || []).filter((x) => (p.d || []).includes(x.id)).length + (p.s ? 0.001 : 0) : 0; }
 
 const H = () => O.how;
+// путь (квест / баг): выбор хранится в прогрессе (p.path); по умолчанию — первый путь (сильнее строка доверия, решение «система гида»)
+const PATH = () => { const h = H(); if (!h.pa?.length) return { st: h.st }; const id = prog().path; return h.pa.find((x) => x.id === id) || h.pa[0]; };
+const STEPS = () => PATH().st;
 // Pro (решение Fable): бесплатно целиком — первая начатая инструкция, пробные дни, вход по ссылке, короткие (≤ 3 шагов) и отсылки
 function firstFree() { try { const f = localStorage.getItem(FIRST); return !f || f === kOf(O); } catch { return true; } }
-const free = () => C.access() !== 'locked' || !!C.linked || H().st.length <= 3 || O.k === 'reference' || firstFree();
+const free = () => C.access() !== 'locked' || !!C.linked || STEPS().length <= 3 || O.k === 'reference' || firstFree();
 const shut = (i) => !free() && i >= (H().fr ?? 2);
-const cur = (p) => { const i = H().st.findIndex((x) => !p.d.includes(x.id)); return i < 0 ? H().st.length : i; };
+const cur = (p) => { const st = STEPS(); const i = st.findIndex((x) => !p.d.includes(x.id)); return i < 0 ? st.length : i; };
 
 function css() {
   if (document.getElementById('guide-css')) return;
@@ -68,6 +75,7 @@ function stepHTML(x, i, p, open) {
   const tg = x.tg || [], got = p.t[x.id] || [];
   return `<li class="${cls}" data-i="${i}"><span class="g-num">${done ? I.check : n}</span><div class="g-body">
     <p class="g-t">${esc(tx(x.t))}</p>
+    ${x.img && C.frames !== false ? `<figure class="g-img"><button data-g="zoom" data-src="${esc(C.imgUrl(x.img.f))}" aria-label="${esc(s('zoom'))}"><img src="${esc(C.imgUrl(x.img.f))}" alt="" loading="lazy" decoding="async"></button>${x.img.by ? `<figcaption>${esc(s('frame', { by: x.img.by }))}</figcaption>` : ''}</figure>` : ''}
     ${x.c ? `<p class="g-big">${esc(x.c)}</p>${x.tr ? `<p class="g-trap">${esc(tx(x.tr))}${x.cw ? ` ${esc(s('not_this', { c: x.cw }))}.` : ''}</p>` : ''}` : ''}
     ${x.bv ? `<p class="g-big g-big-t">${esc(x.bv)}</p>${x.bn ? `<p class="g-trap">${esc(tx(x.bn))}</p>` : ''}` : ''}
     ${x.ok ? `<p class="g-ok"><b>${esc(s('ok'))}</b> ${esc(tx(x.ok).replace(/^(It worked if|Получилось, если)\s*/i, ''))}</p>` : ''}
@@ -80,8 +88,23 @@ function stepHTML(x, i, p, open) {
     ${x.v ? `<button class="g-tb" data-g="video" data-v="${esc(x.v[0])}" data-t="${x.v[1]}">${I.play}<span>${esc(s('video_at', { t: mmss(x.v[1]) }))}</span></button>` : ''}
   </div></li>`;
 }
+// две строки-пути под заголовком (решение 09): выбранная — акцентом; у бага янтарная пометка «могут закрыть патчем»
+function pathsHTML(h, cur) {
+  return `<div class="g-paths">${h.pa.map((x) => `<button class="g-path${x.id === cur.id ? ' on' : ''}" data-g="path" data-v="${esc(x.id)}" aria-pressed="${x.id === cur.id}">
+    <b>${esc(tx(x.t))}</b><span>${esc(x.min ? s('path_meta', { n: x.st.length, m: x.min }) : s('meta0', { n: x.st.length }))}${x.bug ? `, <em>${esc(s('patch'))}</em>` : ''}</span></button>`).join('')}</div>
+    ${cur.bug && cur.nt ? `<p class="g-miss">${C.I.alert}<span>${esc(tx(cur.nt))}</span></p>` : ''}`;
+}
+// заголовок части листа: «Как заехать тихо» → «Баг» / «Квест» → «Гараж и регистрация»
+function partHTML(path, st, i) {
+  if (!path.id) return '';
+  const pt = st[i].pt || '', prev = i ? st[i - 1].pt || '' : null;
+  if (prev === pt) return '';
+  const first = st.findIndex((x) => (x.pt || '') === pt) === i && i === 0;
+  const label = pt === 'quiet' ? s('quiet') : path.id === 'bug' ? s('bugPart') : (i === 0 || first) ? s('questPart') : s('finPart');
+  return `<li class="g-part"><h2>${esc(label)}</h2></li>`;
+}
 function stuckHTML(ci) {
-  const h = H(), st = h.st, x = st[ci];
+  const h = H(), st = STEPS(), x = st[ci];
   const mine = (h.fx || []).filter((f) => x && (f.s || []).includes(x.id));
   const all = (h.fx || []).filter((f) => !mine.includes(f));
   return `<div class="g-fix">${mine.length ? mine.map((f) => `<p>${esc(tx(f.t))}</p>`).join('') : `<p>${esc(s('no_fix'))}</p>`}
@@ -89,22 +112,23 @@ function stuckHTML(ci) {
       : `<button class="g-link" data-g="still">${esc(s('still'))}</button>`) : ''}</div>`;
 }
 function render() {
-  const h = H(), p = prog(), st = h.st, I = C.I, ci = cur(p), started = p.d.length > 0 || p.s;
+  const h = H(), p = prog(), st = STEPS(), path = PATH(), I = C.I, ci = cur(p), started = p.d.length > 0 || p.s;
   const fr = h.fr ?? 2, wall = !free() && fr < st.length ? fr : -1;
-  const trust = h.self ? s('self', { d: C.date(h.self) }) : (O.sn || []).length ? s('collected', { n: O.sn.length }) : '';
+  const sn = O.sn || [], one = O.st === 'one' || sn.length === 1;
+  const trust = h.self ? s('self', { d: C.date(h.self) }) : one && sn.length ? s('one', { s: sn[0] }) : sn.length ? s('collected', { n: sn.length }) : '';
   const enOnly = !['ru', 'en'].includes(C.lang) && !st[0].t[C.lang];
   layer.innerHTML = `<div class="g-scroll" id="g-scroll">
     <header class="g-top"><button class="g-ib" data-g="close" aria-label="${esc(s('close'))}">${I.chevron}</button>
       <button class="g-ib" data-g="share" aria-label="${esc(s('share'))}">${I.share}</button></header>
     <h1 class="g-h1">${esc(tx(h.ta) || tx(O.t))}</h1>
     ${h.rw ? `<p class="g-rw">${esc(tx(h.rw))}</p>` : ''}
-    <p class="g-meta">${esc(h.min ? s('meta', { n: st.length, m: h.min }) : s('meta0', { n: st.length }))}</p>
-    ${trust ? `<p class="g-trust">${I.check}<span>${esc(trust)}</span></p>` : ''}
+    ${h.pa?.length ? pathsHTML(h, path) : `<p class="g-meta">${esc(h.min ? s('meta', { n: st.length, m: h.min }) : s('meta0', { n: st.length }))}</p>`}
+    ${trust ? `<p class="g-trust${one && !h.self ? ' g-trust-one' : ''}">${one && !h.self ? '' : I.check}<span>${esc(trust)}</span></p>` : ''}
     ${enOnly ? `<p class="g-meta">${esc(s('en_only'))}</p>` : ''}
     ${h.wh ? `<button class="g-link g-whole" data-g="video" data-v="${esc(h.wh[0])}" data-t="${h.wh[1]}">${I.play}<span>${esc(h.wh[2] ? s('whole', { n: h.wh[2] }) : s('whole0'))}</span></button>` : ''}
     ${h.miss ? `<p class="g-miss">${I.alert}<span>${esc(s('missable'))}${typeof h.miss === 'object' ? `. ${esc(tx(h.miss))}` : ''}</span></p>` : ''}
     ${h.req?.length ? `<section class="g-sec"><h2>${esc(s('before'))}</h2><ul class="g-req">${h.req.slice(0, 3).map((r) => `<li>${esc(tx(r.t))}</li>`).join('')}</ul></section>` : ''}
-    <ol class="g-steps">${st.map((x, i) => (i === wall ? `<li class="g-wall"><p>${esc(s('wall', { a: fr + 1, b: st.length }))}</p><button class="g-pro" data-g="pw">${esc(s('get_pro'))}</button></li>` : '')
+    <ol class="g-steps">${st.map((x, i) => partHTML(path, st, i) + (i === wall ? `<li class="g-wall"><p>${esc(s('wall', { a: fr + 1, b: st.length }))}</p><button class="g-pro" data-g="pw">${esc(s('get_pro'))}</button></li>` : '')
       + stepHTML(x, i, p, (started && i === ci) || p.o === i)).join('')}</ol>
     ${ci >= st.length ? `<p class="g-fin">${I.check}<span>${esc(O.k === 'vehicle' ? s('fin_car') : s('fin'))}</span></p>` : ''}
     <section class="g-sec g-foot">
@@ -120,7 +144,7 @@ function render() {
   <div class="g-video" id="g-video" hidden></div>`;
 }
 function barHTML(p, ci) {
-  const st = H().st, started = p.d.length > 0 || p.s;
+  const st = STEPS(), started = p.d.length > 0 || p.s;
   if (!started) return `<button class="g-main" data-g="start">${esc(s('start'))}</button>`;
   if (ci >= st.length) return `<button class="g-sub" data-g="again">${esc(s('again'))}</button><button class="g-main" data-g="close">${esc(s('finish'))}</button>`;
   if (shut(ci)) return `<button class="g-main" data-g="pw">${esc(s('get_pro'))}</button>`;
@@ -154,7 +178,7 @@ function openStuck() {
 
 function onClick(e) {
   const b = e.target.closest('[data-g]'); if (!b || !layer.contains(b)) return;
-  const a = b.dataset.g, p = prog(), st = H().st, i = +b.dataset.i;
+  const a = b.dataset.g, p = prog(), st = STEPS(), i = +b.dataset.i;
   switch (a) {
     case 'close': closeGuide(); break;
     case 'share': C.share(O); break;
@@ -171,6 +195,8 @@ function onClick(e) {
       break;
     }
     case 'open': p.o = p.o === i ? undefined : i; setProg(p); rerender(); break;
+    case 'path': if (p.path !== b.dataset.v) { C.haptic(); p.path = b.dataset.v; delete p.o; setProg(p); rerender(); C.event?.('guide_path', { id: O.id, path: p.path }); } break;
+    case 'zoom': { const v = layer.querySelector('#g-video'); v.innerHTML = `<div class="g-vbox"><button class="g-ib g-vx" data-g="vclose" aria-label="${esc(s('close'))}">${C.I.close}</button><img class="g-zoom" src="${esc(b.dataset.src)}" alt=""></div>`; v.hidden = false; break; }
     case 'tag': {
       const x = st[i], k = +b.dataset.k, got = new Set(p.t[x.id] || []);
       got.has(k) ? got.delete(k) : got.add(k); p.t[x.id] = [...got]; C.haptic();
@@ -182,7 +208,7 @@ function onClick(e) {
     case 'unstuck': layer.querySelector('#g-stuck').hidden = true; break;
     case 'video': video(b.dataset.v, +b.dataset.t || 0); break;
     case 'vclose': { const v = layer.querySelector('#g-video'); v.innerHTML = ''; v.hidden = true; break; }
-    case 'again': setProg({ d: [], t: {}, s: 0 }); render(); break;
+    case 'again': setProg({ d: [], t: {}, s: 0, path: p.path }); render(); break;
     case 'pw': C.paywall(); break;
     case 'report': C.toast(s('report_ok')); C.event?.('guide_report', { id: O.id, step: cur(p) + 1 }); break;
   }

@@ -5,6 +5,10 @@
   "note": "версия игры для перепроверки багов после патча",
   "pending": [
    "guide:gta6:set-driving"
-  ]
+  ],
+  "has": {
+   "index": true,
+   "missions": true
+  }
  }
 }

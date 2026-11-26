@@ -471,3 +471,31 @@ a.row:active { background: color-mix(in srgb, var(--text) 6%, transparent); }
 .news-sheet .ns-trust svg { width: 18px; height: 18px; flex: none; }
 .news-sheet .ns-map { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; margin-top: 4px; font-size: 16px; font-weight: 650; color: var(--accent); background: none; }
 .news-sheet .ns-map svg { width: 18px; height: 18px; }
+/* «Гид по игре» на Главной и оглавление (26.11.2026, решение «система гида») — строки без рамок, янтарная для точки невозврата */
+.gh-rows { padding: 0 16px; }
+.gh-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 10px 0; text-align: left; background: none; color: var(--text); border-top: 1px solid var(--line); font-size: 16px; line-height: 1.35; }
+.gh-row:first-child { border-top: 0; }
+.gh-row > svg:first-child { width: 20px; height: 20px; flex: none; color: var(--accent); }
+.gh-row > span { flex: 1 1 auto; }
+.gh-row > svg:last-child { width: 16px; height: 16px; flex: none; color: var(--text-3, var(--text-2)); }
+.gh-row.gh-warn { color: var(--warn); font-weight: 650; }
+.gh-row.gh-warn > svg:first-child { color: var(--warn); }
+.gh-toc { padding: 4px 4px 12px; }
+.gh-toc h2 { font: var(--t-title-1); letter-spacing: -.03em; margin: 0 0 12px; }
+.gh-toc h3 { font: var(--t-title-2); margin: 22px 0 4px; }
+.gh-where { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.gh-where small { display: block; font-size: 13px; color: var(--text-2); }
+.gh-where b { display: block; font-size: 17px; }
+.gh-where em { display: block; font-style: normal; font-size: 13px; color: var(--warn); margin-top: 2px; }
+.gh-link { min-height: 44px; padding: 0 4px; font-size: 16px; font-weight: 650; color: var(--accent); background: none; }
+.gh-toc-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 0; text-align: left; background: none; color: var(--text); border-bottom: 1px solid var(--line); }
+.gh-toc-row > span { flex: 1 1 auto; }
+.gh-toc-row b { display: block; font-size: 17px; font-weight: 700; }
+.gh-toc-row small { display: block; font-size: 14px; color: var(--text-2); margin-top: 2px; }
+.gh-toc-row > svg { width: 16px; height: 16px; flex: none; color: var(--text-3, var(--text-2)); }
+.g-pick h2 { font: var(--t-title-1); margin: 0 0 6px; }
+.g-pick > p { color: var(--text-2); margin: 0 0 12px; line-height: 1.4; }
+.g-pick-ch summary, .g-pk-ch summary { min-height: 48px; display: flex; align-items: center; gap: 8px; font-size: 16px; cursor: pointer; border-top: 1px solid var(--line); }
+.g-pk-m, .g-pk-row { display: block; width: 100%; min-height: 48px; padding: 10px 0 10px 16px; text-align: left; background: none; color: var(--text); font-size: 16px; }
+.g-pk-m.on { color: var(--accent); font-weight: 700; }
+.g-pk-m small { margin-left: 8px; font-size: 13px; color: var(--text-2); }
