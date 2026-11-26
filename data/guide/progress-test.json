@@ -1,0 +1,19 @@
+{
+  "note": "Тестовые профили для js/progress.js и server/progress-worker (режим без ключей). Настоящих аккаунтов здесь нет. Имена трофеев — EN, как отдаёт PSN/Xbox с языком en-US.",
+  "profiles": {
+    "sb-test-start": { "earned": [ { "name": "Just Like Paradise", "at": "2026-11-19T21:10:00Z" } ] },
+    "sb-test-ch2": { "earned": [
+      { "name": "Just Like Paradise", "at": "2026-11-19T21:10:00Z" }, { "name": "Paradise Lost", "at": "2026-11-21T18:02:00Z" },
+      { "name": "Baited My Tackle", "at": "2026-11-20T12:40:00Z" }, { "name": "Hot Together", "at": "2026-11-22T20:15:00Z" },
+      { "name": "Trust", "at": "2026-11-23T19:30:00Z" } ] },
+    "sb-test-heist": { "earned": [
+      { "name": "Just Like Paradise" }, { "name": "Paradise Lost" }, { "name": "Trust" }, { "name": "T**s Ass Drug Money" },
+      { "name": "Break the Bank" }, { "name": "Road to Rehabilitation" }, { "name": "Spin On This!" } ] },
+    "sb-test-done": { "earned": [
+      { "name": "Just Like Paradise" }, { "name": "Paradise Lost" }, { "name": "Trust" }, { "name": "T**s Ass Drug Money" }, { "name": "Break the Bank" },
+      { "name": "Vice City, Baby!" }, { "name": "Family Matters" }, { "name": "DWNFALL" }, { "name": "Hi-Jacked" }, { "name": "Top Of The World, Ma" },
+      { "name": "Snow Storm" }, { "name": "You Gotta Know When to Get Off" } ] },
+    "sb-test-private": { "error": "private" },
+    "sb-test-nogame": { "error": "nogame" }
+  }
+}

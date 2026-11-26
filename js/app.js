@@ -559,6 +559,7 @@ const END_ROW = { t: { ru: 'Концовки GTA 6', en: 'GTA 6 endings' } };
 async function openEndingsKey(g = 'gta6', from = '', focus = '') {
   closeSheet();
   const m = await endingsMod();
+  const ok = await m.openEndings(g, {
     lang: getLang(), I, from, focus, haptic, toast, access, linked: from === 'link',
     paywall: () => openPaywall(mapPw()),
     share: () => shareText(`${L(END_ROW.t)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=endings:${g}`),
@@ -573,6 +574,23 @@ gcore.registerOpener('endings', (k, x = {}) => openEndingsKey(k.game, x.from || 
 window.SB.endingsLine = (g = 'gta6', lang = 'ru') => {
   try { const c = (JSON.parse(localStorage.getItem('sb.ge') || '{}')[g] || {}).cnt; if (!c) return ''; return (lang === 'ru' ? 'Открыто {a} из {b}' : '{a} of {b} still open').replace('{a}', c[0]).replace('{b}', c[1]); } catch { return ''; }
 };
+// «Подтянуть прогресс с консоли» (js/progress.js, guide-progress 26.11.2026): PSN Online ID / Xbox Gamertag → место в сюжете → sb.gp.
+// Ссылку ?open=progress[:psn|:xbox] ведёт ядро гида (registerOpener('progress') у сборщика → шторка «Где вы» с этими строками);
+// openProgressUI — запасной вход в отдельную шторку (window.SB.openProgress), из ссылок не вызывается.
+async function openProgressUI(from = '', platform = null) {
+  const m = await import('./progress.js');
+  m.openProgress({
+    lang: getLang(), I, from, haptic, toast, con: !!platform,
+    platform: platform === 'xbox' ? 'xbox' : platform === 'psn' ? 'playstation' : store.platform,
+    event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+    openWalk: () => window.SB?.openWalk?.(), openWalkPick: () => window.SB?.openWalk?.('pick'), openFeed: (k) => window.SB?.openFeed?.(k),
+  });
+}
+// строки «По проценту из игры» и «Подтянуть с консоли» (только ?sbmock) для общей шторки «Где вы» (guide-core pickPos): вызвать до pickPos
+const progressRows = () => import('./progress.js').then((m) => m.registerRows({
+  lang: getLang(), I, haptic, platform: () => store.platform, event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+})).catch(() => { });
+window.SB = Object.assign(window.SB || {}, { openProgress: openProgressUI, registerProgressRows: progressRows });
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
 function eggRow(o) {
   if (hasGuide(o)) {

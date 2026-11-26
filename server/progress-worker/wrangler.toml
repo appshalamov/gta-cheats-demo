@@ -1,0 +1,11 @@
+name = "sb-progress"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+# НЕ ВЫЛОЖЕН (26.11.2026). Перед выкладкой — ответы Игоря из «Итог для Fable — прогресс PS и Xbox.md»:
+# служебный PSN-аккаунт (секрет PSN_NPSSO), ключ OpenXBL (секрет XBL_KEY), адрес progress.sbgta.app.
+# routes = [{ pattern = "progress.sbgta.app", custom_domain = true }]
+# KV для токенов PSN (access 1 ч, refresh ~2 мес.): создать `wrangler kv namespace create sb-progress`
+# [[kv_namespaces]]
+# binding = "TOK"
+# id = "<id>"
