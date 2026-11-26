@@ -470,6 +470,17 @@ async function openGuideKey(key, from = '', linked = false) {
     onClose: () => { if (ui.tab === 'feed') renderFeed(); else if (ui.tab === 'home') renderHub(); },
   });
 }
+// «Подтянуть прогресс с консоли» (js/progress.js, guide-progress 26.11.2026): PSN Online ID / Xbox Gamertag → место в сюжете → sb.gp.
+// Вход для гида прохождения — window.SB.openProgress(from, 'psn'|'xbox'); ссылка ?open=progress[:psn|:xbox].
+async function openProgressUI(from = '', platform = null) {
+  const m = await import('./progress.js');
+  m.openProgress({
+    lang: getLang(), I, from, platform, haptic, toast,
+    event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+    openWalk: () => window.SB?.openWalk?.(), openWalkPick: () => window.SB?.openWalk?.('pick'), openFeed: (k) => window.SB?.openFeed?.(k),
+  });
+}
+window.SB = Object.assign(window.SB || {}, { openProgress: openProgressUI });
 // строка пасхалки: кадр, название, настоящее место, кнопка «На карте»; с инструкцией — заголовок-действие, «10 шагов, около 40 минут», «По шагам»
 function eggRow(o) {
   if (hasGuide(o)) {
@@ -2081,7 +2092,9 @@ document.addEventListener('visibilitychange', () => {
   // ключ проверяем по виду: мусор в ?open= молча открывал пейвол карты (QA 20.11.2026)
   const openRaw = new URLSearchParams(location.search).get('open');
   const openKey = /^(place|egg|db|guide):(gta6|gta5):[\w.-]{1,120}$/.test(openRaw || '') ? openRaw : null;
-  if (openRaw && !openKey) { history.replaceState(null, '', location.pathname); toast(t('place_nf')); }
+  const pgLink = /^progress(:psn|:xbox)?$/.test(openRaw || '');
+  if (pgLink) { history.replaceState(null, '', location.pathname); openProgressUI('link', openRaw.split(':')[1] || null); }
+  else if (openRaw && !openKey) { history.replaceState(null, '', location.pathname); toast(t('place_nf')); }
   if (openKey) { store.linkKeys = [openKey, ...store.linkKeys.filter((k) => k !== openKey)].slice(0, 5); save(); history.replaceState(null, '', location.pathname); if (openKey.startsWith('guide:')) openGuideKey(openKey, 'link', true); else openOnMap(openKey); }
   else if (/[?&#]admin\b/.test(location.search + location.hash)) {   // экран «Для админов» (только веб): ?admin или #admin
     store.onboarded = true; save(); if (location.hash) history.replaceState(null, '', location.pathname + location.search); window.SB.openCreator('admin');
