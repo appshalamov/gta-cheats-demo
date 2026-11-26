@@ -4,7 +4,8 @@
 Оглавление, Главная, поиск, «Дальше» и «Продолжить» читают только указатель (js/guide-core.js). Файлы функций остаются у хозяев,
 связь — через ключи и id миссий. Источники записей:
   1) пасхалки и баги с инструкцией — egg.how в data/map/<игра>.json (собирает build_map.py guide_fields) → kind egg | bug;
-  2) готовые записи функций — data/guide/entries-<функция>-<игра>.json: {"items":[запись, …]} (их пишут сессии settings, walk, saves,
+  2) готовые записи функций — data/guide/entries-<функция>-<игра>.json: {"items":[запись, …]} или любой data/guide/*.json с массивом "index"
+     (gta6-settings.json у guide-settings) (их пишут сессии settings, walk, saves,
      endings своими скриптами; новая функция = новый файл, этот скрипт не трогать).
 Запись: k, kind (egg|bug|tip|warn|fork|ending|set|save), t{ru,en}, sub{ru,en}, m, ch, from, until, dur, sp (0|1|2), lvl (1|2),
         st (own|ok|one|dispute|rumor), src_n, v, upd, chk, plat, place, steps_n, min, fr, free, kw{ru[],en[]}, next[], img_src[].
@@ -47,23 +48,34 @@ def from_eggs(game):
         kind = "bug" if e.get("k") == "bug" else "egg"
         sn = e.get("sn") or []
         st = "own" if h.get("self") else ("ok" if len(sn) >= 2 else "one")
-        imgs = sorted({s.get("img", {}).get("src") for s in h["st"] if isinstance(s.get("img"), dict)} - {None})
+        allst = [s for pa in h.get("pa") or [{"st": h["st"]}] for s in pa["st"]]
+        imgs = sorted({s.get("img", {}).get("src") for s in allst if isinstance(s.get("img"), dict)} - {None})
+        paths = [{"id": pa["id"], "n": len(pa["st"]), **({"min": pa["min"]} if pa.get("min") else {}), **({"bug": 1} if pa.get("bug") else {})}
+                 for pa in h.get("pa") or []]
         out.append({
             "k": f"guide:{game}:{e['id']}", "kind": kind, "t": h.get("ta") or e.get("t"), "sub": h.get("rw"),
             "st": st, "src_n": len(sn), "upd": e.get("dt"), "chk": h.get("chk"), "place": f"egg:{game}:{e['id']}",
             "steps_n": len(h["st"]), "min": h.get("min"), "fr": h.get("fr"), "kw": e.get("kw") or {}, "next": e.get("next") or [],
             **({"v": e["v_game"]} if e.get("v_game") else {}), **({"img_src": imgs} if imgs else {}), "sp": e.get("sp", 0),
+            **({"paths": paths} if paths else {}),
         })
     return out
 
 
 def from_entries(game):
-    out = []
-    for f in sorted(GUIDE.glob(f"entries-*-{game}.json")):
-        if f.name.startswith("._"):
+    """entries-<функция>-<игра>.json {"items":[…]} и любой data/guide/*.json с массивом "index" (так сдаёт guide-settings: gta6-settings.json)."""
+    out, seen = [], set()
+    for f in sorted(GUIDE.glob("*.json")):
+        if f.name.startswith("._") or f.name.startswith("index-") or f.name == "game.json":
             continue
-        for r in json.loads(f.read_text("utf-8")).get("items", []):
-            out.append({**r, "_file": f.name})
+        try:
+            d = json.loads(f.read_text("utf-8"))
+        except Exception:
+            continue
+        rows = d.get("items", []) if f.name.startswith("entries-") and f.name.endswith(f"-{game}.json") else d.get("index") if isinstance(d, dict) and isinstance(d.get("index"), list) else []
+        for r in rows:
+            if (r.get("k") or "").split(":")[1:2] in ([game], []) and r.get("k") not in seen:
+                seen.add(r.get("k")); out.append({**r, "_file": f.name})
     return out
 
 
@@ -147,6 +159,11 @@ def main():
     if not check:
         GUIDE.mkdir(parents=True, exist_ok=True)
         (GUIDE / f"index-{game}.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), "utf-8")
+        # game.json → has: какие файлы гида есть у игры (ядро не запрашивает отсутствующие — без 404 в приложении)
+        gp = GUIDE / "game.json"
+        gj = json.loads(gp.read_text("utf-8")) if gp.exists() else {}
+        gj.setdefault(game, {})["has"] = {"index": bool(items), "missions": missions(game) is not None}
+        gp.write_text(json.dumps(gj, ensure_ascii=False, indent=1), "utf-8")
     from collections import Counter
     print(f"data/guide/index-{game}.json: {len(items)} записей " + ", ".join(f"{k} {v}" for k, v in Counter(r['kind'] for r in items).items())
           + (" (проверка, без записи)" if check else ""))

@@ -88,17 +88,32 @@ export const hasPhoto = (o) => !!(o.pr || o.pg);
 
 // ── поиск ──
 const norm = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е');
+// ключевые фразы инструкции (kw RU/EN), имя в игре (gn), заголовок-действие и шаги — в индекс (решение Fable 09; раньше
+// «бугатти», «быстрая машина», «fast car» не находили Bugatti); alias места (склеенные дубли) — тоже (были мёртвые)
+const kwOf = (o) => [...(o.kw?.ru || []), ...(o.kw?.en || [])].join(' | ');
 function hay(o) {
   if (!o._hay) {
+    const how = o.how ? [o.how.ta?.ru, o.how.ta?.en, o.how.rw?.ru, o.how.rw?.en, ...(o.how.pa || [{ st: o.how.st }]).flatMap((p) => p.st.map((x) => `${x.t?.ru || ''} ${x.t?.en || ''}`))].join(' ').replace(/\d+/g, ' ') : '';   // значения шагов (коды, суммы) не ищутся
     o._hay = norm(o.kind === 'egg'
-      ? [o.t?.ru, o.t?.en, o.d?.ru, o.d?.en, o.p].join(' ')
-      : [o.g, o.gr, o.r, o.n, o.nr, o.a, o.c, catLabel(o.c), CAT_LABELS[o.c]?.en, o.s?.ru, o.s?.en].join(' '));
+      ? [o.t?.ru, o.t?.en, o.d?.ru, o.d?.en, o.p, o.gn, kwOf(o), how].join(' ')
+      : [o.g, o.gr, o.r, o.n, o.nr, o.a, o.c, catLabel(o.c), CAT_LABELS[o.c]?.en, o.s?.ru, o.s?.en, ...(o.alias || [])].join(' '));
+    o._kw = norm([o.gn, kwOf(o), o.how?.ta?.ru, o.how?.ta?.en].join(' | '));
   }
   return o._hay;
 }
 // filter: {kind:'place'|'egg', cat, conf}
+// запрос: служебные слова не обязательны («как получить», «how to get»), окончания RU и множественное EN — мягко (тест-лист 09)
+const STOPW = new Set('как где что получить достать найти угнать в во на и the a an how to get find where in of for'.split(' '));
+export const qWords = (q) => {
+  const all = norm(q).split(/\s+/).filter(Boolean);
+  const w = all.filter((x) => !STOPW.has(x));
+  return (w.length ? w : all).map((x) => (/[а-я]/.test(x) && x.length >= 5 ? x.replace(/(ые|ая|ое|ий|ый|ой|ие|ам|ах|ов|ей|ую|ы|и|а|я|е|у|ю)$/, '')
+    : /^[a-z]{4,}s$/.test(x) ? x.slice(0, -1) : x));
+};
+// сильное совпадение: все слова запроса — в ключевых фразах или имени в игре (секция «По шагам» тогда первой)
+export const kwHit = (o, q) => { hay(o); const w = qWords(q); return !!(o._kw && w.length && w.every((x) => o._kw.includes(x))); };
 export function searchPlaces(d, q, filter = {}) {
-  const words = norm(q).split(/\s+/).filter(Boolean);
+  const words = qWords(q);
   const list = filter.kind === 'egg' ? d.eggs : d.places;
   const confRank = { confirmed: 0, likely: 1, speculative: 2 };
   return list
@@ -110,6 +125,7 @@ export function searchPlaces(d, q, filter = {}) {
         if (!h.includes(w)) return null;
         if (norm(titleOf(o)).includes(w)) score += 3;
         if (norm(realOf(o)).includes(w) || norm(o.n).includes(w)) score += 2;
+        if (o._kw && o._kw.includes(w)) score += 3;   // совпадение по ключевым фразам и имени в игре — выше случайных мест
       }
       return { o, score };
     })

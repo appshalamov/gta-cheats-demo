@@ -26,8 +26,13 @@ export function setBase(game, data) {
   m.forEach((x, i) => { rank['m:' + x.id] = i; byId['m:' + x.id] = x; if (!(x.ch in chFirst)) chFirst[x.ch] = i; });
   bases[game] = { ch, m, rank, chFirst, byId, chN };
 }
+// data/guide/game.json — какие файлы гида есть у игры (has: {index, missions}); без него лишних запросов (404) не делаем
+let metaP = null;
+export function loadMeta() { return (metaP ||= fetch('data/guide/game.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}))); }
+const hasFile = async (game, f) => !!(await loadMeta())?.[game]?.has?.[f];
 export async function loadBase(game) {
   if (bases[game]) return bases[game];
+  if (!(await hasFile(game, 'missions'))) return null;
   try { const r = await fetch(`data/guide/missions.json`, { cache: 'no-cache' }); if (r.ok) { const d = await r.json(); if (!d.game || d.game === game) setBase(game, d); } } catch { }
   return bases[game] || null;
 }
@@ -36,7 +41,7 @@ export const base = (game) => bases[game] || null;
 export function rankOf(game, ref) {
   const b = bases[game]; if (!b || !ref) return -1;
   if (ref.startsWith('m:')) return b.rank[ref] ?? -1;
-  if (ref.startsWith('c')) return b.chFirst[ref] ?? -1;
+  if (ref.startsWith('c')) return ref in b.chFirst ? b.chFirst[ref] - 1 : -1;   // «только начал главу» — до первой миссии главы (guide-walkthrough 26.11)
   return -1;
 }
 
@@ -78,6 +83,7 @@ export const searchable = (rec) => !(rec?.sp >= 1);
 export const KEY_RE = /^(guide|walk|saves|endings|progress|set|place|egg|db)(:(gta6|gta5))?(:[\w.-]{1,120})?$/;
 const openers = {};
 export function registerOpener(prefix, fn) { openers[prefix] = fn; }
+export const hasOpener = (prefix) => !!openers[prefix];   // кнопки saves:/endings: — только когда их модуль в сборке
 export function parseOpen(key) {
   if (!KEY_RE.test(key || '')) return null;
   const [kind, game, ...rest] = key.split(':');
@@ -94,6 +100,7 @@ export function openKey(key, ctx = {}) {
 const idx = {};
 export async function loadIndex(game) {
   if (idx[game]) return idx[game];
+  if (!(await hasFile(game, 'index'))) return (idx[game] = { items: [] });
   try { const r = await fetch(`data/guide/index-${game}.json`, { cache: 'no-cache' }); if (r.ok) idx[game] = await r.json(); } catch { }
   return idx[game] || { items: [] };
 }
@@ -156,7 +163,7 @@ export function stateLine(game = 'gta6', lang = 'ru') {
   if (lines.length === 1) return lines.slice(0, 1);
   // (3) отметка есть: дела, открытые после позиции и действующие до следующей точки
   if (p && pr >= 0) {
-    const open = items.filter((r) => (r.kind === 'tip' || r.kind === 'warn') && (!r.from || rankOf(game, r.from) <= pr) && (!r.until || rankOf(game, r.until) >= pr));
+    const open = items.filter((r) => (r.kind === 'tip' || r.kind === 'warn') && (!r.from || rankOf(game, r.from) <= pr) && (!r.until || rankOf(game, r.until) > pr));   // until строго впереди: пройденные не считаем
     const until = open.map((r) => r.until).filter(Boolean).sort((x, y) => rankOf(game, x) - rankOf(game, y))[0];
     const here = p.m ? mt(p.m) : tx(b?.ch.find((c) => c.id === p.c)?.t, lang);
     if (open.length && until) return [{ type: 'after', k: `walk:${game}`, text: fill(L.after, { m: here, n: open.length, del: plural(lang, open.length, L.del), y: mt(until) }) }];
@@ -169,12 +176,17 @@ export function stateLine(game = 'gta6', lang = 'ru') {
 // ── шторка «Где вы» (одна на приложение; строки других модулей добавляются через registerPickRow) ──
 const pickRows = [];   // {id, html(lang) → строка, onTap(game) → Promise<pos|null>}
 export function registerPickRow(row) { if (!pickRows.find((r) => r.id === row.id)) pickRows.push(row); }
+export const pickRowsList = () => pickRows;
+// общая шторка «Где вы» — у guide-walkthrough (#gpos, z 46, своя запись истории): если зарегистрирована, pickPos отдаёт работу ей
+let sheetImpl = null;
+export const registerPickSheet = (fn) => { sheetImpl = fn; };
 const PS = {
   ru: { title: 'Где вы в игре?', sub: 'Отметьте последнюю пройденную миссию — покажем, что не упустить. Можно вернуться назад.', ch: 'Глава {n}', chOnly: 'Только начал главу', cur: 'вы здесь' },
   en: { title: 'Where are you in the game?', sub: 'Mark the last mission you finished — we’ll show what not to miss. You can go back.', ch: 'Chapter {n}', chOnly: 'Just started this chapter', cur: 'you are here' },
 };
 // ctx: {openSheet(html, cls), closeSheet(), lang, esc}. Возвращает Promise<{m|c}|null>
 export function pickPos(game, ctx) {
+  if (sheetImpl) return sheetImpl(game, ctx);
   const b = bases[game], lang = ctx.lang in PS ? ctx.lang : 'en', T = PS[lang], esc = ctx.esc || ((x) => String(x));
   if (!b) return Promise.resolve(null);
   const p = pos(game);
