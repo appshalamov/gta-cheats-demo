@@ -33,7 +33,8 @@ const mapMod = () => import('./map.js');
 // экраны креаторов (js/league.js, данные — window.SB.api из js/api.js): раздел «Авторам и партнёрам» — строкой в Настройках,
 // сам хаб открывается отдельным экраном (Fable 23.11.2026, вариант B); слой Лиги
 const crMod = () => import('./league.js');
-const guideMod = () => import('./guide.js');
+const guideMod = () => import('./guide.js');   // инструкция «По шагам» — грузится при первом открытии
+const walkMod = () => import('./walk.js');   // «Прохождение» и общая шторка «Где вы в игре» (регистрируется в ядре: registerPickSheet)
 // «Гид по игре» (26.11.2026, решение «система гида»): ядро — позиция, спойлеры, ключи, «Дальше», строка состояния; раздел на Главной и оглавление
 import * as gcore from './guide-core.js';
 const ghubMod = () => import('./guide-hub.js');
@@ -470,22 +471,50 @@ async function findSetting(g, id) {
   const d = await loadSettings(g), x = d?.guides?.find((q) => q.id === id);
   return x ? { id: x.id, k: 'settings', t: x.how.ta, sn: x.sn || [], how: { ...x.how, vw: 'settings', menu: d.menu } } : null;
 }
+function guideCtx(g, from, linked, shareKey, onClose) {
+  return {
+    lang: getLang(), I, from, linked, access, haptic, toast, date: guideDate, imgUrl, credit, platform: store.platform,
+    open: (k) => { if (!gcore.openKey(k)) toast(t('place_nf')); },   // одна таблица ключей (guide-core)
+    canOpen: (k) => gcore.hasOpener(gcore.parseOpen(k)?.kind),   // «Дальше» — только на то, что в сборке умеют открыть
+    paywall: () => openPaywall(mapPw()),
+    share: (x) => shareText(`${guideTitle(x)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=${shareKey(x)}`),
+    event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+    onClose: onClose || (() => { if (ui.tab === 'feed') renderFeed(); else if (ui.tab === 'home') renderHub(); }),
+  };
+}
 async function openGuideKey(key, from = '', linked = false) {
   const { kind, game: g, id } = parseKey(key.replace(/^guide:/, 'egg:'));
   const o = /^set-/.test(id) ? await findSetting(g, id) : kind === 'egg' ? await findByKey(`egg:${g}:${id}`) : null;
   if (!hasGuide(o)) { openOnMap(key.replace(/^guide:/, 'egg:')); return; }
   closeSheet();
   const m = await guideMod();
-  m.openGuide({ ...o, game: g }, {
-    lang: getLang(), I, from, linked: linked || store.linkKeys.includes(`guide:${g}:${id}`) || store.linkKeys.includes(`egg:${g}:${id}`),
-    access, haptic, toast, date: guideDate, imgUrl, credit, platform: store.platform,
-    open: (k) => { if (!gcore.openKey(k)) toast(t('place_nf')); },   // одна таблица ключей (guide-core)
-    canOpen: (k) => gcore.hasOpener(gcore.parseOpen(k)?.kind),   // строка «Дальше» — только на то, что в сборке умеют открыть
-    paywall: () => openPaywall(mapPw()),
-    share: (x) => shareText(`${guideTitle(x)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=guide:${g}:${x.id}`),
-    event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
-    onClose: () => { if (ui.tab === 'feed') renderFeed(); else if (ui.tab === 'home') renderHub(); },
-  });
+  m.openGuide({ ...o, game: g }, guideCtx(g, from, linked || store.linkKeys.includes(`guide:${g}:${id}`) || store.linkKeys.includes(`egg:${g}:${id}`), (x) => `guide:${g}:${x.id}`));
+}
+window.SB.openWalk = (from = 'sb') => openWalk(from);   // для оглавления гида и тестов
+// ядро гида: ключ walk:gta6[:<подсказка>] открывает «Прохождение» (и сразу подсказку); таблицу ключей ведёт сборщик (guide-core)
+const core = gcore;
+gcore.registerOpener('walk', (k) => openWalk('key', k.game || 'gta6', k.id || ''));
+// строки guide-progress («По проценту», «С консоли») приходят в шторку через ядро: registerPickRow → core.pickRowsList
+const posCtx = () => ({ lang: getLang(), I, haptic, event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } } });
+window.SB.pickPos = (opts = {}) => walkMod().then((w) => w.pickPos(posCtx(), store.game, opts));   // общая шторка «Где вы в игре»
+// ── «Прохождение» (js/walk.js): игрок отмечает последнюю миссию, экран показывает подсказки «перед миссией» (инструкции «По шагам»)
+async function openWalk(from = '', g = 'gta6', tipId = '') {
+  closeSheet();
+  const w = await walkMod();
+  const leave = (fn) => { w.closeWalk(); setTimeout(fn, 80); };   // сначала снять экран и его запись истории, потом переход
+  const ok = await w.openWalk({
+    lang: getLang(), I, from, haptic, toast, event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+    done: (o) => Math.max(0, guideDone(o)),
+    openTip: async (o) => (await guideMod()).openGuide(o, guideCtx(g, 'walk', false, (x) => `walk:${g}:${String(x.id).replace(/^walk-/, '')}`, () => w.refresh())),
+    openPlace: (k) => leave(() => openOnMap(k)),
+    openFeed: (v) => leave(() => { ui.feed = v; ui.tab = 'feed'; renderAll(); }),
+    openCheats: () => leave(() => { ui.tab = 'cheats'; renderAll(); }),
+    // ключи «Дальше» (решение Fable: одна таблица ?open= будет в js/guide-core.js у сборщика; здесь — то, что есть в этой ветке)
+    can: (k) => /^guide:(gta6|gta5):/.test(k) || !!core?.hasOpener?.(String(k).split(':')[0]),
+    openKey: (k) => { if (/^guide:(gta6|gta5):/.test(k)) leave(() => openGuideKey(k, 'walk')); else leave(() => core?.openKey(k, { from: 'walk' })); },
+    onClose: () => { if (ui.tab === 'home') renderHub(); },
+  }, g, tipId);
+  if (!ok) toast(t('place_nf'));
 }
 async function openSetList() {
   const d = await loadSettings('gta6'); if (!d) return;
@@ -679,6 +708,7 @@ async function openGuideToc() {
 async function pickWhere() {
   await gcore.loadBase(store.game);
   try { await window.SB?.registerProgressRows?.(); } catch { }
+  await walkMod();   // общая шторка «Где вы» (#gpos) регистрируется в ядре при загрузке walk.js
   const v = await gcore.pickPos(store.game, { openSheet, closeSheet, lang: getLang(), esc });
   if (v) { gReady[store.game] = null; fillGuideSec(); }
 }
@@ -1978,6 +2008,7 @@ document.addEventListener('click', async (e) => {
     }
     case 'open-news': haptic(); openNews(el.dataset.id); break;
     case 'open-guide': haptic(); openGuideKey(el.dataset.key, el.dataset.from || ui.tab); break;
+    case 'open-walk': haptic(); openWalk(ui.tab); break;
     case 'gopen': haptic(); gopen(el.dataset.k); break;
     case 'egg-filter': haptic(); ui.eggf = v; renderFeed(); break;
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;

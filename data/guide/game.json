@@ -6,7 +6,7 @@
   "pending": [],
   "has": {
    "index": true,
-   "missions": false
+   "missions": true
   }
  }
 }

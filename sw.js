@@ -4,10 +4,9 @@
 // При изменении файлов оболочки поднимите VERSION.
 const VERSION = 'v120';
 const SHELL = [
-  './', 'index.html', 'manifest.webmanifest', 'css/tokens.css', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css', 'css/map-glass.css', 'css/skin.css', 'css/league.css', 'css/guide.css',
-  'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/mapstyle.js', 'js/places.js', 'js/live.js', 'js/skin.js', 'js/league.js', 'js/api.js', 'js/demo-data.js', 'js/pay.js', 'js/ref.js', 'js/tour.js', 'js/guide.js', 'js/guide-core.js', 'js/guide-hub.js', 'data/guide/index-gta6.json', 'js/guide-menu.js', 'js/guide-set.js', 'data/guide/gta6-settings.json',
+  './', 'index.html', 'manifest.webmanifest', 'css/tokens.css', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css', 'css/map-glass.css', 'css/skin.css', 'css/league.css', 'css/guide.css', 'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/mapstyle.js', 'js/places.js', 'js/live.js', 'js/skin.js', 'js/league.js', 'js/api.js', 'js/demo-data.js', 'js/pay.js', 'js/ref.js', 'js/tour.js', 'js/guide.js', 'js/guide-core.js', 'js/guide-hub.js', 'data/guide/index-gta6.json', 'js/guide-menu.js', 'js/guide-set.js', 'data/guide/gta6-settings.json', 'css/walk.css', 'js/walk.js', 'data/guide/missions.json',
   'vendor/maplibre/maplibre-gl.js', 'vendor/maplibre/maplibre-gl.css',
-  'data/gta5.json', 'data/gta6.json', 'data/news.json',
+  'data/gta5.json', 'data/gta6.json', 'data/news.json', 'data/guide/missions.json',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon.svg',
   'icons/brand-lockup-dark.svg', 'icons/brand-lockup-light.svg', 'icons/brand-mark.svg', 'icons/brand-mark-light.svg', 'fonts/onest.woff2',
 ];
@@ -30,7 +29,7 @@ const uiPrecache = () => caches.open(UI).then((c) => Promise.all(UI_CRIT.map((u)
 // скрипты, положенные при установке (тёплый старт карты быстрее на ~0,6 с). Не нужное сразу (раздел авторов,
 // знакомство, большие значки) при первой установке не качаем — ляжет в кэш при первом обращении (fetch ниже).
 // 23.11.2026: раньше первая установка качала ~600 КБ, ровно когда человек открывал Главную или карту на 3G.
-const LAZY = new Set(['js/league.js', 'js/tour.js', 'js/guide.js', 'css/guide.css', 'js/guide-hub.js', 'data/guide/index-gta6.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'js/guide-menu.js', 'js/guide-set.js', 'data/guide/gta6-settings.json']);
+const LAZY = new Set(['js/league.js', 'js/tour.js', 'js/guide.js', 'css/guide.css', 'js/guide-hub.js', 'data/guide/index-gta6.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'js/guide-menu.js', 'js/guide-set.js', 'data/guide/gta6-settings.json', 'js/walk.js', 'css/walk.css', 'data/guide/missions.json']);
 self.addEventListener('install', (e) => {
   // обновление: cache: 'reload' — мимо HTTP-кэша браузера, иначе в новую версию может попасть старый файл; всё, как раньше.
   // Первая установка (своих кэшей ещё нет): только то, что уже скачала сама страница, — из HTTP-кэша, без второй закачки;
