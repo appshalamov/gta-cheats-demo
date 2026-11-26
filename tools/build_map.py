@@ -524,6 +524,11 @@ def guide_fields(it):
     vids = [[v["yt"], str(v.get("by") or "")[:40]] for v in it.get("videos") or [] if v.get("yt") and v.get("embed") is not False]
     if vids:
         out["v"] = vids[:4]
+    # поиск RU/EN и «Дальше» (решения Fable 09 и «система гида»): kw — ключевые фразы, next — ключи следующих серий
+    if isinstance(it.get("kw"), dict):
+        out["kw"] = {lg: [str(x) for x in it["kw"].get(lg, [])][:24] for lg in ("ru", "en") if it["kw"].get(lg)}
+    if it.get("next"):
+        out["next"] = [str(x) for x in it["next"]][:3]
     if it.get("src_names"):
         out["sn"] = [str(x)[:30] for x in it["src_names"]][:10]
     if it.get("kind"):
