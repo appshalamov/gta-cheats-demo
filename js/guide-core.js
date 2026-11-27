@@ -105,6 +105,15 @@ export async function loadIndex(game) {
   return idx[game] || { items: [] };
 }
 export const index = (game) => idx[game] || { items: [] };
+// номер текущего шага начатой инструкции (0-based): первый не пройденный в выбранном пути — как откроется сама инструкция.
+// QA 27.11: раньше — число отметок d: после смены пути (квест ⇄ баг) или шага, отмеченного не по порядку, «шаг 6 из 13» против «шаг 1».
+// ids шагов пути — в указателе (build_guide_index); нет — c из записи прогресса (пишет guide.js), иначе число отметок
+export function stepAt(r, v) {
+  if (Number.isInteger(v?.sc)) return v.sc;   // вид «сторис»: карточка, на которой остановились (guide.js setProg)
+  const ids = ((r?.paths || []).find((x) => x.id === v?.path) || (r?.paths || [])[0] || r || {}).ids, d = v?.d || [];
+  if (Array.isArray(ids) && ids.length) { const i = ids.findIndex((x) => !d.includes(x)); return i < 0 ? ids.length : i; }
+  return Number.isInteger(v?.c) ? v.c : d.length;
+}
 export const recByKey = (game, k) => (idx[game]?.items || []).find((x) => x.k === k) || null;
 
 // ── «Дальше» ──
@@ -156,7 +165,7 @@ export function stateLine(game = 'gta6', lang = 'ru') {
     const [g, id] = key.split(':'); if (g !== game || !v || (!v.s && !(v.d || []).length)) continue;
     const r = items.find((x) => x.k === `guide:${game}:${id}`); if (!r || !r.steps_n) continue;
     const n = (r.paths || []).find((x) => x.id === v.path)?.n || r.steps_n;   // выбранный путь (квест / баг) — его число шагов
-    const done = (v.d || []).length; if (done >= n) continue;
+    const done = stepAt(r, v); if (done >= n) continue;
     if (!started || (v.at || 0) > started.at) started = { r, a: done + 1, n, at: v.at || 0 };
   }
   if (started) lines.push({ type: 'cont', k: started.r.k, text: fill(L.cont, { t: tx(started.r.t, lang), a: started.a, b: started.n }) });

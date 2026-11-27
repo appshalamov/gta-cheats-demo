@@ -35,8 +35,9 @@ const IC = {
   car: sv('<path d="M3.5 16.5V13l2-4.5h13l2 4.5v3.5"/><path d="M3.5 13h17"/><circle cx="7.5" cy="16.5" r="1.8"/><circle cx="16.5" cy="16.5" r="1.8"/>'),
 };
 // двойной тап (Игорь 27.11): два касания подряд срабатывают один раз — иначе тап листал две карточки, а метка ставилась и снималась.
-// Главные кнопки (.g-main) глушит guide.js (450 мс); здесь — тап по карточке и остальные кнопки вида
-const DEB = new Set(['stap', 'tag', 'sway', 'path', 'stoc', 'smore', 'sstuck', 'sgoto', 'sclose', 'sagain', 'sless']);
+// Кнопки нижней панели глушит guide.js (450 мс); здесь — одно окно 350 мс на все касания вида: после касания, которое меняет экран
+// («Начать заново», смена способа, оглавление), второе касание двойного тапа не попадает в то, что оказалось под пальцем (QA 27.11, урок 4)
+const DEB = new Set(['stap', 'tag', 'sway', 'path', 'stoc', 'smore', 'sstuck', 'sgoto', 'sclose', 'sagain', 'sless', 'sgo', 'snext', 'sdone']);
 
 let live = null, bound = null;   // один слой #guide на всё время: слушатели касаний вешаем один раз, работают с последним видом
 
@@ -46,7 +47,7 @@ export function view(A) {
   const H = () => O.how, PA = () => H().pa || [];
   const L = () => A.layer();
   // Игорь 27.11: лист всегда открывается сверху — сторис всегда с обложки, на ней «Продолжить: шаг N»
-  let mode = 'cover', sheet = false, fixAll = false, touch = null, note = '', last0 = {};
+  let mode = 'cover', sheet = false, fixAll = false, touch = null, note = '', last0 = 0, lastTag = 0;
 
   const path = () => A.PATH();
   const pid = () => path().id || 'one';
@@ -149,7 +150,7 @@ export function view(A) {
   }
   function tagsCard(x, i) {
     // Fable п. 7: 10 кружков без цифр, заполняются по порядку; тап по пустому — плюс одна, по последнему заполненному — минус одна
-    const n = Math.min((A.prog().t[x.id] || []).length, x.need), bg = [...list().slice(0, i)].reverse().find((y) => y.img)?.img;
+    const n = Math.min(A.got(x, i, A.prog()).size, x.need), bg = [...list().slice(0, i)].reverse().find((y) => y.img)?.img;
     return `<div class="st-card st-plain" data-g="stap">${bg ? `<div class="st-bg">${img(bg)}</div>` : ''}
       <div class="st-mid"><h2 class="st-h">${esc(s('tags_t'))}</h2>
         <p class="g-tn st-count"><b>${n}</b> ${esc(A.s('of'))} ${x.need}</p>
@@ -230,7 +231,8 @@ export function view(A) {
   }
 
   function render() {
-    const lay = L(); sheet = false;
+    if (sheet) closeMore();   // шторка закрывается вместе со своей записью «Назад»
+    const lay = L();
     if (mode === 'cover') {
       lay.innerHTML = `${coverHTML()}<div class="g-video" id="g-video" hidden></div>`;
     } else {
@@ -255,6 +257,7 @@ export function view(A) {
   function openSheet(html, at) {
     const box = L().querySelector('#st-sheet'); if (!box) return;
     box.innerHTML = `<div class="st-sh-top">${brand('st-sh-brand')}<button class="g-ib" data-g="sless" aria-label="${esc(A.s('close'))}">${C.I.close}</button></div><div class="st-sh-in">${html}</div>`;
+    if (!sheet) A.ovlOpen('sheet');   // «Назад» (свайп от края, кнопка Android) закрывает шторку, а не инструкцию (QA 27.11)
     box.hidden = false; L().querySelector('.st-scrim').hidden = false; sheet = true; box.scrollTop = 0;
     const el = at && box.querySelector(`[data-x="${at}"]`); if (el) box.scrollTop = Math.max(0, el.offsetTop - 64);
   }
@@ -265,7 +268,8 @@ export function view(A) {
     openSheet(moreHTML(kGet(), open), at);
     C.event?.('guide_more', { id: O.id, k: kGet(), at: at || '' });
   }
-  function closeMore() { const box = L().querySelector('#st-sheet'); if (box) { box.hidden = true; box.innerHTML = ''; } const sc = L().querySelector('.st-scrim'); if (sc) sc.hidden = true; sheet = false; }
+  function hideSheet() { const box = L()?.querySelector('#st-sheet'); if (box) { box.hidden = true; box.innerHTML = ''; } const sc = L()?.querySelector('.st-scrim'); if (sc) sc.hidden = true; sheet = false; }
+  function closeMore() { if (sheet) A.ovlClose(); hideSheet(); }
   function hintSeen() { try { localStorage.setItem(HINT, '1'); } catch { } L().querySelector('.st-hint')?.remove(); }
   function done() {
     const k = kGet(), i = k - off(), st = list(), p = A.prog();
@@ -297,12 +301,16 @@ export function view(A) {
     render();
   }
   function tag(i, k) {
-    const st = list(), x = st[i], p = A.prog(), got = [...(p.t[x.id] || [])], n = Math.min(got.length, x.need);
-    if (k >= n && n < x.need) { for (let j = 0; j < (x.tg?.length || x.need); j++) if (!got.includes(j)) { got.push(j); break; } }
-    else if (k === n - 1) got.splice(n - 1);
+    // метка, уже отсканированная отдельным шагом раньше (тот же ролик с той же секунды), засчитана сама — «1 из 10» сразу (QA 27.11)
+    const st = list(), x = st[i], p = A.prog(), man = [...(p.t[x.id] || [])], auto = A.auto(x, i, p);
+    const was = A.got(x, i, p).size, n = Math.min(was, x.need);
+    if (k >= n && n < x.need) { for (let j = 0; j < (x.tg?.length || x.need); j++) if (!man.includes(j) && !auto.has(j)) { man.push(j); break; } }
+    else if (k === n - 1 && man.length) man.pop();
     else return;
-    p.t[x.id] = got; C.haptic();
-    if (got.length >= x.need && !p.d.includes(x.id)) {   // набрали нужное — шаг сделан, тост и следующая карточка
+    p.t[x.id] = man; C.haptic();
+    const got = A.got(x, i, p).size;
+    if (was >= x.need && got < x.need && p.d.includes(x.id)) p.d = p.d.filter((q) => q !== x.id);   // сняли ниже нужного — шаг снова не сделан
+    if (got >= x.need && !p.d.includes(x.id)) {   // набрали нужное — шаг сделан, тост и следующая карточка
       p.d.push(x.id); A.setProg(p); const nx = st[i + 1];
       C.toast(A.s('tags_done', { a: x.need, next: nx ? A.plain(nx.hd || nx.t) : A.s('fin') }));
       C.event?.('guide_step', { id: O.id, step: i + 1 });
@@ -328,11 +336,20 @@ export function view(A) {
 
   const api = {
     stories: true, onStart, onEnd,
+    sheetOpen: () => sheet, sheetHide: hideSheet,
+    // текущий шаг для «шаг X из N» на Главной, в ленте и «Гид по игре» — где откроется «Продолжить» (guide.js setProg → sc)
+    at(p) {
+      const pa = PA().find((x) => x.id === p.path) || PA()[0] || {}, st = pa.st || [], o0 = (pa.req || H().req || []).length ? 1 : 0, k = p.k?.[pa.id || 'one'];
+      const f = st.findIndex((x) => !p.d.includes(x.id)), fo = f < 0 ? st.length : f;
+      if (!Number.isInteger(k)) return fo;
+      const i = Math.max(0, k - o0); return i >= st.length ? fo : i;
+    },
     list,
     render() { bind(); render(); },
     stop() { touch = null; sheet = false; note = ''; if (live === api) live = null; },
     click(a, b, i, ev) {
-      if (DEB.has(a)) { const now = Date.now(); if (now - (last0[a] || 0) < 350) return true; last0[a] = now; }
+      // метка меняет только кружок — у неё своё окно, чтобы «метка → Сделано» подряд работало; остальные касания меняют экран — общее окно
+      if (DEB.has(a)) { const now = Date.now(); if (now - last0 < 350 || (a === 'tag' && now - lastTag < 350)) return true; if (a === 'tag') lastTag = now; else last0 = now; }
       switch (a) {
         case 'path': if (mode === 'cover') { switchWay(b.dataset.v); return true; } return false;
         case 'sgo': begin(); C.haptic(); go(kEff()); return true;

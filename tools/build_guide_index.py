@@ -52,12 +52,14 @@ def from_eggs(game):
         imgs = sorted({s.get("img", {}).get("src") for s in allst if isinstance(s.get("img"), dict)} - {None})
         # чужие кадры (src=ref) без подписи автора — Игорь 27.11: чужие кадры в прод можно, но только с подписью by
         noby = sorted({s["id"] for s in allst if isinstance(s.get("img"), dict) and s["img"].get("src") == "ref" and not s["img"].get("by")})
-        paths = [{"id": pa["id"], "n": len(pa["st"]), **({"min": pa["min"]} if pa.get("min") else {}), **({"bug": 1} if pa.get("bug") else {})}
+        # ids — id шагов пути по порядку: «шаг X из N» на Главной и в оглавлении = первый не пройденный шаг (как в самой инструкции);
+        # QA 27.11: по числу отметок выходило «шаг 6 из 13», когда отмечены шаги другого пути, а инструкция открывалась на шаге 1
+        paths = [{"id": pa["id"], "n": len(pa["st"]), "ids": [x["id"] for x in pa["st"]], **({"min": pa["min"]} if pa.get("min") else {}), **({"bug": 1} if pa.get("bug") else {})}
                  for pa in h.get("pa") or []]
         out.append({
             "k": f"guide:{game}:{e['id']}", "kind": kind, "t": h.get("ta") or e.get("t"), "sub": h.get("sb") or h.get("rw"),
             "st": st, "src_n": len(sn), "upd": e.get("dt"), "chk": h.get("chk"), "place": f"egg:{game}:{e['id']}",
-            "steps_n": len(h["st"]), "min": h.get("min"), "fr": h.get("fr"), "kw": e.get("kw") or {}, "next": e.get("next") or [],
+            "steps_n": len(h["st"]), "ids": [x["id"] for x in h["st"]], "min": h.get("min"), "fr": h.get("fr"), "kw": e.get("kw") or {}, "next": e.get("next") or [],
             **({"v": e["v_game"]} if e.get("v_game") else {}), **({"img_src": imgs} if imgs else {}), **({"_noby": noby} if noby else {}), "sp": e.get("sp", 0),
             **({"paths": paths} if paths else {}),
         })

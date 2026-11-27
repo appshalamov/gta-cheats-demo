@@ -2279,8 +2279,9 @@ export async function focus(g, kind, id) {
   const d = await loadGame(game);
   if (kind === 'place') {
     const i = d.places.findIndex((x) => x.id === id);
-    if (i < 0) return false;
-    openPlace(i, true); return true;
+    if (i >= 0) { openPlace(i, true); return true; }
+    // QA 27.11: «Это место в жизни» в «Дальше» инструкции — ключ place:<игра>:<id пасхалки>; места с таким id нет — ищем пасхалку ниже
+    // (было: «Место по ссылке не найдено»)
   }
   if (kind === 'db') {   // точка сообщества gtadb по ссылке «поделиться»
     const db = await loadGtadb(game).catch(() => null);
