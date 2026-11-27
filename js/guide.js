@@ -7,7 +7,7 @@
 
 import { view as setView } from './guide-set.js';
 import { view as storiesView } from './guide-stories.js';   // вид «сторис» (how.vw === 'stories', Bugatti первая; черновик 27.11)
-import { recByKey, nextFor } from './guide-core.js';
+import { recByKey, nextFor, loadIndex, index } from './guide-core.js';
 import { btn } from './icons.js';   // {enter} в тексте шага — кнопка геймпада по платформе (Bugatti v2, 27.11)   // «Дальше» в финале — по указателю (серии, seriya-uderzhanie)   // вид «настройки» (guide-settings)
 
 const S = {
@@ -363,7 +363,8 @@ export function openGuide(o, ctx) {
   if (!o?.how?.st?.length) return false;
   C = ctx; O = o; stuckAll = false; openSet = new Set(); barAway = false; css();
   V?.stop(); V = o.how.vw === 'settings' ? setView({ C, O, layer: () => layer, prog, s, tx, esc, mmss, rerender, closeGuide })
-    : o.how.vw === 'stories' && o.how.pa?.length ? storiesView({ C, O, layer: () => layer, prog, setProg, s, tx, esc, mmss, rich, plain, ruMin, PATH, shut,
+    // сторис включается настоящей обложкой (решение Fable 28.11 «сторис для всех разделов»): один способ (Mile Zero) — тоже сторис
+    : o.how.vw === 'stories' && o.cv?.f ? storiesView({ C, O, layer: () => layer, prog, setProg, s, tx, esc, mmss, rich, plain, ruMin, PATH, shut,
       next: nextHTML, stuck: (i, all) => { stuckAll = !!all; return stuckHTML(i); }, wake, closeGuide, ovlOpen, ovlClose, got: gotOf, auto: autoTags,
       first: () => { try { if (!localStorage.getItem(FIRST)) localStorage.setItem(FIRST, kOf(O)); } catch { } } }) : null;
   layer = document.getElementById('guide');
@@ -377,6 +378,10 @@ export function openGuide(o, ctx) {
   }
   ovl = null;
   render();
+  // «Дальше» строится по указателю гида: открыли по ссылке раньше, чем он пришёл, — в финале была одна строка «место» (28.11, Mile Zero).
+  // Догрузить и перерисовать, если не открыт слой поверх (шторка, ролик)
+  const g0 = o.game || 'gta6';
+  if (!index(g0).items.length) loadIndex(g0).then(() => { if (O === o && isOpen() && !ovl && !V?.sheetOpen?.()) render(); });
   layer.classList.add('open');
   document.documentElement.classList.add('guide-open');
   const p = prog();
