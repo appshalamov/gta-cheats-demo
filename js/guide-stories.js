@@ -12,7 +12,7 @@
 const SS = {
   ru: {
     min: '{m} мин', go: 'Начать', cont: 'Продолжить', works: 'Работает', broken: 'Не работает с {d}', checked: 'проверено {d}',
-    ready: 'Всё есть', done: 'Сделано', more: 'Подробнее', less: 'Свернуть', where_t: 'Где искать', tip_t: 'Подсказка', all: 'Все шаги: {n}', toc: 'Все шаги',
+    ready: 'Всё есть', done: 'Сделано', more: 'Подробнее', less: 'Свернуть', where_t: 'Где искать', tip_t: 'Подсказка', mvid: 'Ролик меню с {t}', mcap: 'Схема меню, наша. Названия пунктов как в игре.', all: 'Все шаги: {n}', toc: 'Все шаги',
     tags_t: 'Метки No Flusher', tags_any: 'любые {need} из {of}', tag_add: 'Отметить метку', tag_del: 'Снять метку',
     to_cover: 'К обложке', ways_aria: 'Способ', lock_t: 'Дальше в Pro', wall_s: 'Шаги {a}–{b}, точные места и разбор ошибок', hint: 'Тап справа — дальше',
     way_at: '{w}: шаг {a} из {b}', way_0: '{w}: перед выездом', way_fin: '{w}: всё пройдено', fin: 'Готово. Машина ваша', fin_left: 'Отмечено {a} из {b}',
@@ -20,7 +20,7 @@ const SS = {
   },
   en: {
     min: '{m} min', go: 'Start', cont: 'Continue', works: 'Works', broken: 'Broken since {d}', checked: 'checked {d}',
-    ready: 'Got it all', done: 'Done', more: 'Details', less: 'Hide', where_t: 'Where to look', tip_t: 'Tip', all: 'All steps: {n}', toc: 'All steps',
+    ready: 'Got it all', done: 'Done', more: 'Details', less: 'Hide', where_t: 'Where to look', tip_t: 'Tip', mvid: 'Menu video from {t}', mcap: 'Our menu diagram. Item names as in the game.', all: 'All steps: {n}', toc: 'All steps',
     tags_t: 'No Flusher tags', tags_any: 'any {need} of {of}', tag_add: 'Mark a tag', tag_del: 'Unmark a tag',
     to_cover: 'Back to cover', ways_aria: 'Way', lock_t: 'The rest is in Pro', wall_s: 'Steps {a}–{b}, exact spots and fixes', hint: 'Tap right for next',
     way_at: '{w}: step {a} of {b}', way_0: '{w}: before you go', way_fin: '{w}: all done', fin: 'Done. The car is yours', fin_left: 'Marked {a} of {b}',
@@ -37,7 +37,7 @@ const IC = {
 // двойной тап (Игорь 27.11): два касания подряд срабатывают один раз — иначе тап листал две карточки, а метка ставилась и снималась.
 // Кнопки нижней панели глушит guide.js (450 мс); здесь — одно окно 350 мс на все касания вида: после касания, которое меняет экран
 // («Начать заново», смена способа, оглавление), второе касание двойного тапа не попадает в то, что оказалось под пальцем (QA 27.11, урок 4)
-const DEB = new Set(['stap', 'tag', 'sway', 'path', 'stoc', 'smore', 'sstuck', 'sgoto', 'sclose', 'sagain', 'sless', 'sgo', 'snext', 'sdone']);
+const DEB = new Set(['lvid', 'stap', 'tag', 'sway', 'path', 'stoc', 'smore', 'sstuck', 'sgoto', 'sclose', 'sagain', 'sless', 'sgo', 'snext', 'sdone']);
 
 let live = null, bound = null;   // один слой #guide на всё время: слушатели касаний вешаем один раз, работают с последним видом
 document.fonts?.addEventListener?.('loadingdone', () => live?.resize());   // догрузился шрифт — строки [data-fit] шире, пересчитать
@@ -57,6 +57,7 @@ export function view(A) {
   // карточки: 0 — «Перед выездом» (если есть), дальше шаги, последняя — «Готово»
   const reqs = () => path().req || H().req || [];
   const off = () => (reqs().length ? 1 : 0);
+  const rqT = () => tx(H().rqt) || A.s('before');   // заголовок первой карточки: «Перед выездом» или свой («Где это в меню» у настроек)
   const last = () => list().length + off();
   function kGet() {
     const p = A.prog(), k = p.k?.[pid()];
@@ -145,7 +146,7 @@ export function view(A) {
   function reqCard() {
     // Fable: фон — обложка, затемнённая до 25 %; три строки со значками без точек; последствия — в «Подробнее»
     return `<div class="st-card st-plain" data-g="stap"><div class="st-bg st-bg-cv">${cover()}</div>
-      <div class="st-mid"><h2 class="st-h">${esc(A.s('before'))}</h2>
+      <div class="st-mid"><h2 class="st-h">${esc(rqT())}</h2>
         <ul class="st-req">${reqs().slice(0, 3).map((r) => `<li>${IC[r.ic] || C.I[{ phone: 'phone', cash: 'wallet' }[r.ic]] || C.I.check}<span>${esc(tx(r.s) || tx(r.t))}</span></li>`).join('')}</ul></div>
       ${moreRow()}${bar(`<button class="g-main" data-g="snext">${esc(s('ready'))}</button>`)}</div>`;
   }
@@ -172,7 +173,7 @@ export function view(A) {
     let hint = false; try { hint = k === off() && !localStorage.getItem(HINT); } catch { }
     // на карточке — заголовок до 34 знаков и одно крупное значение; ловушка кода — одной янтарной строкой под ним (Fable)
     return `<div class="st-card" data-g="stap">
-      <div class="st-media">${x.img ? img(x.img) : ''}${x.img?.by ? `<span class="st-by">${esc(A.s('frame', { by: x.img.by }))}</span>` : ''}
+      <div class="st-media${x.img ? '' : ' st-cvbg'}">${x.img ? img(x.img) : cover()}${x.img?.by ? `<span class="st-by">${esc(A.s('frame', { by: x.img.by }))}</span>` : !x.img && O.cv?.by ? `<span class="st-by">${esc(O.cv.by)}</span>` : ''}
         ${hint ? `<span class="st-hint" aria-hidden="true">${esc(s('hint'))}${C.I.chevron}</span>` : ''}</div>
       <div class="st-txt"><p class="st-hd" data-fit>${A.rich(x.hd || x.t)}</p>
         ${x.c ? `<p class="g-big st-big">${esc(x.c)}</p>${x.cw ? `<p class="st-trap">${esc(A.s('not_this', { c: x.cw }))}</p>` : ''}` : x.bv ? `<p class="g-big g-big-t st-big">${esc(x.bv)}</p>` : ''}</div>
@@ -201,7 +202,7 @@ export function view(A) {
   function moreHTML(k, open) {
     if (k < off()) {
       const wh = path().wh || H().wh;
-      return `<h2 class="st-sh-h">${esc(A.s('before'))}</h2><ul class="g-req">${reqs().map((r) => `<li>${esc(tx(r.t))}</li>`).join('')}</ul>
+      return `<h2 class="st-sh-h">${esc(rqT())}</h2><ul class="g-req">${reqs().map((r) => `<li>${esc(tx(r.t))}</li>`).join('')}</ul>
         ${wh ? `<div class="st-rows">${vrow(wh, wh[3] && wh[2] ? A.s('whole_by', { by: wh[3], n: wh[2], u: A.ruMin(wh[2]) }) : A.s('whole0'))}</div>` : ''}`;
     }
     const i = k - off(), x = list()[i];
@@ -218,6 +219,7 @@ export function view(A) {
         ${x.tip ? row('tip', s('tip_t'), `<p class="g-tip">${A.rich(x.tip)}</p>`, open.has('tip')) : ''}
         ${x.at ? row('at', A.s('in_game'), `<p class="g-at">${C.I.pin}<span>${esc(typeof x.at === 'string' ? x.at : tx(x.at))}</span></p>`, open.has('at')) : ''}
         ${x.v ? vrow(x.v, A.s('video_at', { t: mmss(x.v[1]) })) : ''}
+        ${x.mv ? `<button class="st-x st-xv" data-g="lvid" data-src="${esc(x.mv.src.replace('{l}', C.lang === 'ru' ? 'ru' : 'en'))}" data-t="${+x.mv.t || 0}"><span>${esc(s('mvid', { t: mmss(+x.mv.t || 0) }))}</span>${C.I.play}</button>`: ''}
         ${row('stuck', A.s('stuck'), A.stuck(i, fixAll), open.has('stuck'))}
       </div>`;
   }
@@ -227,7 +229,7 @@ export function view(A) {
     const r = (k, n, t, done, lock) => `<li><button class="st-toc-r${k === cur ? ' on' : ''}${done ? ' is-done' : ''}" data-g="sgoto" data-k="${k}"${k === cur ? ' aria-current="step"' : ''}>
       <span class="st-toc-n">${lock ? C.I.lock : done ? C.I.check : n}</span><span class="st-toc-t">${t}</span></button></li>`;
     return `<h2 class="st-sh-h">${esc(s('toc'))}</h2><ol class="st-toc">
-      ${off() ? r(0, '', esc(A.s('before')), !!p.rq, false) : ''}
+      ${off() ? r(0, '', esc(rqT()), !!p.rq, false) : ''}
       ${st.map((x, i) => r(i + off(), i + 1, title(x), p.d.includes(x.id), A.shut(i))).join('')}</ol>${A.next(true)}`;
   }
 
@@ -393,6 +395,12 @@ export function view(A) {
           if (k >= off() && A.shut(k - off())) k = fr + off();   // закрытый шаг — на стену Pro
           if (mode === 'cover') begin();
           go(k); return true;
+        }
+        case 'lvid': {   // свой ролик (схема меню, mp4 со своего хостинга) поверх шторки; крестик и «Назад» закрывают только его
+          const v = L().querySelector('#g-video'); if (!v) return true;
+          v.innerHTML = `<div class="g-vbox"><button class="g-ib g-vx" data-g="vclose" aria-label="${esc(A.s('close'))}">${C.I.close}</button>${brand('st-vbrand')}
+            <div class="g-vf"><video src="${esc(b.dataset.src)}#t=${+b.dataset.t || 0}" controls autoplay playsinline muted preload="metadata"></video></div><p class="g-note st-mcap">${esc(s('mcap'))}</p></div>`;
+          v.hidden = false; A.ovlOpen('video'); C.event?.('guide_video', { id: O.id, v: 'menu', t: +b.dataset.t || 0 }); return true;
         }
         case 'sless': closeMore(); return true;
         case 'sagain': { const p = A.prog(); A.setProg({ ...p, d: p.d.filter((id) => !list().some((x) => x.id === id)), t: {}, rq: 0, k: { ...(p.k || {}), [pid()]: 0 } }); mode = 'cover'; render(); return true; }

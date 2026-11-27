@@ -470,3 +470,8 @@
   .g-img img { object-fit: contain; background: #000; }
   .g-bar { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
 }
+
+/* сторис: шаг без своего кадра — фон из обложки на 25 % яркости, без кольца (решение Fable 28.11 «сторис для всех разделов») */
+#guide .st-media.st-cvbg img { filter: brightness(.25); }
+#guide .st-mcap { margin: 8px 16px 0; }
+#guide .g-vbox .st-vbrand { position: absolute; top: calc(var(--safe-t, 0px) + 12px); left: 50%; transform: translateX(-50%); z-index: 2; }

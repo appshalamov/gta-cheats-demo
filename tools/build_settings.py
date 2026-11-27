@@ -84,6 +84,9 @@ def st(id, it, set_, hn, why, src, only=None, hyp=False, ok=None):
     if ok: x['ok'] = ok
     return x
 SN_B = ['playday.one', 'games.gg', 'Dexerto', 'Eurogamer', 'BGR']
+# обложки советов (сторис, 28.11): только настоящие кадры игры с подписью автора (Игорь 27.11), ролик ZERO FAME IeI9gjKU2o0, 4K
+COVERS = {k: {'f': f'img/guide/gta6/{k}.jpg', 't': f'img/guide/gta6/{k}-t.jpg', 'by': 'ZERO FAME'}
+          for k in ('set-first', 'set-driving', 'set-aim', 'set-comfort', 'set-picture')}
 GUIDES = [
   {'id': 'set-driving', 'sn': ['playday.one', 'games.gg', 'Dexerto', 'Eurogamer', 'BGR', 'VideoGamer'], 'how': {
     'ta': T('Настроить вождение', 'Set up driving'), 'rw': T('Чтобы не разбить Thrax и любую быструю машину.', "So you don't wreck the Thrax or any fast car."), 'min': 4,
@@ -202,6 +205,7 @@ if __name__ == '__main__':
     for g in GUIDES:
         for x in g['how']['st']: x['t'] = {'ru': idx[x['it']]['l'], 'en': idx[x['it']]['l']}; x['val'] = {'ru': x['set'], 'en': x['set']} if x['set'] is not None else {'ru': 'Настроить', 'en': 'Adjust'}; x['def'] = idx[x['it']]['v'] or None
         if old.get(g['id']): g['how']['vid'] = old[g['id']]
+        if COVERS.get(g['id']): g['cv'] = COVERS[g['id']]
     index = []
     for g in GUIDES:   # записи указателя гида (data/guide/index-<игра>.json собирает tools/build_guide_index.py сборщика)
         h = g['how']; n_ok = min(len(x['src']) for x in h['st'])

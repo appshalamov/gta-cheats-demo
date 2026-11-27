@@ -1608,6 +1608,11 @@
       }
      }
     }
+   },
+   "cv": {
+    "f": "img/guide/gta6/set-first.jpg",
+    "t": "img/guide/gta6/set-first-t.jpg",
+    "by": "ZERO FAME"
    }
   },
   {
@@ -1943,6 +1948,11 @@
       }
      }
     }
+   },
+   "cv": {
+    "f": "img/guide/gta6/set-driving.jpg",
+    "t": "img/guide/gta6/set-driving-t.jpg",
+    "by": "ZERO FAME"
    }
   },
   {
@@ -2222,6 +2232,11 @@
       }
      }
     }
+   },
+   "cv": {
+    "f": "img/guide/gta6/set-aim.jpg",
+    "t": "img/guide/gta6/set-aim-t.jpg",
+    "by": "ZERO FAME"
    }
   },
   {
@@ -2551,6 +2566,11 @@
       }
      }
     }
+   },
+   "cv": {
+    "f": "img/guide/gta6/set-comfort.jpg",
+    "t": "img/guide/gta6/set-comfort-t.jpg",
+    "by": "ZERO FAME"
    }
   },
   {
@@ -2710,6 +2730,11 @@
       }
      }
     }
+   },
+   "cv": {
+    "f": "img/guide/gta6/set-picture.jpg",
+    "t": "img/guide/gta6/set-picture-t.jpg",
+    "by": "ZERO FAME"
    }
   }
  ]

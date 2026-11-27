@@ -478,7 +478,34 @@ async function loadSettings(g) {
 }
 async function findSetting(g, id) {
   const d = await loadSettings(g), x = d?.guides?.find((q) => q.id === id);
-  return x ? { id: x.id, k: 'settings', t: x.how.ta, sn: x.sn || [], how: { ...x.how, vw: 'settings', menu: d.menu } } : null;
+  if (!x) return null;
+  if (x.cv?.f) return setStories(x);   // сторис (решение Fable 28.11): настоящая обложка, PlayStation и Xbox — способы в шапке
+  return { id: x.id, k: 'settings', t: x.how.ta, sn: x.sn || [], how: { ...x.how, vw: 'settings', menu: d.menu } };
+}
+// совет настроек → вид «сторис»: карточка — пункт меню как в игре и крупное значение; «Зачем», «По умолчанию» и ролик схемы меню — в «Подробнее»
+const SET_S = {
+  ru: { rqt: 'Где это в меню', meta: '{n} настроек, около {m} мин', def: 'По умолчанию {v}', ps: 'Только PlayStation', fin: 'Готово. Настройки на месте',
+    r1: 'Поставьте игру на паузу', r2: 'Откройте Settings', r3: 'Ставьте значения с карточек', r1t: 'Пауза — Options на PlayStation, ☰ на Xbox.',
+    r2t: 'В меню паузы — пункт Settings. Пункты — на вкладках меню, название на карточке как в игре.', r3t: 'На каждой карточке — пункт и значение. Поставили — «Сделано».' },
+  en: { rqt: 'Where it is in the menu', meta: '{n} settings, about {m} min', def: 'Default {v}', ps: 'PlayStation only', fin: 'Done. Your settings are set',
+    r1: 'Pause the game', r2: 'Open Settings', r3: 'Set the values from the cards', r1t: 'Pause is Options on PlayStation, ☰ on Xbox.',
+    r2t: 'Settings is in the pause menu. Items sit on the menu tabs; the card shows the name as in the game.', r3t: 'Each card is one item and its value. Set it, then tap Done.' },
+};
+function setStories(x) {
+  const two = (k, v = {}) => Object.fromEntries(['ru', 'en'].map((lg) => [lg, Object.entries(v).reduce((a, [p, q]) => a.split(`{${p}}`).join(typeof q === 'object' ? q[lg] : q), SET_S[lg][k])]));
+  const PN = { playstation: 'PlayStation', xbox: 'Xbox' }, h = x.how;
+  const st = (pl) => h.st.filter((q) => !q.only || q.only === pl).map((q) => ({
+    id: q.id, hd: q.t, bv: L(q.val),
+    t: { ru: [q.hn?.ru, q.why?.ru].filter(Boolean).join('. '), en: [q.hn?.en, q.why?.en].filter(Boolean).join('. ') },
+    ...(q.def != null && q.set != null ? { bn: { ru: two('def', { v: q.def }).ru + (q.only ? `. ${SET_S.ru.ps}` : ''), en: two('def', { v: q.def }).en + (q.only ? `. ${SET_S.en.ps}` : '') } } : {}),
+    ...(h.vid?.[pl]?.ch?.[q.id] != null ? { mv: { src: h.vid[pl].src, t: h.vid[pl].ch[q.id] } } : {}),
+  }));
+  const req = ['r1', 'r2', 'r3'].map((r) => ({ ty: 'other', s: two(r), t: two(`${r}t`) }));
+  const order = store.platform === 'xbox' ? ['xbox', 'playstation'] : ['playstation', 'xbox'];
+  const pa = order.map((pl) => ({ id: pl, t: { ru: PN[pl], en: PN[pl] }, sh: { ru: PN[pl], en: PN[pl] }, min: h.min || null, st: st(pl), req }));
+  return { id: x.id, k: 'settings', t: h.ta, sn: x.sn || [], cv: x.cv,
+    how: { vw: 'stories', ta: h.ta, rw: h.rw, sb: two('meta', { n: pa[0].st.length, m: h.min || Math.max(2, Math.round(pa[0].st.length * 0.7)) }),
+      fin: two('fin'), rqt: two('rqt'), req, st: pa[0].st, pa, fr: 99, upd: h.upd } };
 }
 function guideCtx(g, from, linked, shareKey, onClose) {
   return {
