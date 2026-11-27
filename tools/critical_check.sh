@@ -13,7 +13,7 @@ cd "$T"
 heavy-run -p 2 -n "критичное $(git -C "$REPO" rev-parse --short HEAD)" -- ~/.video-venv/bin/python run_local.py "$REPO" "" "$OUT" "$TESTS" > "$OUT/log.txt" 2>&1 || true
 grep "^✅\|^❌\|ИТОГ" "$OUT/log.txt" | cut -c1-160
 if grep -q "^❌" "$OUT/log.txt" || ! grep -q "ИТОГ" "$OUT/log.txt"; then echo "КРИТИЧНОЕ НЕ ПРОШЛО — выкладывать нельзя ($OUT/log.txt)"; exit 1; fi
-CH=$(cd "$REPO" && find . -path ./.git -prune -o -type f -newer "$OUT/.start" -print | grep -v '^./.git' | head -5)
+CH=$(cd "$REPO" && find . -path ./.git -prune -o -type f -newer "$OUT/.start" -print | { grep -v '^./.git' || true; } | head -5)
 if [ "$(git -C "$REPO" rev-parse HEAD)" != "$SHA" ] || [ -n "$(git -C "$REPO" status --porcelain --untracked-files=no)" ] || [ -n "$CH" ]; then
   echo "СТОП: во время прогона менялись файлы или коммит ($CH) — метки нет, запустите заново"; exit 1; fi
 M="$(git -C "$REPO" rev-parse --git-common-dir)/critical_ok"; mkdir -p "$M"; date '+%F %T' > "$M/$SHA"
