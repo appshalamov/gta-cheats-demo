@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 REPO="$PWD"; SHA=$(git rev-parse HEAD)
 [ -n "$(git status --porcelain --untracked-files=no)" ] && { echo "СТОП: есть незакоммиченные правки — проверяется только коммит"; exit 1; }
 T="$REPO/../Тестирование 21.10"; OUT="$T/снимки/critical-$(git rev-parse --short HEAD)"; mkdir -p "$OUT"
-TESTS="critical_core,ref_link,cheat_platforms,onb_full,home_game_switch,map_pro,map_switch_chooser,place_card,paywall_conversion,try_free,offline,guide_hub,guide_spoilers,search_kw,guide_open_top"
+TESTS="critical_core,ref_link,cheat_platforms,onb_full,home_game_switch,map_pro,map_switch_chooser,place_card,paywall_conversion,try_free,offline,guide_hub,guide_spoilers,search_kw,guide_open_top,guide_double_tap"
 cd "$T"
 heavy-run -p 2 -n "критичное $(git -C "$REPO" rev-parse --short HEAD)" -- ~/.video-venv/bin/python run_local.py "$REPO" "" "$OUT" "$TESTS" > "$OUT/log.txt" 2>&1 || true
 grep "^✅\|^❌\|ИТОГ" "$OUT/log.txt" | cut -c1-160

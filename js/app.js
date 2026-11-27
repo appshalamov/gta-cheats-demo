@@ -650,6 +650,8 @@ async function liveRefresh(force = false) {
   if (ui.tab === 'home') renderHub(); else if (ui.tab === 'feed') renderFeed();
 }
 document.addEventListener('visibilitychange', () => liveRefresh());
+// Игорь 27.11: щипок по интерфейсу не приближает страницу (iOS игнорирует user-scalable=no); карта и просмотр фото — свои жесты на touch/pointer
+document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
 setInterval(() => liveRefresh(), 10 * 6e4);
 
 // ── «Новое» на Главной: карточка новости в стиле ленты; подробности — в шторке, источник подписью без ссылки ──
