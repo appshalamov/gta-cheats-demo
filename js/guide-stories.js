@@ -12,7 +12,7 @@
 const SS = {
   ru: {
     min: '{m} мин', go: 'Начать', cont: 'Продолжить', works: 'Работает', broken: 'Не работает с {d}', checked: 'проверено {d}',
-    ready: 'Всё есть', done: 'Сделано', more: 'Подробнее', where_t: 'Где искать', tip_t: 'Подсказка', all: 'Все шаги: {n}', toc: 'Все шаги',
+    ready: 'Всё есть', done: 'Сделано', more: 'Подробнее', less: 'Свернуть', where_t: 'Где искать', tip_t: 'Подсказка', all: 'Все шаги: {n}', toc: 'Все шаги',
     tags_t: 'Метки No Flusher', tags_any: 'любые {need} из {of}', tag_add: 'Отметить метку', tag_del: 'Снять метку',
     to_cover: 'К обложке', ways_aria: 'Способ', lock_t: 'Дальше в Pro', wall_s: 'Шаги {a}–{b}, точные места и разбор ошибок', hint: 'Тап справа — дальше',
     way_at: '{w}: шаг {a} из {b}', way_0: '{w}: перед выездом', way_fin: '{w}: всё пройдено', fin: 'Готово. Машина ваша', fin_left: 'Отмечено {a} из {b}',
@@ -20,7 +20,7 @@ const SS = {
   },
   en: {
     min: '{m} min', go: 'Start', cont: 'Continue', works: 'Works', broken: 'Broken since {d}', checked: 'checked {d}',
-    ready: 'Got it all', done: 'Done', more: 'Details', where_t: 'Where to look', tip_t: 'Tip', all: 'All steps: {n}', toc: 'All steps',
+    ready: 'Got it all', done: 'Done', more: 'Details', less: 'Hide', where_t: 'Where to look', tip_t: 'Tip', all: 'All steps: {n}', toc: 'All steps',
     tags_t: 'No Flusher tags', tags_any: 'any {need} of {of}', tag_add: 'Mark a tag', tag_del: 'Unmark a tag',
     to_cover: 'Back to cover', ways_aria: 'Way', lock_t: 'The rest is in Pro', wall_s: 'Steps {a}–{b}, exact spots and fixes', hint: 'Tap right for next',
     way_at: '{w}: step {a} of {b}', way_0: '{w}: before you go', way_fin: '{w}: all done', fin: 'Done. The car is yours', fin_left: 'Marked {a} of {b}',
@@ -48,7 +48,7 @@ export function view(A) {
   const H = () => O.how, PA = () => H().pa || [];
   const L = () => A.layer();
   // Игорь 27.11: лист всегда открывается сверху — сторис всегда с обложки, на ней «Продолжить: шаг N»
-  let mode = 'cover', sheet = false, fixAll = false, touch = null, note = '', last0 = 0, lastTag = 0;
+  let mode = 'cover', sheet = false, fixAll = false, touch = null, note = '', last0 = 0, lastTag = 0, drag = null, shutT = 0, leaving = false;
 
   const path = () => A.PATH();
   const pid = () => path().id || 'one';
@@ -257,9 +257,13 @@ export function view(A) {
   }
   function openSheet(html, at) {
     const box = L().querySelector('#st-sheet'); if (!box) return;
-    box.innerHTML = `<div class="st-sh-top">${brand('st-sh-brand')}<button class="g-ib" data-g="sless" aria-label="${esc(A.s('close'))}">${C.I.close}</button></div><div class="st-sh-in">${html}</div>`;
+    // Игорь 28.11: детали — понятно открыть и закрыть: ручка сверху (тянуть вниз), «Свернуть ↓» словами, выезжает снизу и уезжает вниз
+    box.innerHTML = `<div class="st-sh-top"><span class="st-grab" aria-hidden="true"></span>${brand('st-sh-brand')}<button class="st-less" data-g="sless"><span>${esc(s('less'))}</span><span class="st-dn" aria-hidden="true">${C.I.chevron}</span></button></div><div class="st-sh-in">${html}</div>`;
+    const was = sheet;
     if (!sheet) A.ovlOpen('sheet');   // «Назад» (свайп от края, кнопка Android) закрывает шторку, а не инструкцию (QA 27.11)
+    clearTimeout(shutT); box.classList.remove('is-out'); box.style.transform = '';
     box.hidden = false; L().querySelector('.st-scrim').hidden = false; sheet = true; box.scrollTop = 0;
+    if (!was) { box.classList.remove('is-in'); void box.offsetWidth; box.classList.add('is-in'); }
     const el = at && box.querySelector(`[data-x="${at}"]`); if (el) box.scrollTop = Math.max(0, el.offsetTop - 64);
   }
   function openMore(at) {
@@ -269,8 +273,24 @@ export function view(A) {
     openSheet(moreHTML(kGet(), open), at);
     C.event?.('guide_more', { id: O.id, k: kGet(), at: at || '' });
   }
-  function hideSheet() { const box = L()?.querySelector('#st-sheet'); if (box) { box.hidden = true; box.innerHTML = ''; } const sc = L()?.querySelector('.st-scrim'); if (sc) sc.hidden = true; sheet = false; }
-  function closeMore() { if (sheet) A.ovlClose(); hideSheet(); }
+  function hideSheet() { clearTimeout(shutT); const box = L()?.querySelector('#st-sheet'); if (box) { box.hidden = true; box.innerHTML = ''; box.classList.remove('is-in', 'is-out'); box.style.transform = ''; } const sc = L()?.querySelector('.st-scrim'); if (sc) sc.hidden = true; sheet = false; drag = null; }
+  // закрыть с уездом вниз (180 мс); листание карточек работает сразу — sheet = false до конца анимации
+  function closeMore() {
+    if (!sheet) return hideSheet();
+    leaving = true; A.ovlClose(); leaving = false; sheet = false; drag = null;
+    const box = L()?.querySelector('#st-sheet'), sc = L()?.querySelector('.st-scrim');
+    if (!box || matchMedia('(prefers-reduced-motion: reduce)').matches) return hideSheet();
+    box.classList.remove('is-in'); box.classList.add('is-out'); if (sc) sc.hidden = true;
+    clearTimeout(shutT); shutT = setTimeout(() => { if (!sheet) hideSheet(); }, 190);
+  }
+  // шторку тянут вниз за любое место, когда она прокручена к началу: едет за пальцем, > 90 px или быстрый рывок — закрыть
+  function shStart(e, box) { if (!sheet || e.touches.length !== 1 || box.scrollTop > 0) { drag = null; return; } drag = { y: e.touches[0].clientY, t: Date.now(), dy: 0 }; }
+  function shMove(e, box) { if (!drag) return; const dy = e.touches[0].clientY - drag.y; if (box.scrollTop > 0 && dy > 0) { drag = null; box.style.transform = ''; return; } drag.dy = dy; box.style.transform = dy > 0 ? `translateY(${dy}px)` : ''; }
+  function shEnd(e, box) {
+    if (!drag) return; const { dy, t } = drag; drag = null;
+    if (dy > 90 || (dy > 30 && dy / Math.max(1, Date.now() - t) > 0.5)) { box.style.transform = ''; closeMore(); return; }
+    box.style.transition = 'transform .18s ease-out'; box.style.transform = ''; setTimeout(() => { box.style.transition = ''; }, 200);
+  }
   function hintSeen() { try { localStorage.setItem(HINT, '1'); } catch { } L().querySelector('.st-hint')?.remove(); }
   function done() {
     const k = kGet(), i = k - off(), st = list(), p = A.prog();
@@ -332,12 +352,16 @@ export function view(A) {
   function bind() {
     const lay = L(); if (bound === lay) return; bound = lay;
     lay.addEventListener('touchstart', (e) => live?.onStart(e), { passive: true }); lay.addEventListener('touchend', (e) => live?.onEnd(e), { passive: true });
+    // шторка «Подробнее» / «Все шаги» — тянуть вниз (элемент шторки пересоздаётся, поэтому слушаем слой)
+    const sh = (f) => (e) => { const box = e.target.closest?.('.st-sheet'); if (box && live?.[f]) live[f](e, box); };
+    lay.addEventListener('touchstart', sh('shStart'), { passive: true }); lay.addEventListener('touchmove', sh('shMove'), { passive: true });
+    lay.addEventListener('touchend', sh('shEnd'), { passive: true }); lay.addEventListener('touchcancel', sh('shEnd'), { passive: true });
     addEventListener('resize', () => live?.resize());
   }
 
   const api = {
-    stories: true, onStart, onEnd,
-    sheetOpen: () => sheet, sheetHide: hideSheet,
+    stories: true, onStart, onEnd, shStart, shMove, shEnd,
+    sheetOpen: () => sheet, sheetHide: () => { if (!leaving) hideSheet(); },   // своё закрытие (уезд вниз) не обрывать
     // текущий шаг для «шаг X из N» на Главной, в ленте и «Гид по игре» — где откроется «Продолжить» (guide.js setProg → sc)
     at(p) {
       const pa = PA().find((x) => x.id === p.path) || PA()[0] || {}, st = pa.st || [], o0 = (pa.req || H().req || []).length ? 1 : 0, k = p.k?.[pa.id || 'one'];

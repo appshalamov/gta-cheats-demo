@@ -377,7 +377,17 @@
 .st-sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; max-height: 86%; overflow: hidden auto; overscroll-behavior: contain;
   padding: 0 20px calc(var(--safe-b, 0px) + 24px); background: var(--bg-elev); border-radius: var(--r-sheet, 24px) var(--r-sheet, 24px) 0 0; box-shadow: var(--sh-overlay); }
 .st-scrim[hidden], .st-sheet[hidden] { display: none; }
-.st-sh-top { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; justify-content: space-between; margin: 0 -12px 0 0; padding-top: 4px; background: var(--bg-elev); }
+.st-sh-top { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; justify-content: space-between; margin: 0 -8px 0 0; padding-top: 14px; background: var(--bg-elev); }
+/* Игорь 28.11: детали выезжают снизу и уезжают вниз; ручка — видно, что тянется; «Свернуть ↓» словами */
+.st-grab { position: absolute; top: 6px; left: 50%; width: 36px; height: 5px; margin-left: -18px; border-radius: 3px; background: var(--text-3); opacity: .5; }
+.st-less { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 8px; border: 0; background: none; color: var(--text-2); font: var(--t-callout, 600 15px/1.2 inherit); }
+.st-dn svg { display: block; width: 18px; height: 18px; transform: rotate(90deg); }
+.st-sheet.is-in { animation: stShIn .24s cubic-bezier(.2,.8,.2,1); }
+.st-sheet.is-out { transform: translateY(100%); transition: transform .18s ease-in; }
+.st-scrim:not([hidden]) { animation: stScIn .2s ease-out; }
+@keyframes stShIn { from { transform: translateY(100%); } }
+@keyframes stScIn { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .st-sheet.is-in, .st-scrim:not([hidden]) { animation: none; } .st-sheet.is-out { transition: none; } }
 .st-sh-brand img { width: 22px; }
 .st-sh-brand b { font-size: 13px; } .st-sh-brand small { font-size: 11px; }
 .st-sh-in { padding-top: 4px; }

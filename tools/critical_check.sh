@@ -7,10 +7,14 @@ cd "$(dirname "$0")/.."
 REPO="$PWD"; SHA=$(git rev-parse HEAD)
 [ -n "$(git status --porcelain --untracked-files=no)" ] && { echo "СТОП: есть незакоммиченные правки — проверяется только коммит"; exit 1; }
 T="$REPO/../Тестирование 21.10"; OUT="$T/снимки/critical-$(git rev-parse --short HEAD)"; mkdir -p "$OUT"
-TESTS="critical_core,ref_link,cheat_platforms,onb_full,home_game_switch,map_pro,map_switch_chooser,place_card,paywall_conversion,try_free,offline,guide_hub,guide_spoilers,search_kw,guide_open_top,guide_double_tap"
+TESTS="critical_core,ref_link,cheat_platforms,onb_full,home_game_switch,map_pro,map_switch_chooser,place_card,paywall_conversion,try_free,offline,guide_hub,guide_spoilers,search_kw,guide_open_top,guide_double_tap,guide_details"
+touch "$OUT/.start"   # 28.11: проверка идёт по рабочей папке — правки во время прогона делают метку ложной
 cd "$T"
 heavy-run -p 2 -n "критичное $(git -C "$REPO" rev-parse --short HEAD)" -- ~/.video-venv/bin/python run_local.py "$REPO" "" "$OUT" "$TESTS" > "$OUT/log.txt" 2>&1 || true
 grep "^✅\|^❌\|ИТОГ" "$OUT/log.txt" | cut -c1-160
 if grep -q "^❌" "$OUT/log.txt" || ! grep -q "ИТОГ" "$OUT/log.txt"; then echo "КРИТИЧНОЕ НЕ ПРОШЛО — выкладывать нельзя ($OUT/log.txt)"; exit 1; fi
+CH=$(cd "$REPO" && find . -path ./.git -prune -o -type f -newer "$OUT/.start" -print | grep -v '^./.git' | head -5)
+if [ "$(git -C "$REPO" rev-parse HEAD)" != "$SHA" ] || [ -n "$(git -C "$REPO" status --porcelain --untracked-files=no)" ] || [ -n "$CH" ]; then
+  echo "СТОП: во время прогона менялись файлы или коммит ($CH) — метки нет, запустите заново"; exit 1; fi
 M="$(git -C "$REPO" rev-parse --git-common-dir)/critical_ok"; mkdir -p "$M"; date '+%F %T' > "$M/$SHA"
 echo "Критичное зелёное: метка для $SHA"
