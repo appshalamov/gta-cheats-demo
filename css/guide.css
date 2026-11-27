@@ -249,3 +249,18 @@
 /* «Дальше»: заголовок и подпись строки — столбиком (раньше подпись вставала колонкой рядом с заголовком) */
 .g-next .g-nxt { flex: 1 1 auto; min-width: 0; }
 .g-next .g-nxt b { display: block; }
+
+/* статус бага (27.11): зелёная точка + «работает, проверено <дата>» */
+.g-works { font-style: normal; color: var(--ok); white-space: nowrap; }
+.g-works i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); margin: 0 4px 1px 4px; vertical-align: middle; }
+
+/* домен на экранах (Игорь 27.11, навык domen-na-ekranah): по любому скрину видно, откуда он */
+.g-top { align-items: center; }
+.sb-dom { font-size: 13px; font-weight: 600; letter-spacing: .01em; color: var(--text-2, rgba(255,255,255,.62)); pointer-events: none; user-select: none; }
+.g-img, .g-cover { position: relative; }
+.sb-wm { position: absolute; right: 8px; bottom: 8px; z-index: 2; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.8);
+  text-shadow: 0 1px 3px rgba(0,0,0,.65); pointer-events: none; user-select: none; line-height: 1; }
+.g-img .sb-wm { bottom: auto; top: 8px; }
+.g-cover .sb-wm { right: auto; left: 10px; }   /* справа внизу — подпись © Rockstar Games */
+.g-vbox { position: relative; }
+.sb-wm-z { right: 50%; transform: translateX(50%); bottom: 14px; font-size: 13px; }

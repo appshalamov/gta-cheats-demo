@@ -515,7 +515,7 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
       return `<a class="mp-shot empty r mp-shot-360" href="${o.pano}" target="_blank" rel="noopener"><span class="mp-shot-ic">${IC.pano}</span><small>${esc(w('look'))}</small></a>`;
     if (!ph) return `<div class="mp-shot empty ${kind}"><span class="mp-shot-ic">${icon}</span><small>${esc(w('noPhoto'))}</small></div>`;
     const act = `data-mp="view" data-ref="${kind}:${key}" data-n="0" data-i="${o.i ?? ''}"`;
-    return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}"${frameAttr(ph)} alt="${esc(label)}" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span>${ph.ap ? `<span class="mp-approx" title="${esc(w('approxT'))}">${esc(w('approx'))}</span>` : ''}<span class="mp-shot-exp" aria-hidden="true">${IC.expand}</span></button>`;
+    return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}"${frameAttr(ph)} alt="${esc(label)}" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span>${ph.ap ? `<span class="mp-approx" title="${esc(w('approxT'))}">${esc(w('approx'))}</span>` : ''}<span class="mp-shot-exp" aria-hidden="true">${IC.expand}</span><span class="sb-wm" aria-hidden="true">sbgta.app</span></button>`;   // домен на фото карточки (Игорь 27.11)
   };
   const mid = `<span class="mp-vs">${o.egg ? IC.egg : IC.swap}</span>`;
   return `<div class="mp-media-box" data-key="${key}"><div class="mp-hero">${tile(cov[0], 'g')}${tile(cov[1], 'r')}${mid}</div>${all}</div>`;

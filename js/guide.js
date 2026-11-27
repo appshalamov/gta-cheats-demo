@@ -20,7 +20,7 @@ const S = {
     fin_car: 'Готово. Машина ваша.', fin: 'Готово. Всё получилось.', again: 'Начать заново',
     meta: '{n} шагов, около {m} минут', meta0: '{n} шагов', missable: 'Можно упустить навсегда', no_fix: 'Для этого шага частых ошибок нет. Посмотрите ролик или общий список.',
     en_only: 'Инструкция на английском', offline: 'Ролики работают с сетью',
-    up: 'Дальше', inLife: 'Это место в жизни', path_meta: '{n} шагов, около {m} минут', patch: 'могут закрыть патчем', quiet: 'Как заехать тихо', bugPart: 'Баг: сквозь дверь гаража',
+    up: 'Дальше', inLife: 'Это место в жизни', path_meta: '{n} шагов, около {m} минут', works: 'работает, проверено {d}', quiet: 'Как заехать тихо', bugPart: 'Баг: сквозь дверь гаража',
     questPart: 'Квест No Flusher', finPart: 'Гараж и регистрация', frame: 'кадр: {by}, YouTube', zoom: 'Открыть кадр',
     // Bugatti v2 (27.11): два способа, ролик пути, «Пока ждёте», «К шагу N», счётчик меток, ролик неудачи, кнопка геймпада
     ways: 'Два способа', always: 'Работает всегда', path_tm: '{n} шагов, {m} минут', whole_by: 'Весь путь в ролике {by}, {n} {u}',
@@ -38,7 +38,7 @@ const S = {
     fin_car: 'Done. The car is yours.', fin: 'Done. You made it.', again: 'Start over',
     meta: '{n} steps, about {m} min', meta0: '{n} steps', missable: 'Missable', no_fix: 'No common mistakes for this step. Watch the video or the full list.',
     en_only: 'Guide in English', offline: 'Videos need a connection',
-    up: 'Next', inLife: 'This place in real life', path_meta: '{n} steps, about {m} min', patch: 'may be patched out', quiet: 'Get in quietly', bugPart: 'Bug: through the garage door',
+    up: 'Next', inLife: 'This place in real life', path_meta: '{n} steps, about {m} min', works: 'works, checked {d}', quiet: 'Get in quietly', bugPart: 'Bug: through the garage door',
     questPart: 'No Flusher quest', finPart: 'Garage and registration', frame: 'frame: {by}, YouTube', zoom: 'Open frame',
     ways: 'Two ways', always: 'Always works', path_tm: '{n} steps, {m} min', whole_by: 'Watch the whole route by {by}, {n} {u}',
     min1: 'min', min2: 'min', min5: 'min', wait: 'While you wait, or for a break', back_to: 'Back to step {n}',
@@ -103,7 +103,7 @@ function figHTML(x) {
   const src = esc(C.imgUrl(x.img.f)), cap = x.img.cap ? plain(x.img.cap) : '';
   const fc = x.img.cap ? `<figcaption><b>${esc(s('ring', { c: cap }))}</b>${x.img.by ? ` ${esc(s('frame2', { by: x.img.by }))}` : ''}</figcaption>`
     : x.img.by ? `<figcaption>${esc(s('frame', { by: x.img.by }))}</figcaption>` : '';
-  return `<figure class="g-img${x.hd ? ' g-img-w' : ''}"><button data-g="zoom" data-src="${src}" data-alt="${esc(cap)}" aria-label="${esc(s('zoom'))}"><img src="${src}" alt="${esc(cap)}" loading="lazy" decoding="async"></button>${fc}</figure>`;
+  return `<figure class="g-img${x.hd ? ' g-img-w' : ''}"><button data-g="zoom" data-src="${src}" data-alt="${esc(cap)}" aria-label="${esc(s('zoom'))}"><img src="${src}" alt="${esc(cap)}" loading="lazy" decoding="async"></button><span class="sb-wm" aria-hidden="true">sbgta.app</span>${fc}</figure>`;
 }
 function stepHTML(x, i, p, open) {
   const I = C.I, done = p.d.includes(x.id), n = i + 1;
@@ -129,12 +129,12 @@ function stepHTML(x, i, p, open) {
   </div>${ck}</li>`;
 }
 // два способа (решение 09, Bugatti v2): подзаголовок «Два способа», кружок-переключатель, мета «N шагов, M минут»;
-// у бага — янтарное «могут закрыть патчем» в мете и строка проверки под путями (без повтора про патч)
+// у бага — зелёный статус «работает, проверено <дата>» (поле ok у пути; Игорь 27.11: про патч не писать)
 function pathsHTML(h, cur) {
   const anyBug = h.pa.some((x) => x.bug);
   return `<h2 class="g-ways">${esc(s('ways'))}</h2><div class="g-paths">${h.pa.map((x) => `<button class="g-path${x.id === cur.id ? ' on' : ''}" data-g="path" data-v="${esc(x.id)}" aria-pressed="${x.id === cur.id}">
-    <i class="g-radio" aria-hidden="true"></i><span class="g-pt"><b>${esc(tx(x.t))}</b><span>${esc(x.tm ? s('path_tm', { n: x.st.length, m: x.tm }) : x.min ? s('path_meta', { n: x.st.length, m: x.min }) : s('meta0', { n: x.st.length }))}${x.bug ? `, <em>${esc(s('patch'))}</em>` : anyBug ? `. ${esc(s('always'))}` : ''}</span></span></button>`).join('')}</div>
-    ${cur.bug && cur.nt ? `<p class="g-miss">${C.I.alert}<span>${esc(tx(cur.nt))}</span></p>` : ''}`;
+    <i class="g-radio" aria-hidden="true"></i><span class="g-pt"><b>${esc(tx(x.t))}</b><span>${esc(x.tm ? s('path_tm', { n: x.st.length, m: x.tm }) : x.min ? s('path_meta', { n: x.st.length, m: x.min }) : s('meta0', { n: x.st.length }))}${x.bug ? ` <em class="g-works"><i aria-hidden="true"></i>${esc(s('works', { d: C.date(x.ok || '2026-11-26') }))}</em>` : anyBug ? `. ${esc(s('always'))}` : ''}</span></span></button>`).join('')}</div>
+    `;   // Игорь 27.11: про патч не пишем — у бага статус «работает, проверено <дата>»
 }
 // заголовок части листа: «Как заехать тихо» → «Баг» / «Квест» → «Гараж и регистрация»
 function partHTML(path, st, i) {
@@ -175,8 +175,9 @@ function render() {
   const enOnly = !['ru', 'en'].includes(C.lang) && !st[0].t[C.lang];
   layer.innerHTML = `<div class="g-scroll" id="g-scroll">
     <header class="g-top"><button class="g-ib" data-g="close" aria-label="${esc(s('close'))}">${I.chevron}</button>
+      <span class="sb-dom" aria-hidden="true">sbgta.app</span>
       <button class="g-ib" data-g="share" aria-label="${esc(s('share'))}">${I.share}</button></header>
-    ${O.cv ? `<figure class="g-cover"><img src="${esc(C.imgUrl(O.cv.f))}" alt="" decoding="async" fetchpriority="high">${O.cv.by ? `<figcaption>${esc(O.cv.by)}</figcaption>` : ''}</figure>` : ''}
+    ${O.cv ? `<figure class="g-cover"><img src="${esc(C.imgUrl(O.cv.f))}" alt="" decoding="async" fetchpriority="high"><span class="sb-wm" aria-hidden="true">sbgta.app</span>${O.cv.by ? `<figcaption>${esc(O.cv.by)}</figcaption>` : ''}</figure>` : ''}
     <h1 class="g-h1">${esc(tx(h.ta) || tx(O.t))}</h1>
     ${h.rw ? `<p class="g-rw">${esc(tx(h.rw))}</p>` : ''}
     ${path.sm ? `<p class="g-sm">${esc(tx(path.sm))}</p>` : ''}
@@ -190,7 +191,7 @@ function render() {
       + stepHTML(x, i, p, (started && i === ci) || p.o === i)).join('')}</ol>
     ${ci >= st.length ? `<p class="g-fin">${I.check}<span>${esc(O.k === 'vehicle' ? s('fin_car') : s('fin'))}</span></p>` : ''}
     ${nextHTML(ci >= st.length)}
-    ${path.ret ? `<p class="g-ret">${esc(tx(path.ret))}</p>` : ''}
+    ${path.ret && !path.bug ? `<p class="g-ret">${esc(tx(path.ret))}</p>` : ''}
     ${C.after?.(O) || ''}
     <section class="g-sec g-foot">
       ${h.alt && free() ? `<details class="g-alt"><summary>${esc(s('alt'))}</summary><p>${esc(tx(h.alt.t))}</p>${h.alt.nt ? `<p class="g-note">${esc(tx(h.alt.nt))}</p>` : ''}
@@ -261,7 +262,7 @@ function onClick(e) {
     case 'open': p.o = p.o === i ? undefined : i; setProg(p); rerender(); break;
     case 'tocur': delete p.o; setProg(p); rerender(); toStep(cur(p)); break;
     case 'path': if (p.path !== b.dataset.v) { C.haptic(); p.path = b.dataset.v; delete p.o; setProg(p); rerender(); C.event?.('guide_path', { id: O.id, path: p.path }); } break;
-    case 'zoom': { const v = layer.querySelector('#g-video'); v.innerHTML = `<div class="g-vbox"><button class="g-ib g-vx" data-g="vclose" aria-label="${esc(s('close'))}">${C.I.close}</button><img class="g-zoom" src="${esc(b.dataset.src)}" alt="${esc(b.dataset.alt || '')}"></div>`; v.hidden = false; break; }
+    case 'zoom': { const v = layer.querySelector('#g-video'); v.innerHTML = `<div class="g-vbox"><button class="g-ib g-vx" data-g="vclose" aria-label="${esc(s('close'))}">${C.I.close}</button><img class="g-zoom" src="${esc(b.dataset.src)}" alt="${esc(b.dataset.alt || '')}"><span class="sb-wm sb-wm-z" aria-hidden="true">sbgta.app</span></div>`; v.hidden = false; break; }
     case 'tag': {
       const x = st[i], k = +b.dataset.k, got = new Set(p.t[x.id] || []);
       got.has(k) ? got.delete(k) : got.add(k); p.t[x.id] = [...got]; C.haptic();
