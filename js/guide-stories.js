@@ -374,7 +374,9 @@ export function view(A) {
     stop() { touch = null; sheet = false; note = ''; if (live === api) live = null; },
     click(a, b, i, ev) {
       // метка меняет только кружок — у неё своё окно, чтобы «метка → Сделано» подряд работало; остальные касания меняют экран — общее окно
-      if (DEB.has(a)) { const now = Date.now(); if (now - last0 < 350 || (a === 'tag' && now - lastTag < 350)) return true; if (a === 'tag') lastTag = now; else last0 = now; }
+      // «Свернуть» не глушится окном 350 мс (Игорь 28.11: открыл «Подробнее» и сразу закрыл — должно закрыться), но окно ставит:
+      // второй тап того же касания не листает карточку под уехавшей шторкой
+      if (DEB.has(a)) { const now = Date.now(); if (a !== 'sless' && (now - last0 < 350 || (a === 'tag' && now - lastTag < 350))) return true; if (a === 'tag') lastTag = now; else last0 = now; }
       switch (a) {
         case 'path': if (mode === 'cover') { switchWay(b.dataset.v); return true; } return false;
         case 'sgo': begin(); C.haptic(); go(kEff()); return true;
