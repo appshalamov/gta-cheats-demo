@@ -448,6 +448,10 @@
      "tr": {
       "ru": "В миссии, погоне и бою пункт серый — сначала закончите или выйдите.",
       "en": "During a mission, chase or fight it's greyed out — finish or leave first."
+     },
+     "hd": {
+      "ru": "Сохранитесь из меню паузы",
+      "en": "Save from the pause menu"
      }
     },
     {
@@ -463,6 +467,10 @@
      "tr": {
       "ru": "Автосохранение — отдельный слот и перезаписывается само. Это не копия.",
       "en": "The autosave is a separate slot and overwrites itself. It's not a backup."
+     },
+     "hd": {
+      "ru": "Важная миссия — новый слот",
+      "en": "Key mission? Use a new slot"
      }
     },
     {
@@ -478,6 +486,10 @@
      "tr": {
       "ru": "Нужна подписка PS Plus. Синхронизация идёт, когда вы закрываете игру или консоль уходит в режим покоя.",
       "en": "Needs PS Plus. Syncing happens when you close the game or the console goes to rest mode."
+     },
+     "hd": {
+      "ru": "Включите облако PS Plus",
+      "en": "Turn on PS Plus cloud sync"
      }
     },
     {
@@ -489,6 +501,10 @@
      "ok": {
       "ru": "в облаке сохранение с сегодняшней датой",
       "en": "the cloud save shows today's date"
+     },
+     "hd": {
+      "ru": "Перед финалом — в облако вручную",
+      "en": "Upload to the cloud before the end"
      }
     },
     {
@@ -500,6 +516,10 @@
      "tr": {
       "ru": "Загрузка старого слота заменяет автосохранение.",
       "en": "Loading an old slot replaces the autosave."
+     },
+     "hd": {
+      "ru": "Сначала сохраните текущую игру",
+      "en": "Save your current game first"
      }
     },
     {
@@ -511,6 +531,10 @@
      "tr": {
       "ru": "Восстановление из полной копии стирает всё на консоли.",
       "en": "Restoring a full backup erases everything on the console."
+     },
+     "hd": {
+      "ru": "Нет PS Plus — 2–3 слота",
+      "en": "No PS Plus? Keep 2–3 slots"
      }
     }
    ],
@@ -557,6 +581,10 @@
      "tr": {
       "ru": "В миссии, погоне и бою пункт серый — сначала закончите или выйдите.",
       "en": "During a mission, chase or fight it's greyed out — finish or leave first."
+     },
+     "hd": {
+      "ru": "Сохранитесь из меню паузы",
+      "en": "Save from the pause menu"
      }
     },
     {
@@ -572,6 +600,10 @@
      "tr": {
       "ru": "Автосохранение — отдельный слот и перезаписывается само. Это не копия.",
       "en": "The autosave is a separate slot and overwrites itself. It's not a backup."
+     },
+     "hd": {
+      "ru": "Важная миссия — новый слот",
+      "en": "Key mission? Use a new slot"
      }
     },
     {
@@ -587,6 +619,10 @@
      "tr": {
       "ru": "Game Pass Ultimate для облачных сохранений не нужен.",
       "en": "You don't need Game Pass Ultimate for cloud saves."
+     },
+     "hd": {
+      "ru": "Выходите из игры онлайн",
+      "en": "Quit the game while online"
      }
     },
     {
@@ -598,6 +634,10 @@
      "tr": {
       "ru": "Загрузка старого слота заменяет автосохранение.",
       "en": "Loading an old slot replaces the autosave."
+     },
+     "hd": {
+      "ru": "Сначала сохраните текущую игру",
+      "en": "Save your current game first"
      }
     },
     {
@@ -609,6 +649,10 @@
      "tr": {
       "ru": "Сначала дайте второй консоли закончить синхронизацию.",
       "en": "Let the other console finish syncing first."
+     },
+     "hd": {
+      "ru": "Конфликт версий — поздняя дата",
+      "en": "Version clash? Pick the later date"
      }
     },
     {
@@ -620,6 +664,10 @@
      "tr": {
       "ru": "«Удалить везде» стирает и облачную копию.",
       "en": "Delete everywhere wipes the cloud copy too."
+     },
+     "hd": {
+      "ru": "Не жмите «Удалить всё»",
+      "en": "Never press Delete all"
      }
     }
    ],
@@ -657,6 +705,10 @@
      "tr": {
       "ru": "Не сохраняйтесь поверх основного слота после ввода кода.",
       "en": "Don't save over your main slot after using a cheat."
+     },
+     "hd": {
+      "ru": "Сохранитесь в новый слот",
+      "en": "Save to a new slot"
      }
     },
     {
@@ -668,6 +720,10 @@
      "tr": {
       "ru": "Если сохранение не даёт записать — значит, код отключил его до перезагрузки.",
       "en": "If the game won't let you save, the cheat has turned saving off until you reload."
+     },
+     "hd": {
+      "ru": "Вводите код в этой копии",
+      "en": "Enter the cheat on this copy"
      }
     },
     {
@@ -679,6 +735,10 @@
      "ok": {
       "ru": "трофеи снова выдаются",
       "en": "trophies unlock again"
+     },
+     "hd": {
+      "ru": "Трофеи — из слота без кодов",
+      "en": "Trophies: use the cheat-free slot"
      }
     }
    ],

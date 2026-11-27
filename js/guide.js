@@ -172,7 +172,8 @@ function partHTML(path, st, i) {
 // Bugatti v2: «Дальше» всегда в конце списка — до финала с заголовком «Пока ждёте или если надоело» (серии без тупиков)
 function nextHTML(fin = true) {
   const rec = recByKey(O.game || 'gta6', `guide:${O.game || 'gta6'}:${O.id}`);
-  const rows = (rec ? nextFor(rec, O.game || 'gta6') : []).filter((r) => !C.canOpen || C.canOpen(r.k) || /^(place|egg):/.test(r.k));
+  // O.nx — свои строки «Дальше» у инструкций без записи в указателе (сохранения: решение Fable 28.11, таблица «Дальше»)
+  const rows = (O.nx || (rec ? nextFor(rec, O.game || 'gta6') : [])).filter((r) => !C.canOpen || C.canOpen(r.k) || /^(place|egg):/.test(r.k));
   if (!rows.length) return '';
   return `<section class="g-sec g-next"><h2>${esc(s(fin ? 'up' : 'wait'))}</h2>${rows.map((r) => `<button class="g-nx" data-g="go" data-k="${esc(r.k)}"><span class="g-nxt"><b>${esc(r.t ? tx(r.t) : s('inLife'))}</b>${r.sub ? `<small>${esc(tx(r.sub))}</small>` : !r.t && O.p && r.k.endsWith(`:${O.id}`) ? `<small>${esc(String(O.p).split(',').slice(0, 2).join(','))}</small>` : ''}</span>${C.I.chevron}</button>`).join('')}</section>`;
 }

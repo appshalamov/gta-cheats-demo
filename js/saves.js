@@ -41,6 +41,7 @@ const S = {
   },
 };
 const GP = 'sb.gp', GS = 'sb.gs', DAY = 864e5;
+import { COVERS, topHTML, coverHTML, bindTop } from './hub-cover.js';   // обложка хаба и марка (решение Fable 28.11)
 let C = null, D = null, layer = null, langK = 'ru', core = null;
 const coreP = import('./guide-core.js').then((m) => (core = m)).catch(() => null);
 
@@ -125,11 +126,21 @@ export async function savesFor(game, missionId) {
     req: r.items.map((w) => ({ t: w.t })), items: r.items, k: r.k };
 }
 // объекты «По шагам» для «Как сохраняться» и «перед кодом» — для openKey и указателя
+const SV_NX = {   // «Дальше» (решение Fable 28.11): как сохраняться → Прохождение → Концовки; перед кодом → точки невозврата → Прохождение
+  how: [{ k: 'walk:gta6', t: { ru: 'Прохождение: что сейчас важно', en: 'Walkthrough: what matters now' }, sub: { ru: 'Дела до следующей миссии', en: 'Things to do before the next mission' } },
+    { k: 'endings:gta6', t: { ru: 'Концовки: сохранитесь до выбора', en: 'Endings: save before the choice' }, sub: { ru: 'Какие выборы меняют финал', en: 'Which choices change the finale' } }],
+  code: [{ k: 'saves:gta6:all', t: { ru: 'Все точки невозврата', en: 'All points of no return' }, sub: { ru: 'Что закрывается навсегда', en: 'What closes forever' } },
+    { k: 'walk:gta6', t: { ru: 'Прохождение: что сейчас важно', en: 'Walkthrough: what matters now' }, sub: { ru: 'Дела до следующей миссии', en: 'Things to do before the next mission' } }],
+};
+const SV_FIN = { ru: 'Готово. Прогресс под защитой', en: 'Done. Your progress is safe' };
 export async function howObj(game, which) {
   const x = await load(game); if (!x) return null;
   const h = x.d.save[which]; if (!h) return null;
   // st — статус источников для общей строки доверия (4 состояния, guide.js у eggs-community); пока guide.js его не знает, «спорят» сказано в rw
-  return { id: `saves-${which}`, game, k: 'reference', t: h.ta, st: h.ix?.st || 'ok', free: true, sn: [...new Set((h.src || []).map(srcName))], how: { ta: h.ta, rw: h.rw, min: h.min, st: h.st } };
+  // сторис (решение Fable 28.11): обложка хаба, затемнённая на карточках; короткие заголовки шагов hd ≤ 34 — в saves.json
+  return { id: `saves-${which}`, game, k: 'reference', t: h.ta, st: h.ix?.st || 'ok', free: true, sn: [...new Set((h.src || []).map(srcName))], cv: COVERS.saves,
+    nx: SV_NX[which === 'code' ? 'code' : 'how'],
+    how: { vw: 'stories', ta: h.ta, rw: h.rw, sb: { ru: `Шагов: ${h.st.length}, около ${h.min} мин`, en: `${h.st.length} steps, about ${h.min} min` }, min: h.min, st: h.st, fin: SV_FIN } };
 }
 
 // ── экран ──
@@ -172,8 +183,7 @@ function render() {
   ].filter(Boolean).slice(0, 3);
   const canPick = !!(window.SB?.pickPos || window.SB?.openWalk);
   layer.innerHTML = `<div class="g-scroll" id="sv-scroll">
-    <header class="g-top"><button class="g-ib" data-s="close" aria-label="${esc(s('close'))}">${I.chevron}</button>
-      <button class="g-ib" data-s="share" aria-label="${esc(s('share'))}">${I.share}</button></header>
+    ${topHTML(`<button class="g-ib" data-s="close" aria-label="${esc(s('close'))}">${I.chevron}</button>`, `<button class="g-ib" data-s="share" aria-label="${esc(s('share'))}">${I.share}</button>`)}${coverHTML('saves', esc)}
     <h1 class="g-h1">${esc(s('title'))}</h1>
     <p class="g-rw">${esc(s('lead'))}</p>
 
@@ -207,7 +217,7 @@ function render() {
   </div>
   <footer class="g-bar"><button class="g-main" data-s="how" data-v="${plat()}">${esc(s('how_btn', { p: platName() }))}</button></footer>`;
 }
-function rerender() { const y = layer.querySelector('#sv-scroll')?.scrollTop || 0; render(); layer.querySelector('#sv-scroll').scrollTop = y; }
+function rerender() { const y = layer.querySelector('#sv-scroll')?.scrollTop || 0; render(); layer.querySelector('#sv-scroll').scrollTop = y; bindTop(layer); }
 
 async function onClick(e) {
   const b = e.target.closest('[data-s]'); if (!b || !layer.contains(b)) return;
@@ -235,7 +245,7 @@ export async function openSaves(ctx, key = 'all') {
     layer = document.createElement('div'); layer.id = 'saves'; layer.setAttribute('role', 'dialog'); layer.setAttribute('aria-modal', 'true');
     document.body.appendChild(layer); layer.addEventListener('click', onClick);
   }
-  render();
+  render(); bindTop(layer);
   requestAnimationFrame(() => layer.classList.add('open'));
   document.documentElement.classList.add('guide-open');
   history.pushState({ saves: 1 }, '');
