@@ -424,7 +424,7 @@ function placeCard(o, opt = {}) {
   return `<div class="pcard${hasGuide(o) ? ' has-how' : ''}" data-action="${hasGuide(o) ? 'open-guide' : 'open-place'}" data-key="${esc(key)}" role="button" tabindex="0">
     ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pc-ph">${o.kind === 'egg' ? I.egg : I[catIcon(o.c)]}</span>`}
     <span class="pc-grad"></span>
-    <span class="pc-tags">${isNew(o) ? `<i class="tag-new">${t('news_new')}</i>` : ''}${o.kind === 'egg' ? `<i class="tag-egg">${t('map_egg')}</i>` : `<i class="conf conf-${o.cf}">${t('conf_' + o.cf)}</i>`}${opt.game ? `<i class="tag-game">${GAMES.find((g) => g.id === o.game)?.title || ''}</i>` : ''}</span>
+    <span class="pc-tags">${isNew(o) && !(hasGuide(o) && guideDone(o) >= 0) ? `<i class="tag-new">${t('news_new')}</i>` : ''}${o.kind === 'egg' ? `<i class="tag-egg">${t('map_egg')}</i>` : `<i class="conf conf-${o.cf}">${t('conf_' + o.cf)}</i>`}${opt.game ? `<i class="tag-game">${GAMES.find((g) => g.id === o.game)?.title || ''}</i>` : ''}</span>
     <button class="pc-fav${fav ? ' on' : ''}" data-action="fav-place" data-key="${esc(key)}" aria-label="${esc(t('save'))}">${fav ? I.heartFill : I.heart}</button>
     <span class="pc-txt"><b>${esc(hasGuide(o) ? guideTitle(o) : realName(o))}</b>${hasGuide(o) ? `<small>${esc(guideMeta(o))}</small>` : o.kind === 'egg' ? (realSub(o) ? `<small>${esc(realSub(o))}</small>` : '') : `<small>${I.pin}${esc(cityOf(o) || realSub(o))}</small>`}</span>
   </div>`;
@@ -455,8 +455,9 @@ function newsRow(n) {
 const hasGuide = (o) => !!o?.how?.st?.length;
 // шаги выбранного пути (квест / баг) — один расчёт «шаг X из N» для ленты, поиска и Главной (Bugatti v2, Е1)
 const pathSt = (o, p) => ((o.how?.pa || []).find((x) => x.id === p?.path) || (o.how?.pa || [])[0] || o.how || {}).st || [];
-function guideDone(o) {   // сколько шагов выбранного пути пройдено (прогресс на телефоне, sb.gd); -1 — не начинали
-  try { const p = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${o.game}:${o.id}`]; if (!p) return -1; return pathSt(o, p).filter((x) => (p.d || []).includes(x.id)).length; } catch { return -1; }
+function guideDone(o) {   // индекс текущего шага выбранного пути (первый не пройденный, как в самой инструкции; sb.gd); -1 — не начинали
+  // QA 27.11: раньше — число отметок: после смены пути или шага, отмеченного не по порядку, карточка писала «шаг 6 из 13», а инструкция — «шаг 1»
+  try { const p = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${o.game}:${o.id}`]; if (!p || (!p.s && !(p.d || []).length)) return -1; const st = pathSt(o, p), i = st.findIndex((x) => !(p.d || []).includes(x.id)); return i < 0 ? st.length : i; } catch { return -1; }
 }
 function guideMeta(o) {
   let path = ''; try { path = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${o.game}:${o.id}`]?.path || ''; } catch { }
@@ -487,7 +488,8 @@ function guideCtx(g, from, linked, shareKey, onClose) {
     paywall: () => openPaywall(mapPw()),
     share: (x) => shareText(`${guideTitle(x)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=${shareKey(x)}`),
     event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
-    onClose: onClose || (() => { if (ui.tab === 'feed') renderFeed(); else if (ui.tab === 'home') renderHub(); }),
+    // QA 27.11: строка «Гид по игре → Продолжить: …, шаг N» кешировалась и после шагов в инструкции показывала старый номер — пересчитать
+    onClose: onClose || (() => { if (ui.tab === 'feed') renderFeed(); else if (ui.tab === 'home') renderHub(); fillGuideSec(); }),
     after: (x) => (typeof cnShootHTML === 'function' ? cnShootHTML(`guide:${g}:${x.id}`) : ''),   // «Снять про это» — только автору с рефкодом, в демо-режиме partner (guide-creators)
   };
 }
@@ -780,7 +782,7 @@ async function fillGuideSec() {
   } catch { gReady[g] = { html: '' }; }
   const box = document.getElementById('gh-sec'); if (box && g === store.game) box.innerHTML = gReady[g].html;
 }
-const gdDone = (rec) => { try { const [, g, id] = rec.k.split(':'); const v = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${g}:${id}`]; return v && (v.s || (v.d || []).length) ? (v.d || []).length : -1; } catch { return -1; } };
+const gdDone = (rec) => { try { const [, g, id] = rec.k.split(':'); const v = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${g}:${id}`]; return v && (v.s || (v.d || []).length) ? gcore.stepAt(rec, v) : -1; } catch { return -1; } };   // текущий шаг, как в инструкции (QA 27.11)
 async function openGuideToc() {
   const m = await ghubMod(); await m.ready(store.game);
   openSheet(m.tocHTML(store.game, getLang(), esc, I, gdDone), 'gh-toc-sheet');

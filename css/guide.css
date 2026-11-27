@@ -46,9 +46,9 @@
 .g-ck { flex: none; align-self: flex-start; margin-top: 6px; color: var(--ok); }   /* пройденный шаг: номер остаётся, галочка справа */
 .g-ck svg { width: 14px; height: 14px; display: block; }
 .g-step.is-lock { opacity: .55; }
-.g-step.is-cur { cursor: default; padding: 16px 0 18px; }
+.g-step:is(.is-cur, .is-open) { cursor: default; padding: 16px 0 18px; }   /* is-open — раскрыт вдобавок к текущему (QA 27.11) */
 .g-step.is-cur .g-num { color: var(--accent-ink); background: var(--accent); border-radius: 50%; }
-.g-step.is-cur .g-t { display: block; -webkit-line-clamp: unset; font-size: 19px; line-height: 1.38; font-weight: 700; color: var(--text); margin-top: 1px; }
+.g-step:is(.is-cur, .is-open) .g-t { display: block; -webkit-line-clamp: unset; font-size: 19px; line-height: 1.38; font-weight: 700; color: var(--text); margin-top: 1px; }
 .g-body { flex: 1 1 auto; min-width: 0; }
 .g-big { margin: 12px 0 2px; font: 800 44px/1 var(--font-num); letter-spacing: .06em; color: var(--text); user-select: all; -webkit-user-select: all; }
 .g-big-t { font-size: 30px; letter-spacing: -.01em; }
@@ -109,7 +109,7 @@
 .g-vx { position: absolute; top: calc(var(--safe-t, 0px) + 8px); right: 8px; color: #fff; }
 .g-vf { position: relative; width: 100%; aspect-ratio: 16 / 9; }
 .g-vf iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.g-video[hidden], .g-sheet[hidden] { display: none; }   /* display: flex отменял hidden — слой ролика закрывал экран (26.11) */
+.g-video[hidden], .g-sheet[hidden], .g-dim[hidden] { display: none; }   /* display: flex отменял hidden — слой ролика закрывал экран (26.11) */
 
 /* ── вид «настройки» (js/guide.js renderSet, js/guide-menu.js): шаг = пункт меню, справа крупное значение;
    в раскрытом шаге путь по меню — строки «схема экрана + кнопка + действие». Схема рисуется из данных, не картинка. ── */
@@ -238,14 +238,15 @@
 .g-tsub { margin: 0 0 6px; font: var(--t-callout); color: var(--text-2); }
 .g-ret { margin: 12px 0 0; font: var(--t-caption); color: var(--text-2); }
 /* кадр во всю ширину экрана в раскрытом шаге: влево на колонку номера (20 + 28 + 14), вправо на поле 20 */
-.g-step.is-cur .g-img-w { margin: 14px -20px 2px -62px; }
-.g-step.is-cur .g-img-w button { border-radius: 0; }
-.g-step.is-cur .g-img-w figcaption { padding: 0 20px; }
+.g-step:is(.is-cur, .is-open) .g-img-w { margin: 14px -20px 2px -62px; }
+.g-step:is(.is-cur, .is-open) .g-img-w button { border-radius: 0; }
+.g-step:is(.is-cur, .is-open) .g-img-w figcaption { padding: 0 20px; }
 .g-img figcaption b { color: var(--text); font-weight: 700; }
 /* {enter} — значок кнопки геймпада в строке текста */
-.g-step .k { width: 24px; height: 24px; min-width: 24px; margin: 0 1px; vertical-align: -6px; font-size: 11px; }
-.g-step .k svg { width: 15px; height: 15px; }
-.g-step .k-xb span { font-size: 13px; }
+/* QA 27.11: только в шагах инструкции — в «Настроить вождение» (gs-step) правило сжимало значки-слова OPTIONS, MENU до 24 px и они наезжали на текст */
+.g-step:not(.gs-step) .k { width: 24px; height: 24px; min-width: 24px; margin: 0 1px; vertical-align: -6px; font-size: 11px; }
+.g-step:not(.gs-step) .k svg { width: 15px; height: 15px; }
+.g-step:not(.gs-step) .k-xb span { font-size: 13px; }
 /* «Дальше»: заголовок и подпись строки — столбиком (раньше подпись вставала колонкой рядом с заголовком) */
 .g-next .g-nxt { flex: 1 1 auto; min-width: 0; }
 .g-next .g-nxt b { display: block; }
@@ -268,7 +269,7 @@
 .g-top-over:not(.solid) .sb-brand small { color: rgba(255,255,255,.82); }
 .g-top-over:not(.solid) .g-ib { background: rgba(0,0,0,.28); }
 .g-top-over + .g-cover { margin-top: calc(-1 * (var(--safe-t, 0px) + 56px)); }
-.g-img, .g-cover { position: relative; }
+.g-img, .g-cover { position: relative; isolation: isolate; }   /* QA 27.11: «sbgta.app» на обложке и кадрах (z-index 2) рисовался поверх сплошной шапки и наезжал на «назад» */
 .sb-wm { position: absolute; right: 8px; bottom: 8px; z-index: 2; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.8);
   text-shadow: 0 1px 3px rgba(0,0,0,.65); pointer-events: none; user-select: none; line-height: 1; }
 .g-img .sb-wm { bottom: auto; top: 8px; }
@@ -282,4 +283,18 @@
 .g-step { position: relative; }
 .g-fold { position: absolute; right: 0; top: 2px; width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; color: var(--text-2); z-index: 1; }
 .g-fold svg { width: 20px; height: 20px; transform: rotate(-90deg); }
-.g-step:has(.g-fold) .g-body > .g-t { padding-right: 40px; }
+.g-step:has(.g-fold) .g-body > :is(.g-t, .g-hd) { padding-right: 40px; }   /* QA 27.11: длинный заголовок шага (hd) уходил под «свернуть» на 375 pt */
+
+/* QA 27.11 (06 Bugatti — тестирование): затемнение под «Не получается» — тап мимо шторки закрывает её; под шторкой ничего не нажимается */
+.g-dim { position: absolute; inset: 0; z-index: 3; background: rgba(0,0,0,.42); }
+.g-sheet { z-index: 4; }
+.g-tags li small.g-tauto { display: inline-block; color: var(--ok); }   /* inline-block: зачёркивание отмеченной строки на подпись не переходит */
+.g-tc[aria-disabled="true"] { cursor: default; }
+/* поворот телефона: обложка и кадры не занимают весь экран (было: в ландшафте видно только обложку), поля под вырез экрана, колонка текста по центру */
+@media (orientation: landscape) and (max-height: 560px) {
+  .g-scroll { padding-left: max(20px, env(safe-area-inset-left), calc((100% - 640px) / 2)); padding-right: max(20px, env(safe-area-inset-right), calc((100% - 640px) / 2)); }
+  .g-cover { aspect-ratio: auto; height: min(52vh, 240px); }
+  .g-img button { aspect-ratio: auto; height: min(56vh, 240px); }
+  .g-img img { object-fit: contain; background: #000; }
+  .g-bar { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+}

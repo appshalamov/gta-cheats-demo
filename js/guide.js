@@ -26,7 +26,7 @@ const S = {
     ways: 'Два способа', always: 'Работает всегда', path_tm: '{n} шагов, {m} минут', whole_by: 'Весь путь в ролике {by}, {n} {u}',
     min1: 'минуту', min2: 'минуты', min5: 'минут', wait: 'Пока ждёте или если надоело', back_to: 'К шагу {n}', resume: 'Продолжить: шаг {n}', fold: 'Свернуть шаг', unfold: 'Раскрыть шаг',
     tags_any: 'В игре их {of}, нужно любые {need}', tags_done: '{a} из {a}. {next}', fail_v: 'Как выглядит неудача — ролик с {t}',
-    ring: 'Кольцо: {c}.', frame2: 'Кадр: {by}, YouTube', or: 'или',
+    ring: 'Кольцо: {c}.', frame2: 'Кадр: {by}, YouTube', or: 'или', tag_auto: 'Отсканирована на шаге\u00a0{n}',
   },
   en: {
     close: 'Close', share: 'Share', whole: 'Watch the whole route, {n} min', whole0: 'Watch the whole route', before: 'Before you go',
@@ -43,13 +43,13 @@ const S = {
     ways: 'Two ways', always: 'Always works', path_tm: '{n} steps, {m} min', whole_by: 'Watch the whole route by {by}, {n} {u}',
     min1: 'min', min2: 'min', min5: 'min', wait: 'While you wait, or for a break', back_to: 'Back to step {n}', resume: 'Continue: step {n}', fold: 'Collapse step', unfold: 'Expand step',
     tags_any: 'There are {of}, any {need} will do', tags_done: '{a} of {a}. {next}', fail_v: 'What a fail looks like — video from {t}',
-    ring: 'Ring: {c}.', frame2: 'Frame: {by}, YouTube', or: 'or',
+    ring: 'Ring: {c}.', frame2: 'Frame: {by}, YouTube', or: 'or', tag_auto: 'Scanned in step\u00a0{n}',
   },
 };
 const KEY = 'sb.gd', FIRST = 'sb.gd1';
 let C = null, O = null, layer = null, lock = null, stuckAll = false;
 // Игорь 27.11: шаги раскрываются по тапу и не закрывают уже открытые (несколько сразу); набор живёт, пока лист открыт
-let openSet = new Set(), barAway = false, lastMain = 0;
+let openSet = new Set(), barAway = false, lastMain = 0, lastLay = 0;
 let V = null;   // вид листа не «шаги» (settings) — свой модуль guide-set.js
 
 const s = (k, v = {}) => {
@@ -77,9 +77,13 @@ const ruMin = (n) => { const a = n % 10, b = n % 100; return s(a === 1 && b !== 
 export const pathSt = (o, p) => ((o.how?.pa || []).find((x) => x.id === p?.path) || (o.how?.pa || [])[0] || o.how || {}).st || [];
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
 function prog() { const p = read()[kOf(O)] || {}; return { d: p.d || [], t: p.t || {}, s: p.s || 0, o: p.o, path: p.path }; }
-function setProg(p) { try { const all = read(); all[kOf(O)] = { ...p, at: Date.now() }; localStorage.setItem(KEY, JSON.stringify(all)); } catch { } }
-// для строк ленты и шторки на карте: сколько шагов пройдено (0 — не начато)
-export function progressOf(o) { const p = read()[kOf(o)]; return p ? pathSt(o, p).filter((x) => (p.d || []).includes(x.id)).length + (p.s ? 0.001 : 0) : 0; }
+// QA 27.11: в записи — c (индекс текущего шага = первого не пройденного в выбранном пути) и n (шагов в пути). По c считают «шаг X из N»
+// Главная, лента, «Гид по игре» и оглавление: раньше считали число отметок (d.length) — после смены пути или отметки шага не по порядку
+// карточка говорила «шаг 6 из 13», а инструкция — «Продолжить: шаг 1»
+export const firstOpen = (st, d) => { const i = st.findIndex((x) => !(d || []).includes(x.id)); return i < 0 ? st.length : i; };
+function setProg(p) { try { const all = read(), st = V ? null : pathSt(O, p); all[kOf(O)] = { ...p, ...(st ? { c: firstOpen(st, p.d), n: st.length } : {}), at: Date.now() }; localStorage.setItem(KEY, JSON.stringify(all)); } catch { } }
+// для строк ленты и шторки на карте: номер текущего шага выбранного пути (0 — не начато)
+export function progressOf(o) { const p = read()[kOf(o)]; return p ? firstOpen(pathSt(o, p), p.d) + (p.s ? 0.001 : 0) : 0; }
 
 const H = () => O.how;
 // путь (квест / баг): выбор хранится в прогрессе (p.path); по умолчанию — первый путь (сильнее строка доверия, решение «система гида»)
@@ -107,13 +111,22 @@ function figHTML(x) {
     : x.img.by ? `<figcaption>${esc(s('frame', { by: x.img.by }))}</figcaption>` : '';
   return `<figure class="g-img${x.hd ? ' g-img-w' : ''}"><button data-g="zoom" data-src="${src}" data-alt="${esc(cap)}" aria-label="${esc(s('zoom'))}"><img src="${src}" alt="${esc(cap)}" loading="lazy" decoding="async"></button><span class="sb-wm" aria-hidden="true">sbgta.app</span>${fc}</figure>`;
 }
+// метка из списка, которая уже отсканирована отдельным шагом раньше (тот же ролик с той же секунды): «Ещё 9 меток» при счётчике «из 10»
+// начинался с «0 из 10» и просил отметить первую метку второй раз (QA 27.11). Такая метка засчитана сама, снять её нельзя
+function autoTags(x, i, p) {
+  const st = STEPS(), a = new Map();
+  (x.tg || []).forEach((q, k) => { if (!q.v) return; const j = st.findIndex((y, jj) => jj < i && y.v && y.v[0] === q.v[0] && y.v[1] === q.v[1]); if (j >= 0 && p.d.includes(st[j].id)) a.set(k, j + 1); });
+  return a;
+}
+const gotOf = (x, i, p) => new Set([...(p.t[x.id] || []), ...autoTags(x, i, p).keys()]);
 function stepHTML(x, i, p, open) {
   const I = C.I, done = p.d.includes(x.id), n = i + 1;
-  const cls = `g-step${done ? ' is-done' : ''}${open ? ' is-cur' : ''}${shut(i) ? ' is-lock' : ''}${x.hd ? ' has-hd' : ''}`;
+  // QA 27.11: «текущий» (номер в цветном кружке) — только шаг, на котором игрок; раскрытые вдобавок — is-open без кружка
+  const cls = `g-step${done ? ' is-done' : ''}${open ? ' is-open' : ''}${open === true ? ' is-cur' : ''}${shut(i) ? ' is-lock' : ''}${x.hd ? ' has-hd' : ''}`;
   const line = x.hd ? rich(x.hd) : rich(x.t), ck = done ? `<span class="g-ck">${I.check}</span>` : '';
   if (shut(i)) return `<li class="${cls}" data-g="pw"><span class="g-num">${I.lock}</span><p class="g-t">${line}</p></li>`;
   if (!open) return `<li class="${cls}" data-g="open" data-i="${i}" role="button" aria-expanded="false" aria-label="${esc(s('unfold'))}"><span class="g-num">${n}</span><p class="g-t">${line}</p>${ck}<span class="g-chev" aria-hidden="true">${I.chevron}</span></li>`;
-  const tg = x.tg || [], got = p.t[x.id] || [];
+  const tg = x.tg || [], auto = autoTags(x, i, p), got = [...gotOf(x, i, p)];
   const trapC = x.tr ? `<p class="g-trap">${rich(x.tr)}${x.cw && !tx(x.tr).includes(x.cw) ? ` ${esc(s('not_this', { c: x.cw }))}.` : ''}</p>` : '';
   const foldB = open === 'extra' ? `<button class="g-fold" data-g="fold" data-i="${i}" aria-label="${esc(s('fold'))}">${I.chevron}</button>` : '';
   return `<li class="${cls}" data-i="${i}" aria-expanded="true"><span class="g-num">${n}</span>${foldB}<div class="g-body">
@@ -123,9 +136,9 @@ function stepHTML(x, i, p, open) {
     ${!x.c && x.tr ? `<p class="g-trap">${rich(x.tr)}</p>` : ''}
     ${x.ok ? `<p class="g-ok"><b>${esc(s('ok'))}</b> ${rich(x.ok).replace(/^(It worked if|Получилось, если)\s*/i, '')}</p>` : ''}
     ${x.tip ? `<p class="g-tip">${rich(x.tip)}</p>` : ''}
-    ${tg.length ? `<div class="g-tags"><p class="g-tn">${esc(s('tags_n', { a: Math.min(got.length, x.need), b: x.need }))}</p>${x.n?.of ? `<p class="g-tsub">${esc(s('tags_any', { of: x.n.of, need: x.need }))}</p>` : ''}<ol>${tg.map((q, k) => `<li class="${got.includes(k) ? 'on' : ''}">
-        <button class="g-tc" data-g="tag" data-i="${i}" data-k="${k}" aria-pressed="${got.includes(k)}">${I.check}</button>
-        <span>${esc(tx(q.p))}${q.a ? `<small>${esc(q.a)}</small>` : ''}</span>
+    ${tg.length ? `<div class="g-tags"><p class="g-tn" aria-live="polite">${esc(s('tags_n', { a: Math.min(got.length, x.need), b: x.need }))}</p>${x.n?.of ? `<p class="g-tsub">${esc(s('tags_any', { of: x.n.of, need: x.need }))}</p>` : ''}<ol>${tg.map((q, k) => `<li class="${got.includes(k) ? 'on' : ''}">
+        <button class="g-tc" data-g="tag" data-i="${i}" data-k="${k}" aria-pressed="${got.includes(k)}"${auto.has(k) ? ' aria-disabled="true"' : ''} aria-label="${esc(tx(q.p))}">${I.check}</button>
+        <span>${esc(tx(q.p))}${q.a ? `<small>${esc(q.a)}</small>` : ''}${auto.has(k) ? `<small class="g-tauto">${esc(s('tag_auto', { n: auto.get(k) }))}</small>` : ''}</span>
         ${q.v ? `<button class="g-tv" data-g="video" data-v="${esc(q.v[0])}" data-t="${q.v[1]}" aria-label="${esc(s('video_at', { t: mmss(q.v[1]) }))}">${I.play}<span>${mmss(q.v[1])}</span></button>` : ''}</li>`).join('')}</ol></div>` : ''}
     ${x.at ? `<p class="g-at">${I.pin}<span>${esc(s('in_game'))}: ${esc(typeof x.at === 'string' ? x.at : tx(x.at))}</span></p>` : ''}
     ${x.v ? `<button class="g-tb" data-g="video" data-v="${esc(x.v[0])}" data-t="${x.v[1]}">${I.play}<span>${esc(s('video_at', { t: mmss(x.v[1]) }))}</span></button>` : ''}
@@ -155,7 +168,7 @@ function nextHTML(fin = true) {
   const rec = recByKey(O.game || 'gta6', `guide:${O.game || 'gta6'}:${O.id}`);
   const rows = (rec ? nextFor(rec, O.game || 'gta6') : []).filter((r) => !C.canOpen || C.canOpen(r.k) || /^(place|egg):/.test(r.k));
   if (!rows.length) return '';
-  return `<section class="g-sec g-next"><h2>${esc(s(fin ? 'up' : 'wait'))}</h2>${rows.map((r) => `<button class="g-nx" data-g="go" data-k="${esc(r.k)}"><span class="g-nxt"><b>${esc(r.t ? tx(r.t) : s('inLife'))}</b>${r.sub ? `<small>${esc(tx(r.sub))}</small>` : ''}</span>${C.I.chevron}</button>`).join('')}</section>`;
+  return `<section class="g-sec g-next"><h2>${esc(s(fin ? 'up' : 'wait'))}</h2>${rows.map((r) => `<button class="g-nx" data-g="go" data-k="${esc(r.k)}"><span class="g-nxt"><b>${esc(r.t ? tx(r.t) : s('inLife'))}</b>${r.sub ? `<small>${esc(tx(r.sub))}</small>` : !r.t && O.p && r.k.endsWith(`:${O.id}`) ? `<small>${esc(String(O.p).split(',').slice(0, 2).join(','))}</small>` : ''}</span>${C.I.chevron}</button>`).join('')}</section>`;
 }
 function stuckHTML(ci) {
   const h = H(), st = STEPS(), x = st[ci];
@@ -204,7 +217,8 @@ function render() {
       ${navigator.onLine === false ? `<p class="g-note">${esc(s('offline'))}</p>` : ''}
     </section>
   </div>
-  <div class="g-sheet" id="g-stuck" hidden></div>
+  <div class="g-dim" id="g-dim" data-g="unstuck" hidden></div>
+  <div class="g-sheet" id="g-stuck" role="dialog" hidden></div>
   <footer class="g-bar">${barHTML(p, ci)}</footer>
   <div class="g-video" id="g-video" hidden></div>`;
 }
@@ -219,7 +233,9 @@ function barHTML(p, ci) {
 }
 function toStep(i, smooth = true) {
   const el = layer.querySelector(`.g-step[data-i="${i}"]`), sc = layer.querySelector('#g-scroll'); if (!el || !sc) return;
-  const y = el.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 72;
+  // QA 27.11: шаг первый в своей части — показываем и заголовок части («Квест No Flusher» срезался шапкой); отступ — от высоты шапки
+  const pv = el.previousElementSibling, to = pv?.classList.contains('g-part') ? pv : el;
+  const y = to.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - (layer.querySelector('.g-top')?.offsetHeight || 64) - 4;
   sc.scrollTo({ top: Math.max(0, y), behavior: smooth ? 'smooth' : 'auto' });
 }
 // текущий шаг виден на экране? нет — главная кнопка «Продолжить: шаг N» вместо «Сделано, дальше»
@@ -240,13 +256,26 @@ function syncBar() {
 let scRaf = 0; function onScroll() { if (scRaf) return; scRaf = requestAnimationFrame(() => { scRaf = 0; syncBar(); }); }
 function rerender() { const y = layer.querySelector('#g-scroll')?.scrollTop || 0; render(); layer.querySelector('#g-scroll').scrollTop = y; barAway = !barAway; syncBar(); }
 
+// ── слои поверх листа: ролик, полноэкранный кадр, «Не получается» (QA 27.11) ──
+// у открытого слоя своя запись в истории: системный «Назад» (свайп от края в Safari, кнопка Android) закрывает слой, а не всю инструкцию
+let ovl = null, popSkip = 0;
+function ovlOpen(kind) { if (!ovl) history.pushState({ guide: 1, gov: 1 }, ''); ovl = kind; }
+function ovlHide() {
+  const v = layer?.querySelector('#g-video'); if (v) { v.innerHTML = ''; v.hidden = true; }
+  for (const id of ['#g-stuck', '#g-dim']) { const x = layer?.querySelector(id); if (x) x.hidden = true; }
+  ovl = null;
+}
+function ovlClose() {
+  const had = ovl; ovlHide();
+  if (had && history.state?.gov) { popSkip = Date.now(); history.back(); }
+}
 // ── ролик внутри приложения (youtube-nocookie, с секунды; наружу не уводит) ──
 function video(id, t) {
   if (!/^[\w-]{6,20}$/.test(id)) return;
   const v = layer.querySelector('#g-video'), lg = C.lang;
   v.innerHTML = `<div class="g-vbox"><button class="g-ib g-vx" data-g="vclose" aria-label="${esc(s('close'))}">${C.I.close}</button>
     <div class="g-vf"><iframe src="https://www.youtube-nocookie.com/embed/${id}?start=${t}&autoplay=1&playsinline=1&rel=0&modestbranding=1&hl=${lg}&cc_lang_pref=${lg}" title="video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div></div>`;
-  v.hidden = false;
+  v.hidden = false; ovlOpen('video');
   C.event?.('guide_video', { id: O.id, v: id, t });
 }
 async function wake(on) {
@@ -255,15 +284,21 @@ async function wake(on) {
 function openStuck() {
   const box = layer.querySelector('#g-stuck'), ci = cur(prog());
   box.innerHTML = `<div class="g-sh-in"><div class="g-sh-top"><b>${esc(s('stuck'))}</b><button class="g-ib" data-g="unstuck" aria-label="${esc(s('close'))}">${C.I.close}</button></div>${stuckHTML(ci)}</div>`;
-  box.hidden = false;
+  box.hidden = false; const dm = layer.querySelector('#g-dim'); if (dm) dm.hidden = false; ovlOpen('stuck');
   C.event?.('guide_stuck', { id: O.id, step: ci + 1 });
 }
 
+const LAY = new Set(['open', 'fold', 'zoom', 'video', 'tag', 'path', 'stuck']);
 function onClick(e) {
+  // тап по тёмному полю вокруг ролика или кадра закрывает слой (QA 27.11: закрыть можно было только крестиком)
+  if (e.target.closest('#g-video') && !e.target.closest('[data-g], iframe, video')) { ovlClose(); return; }
   const b = e.target.closest('[data-g]'); if (!b || !layer.contains(b)) return;
-  const a = b.dataset.g, p = prog(), st = STEPS(), i = +b.dataset.i;
-  // Игорь 27.11: двойной тап по «Сделано, дальше» отмечал два шага — главная кнопка игнорирует повтор в течение 450 мс
-  if (b.classList.contains('g-main')) { const now = Date.now(); if (now - lastMain < 450) return; lastMain = now; }
+  const a = b.dataset.g, p = prog(), st = STEPS(), i = +b.dataset.i, now = Date.now();
+  // Игорь 27.11: двойной тап по «Сделано, дальше» отмечал два шага — кнопки нижней панели игнорируют повтор 450 мс
+  // (QA 27.11: и «Начать заново» — второй тап попадал в появившуюся «Начать квест» и сразу запускал)
+  if (b.closest('.g-bar')) { if (now - lastMain < 450) return; lastMain = now; }
+  // второй тап двойного касания после раскрытия/сворачивания попадал в то, что оказалось под пальцем (шаг снова раскрывался, открывался кадр)
+  if (LAY.has(a)) { if (now - lastLay < 350) return; if (a === 'open' || a === 'fold' || a === 'path') lastLay = now; }
   if (V?.click(a, b, i)) return;
   switch (a) {
     case 'close': closeGuide(); break;
@@ -284,10 +319,15 @@ function onClick(e) {
     case 'fold': openSet.delete(i); rerender(); break;
     case 'tocur': delete p.o; setProg(p); toStep(cur(p)); break;
     case 'path': if (p.path !== b.dataset.v) { C.haptic(); p.path = b.dataset.v; delete p.o; setProg(p); rerender(); C.event?.('guide_path', { id: O.id, path: p.path }); } break;
-    case 'zoom': { const v = layer.querySelector('#g-video'); v.innerHTML = `<div class="g-vbox"><button class="g-ib g-vx" data-g="vclose" aria-label="${esc(s('close'))}">${C.I.close}</button><img class="g-zoom" src="${esc(b.dataset.src)}" alt="${esc(b.dataset.alt || '')}"><span class="sb-wm sb-wm-z" aria-hidden="true">sbgta.app</span></div>`; v.hidden = false; break; }
+    case 'zoom': { const v = layer.querySelector('#g-video'); v.innerHTML = `<div class="g-vbox"><button class="g-ib g-vx" data-g="vclose" aria-label="${esc(s('close'))}">${C.I.close}</button><img class="g-zoom" src="${esc(b.dataset.src)}" alt="${esc(b.dataset.alt || '')}"><span class="sb-wm sb-wm-z" aria-hidden="true">sbgta.app</span></div>`; v.hidden = false; ovlOpen('zoom'); break; }
     case 'tag': {
-      const x = st[i], k = +b.dataset.k, got = new Set(p.t[x.id] || []);
-      got.has(k) ? got.delete(k) : got.add(k); p.t[x.id] = [...got]; C.haptic();
+      const x = st[i], k = +b.dataset.k, man = new Set(p.t[x.id] || []);
+      if (autoTags(x, i, p).has(k)) break;   // метка из отдельного шага раньше — засчитана сама
+      const was = gotOf(x, i, p).size;
+      man.has(k) ? man.delete(k) : man.add(k); p.t[x.id] = [...man]; C.haptic();
+      const got = gotOf(x, i, p);
+      // сняли метку ниже нужного числа — шаг снова не сделан (раньше оставалась галочка при «9 из 10»)
+      if (was >= x.need && got.size < x.need && p.d.includes(x.id)) p.d = p.d.filter((q) => q !== x.id);
       if (got.size >= x.need && !p.d.includes(x.id)) {   // набрали нужное число — шаг сделан, тост и к следующему шагу
         p.d.push(x.id); delete p.o; setProg(p); rerender();
         const nx = st[i + 1];
@@ -300,10 +340,10 @@ function onClick(e) {
     }
     case 'stuck': openStuck(); break;
     case 'still': stuckAll = true; openStuck(); break;
-    case 'unstuck': layer.querySelector('#g-stuck').hidden = true; break;
+    case 'unstuck': ovlClose(); break;
     case 'video': video(b.dataset.v, +b.dataset.t || 0); break;
-    case 'vclose': { const v = layer.querySelector('#g-video'); v.innerHTML = ''; v.hidden = true; break; }
-    case 'again': setProg({ d: [], t: {}, s: 0, path: p.path }); render(); break;
+    case 'vclose': ovlClose(); break;
+    case 'again': setProg({ d: [], t: {}, s: 0, path: p.path }); openSet = new Set(); render(); break;
     case 'go': C.event?.('guide_next', { id: O.id, to: b.dataset.k }); C.open?.(b.dataset.k); break;   // C.open сам закрывает инструкцию
     case 'pw': C.paywall(); break;
     case 'report': C.toast(s('report_ok')); C.event?.('guide_report', { id: O.id, step: cur(p) + 1 }); break;
@@ -318,7 +358,12 @@ export function openGuide(o, ctx) {
   if (!layer) {
     layer = document.createElement('div'); layer.id = 'guide'; layer.setAttribute('role', 'dialog'); layer.setAttribute('aria-modal', 'true');
     document.body.appendChild(layer); layer.addEventListener('click', onClick); layer.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    // полноэкранный кадр закрывается свайпом вверх или вниз (QA 27.11)
+    let ty = null;
+    layer.addEventListener('touchstart', (e) => { ty = ovl === 'zoom' && e.touches.length === 1 ? e.touches[0].clientY : null; }, { passive: true });
+    layer.addEventListener('touchend', (e) => { if (ty == null || ovl !== 'zoom') return; const dy = (e.changedTouches[0]?.clientY ?? ty) - ty; ty = null; if (Math.abs(dy) > 60) ovlClose(); }, { passive: true });
   }
+  ovl = null;
   render();
   layer.classList.add('open');
   document.documentElement.classList.add('guide-open');
@@ -334,11 +379,17 @@ export function openGuide(o, ctx) {
 export function closeGuide(fromPop = false) {
   if (!layer?.classList.contains('open')) return false;
   layer.classList.remove('open'); document.documentElement.classList.remove('guide-open');
-  const v = layer.querySelector('#g-video'); if (v) { v.innerHTML = ''; v.hidden = true; }
+  const top = !!ovl && !!history.state?.gov; ovlHide();
   wake(false); V?.stop();
   C?.onClose?.();
-  if (!fromPop && history.state?.guide) history.back();
+  if (!fromPop && history.state?.guide) { if (top) history.go(-2); else history.back(); }   // со слоем поверх — две записи
   return true;
 }
 export const isOpen = () => !!layer?.classList.contains('open');
-addEventListener('popstate', () => { if (isOpen()) closeGuide(true); });
+addEventListener('popstate', () => {
+  if (popSkip && Date.now() - popSkip < 1500) { popSkip = 0; return; }   // это наш шаг назад после закрытия слоя крестиком
+  popSkip = 0;
+  if (!isOpen()) return;
+  if (ovl) { ovlHide(); return; }   // «Назад» при ролике, кадре или «Не получается» закрывает только слой
+  closeGuide(true);
+});
