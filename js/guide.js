@@ -99,8 +99,11 @@ const shut = (i) => !free() && i >= (H().fr ?? 2);
 const cur = (p) => { const st = STEPS(); const i = st.findIndex((x) => !p.d.includes(x.id)); return i < 0 ? st.length : i; };
 
 function css() {
-  if (document.getElementById('guide-css')) return;
-  const l = document.createElement('link'); l.id = 'guide-css'; l.rel = 'stylesheet'; l.href = 'css/guide.css'; document.head.appendChild(l);
+  let l = document.getElementById('guide-css');
+  if (!l) { l = document.createElement('link'); l.id = 'guide-css'; l.rel = 'stylesheet'; l.href = 'css/guide.css'; document.head.appendChild(l); }
+  // стили пришли после первого кадра (открытие по ссылке, медленная сеть) — пересчитать строки вида: ужатие заголовка шло по ширине
+  // без отступов guide.css (прод v130, 28.11: «Угнать Bugatti без трекеr»; тест guide_open_top по ссылке)
+  if (!l.sheet) l.addEventListener('load', () => V?.resize?.(), { once: true });
 }
 
 // ── шаг ──

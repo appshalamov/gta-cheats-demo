@@ -40,6 +40,7 @@ const IC = {
 const DEB = new Set(['stap', 'tag', 'sway', 'path', 'stoc', 'smore', 'sstuck', 'sgoto', 'sclose', 'sagain', 'sless', 'sgo', 'snext', 'sdone']);
 
 let live = null, bound = null;   // один слой #guide на всё время: слушатели касаний вешаем один раз, работают с последним видом
+document.fonts?.addEventListener?.('loadingdone', () => live?.resize());   // догрузился шрифт — строки [data-fit] шире, пересчитать
 
 export function view(A) {
   const { C, O, tx, esc, mmss } = A;
