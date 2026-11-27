@@ -532,6 +532,9 @@ def guide_fields(it):
              "chk": h.get("checked") or it.get("found"),
              **({"miss": bix(h, "miss_note") or True} if h.get("missable") else {})}
         out["how"] = {k: v for k, v in g.items() if v not in (None, [], "")}
+    cv = it.get("cover")   # 27.11 Игорь: своя обложка инструкции (рисунок) — в карточке и шапке «По шагам»
+    if isinstance(cv, dict) and cv.get("f"):
+        out["cv"] = {"f": cv["f"], **({"t": cv["t"]} if cv.get("t") else {})}
     f = it.get("finder")
     if isinstance(f, dict) and f.get("name") and not str(f["name"]).lower().startswith(("not established", "не установ")):
         out["by"] = {"n": str(f["name"])[:60], "w": str(f.get("where") or "")[:40], "d": str(f.get("date") or "")[:10]}
