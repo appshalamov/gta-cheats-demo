@@ -256,11 +256,30 @@
 
 /* домен на экранах (Игорь 27.11, навык domen-na-ekranah): по любому скрину видно, откуда он */
 .g-top { align-items: center; }
-.sb-dom { font-size: 13px; font-weight: 600; letter-spacing: .01em; color: var(--text-2, rgba(255,255,255,.62)); pointer-events: none; user-select: none; }
+.sb-brand { display: flex; align-items: center; gap: 8px; pointer-events: none; user-select: none; color: var(--text); }
+.sb-brand img { width: 26px; height: auto; display: block; }
+.sb-brand span { display: flex; flex-direction: column; line-height: 1.1; }
+.sb-brand b { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+.sb-brand small { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+/* шапка поверх обложки: прозрачная с мягкой тенью, обложка уходит под неё до самого верха; после обложки — сплошная */
+.g-top-over { background: linear-gradient(rgba(12,12,14,.62), rgba(12,12,14,0)); transition: background-color .2s; }
+.g-top-over.solid { background: var(--bg); box-shadow: 0 1px 0 var(--line); }
+.g-top-over:not(.solid) .sb-brand, .g-top-over:not(.solid) .g-ib { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.g-top-over:not(.solid) .sb-brand small { color: rgba(255,255,255,.82); }
+.g-top-over:not(.solid) .g-ib { background: rgba(0,0,0,.28); }
+.g-top-over + .g-cover { margin-top: calc(-1 * (var(--safe-t, 0px) + 56px)); }
 .g-img, .g-cover { position: relative; }
 .sb-wm { position: absolute; right: 8px; bottom: 8px; z-index: 2; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.8);
   text-shadow: 0 1px 3px rgba(0,0,0,.65); pointer-events: none; user-select: none; line-height: 1; }
 .g-img .sb-wm { bottom: auto; top: 8px; }
 .g-cover .sb-wm { right: auto; left: 10px; }   /* справа внизу — подпись © Rockstar Games */
-.g-vbox { position: relative; }
-.sb-wm-z { right: 50%; transform: translateX(50%); bottom: 14px; font-size: 13px; }
+.sb-wm-z { right: 50%; transform: translateX(50%); bottom: calc(var(--safe-b, 0px) + 18px); font-size: 13px; }
+
+/* шаги-раскрывашки (Игорь 27.11): видно, что шаг раскрывается; открытые не закрываются; у лишнего открытого — «свернуть» */
+.g-step[data-g="open"] { cursor: pointer; min-height: 48px; }
+.g-chev { flex: none; margin-left: auto; align-self: center; width: 20px; height: 20px; color: var(--text-3, var(--text-2)); }
+.g-chev svg { width: 20px; height: 20px; transform: rotate(90deg); }
+.g-step { position: relative; }
+.g-fold { position: absolute; right: 0; top: 2px; width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; color: var(--text-2); z-index: 1; }
+.g-fold svg { width: 20px; height: 20px; transform: rotate(-90deg); }
+.g-step:has(.g-fold) .g-body > .g-t { padding-right: 40px; }

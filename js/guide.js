@@ -24,7 +24,7 @@ const S = {
     questPart: 'Квест No Flusher', finPart: 'Гараж и регистрация', frame: 'кадр: {by}, YouTube', zoom: 'Открыть кадр',
     // Bugatti v2 (27.11): два способа, ролик пути, «Пока ждёте», «К шагу N», счётчик меток, ролик неудачи, кнопка геймпада
     ways: 'Два способа', always: 'Работает всегда', path_tm: '{n} шагов, {m} минут', whole_by: 'Весь путь в ролике {by}, {n} {u}',
-    min1: 'минуту', min2: 'минуты', min5: 'минут', wait: 'Пока ждёте или если надоело', back_to: 'К шагу {n}',
+    min1: 'минуту', min2: 'минуты', min5: 'минут', wait: 'Пока ждёте или если надоело', back_to: 'К шагу {n}', resume: 'Продолжить: шаг {n}', fold: 'Свернуть шаг', unfold: 'Раскрыть шаг',
     tags_any: 'В игре их {of}, нужно любые {need}', tags_done: '{a} из {a}. {next}', fail_v: 'Как выглядит неудача — ролик с {t}',
     ring: 'Кольцо: {c}.', frame2: 'Кадр: {by}, YouTube', or: 'или',
   },
@@ -41,13 +41,15 @@ const S = {
     up: 'Next', inLife: 'This place in real life', path_meta: '{n} steps, about {m} min', works: 'works, checked {d}', quiet: 'Get in quietly', bugPart: 'Bug: through the garage door',
     questPart: 'No Flusher quest', finPart: 'Garage and registration', frame: 'frame: {by}, YouTube', zoom: 'Open frame',
     ways: 'Two ways', always: 'Always works', path_tm: '{n} steps, {m} min', whole_by: 'Watch the whole route by {by}, {n} {u}',
-    min1: 'min', min2: 'min', min5: 'min', wait: 'While you wait, or for a break', back_to: 'Back to step {n}',
+    min1: 'min', min2: 'min', min5: 'min', wait: 'While you wait, or for a break', back_to: 'Back to step {n}', resume: 'Continue: step {n}', fold: 'Collapse step', unfold: 'Expand step',
     tags_any: 'There are {of}, any {need} will do', tags_done: '{a} of {a}. {next}', fail_v: 'What a fail looks like — video from {t}',
     ring: 'Ring: {c}.', frame2: 'Frame: {by}, YouTube', or: 'or',
   },
 };
 const KEY = 'sb.gd', FIRST = 'sb.gd1';
 let C = null, O = null, layer = null, lock = null, stuckAll = false;
+// Игорь 27.11: шаги раскрываются по тапу и не закрывают уже открытые (несколько сразу); набор живёт, пока лист открыт
+let openSet = new Set(), barAway = false;
 let V = null;   // вид листа не «шаги» (settings) — свой модуль guide-set.js
 
 const s = (k, v = {}) => {
@@ -110,10 +112,11 @@ function stepHTML(x, i, p, open) {
   const cls = `g-step${done ? ' is-done' : ''}${open ? ' is-cur' : ''}${shut(i) ? ' is-lock' : ''}${x.hd ? ' has-hd' : ''}`;
   const line = x.hd ? rich(x.hd) : rich(x.t), ck = done ? `<span class="g-ck">${I.check}</span>` : '';
   if (shut(i)) return `<li class="${cls}" data-g="pw"><span class="g-num">${I.lock}</span><p class="g-t">${line}</p></li>`;
-  if (!open) return `<li class="${cls}" data-g="open" data-i="${i}"><span class="g-num">${n}</span><p class="g-t">${line}</p>${ck}</li>`;
+  if (!open) return `<li class="${cls}" data-g="open" data-i="${i}" role="button" aria-expanded="false" aria-label="${esc(s('unfold'))}"><span class="g-num">${n}</span><p class="g-t">${line}</p>${ck}<span class="g-chev" aria-hidden="true">${I.chevron}</span></li>`;
   const tg = x.tg || [], got = p.t[x.id] || [];
   const trapC = x.tr ? `<p class="g-trap">${rich(x.tr)}${x.cw && !tx(x.tr).includes(x.cw) ? ` ${esc(s('not_this', { c: x.cw }))}.` : ''}</p>` : '';
-  return `<li class="${cls}" data-i="${i}"><span class="g-num">${n}</span><div class="g-body">
+  const foldB = open === 'extra' ? `<button class="g-fold" data-g="fold" data-i="${i}" aria-label="${esc(s('fold'))}">${I.chevron}</button>` : '';
+  return `<li class="${cls}" data-i="${i}" aria-expanded="true"><span class="g-num">${n}</span>${foldB}<div class="g-body">
     ${x.hd ? `<p class="g-hd">${rich(x.hd)}</p>${figHTML(x)}<p class="g-tx">${rich(x.t)}</p>` : `<p class="g-t">${rich(x.t)}</p>${figHTML(x)}`}
     ${x.c ? `<p class="g-big">${esc(x.c)}</p>${trapC}` : ''}
     ${x.bv ? `<p class="g-big g-big-t">${esc(x.bv)}</p>${x.bn ? `<p class="g-trap">${esc(tx(x.bn))}</p>` : ''}` : ''}
@@ -174,8 +177,8 @@ function render() {
   const wh = path.wh || h.wh, req = path.req || h.req;
   const enOnly = !['ru', 'en'].includes(C.lang) && !st[0].t[C.lang];
   layer.innerHTML = `<div class="g-scroll" id="g-scroll">
-    <header class="g-top"><button class="g-ib" data-g="close" aria-label="${esc(s('close'))}">${I.chevron}</button>
-      <span class="sb-dom" aria-hidden="true">sbgta.app</span>
+    <header class="g-top${O.cv ? ' g-top-over' : ''}"><button class="g-ib" data-g="close" aria-label="${esc(s('close'))}">${I.chevron}</button>
+      <span class="sb-brand" aria-hidden="true"><img src="icons/brand-mark.svg" alt="" width="26" height="19"><span><b>Secret Base</b><small>sbgta.app</small></span></span>
       <button class="g-ib" data-g="share" aria-label="${esc(s('share'))}">${I.share}</button></header>
     ${O.cv ? `<figure class="g-cover"><img src="${esc(C.imgUrl(O.cv.f))}" alt="" decoding="async" fetchpriority="high"><span class="sb-wm" aria-hidden="true">sbgta.app</span>${O.cv.by ? `<figcaption>${esc(O.cv.by)}</figcaption>` : ''}</figure>` : ''}
     <h1 class="g-h1">${esc(tx(h.ta) || tx(O.t))}</h1>
@@ -188,7 +191,7 @@ function render() {
     ${h.miss ? `<p class="g-miss">${I.alert}<span>${esc(s('missable'))}${typeof h.miss === 'object' ? `. ${esc(tx(h.miss))}` : ''}</span></p>` : ''}
     ${req?.length ? `<section class="g-sec"><h2>${esc(s('before'))}</h2><ul class="g-req">${req.slice(0, 3).map((r) => `<li>${esc(tx(r.t))}</li>`).join('')}</ul></section>` : ''}
     <ol class="g-steps">${st.map((x, i) => partHTML(path, st, i) + (i === wall ? `<li class="g-wall"><p>${esc(s('wall', { a: fr + 1, b: st.length }))}</p><button class="g-pro" data-g="pw">${esc(s('get_pro'))}</button></li>` : '')
-      + stepHTML(x, i, p, (started && i === ci) || p.o === i)).join('')}</ol>
+      + stepHTML(x, i, p, started && i === ci ? true : openSet.has(i) ? 'extra' : false)).join('')}</ol>
     ${ci >= st.length ? `<p class="g-fin">${I.check}<span>${esc(O.k === 'vehicle' ? s('fin_car') : s('fin'))}</span></p>` : ''}
     ${nextHTML(ci >= st.length)}
     ${path.ret && !path.bug ? `<p class="g-ret">${esc(tx(path.ret))}</p>` : ''}
@@ -211,7 +214,7 @@ function barHTML(p, ci) {
   if (ci >= st.length) return `<button class="g-sub" data-g="again">${esc(s('again'))}</button><button class="g-main" data-g="close">${esc(s('finish'))}</button>`;
   if (shut(ci)) return `<button class="g-main" data-g="pw">${esc(s('get_pro'))}</button>`;
   // раскрыт не текущий шаг — главная кнопка ведёт к текущему и ничего не отмечает (Bugatti v2, А12)
-  if (p.o !== undefined && p.o !== null && p.o !== ci) return `<button class="g-sub" data-g="stuck">${esc(s('stuck'))}</button><button class="g-main" data-g="tocur">${esc(s('back_to', { n: ci + 1 }))}</button>`;
+  if (barAway) return `<button class="g-sub" data-g="stuck">${esc(s('stuck'))}</button><button class="g-main" data-g="tocur">${esc(s('resume', { n: ci + 1 }))}</button>`;
   return `<button class="g-sub" data-g="stuck">${esc(s('stuck'))}</button><button class="g-main" data-g="next">${esc(ci === st.length - 1 ? s('finish') : s('next'))}</button>`;
 }
 function toStep(i, smooth = true) {
@@ -219,7 +222,23 @@ function toStep(i, smooth = true) {
   const y = el.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 72;
   sc.scrollTo({ top: Math.max(0, y), behavior: smooth ? 'smooth' : 'auto' });
 }
-function rerender() { const y = layer.querySelector('#g-scroll')?.scrollTop || 0; render(); layer.querySelector('#g-scroll').scrollTop = y; }
+// текущий шаг виден на экране? нет — главная кнопка «Продолжить: шаг N» вместо «Сделано, дальше»
+function curVisible() {
+  const sc = layer?.querySelector('#g-scroll'), p = prog(), el = sc && layer.querySelector(`.g-step[data-i="${cur(p)}"]`);
+  if (!sc || !el) return true;
+  const a = el.getBoundingClientRect(), v = sc.getBoundingClientRect();
+  return a.top < v.bottom - 140 && a.bottom > v.top + 60;
+}
+// шапка поверх обложки прозрачная, после обложки — сплошная (Игорь 27.11: «обрезано несуразно»)
+function syncTop() { const t = layer?.querySelector('.g-top-over'), sc = layer?.querySelector('#g-scroll'), cv = layer?.querySelector('.g-cover');
+  if (t && sc && cv) t.classList.toggle('solid', sc.scrollTop > cv.offsetHeight - t.offsetHeight - 8); }
+function syncBar() {
+  syncTop();
+  if (!layer || V) return; const p = prog(), started = p.d.length > 0 || p.s, away = started && !curVisible();
+  if (away === barAway) return; barAway = away; const f = layer.querySelector('.g-bar'); if (f) f.innerHTML = barHTML(p, cur(p));
+}
+let scRaf = 0; function onScroll() { if (scRaf) return; scRaf = requestAnimationFrame(() => { scRaf = 0; syncBar(); }); }
+function rerender() { const y = layer.querySelector('#g-scroll')?.scrollTop || 0; render(); layer.querySelector('#g-scroll').scrollTop = y; barAway = !barAway; syncBar(); }
 
 // ── ролик внутри приложения (youtube-nocookie, с секунды; наружу не уводит) ──
 function video(id, t) {
@@ -259,8 +278,9 @@ function onClick(e) {
       const n = cur(p); if (n < st.length) toStep(n); else layer.querySelector('#g-scroll').scrollTo({ top: 1e6, behavior: 'smooth' });
       break;
     }
-    case 'open': p.o = p.o === i ? undefined : i; setProg(p); rerender(); break;
-    case 'tocur': delete p.o; setProg(p); rerender(); toStep(cur(p)); break;
+    case 'open': C.haptic?.(); openSet.add(i); rerender(); break;
+    case 'fold': openSet.delete(i); rerender(); break;
+    case 'tocur': delete p.o; setProg(p); toStep(cur(p)); break;
     case 'path': if (p.path !== b.dataset.v) { C.haptic(); p.path = b.dataset.v; delete p.o; setProg(p); rerender(); C.event?.('guide_path', { id: O.id, path: p.path }); } break;
     case 'zoom': { const v = layer.querySelector('#g-video'); v.innerHTML = `<div class="g-vbox"><button class="g-ib g-vx" data-g="vclose" aria-label="${esc(s('close'))}">${C.I.close}</button><img class="g-zoom" src="${esc(b.dataset.src)}" alt="${esc(b.dataset.alt || '')}"><span class="sb-wm sb-wm-z" aria-hidden="true">sbgta.app</span></div>`; v.hidden = false; break; }
     case 'tag': {
@@ -290,18 +310,21 @@ function onClick(e) {
 
 export function openGuide(o, ctx) {
   if (!o?.how?.st?.length) return false;
-  C = ctx; O = o; stuckAll = false; css();
+  C = ctx; O = o; stuckAll = false; openSet = new Set(); barAway = false; css();
   V?.stop(); V = o.how.vw === 'settings' ? setView({ C, O, layer: () => layer, prog, s, tx, esc, mmss, rerender, closeGuide }) : null;
   layer = document.getElementById('guide');
   if (!layer) {
     layer = document.createElement('div'); layer.id = 'guide'; layer.setAttribute('role', 'dialog'); layer.setAttribute('aria-modal', 'true');
-    document.body.appendChild(layer); layer.addEventListener('click', onClick);
+    document.body.appendChild(layer); layer.addEventListener('click', onClick); layer.addEventListener('scroll', onScroll, { capture: true, passive: true });
   }
   render();
   layer.classList.add('open');
   document.documentElement.classList.add('guide-open');
   const p = prog();
-  if (p.d.length || p.s) { requestAnimationFrame(() => toStep(cur(p), false)); wake(true); }
+  // Игорь 27.11: лист всегда открывается сверху (раньше прыгал к текущему шагу — «открывается с середины»); к шагу ведёт кнопка внизу
+  const sc0 = layer.querySelector('#g-scroll'); if (sc0) sc0.scrollTop = 0;
+  if (p.d.length || p.s) wake(true);
+  requestAnimationFrame(syncBar);
   history.pushState({ guide: 1 }, '');
   C.event?.('guide_open', { id: o.id, from: ctx.from || '' });
   return true;
