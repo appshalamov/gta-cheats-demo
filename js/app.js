@@ -457,7 +457,7 @@ const hasGuide = (o) => !!o?.how?.st?.length;
 const pathSt = (o, p) => ((o.how?.pa || []).find((x) => x.id === p?.path) || (o.how?.pa || [])[0] || o.how || {}).st || [];
 function guideDone(o) {   // индекс текущего шага выбранного пути (первый не пройденный, как в самой инструкции; sb.gd); -1 — не начинали
   // QA 27.11: раньше — число отметок: после смены пути или шага, отмеченного не по порядку, карточка писала «шаг 6 из 13», а инструкция — «шаг 1»
-  try { const p = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${o.game}:${o.id}`]; if (!p || (!p.s && !(p.d || []).length)) return -1; const st = pathSt(o, p), i = st.findIndex((x) => !(p.d || []).includes(x.id)); return i < 0 ? st.length : i; } catch { return -1; }
+  try { const p = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${o.game}:${o.id}`]; if (!p || (!p.s && !(p.d || []).length)) return -1; if (Number.isInteger(p.sc)) return p.sc;   /* вид «сторис»: карточка, где остановились (guide.js setProg) */ const st = pathSt(o, p), i = st.findIndex((x) => !(p.d || []).includes(x.id)); return i < 0 ? st.length : i; } catch { return -1; }
 }
 function guideMeta(o) {
   let path = ''; try { path = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${o.game}:${o.id}`]?.path || ''; } catch { }
