@@ -497,10 +497,18 @@ async function openGuideKey(key, from = '', linked = false) {
   const { kind, game: g, id } = parseKey(key.replace(/^guide:/, 'egg:'));
   const o = /^set-/.test(id) ? await findSetting(g, id) : kind === 'egg' ? await findByKey(`egg:${g}:${id}`) : null;
   if (!hasGuide(o)) { openOnMap(key.replace(/^guide:/, 'egg:')); return; }
+  // открыли с карточки места на карте — после «Назад» / крестика вернуть ту же карточку (QA 27.11: возвращало на карту без шторки)
+  const back = ui.tab === 'map' && $('#sheet-layer')?.classList.contains('open') && kind === 'egg' ? `egg:${g}:${id}` : null;
   closeSheet();
   await gcore.loadIndex(g);   // «Дальше» в финале читает указатель — загрузить и при входе по ссылке
   const m = await guideMod();
-  m.openGuide({ ...o, game: g }, guideCtx(g, from, linked || store.linkKeys.includes(`guide:${g}:${id}`) || store.linkKeys.includes(`egg:${g}:${id}`), (x) => `guide:${g}:${x.id}`));
+  const ctx = guideCtx(g, from, linked || store.linkKeys.includes(`guide:${g}:${id}`) || store.linkKeys.includes(`egg:${g}:${id}`), (x) => `guide:${g}:${x.id}`);
+  if (back) {
+    let onward = false; const open0 = ctx.open, close0 = ctx.onClose;
+    ctx.open = (k) => { onward = true; open0(k); };   // «Дальше» ведёт в другую серию — карточку не возвращаем
+    ctx.onClose = () => { close0(); if (!onward && ui.tab === 'map') setTimeout(() => { if (!m.isOpen() && ui.tab === 'map' && !$('#sheet-layer').classList.contains('open')) openOnMap(back); }, 60); };
+  }
+  m.openGuide({ ...o, game: g }, ctx);
 }
 window.SB.openWalk = (from = 'sb') => openWalk(from);   // для оглавления гида и тестов
 // ядро гида: ключ walk:gta6[:<подсказка>] открывает «Прохождение» (и сразу подсказку); таблицу ключей ведёт сборщик (guide-core)
