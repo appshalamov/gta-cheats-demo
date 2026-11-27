@@ -453,13 +453,17 @@ function newsRow(n) {
 // ── Инструкция «По шагам» (26.11.2026, «Гид по игре»; решение Fable — «Гид по игре — пасхалки (26.11.2026)/02»):
 // пасхалка с полем how открывает свой экран (js/guide.js) — из ленты, Новостей, карты и по ссылке guide:<игра>:<id>
 const hasGuide = (o) => !!o?.how?.st?.length;
-function guideDone(o) {   // сколько шагов пройдено (прогресс на телефоне, sb.gd); -1 — не начинали
-  try { const p = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${o.game}:${o.id}`]; if (!p) return -1; return o.how.st.filter((x) => (p.d || []).includes(x.id)).length; } catch { return -1; }
+// шаги выбранного пути (квест / баг) — один расчёт «шаг X из N» для ленты, поиска и Главной (Bugatti v2, Е1)
+const pathSt = (o, p) => ((o.how?.pa || []).find((x) => x.id === p?.path) || (o.how?.pa || [])[0] || o.how || {}).st || [];
+function guideDone(o) {   // сколько шагов выбранного пути пройдено (прогресс на телефоне, sb.gd); -1 — не начинали
+  try { const p = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${o.game}:${o.id}`]; if (!p) return -1; return pathSt(o, p).filter((x) => (p.d || []).includes(x.id)).length; } catch { return -1; }
 }
 function guideMeta(o) {
   let path = ''; try { path = JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${o.game}:${o.id}`]?.path || ''; } catch { }
   const n = ((o.how.pa || []).find((x) => x.id === path) || o.how).st.length, d = guideDone(o);   // число шагов выбранного пути
   if (d >= 0 && d < n) return tf('g_cont', { n: d + 1, m: n });
+  const mins = (o.how.pa || []).map((x) => x.min).filter(Boolean).sort((a, b) => a - b);   // два способа: «2 способа: 20 или 40 минут»
+  if (mins.length === 2 && d < 0) return tf('g_ways', { a: mins[0], b: mins[1] });
   return o.how.min ? tf('g_meta', { s: tn(n, 'n_steps'), m: o.how.min }) : tn(n, 'n_steps');
 }
 const guideTitle = (o) => L(o.how?.ta) || L(o.t);
@@ -601,8 +605,8 @@ function eggRow(o) {
     const key = placeKey(o), img = thumbOf(o, 'game') || thumbOf(o, 'real');
     return `<div class="prow erow has-how" data-action="open-guide" data-key="${esc(key)}" role="button" tabindex="0">
     <span class="pr-th">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : `<span class="pr-ph">${I.egg}</span>`}</span>
-    <span class="pr-t">${isNew(o) ? `<small class="nr-date">${esc(t('news_new'))}</small>` : ''}<b>${esc(guideTitle(o))}</b><small>${esc(guideMeta(o))}</small></span>
-    <button class="er-map" data-action="open-guide" data-key="${esc(key)}">${I.doc}<span>${esc(t('g_btn'))}</span></button>
+    <span class="pr-t">${isNew(o) && guideDone(o) < 0 ? `<small class="nr-date">${esc(t('news_new'))}</small>` : ''}<b>${esc(guideTitle(o))}</b><small>${esc(guideMeta(o))}</small></span>
+    <button class="er-map" data-action="open-guide" data-key="${esc(key)}">${I.doc}<span>${esc(t(guideDone(o) >= 0 ? 'g_go' : 'g_btn'))}</span></button>
   </div>`;
   }
   const key = placeKey(o), img = thumbOf(o, 'game');

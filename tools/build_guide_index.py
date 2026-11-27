@@ -12,7 +12,7 @@
 
 Сборка останавливается (код 1), если: нет ru или en; числа в языках разные; ключ next ведёт в никуда; next пуст; st=ok при src_n < 2;
 у ending с одним источником st не rumor; у bug нет v и chk; kw < 8 фраз у egg, bug, set; внешняя ссылка в тексте; миссия from/until/m
-не найдена в data/guide/missions.json (если база есть); с --prod — кадр с src=ref (чужой) у записи.
+не найдена в data/guide/missions.json (если база есть); с --prod — чужой кадр (src=ref) без подписи автора by (Игорь 27.11: с подписью — можно).
 У bug при новой версии игры (data/guide/game.json → v) статус сам становится «перепроверяем после патча» (recheck=1).
 
 Запуск: python3 tools/build_guide_index.py [--game gta6] [--prod] [--check]
@@ -50,13 +50,15 @@ def from_eggs(game):
         st = "own" if h.get("self") else ("ok" if len(sn) >= 2 else "one")
         allst = [s for pa in h.get("pa") or [{"st": h["st"]}] for s in pa["st"]]
         imgs = sorted({s.get("img", {}).get("src") for s in allst if isinstance(s.get("img"), dict)} - {None})
+        # чужие кадры (src=ref) без подписи автора — Игорь 27.11: чужие кадры в прод можно, но только с подписью by
+        noby = sorted({s["id"] for s in allst if isinstance(s.get("img"), dict) and s["img"].get("src") == "ref" and not s["img"].get("by")})
         paths = [{"id": pa["id"], "n": len(pa["st"]), **({"min": pa["min"]} if pa.get("min") else {}), **({"bug": 1} if pa.get("bug") else {})}
                  for pa in h.get("pa") or []]
         out.append({
-            "k": f"guide:{game}:{e['id']}", "kind": kind, "t": h.get("ta") or e.get("t"), "sub": h.get("rw"),
+            "k": f"guide:{game}:{e['id']}", "kind": kind, "t": h.get("ta") or e.get("t"), "sub": h.get("sb") or h.get("rw"),
             "st": st, "src_n": len(sn), "upd": e.get("dt"), "chk": h.get("chk"), "place": f"egg:{game}:{e['id']}",
             "steps_n": len(h["st"]), "min": h.get("min"), "fr": h.get("fr"), "kw": e.get("kw") or {}, "next": e.get("next") or [],
-            **({"v": e["v_game"]} if e.get("v_game") else {}), **({"img_src": imgs} if imgs else {}), "sp": e.get("sp", 0),
+            **({"v": e["v_game"]} if e.get("v_game") else {}), **({"img_src": imgs} if imgs else {}), **({"_noby": noby} if noby else {}), "sp": e.get("sp", 0),
             **({"paths": paths} if paths else {}),
         })
     return out
@@ -134,8 +136,8 @@ def validate(items, game, prod):
             for f in ("m", "from", "until"):
                 if r.get(f) and r[f] not in mis:
                     errs.append(f"{k}: {f}={r[f]!r} нет в базе миссий")
-        if prod and "ref" in (r.get("img_src") or []):
-            errs.append(f"{k}: чужие кадры (img.src=ref) в сборке прода — только своя запись или с разрешением автора")
+        if prod and r.get("_noby"):   # было: любой ref — стоп; Игорь 27.11: чужие кадры с подписью автора разрешены в прод
+            errs.append(f"{k}: чужие кадры (img.src=ref) без подписи автора by в шагах {', '.join(r['_noby'])} — в прод только с подписью")
     return errs
 
 
@@ -154,7 +156,7 @@ def main():
         print("СТОП build_guide_index:\n  " + "\n  ".join(errs))
         sys.exit(1)
     for r in items:
-        r.pop("_file", None)
+        r.pop("_file", None); r.pop("_noby", None)
     out = {"game": game, "n": len(items), "items": items}
     if not check:
         GUIDE.mkdir(parents=True, exist_ok=True)

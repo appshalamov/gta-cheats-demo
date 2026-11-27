@@ -6,7 +6,8 @@
 // Тот же компонент потом — гид прохождения (req.ty mission/chapter + ref) и предупреждения (miss).
 
 import { view as setView } from './guide-set.js';
-import { recByKey, nextFor } from './guide-core.js';   // «Дальше» в финале — по указателю (серии, seriya-uderzhanie)   // вид «настройки» (guide-settings)
+import { recByKey, nextFor } from './guide-core.js';
+import { btn } from './icons.js';   // {enter} в тексте шага — кнопка геймпада по платформе (Bugatti v2, 27.11)   // «Дальше» в финале — по указателю (серии, seriya-uderzhanie)   // вид «настройки» (guide-settings)
 
 const S = {
   ru: {
@@ -14,26 +15,35 @@ const S = {
     start: 'Начать', next: 'Сделано, дальше', finish: 'Готово', stuck: 'Не получается', still: 'Всё равно не выходит',
     ok: 'Получилось, если', video_at: 'Ролик с {t}', in_game: 'Где в игре', not_this: 'Не {c}', of: 'из',
     tags_n: '{a} из {b}', alt: 'Обходной путь (глитч)', sources: 'Источники', report: 'Сообщить об ошибке', report_ok: 'Спасибо, проверим',
-    self: 'Прошли сами {d}', collected: 'Собрано по {n} источникам, сами пока не проходили', one: 'Один источник: {s}. Проверяем',
+    self: 'Прошли сами {d}', collected: 'Собрано по {n} источникам. Сами ещё не проходили', one: 'Один источник: {s}. Проверяем',
     wall: 'Дальше в Pro: шаги {a}–{b}, точные места и разбор ошибок', get_pro: 'Оформить Pro',
     fin_car: 'Готово. Машина ваша.', fin: 'Готово. Всё получилось.', again: 'Начать заново',
     meta: '{n} шагов, около {m} минут', meta0: '{n} шагов', missable: 'Можно упустить навсегда', no_fix: 'Для этого шага частых ошибок нет. Посмотрите ролик или общий список.',
     en_only: 'Инструкция на английском', offline: 'Ролики работают с сетью',
     up: 'Дальше', inLife: 'Это место в жизни', path_meta: '{n} шагов, около {m} минут', patch: 'могут закрыть патчем', quiet: 'Как заехать тихо', bugPart: 'Баг: сквозь дверь гаража',
     questPart: 'Квест No Flusher', finPart: 'Гараж и регистрация', frame: 'кадр: {by}, YouTube', zoom: 'Открыть кадр',
+    // Bugatti v2 (27.11): два способа, ролик пути, «Пока ждёте», «К шагу N», счётчик меток, ролик неудачи, кнопка геймпада
+    ways: 'Два способа', always: 'Работает всегда', path_tm: '{n} шагов, {m} минут', whole_by: 'Весь путь в ролике {by}, {n} {u}',
+    min1: 'минуту', min2: 'минуты', min5: 'минут', wait: 'Пока ждёте или если надоело', back_to: 'К шагу {n}',
+    tags_any: 'В игре их {of}, нужно любые {need}', tags_done: '{a} из {a}. {next}', fail_v: 'Как выглядит неудача — ролик с {t}',
+    ring: 'Кольцо: {c}.', frame2: 'Кадр: {by}, YouTube', or: 'или',
   },
   en: {
     close: 'Close', share: 'Share', whole: 'Watch the whole route, {n} min', whole0: 'Watch the whole route', before: 'Before you go',
     start: 'Start', next: 'Done, next', finish: 'Finish', stuck: "I'm stuck", still: 'Still stuck',
     ok: 'It worked if', video_at: 'Video from {t}', in_game: 'In game', not_this: 'Not {c}', of: 'of',
     tags_n: '{a} of {b}', alt: 'Shortcut (glitch)', sources: 'Sources', report: 'Report a mistake', report_ok: "Thanks, we'll check",
-    self: 'We did it ourselves on {d}', collected: 'Collected from {n} sources, not yet tested by us', one: 'Single source: {s}. Checking',
+    self: 'We did it ourselves on {d}', collected: 'Collected from {n} sources. Not tested by us yet', one: 'Single source: {s}. Checking',
     wall: 'The rest is in Pro: steps {a}–{b}, exact spots and fixes', get_pro: 'Get Pro',
     fin_car: 'Done. The car is yours.', fin: 'Done. You made it.', again: 'Start over',
     meta: '{n} steps, about {m} min', meta0: '{n} steps', missable: 'Missable', no_fix: 'No common mistakes for this step. Watch the video or the full list.',
     en_only: 'Guide in English', offline: 'Videos need a connection',
     up: 'Next', inLife: 'This place in real life', path_meta: '{n} steps, about {m} min', patch: 'may be patched out', quiet: 'Get in quietly', bugPart: 'Bug: through the garage door',
     questPart: 'No Flusher quest', finPart: 'Garage and registration', frame: 'frame: {by}, YouTube', zoom: 'Open frame',
+    ways: 'Two ways', always: 'Always works', path_tm: '{n} steps, {m} min', whole_by: 'Watch the whole route by {by}, {n} {u}',
+    min1: 'min', min2: 'min', min5: 'min', wait: 'While you wait, or for a break', back_to: 'Back to step {n}',
+    tags_any: 'There are {of}, any {need} will do', tags_done: '{a} of {a}. {next}', fail_v: 'What a fail looks like — video from {t}',
+    ring: 'Ring: {c}.', frame2: 'Frame: {by}, YouTube', or: 'or',
   },
 };
 const KEY = 'sb.gd', FIRST = 'sb.gd1';
@@ -49,11 +59,25 @@ const tx = (o) => (o ? o[C.lang] || o.en || o.ru || '' : '');
 const esc = (x) => String(x ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const mmss = (t) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 const kOf = (o) => `${o.game}:${o.id}`;
+// {enter} — кнопка «сесть в машину»: △ на PlayStation, Y на Xbox; на ПК и телефоне — обе с подписью (других данных о клавише нет)
+const keyHTML = (tk, pl) => { const b = btn(tk, pl); return `<span class="${b.cls}">${b.html}</span>`; };
+function enterHTML() {
+  const pl = C.platform;
+  if (pl === 'playstation') return keyHTML('T', pl);
+  if (pl === 'xbox') return keyHTML('Y', pl);
+  return `${keyHTML('T', 'playstation')} (PS) ${esc(s('or'))} ${keyHTML('Y', 'xbox')} (Xbox)`;
+}
+const enterTxt = () => (C.platform === 'playstation' ? '△' : C.platform === 'xbox' ? 'Y' : '△ / Y');
+const rich = (o) => esc(tx(o)).split('{enter}').join(enterHTML());   // текст шага с кнопкой геймпада
+const plain = (o) => tx(o).split('{enter}').join(enterTxt());          // то же для alt и тостов
+const ruMin = (n) => { const a = n % 10, b = n % 100; return s(a === 1 && b !== 11 ? 'min1' : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'min2' : 'min5'); };
+// шаги выбранного пути (квест / баг): по ним считается «шаг X из N» везде — в ленте, поиске, на Главной и в шторке карты
+export const pathSt = (o, p) => ((o.how?.pa || []).find((x) => x.id === p?.path) || (o.how?.pa || [])[0] || o.how || {}).st || [];
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
 function prog() { const p = read()[kOf(O)] || {}; return { d: p.d || [], t: p.t || {}, s: p.s || 0, o: p.o, path: p.path }; }
 function setProg(p) { try { const all = read(); all[kOf(O)] = { ...p, at: Date.now() }; localStorage.setItem(KEY, JSON.stringify(all)); } catch { } }
 // для строк ленты и шторки на карте: сколько шагов пройдено (0 — не начато)
-export function progressOf(o) { const p = read()[kOf(o)]; return p ? (o.how?.st || []).filter((x) => (p.d || []).includes(x.id)).length + (p.s ? 0.001 : 0) : 0; }
+export function progressOf(o) { const p = read()[kOf(o)]; return p ? pathSt(o, p).filter((x) => (p.d || []).includes(x.id)).length + (p.s ? 0.001 : 0) : 0; }
 
 const H = () => O.how;
 // путь (квест / баг): выбор хранится в прогрессе (p.path); по умолчанию — первый путь (сильнее строка доверия, решение «система гида»)
@@ -71,31 +95,45 @@ function css() {
 }
 
 // ── шаг ──
+// Bugatti v2 (27.11): у шага с hd — короткий заголовок в свёрнутой строке и крупно в раскрытой; кадр во всю ширину с подписью
+// «Кольцо: … Кадр: …»; порядок: hd → кадр → t → крупное значение → ловушка → «Получилось, если» → tip → места → «Где в игре» → ролик.
+// Без hd (Mile Zero) — как раньше, только t в 2 строки и видна подсказка tip.
+function figHTML(x) {
+  if (!x.img || C.frames === false) return '';
+  const src = esc(C.imgUrl(x.img.f)), cap = x.img.cap ? plain(x.img.cap) : '';
+  const fc = x.img.cap ? `<figcaption><b>${esc(s('ring', { c: cap }))}</b>${x.img.by ? ` ${esc(s('frame2', { by: x.img.by }))}` : ''}</figcaption>`
+    : x.img.by ? `<figcaption>${esc(s('frame', { by: x.img.by }))}</figcaption>` : '';
+  return `<figure class="g-img${x.hd ? ' g-img-w' : ''}"><button data-g="zoom" data-src="${src}" data-alt="${esc(cap)}" aria-label="${esc(s('zoom'))}"><img src="${src}" alt="${esc(cap)}" loading="lazy" decoding="async"></button>${fc}</figure>`;
+}
 function stepHTML(x, i, p, open) {
   const I = C.I, done = p.d.includes(x.id), n = i + 1;
-  const cls = `g-step${done ? ' is-done' : ''}${open ? ' is-cur' : ''}${shut(i) ? ' is-lock' : ''}`;
-  if (shut(i)) return `<li class="${cls}" data-g="pw"><span class="g-num">${I.lock}</span><p class="g-t">${esc(tx(x.t))}</p></li>`;
-  if (!open) return `<li class="${cls}" data-g="open" data-i="${i}"><span class="g-num">${done ? I.check : n}</span><p class="g-t">${esc(tx(x.t))}</p></li>`;
+  const cls = `g-step${done ? ' is-done' : ''}${open ? ' is-cur' : ''}${shut(i) ? ' is-lock' : ''}${x.hd ? ' has-hd' : ''}`;
+  const line = x.hd ? rich(x.hd) : rich(x.t), ck = done ? `<span class="g-ck">${I.check}</span>` : '';
+  if (shut(i)) return `<li class="${cls}" data-g="pw"><span class="g-num">${I.lock}</span><p class="g-t">${line}</p></li>`;
+  if (!open) return `<li class="${cls}" data-g="open" data-i="${i}"><span class="g-num">${n}</span><p class="g-t">${line}</p>${ck}</li>`;
   const tg = x.tg || [], got = p.t[x.id] || [];
-  return `<li class="${cls}" data-i="${i}"><span class="g-num">${done ? I.check : n}</span><div class="g-body">
-    <p class="g-t">${esc(tx(x.t))}</p>
-    ${x.img && C.frames !== false ? `<figure class="g-img"><button data-g="zoom" data-src="${esc(C.imgUrl(x.img.f))}" aria-label="${esc(s('zoom'))}"><img src="${esc(C.imgUrl(x.img.f))}" alt="" loading="lazy" decoding="async"></button>${x.img.by ? `<figcaption>${esc(s('frame', { by: x.img.by }))}</figcaption>` : ''}</figure>` : ''}
-    ${x.c ? `<p class="g-big">${esc(x.c)}</p>${x.tr ? `<p class="g-trap">${esc(tx(x.tr))}${x.cw ? ` ${esc(s('not_this', { c: x.cw }))}.` : ''}</p>` : ''}` : ''}
+  const trapC = x.tr ? `<p class="g-trap">${rich(x.tr)}${x.cw && !tx(x.tr).includes(x.cw) ? ` ${esc(s('not_this', { c: x.cw }))}.` : ''}</p>` : '';
+  return `<li class="${cls}" data-i="${i}"><span class="g-num">${n}</span><div class="g-body">
+    ${x.hd ? `<p class="g-hd">${rich(x.hd)}</p>${figHTML(x)}<p class="g-tx">${rich(x.t)}</p>` : `<p class="g-t">${rich(x.t)}</p>${figHTML(x)}`}
+    ${x.c ? `<p class="g-big">${esc(x.c)}</p>${trapC}` : ''}
     ${x.bv ? `<p class="g-big g-big-t">${esc(x.bv)}</p>${x.bn ? `<p class="g-trap">${esc(tx(x.bn))}</p>` : ''}` : ''}
-    ${x.ok ? `<p class="g-ok"><b>${esc(s('ok'))}</b> ${esc(tx(x.ok).replace(/^(It worked if|Получилось, если)\s*/i, ''))}</p>` : ''}
-    ${!x.c && x.tr ? `<p class="g-trap">${esc(tx(x.tr))}</p>` : ''}
-    ${tg.length ? `<div class="g-tags"><p class="g-tn">${esc(s('tags_n', { a: Math.min(got.length, x.need), b: x.need }))}</p><ol>${tg.map((q, k) => `<li class="${got.includes(k) ? 'on' : ''}">
+    ${!x.c && x.tr ? `<p class="g-trap">${rich(x.tr)}</p>` : ''}
+    ${x.ok ? `<p class="g-ok"><b>${esc(s('ok'))}</b> ${rich(x.ok).replace(/^(It worked if|Получилось, если)\s*/i, '')}</p>` : ''}
+    ${x.tip ? `<p class="g-tip">${rich(x.tip)}</p>` : ''}
+    ${tg.length ? `<div class="g-tags"><p class="g-tn">${esc(s('tags_n', { a: Math.min(got.length, x.need), b: x.need }))}</p>${x.n?.of ? `<p class="g-tsub">${esc(s('tags_any', { of: x.n.of, need: x.need }))}</p>` : ''}<ol>${tg.map((q, k) => `<li class="${got.includes(k) ? 'on' : ''}">
         <button class="g-tc" data-g="tag" data-i="${i}" data-k="${k}" aria-pressed="${got.includes(k)}">${I.check}</button>
         <span>${esc(tx(q.p))}${q.a ? `<small>${esc(q.a)}</small>` : ''}</span>
         ${q.v ? `<button class="g-tv" data-g="video" data-v="${esc(q.v[0])}" data-t="${q.v[1]}" aria-label="${esc(s('video_at', { t: mmss(q.v[1]) }))}">${I.play}<span>${mmss(q.v[1])}</span></button>` : ''}</li>`).join('')}</ol></div>` : ''}
     ${x.at ? `<p class="g-at">${I.pin}<span>${esc(s('in_game'))}: ${esc(typeof x.at === 'string' ? x.at : tx(x.at))}</span></p>` : ''}
     ${x.v ? `<button class="g-tb" data-g="video" data-v="${esc(x.v[0])}" data-t="${x.v[1]}">${I.play}<span>${esc(s('video_at', { t: mmss(x.v[1]) }))}</span></button>` : ''}
-  </div></li>`;
+  </div>${ck}</li>`;
 }
-// две строки-пути под заголовком (решение 09): выбранная — акцентом; у бага янтарная пометка «могут закрыть патчем»
+// два способа (решение 09, Bugatti v2): подзаголовок «Два способа», кружок-переключатель, мета «N шагов, M минут»;
+// у бага — янтарное «могут закрыть патчем» в мете и строка проверки под путями (без повтора про патч)
 function pathsHTML(h, cur) {
-  return `<div class="g-paths">${h.pa.map((x) => `<button class="g-path${x.id === cur.id ? ' on' : ''}" data-g="path" data-v="${esc(x.id)}" aria-pressed="${x.id === cur.id}">
-    <b>${esc(tx(x.t))}</b><span>${esc(x.min ? s('path_meta', { n: x.st.length, m: x.min }) : s('meta0', { n: x.st.length }))}${x.bug ? `, <em>${esc(s('patch'))}</em>` : ''}</span></button>`).join('')}</div>
+  const anyBug = h.pa.some((x) => x.bug);
+  return `<h2 class="g-ways">${esc(s('ways'))}</h2><div class="g-paths">${h.pa.map((x) => `<button class="g-path${x.id === cur.id ? ' on' : ''}" data-g="path" data-v="${esc(x.id)}" aria-pressed="${x.id === cur.id}">
+    <i class="g-radio" aria-hidden="true"></i><span class="g-pt"><b>${esc(tx(x.t))}</b><span>${esc(x.tm ? s('path_tm', { n: x.st.length, m: x.tm }) : x.min ? s('path_meta', { n: x.st.length, m: x.min }) : s('meta0', { n: x.st.length }))}${x.bug ? `, <em>${esc(s('patch'))}</em>` : anyBug ? `. ${esc(s('always'))}` : ''}</span></span></button>`).join('')}</div>
     ${cur.bug && cur.nt ? `<p class="g-miss">${C.I.alert}<span>${esc(tx(cur.nt))}</span></p>` : ''}`;
 }
 // заголовок части листа: «Как заехать тихо» → «Баг» / «Квест» → «Гараж и регистрация»
@@ -104,22 +142,26 @@ function partHTML(path, st, i) {
   const pt = st[i].pt || '', prev = i ? st[i - 1].pt || '' : null;
   if (prev === pt) return '';
   const first = st.findIndex((x) => (x.pt || '') === pt) === i && i === 0;
-  const label = pt === 'quiet' ? s('quiet') : path.id === 'bug' ? s('bugPart') : (i === 0 || first) ? s('questPart') : s('finPart');
+  const PT = { quest: 'questPart', quiet: 'quiet', bug: 'bugPart', fin: 'finPart' };   // Bugatti v2: часть по явному pt
+  const label = PT[pt] ? s(PT[pt]) : pt === 'quiet' ? s('quiet') : path.id === 'bug' ? s('bugPart') : (i === 0 || first) ? s('questPart') : s('finPart');
   return `<li class="g-part"><h2>${esc(label)}</h2></li>`;
 }
 // «Дальше» в финале (1–3 строки): next[] записи указателя → только то, что сборка умеет открыть (C.canOpen); место — «в жизни»
-function nextHTML() {
+// Bugatti v2: «Дальше» всегда в конце списка — до финала с заголовком «Пока ждёте или если надоело» (серии без тупиков)
+function nextHTML(fin = true) {
   const rec = recByKey(O.game || 'gta6', `guide:${O.game || 'gta6'}:${O.id}`);
   const rows = (rec ? nextFor(rec, O.game || 'gta6') : []).filter((r) => !C.canOpen || C.canOpen(r.k) || /^(place|egg):/.test(r.k));
   if (!rows.length) return '';
-  return `<section class="g-sec g-next"><h2>${esc(s('up'))}</h2>${rows.map((r) => `<button class="g-nx" data-g="go" data-k="${esc(r.k)}"><b>${esc(r.t ? tx(r.t) : s('inLife'))}</b>${r.sub ? `<small>${esc(tx(r.sub))}</small>` : ''}${C.I.chevron}</button>`).join('')}</section>`;
+  return `<section class="g-sec g-next"><h2>${esc(s(fin ? 'up' : 'wait'))}</h2>${rows.map((r) => `<button class="g-nx" data-g="go" data-k="${esc(r.k)}"><span class="g-nxt"><b>${esc(r.t ? tx(r.t) : s('inLife'))}</b>${r.sub ? `<small>${esc(tx(r.sub))}</small>` : ''}</span>${C.I.chevron}</button>`).join('')}</section>`;
 }
 function stuckHTML(ci) {
   const h = H(), st = STEPS(), x = st[ci];
-  const mine = (h.fx || []).filter((f) => x && (f.s || []).includes(x.id));
+  // ошибки без привязки к шагам — первыми на шагах части «баг»; у ошибки может быть ролик неудачи (f.v)
+  const mine = [...(x?.pt === 'bug' ? (h.fx || []).filter((f) => !f.s?.length) : []), ...(h.fx || []).filter((f) => x && (f.s || []).includes(x.id))];
   const all = (h.fx || []).filter((f) => !mine.includes(f));
-  return `<div class="g-fix">${mine.length ? mine.map((f) => `<p>${esc(tx(f.t))}</p>`).join('') : `<p>${esc(s('no_fix'))}</p>`}
-    ${all.length || h.alt ? (stuckAll ? all.map((f) => `<p>${esc(tx(f.t))}</p>`).join('') + (h.alt ? `<p><b>${esc(s('alt'))}.</b> ${esc(tx(h.alt.t))}${h.alt.nt ? ` ${esc(tx(h.alt.nt))}` : ''}</p>${h.alt.v ? `<button class="g-tb" data-g="video" data-v="${esc(h.alt.v[0])}" data-t="${h.alt.v[1]}">${C.I.play}<span>${esc(s('video_at', { t: mmss(h.alt.v[1]) }))}</span></button>` : ''}` : '')
+  const fx = (f) => `<p>${esc(tx(f.t))}</p>${f.v ? `<button class="g-tb" data-g="video" data-v="${esc(f.v[0])}" data-t="${f.v[1]}">${C.I.play}<span>${esc(s('fail_v', { t: mmss(f.v[1]) }))}</span></button>` : ''}`;
+  return `<div class="g-fix">${mine.length ? mine.map(fx).join('') : `<p>${esc(s('no_fix'))}</p>`}
+    ${all.length || h.alt ? (stuckAll ? all.map(fx).join('') + (h.alt ? `<p><b>${esc(s('alt'))}.</b> ${esc(tx(h.alt.t))}${h.alt.nt ? ` ${esc(tx(h.alt.nt))}` : ''}</p>${h.alt.v ? `<button class="g-tb" data-g="video" data-v="${esc(h.alt.v[0])}" data-t="${h.alt.v[1]}">${C.I.play}<span>${esc(s('video_at', { t: mmss(h.alt.v[1]) }))}</span></button>` : ''}` : '')
       : `<button class="g-link" data-g="still">${esc(s('still'))}</button>`) : ''}</div>`;
 }
 function render() {
@@ -127,7 +169,9 @@ function render() {
   const h = H(), p = prog(), st = STEPS(), path = PATH(), I = C.I, ci = cur(p), started = p.d.length > 0 || p.s;
   const fr = h.fr ?? 2, wall = !free() && fr < st.length ? fr : -1;
   const sn = O.sn || [], one = O.st === 'one' || sn.length === 1;
-  const trust = h.self ? s('self', { d: C.date(h.self) }) : one && sn.length ? s('one', { s: sn[0] }) : sn.length ? s('collected', { n: sn.length }) : '';
+  // строка доверия: зелёная с галочкой — только «прошли сами»; у бага её заменяет янтарная строка проверки (Bugatti v2, А7)
+  const trust = path.bug ? '' : h.self ? s('self', { d: C.date(h.self) }) : one && sn.length ? s('one', { s: sn[0] }) : sn.length ? s('collected', { n: sn.length }) : '';
+  const wh = path.wh || h.wh, req = path.req || h.req;
   const enOnly = !['ru', 'en'].includes(C.lang) && !st[0].t[C.lang];
   layer.innerHTML = `<div class="g-scroll" id="g-scroll">
     <header class="g-top"><button class="g-ib" data-g="close" aria-label="${esc(s('close'))}">${I.chevron}</button>
@@ -135,16 +179,18 @@ function render() {
     ${O.cv ? `<figure class="g-cover"><img src="${esc(C.imgUrl(O.cv.f))}" alt="" decoding="async" fetchpriority="high">${O.cv.by ? `<figcaption>${esc(O.cv.by)}</figcaption>` : ''}</figure>` : ''}
     <h1 class="g-h1">${esc(tx(h.ta) || tx(O.t))}</h1>
     ${h.rw ? `<p class="g-rw">${esc(tx(h.rw))}</p>` : ''}
+    ${path.sm ? `<p class="g-sm">${esc(tx(path.sm))}</p>` : ''}
     ${h.pa?.length ? pathsHTML(h, path) : `<p class="g-meta">${esc(h.min ? s('meta', { n: st.length, m: h.min }) : s('meta0', { n: st.length }))}</p>`}
-    ${trust ? `<p class="g-trust${one && !h.self ? ' g-trust-one' : ''}">${one && !h.self ? '' : I.check}<span>${esc(trust)}</span></p>` : ''}
+    ${trust ? `<p class="g-trust${h.self ? '' : ' g-trust-one'}">${h.self ? I.check : ''}<span>${esc(trust)}</span></p>` : ''}
     ${enOnly ? `<p class="g-meta">${esc(s('en_only'))}</p>` : ''}
-    ${h.wh ? `<button class="g-link g-whole" data-g="video" data-v="${esc(h.wh[0])}" data-t="${h.wh[1]}">${I.play}<span>${esc(h.wh[2] ? s('whole', { n: h.wh[2] }) : s('whole0'))}</span></button>` : ''}
+    ${wh ? `<button class="g-link g-whole" data-g="video" data-v="${esc(wh[0])}" data-t="${wh[1]}">${I.play}<span>${esc(wh[3] && wh[2] ? s('whole_by', { by: wh[3], n: wh[2], u: ruMin(wh[2]) }) : wh[2] ? s('whole', { n: wh[2] }) : s('whole0'))}</span></button>` : ''}
     ${h.miss ? `<p class="g-miss">${I.alert}<span>${esc(s('missable'))}${typeof h.miss === 'object' ? `. ${esc(tx(h.miss))}` : ''}</span></p>` : ''}
-    ${h.req?.length ? `<section class="g-sec"><h2>${esc(s('before'))}</h2><ul class="g-req">${h.req.slice(0, 3).map((r) => `<li>${esc(tx(r.t))}</li>`).join('')}</ul></section>` : ''}
+    ${req?.length ? `<section class="g-sec"><h2>${esc(s('before'))}</h2><ul class="g-req">${req.slice(0, 3).map((r) => `<li>${esc(tx(r.t))}</li>`).join('')}</ul></section>` : ''}
     <ol class="g-steps">${st.map((x, i) => partHTML(path, st, i) + (i === wall ? `<li class="g-wall"><p>${esc(s('wall', { a: fr + 1, b: st.length }))}</p><button class="g-pro" data-g="pw">${esc(s('get_pro'))}</button></li>` : '')
       + stepHTML(x, i, p, (started && i === ci) || p.o === i)).join('')}</ol>
     ${ci >= st.length ? `<p class="g-fin">${I.check}<span>${esc(O.k === 'vehicle' ? s('fin_car') : s('fin'))}</span></p>` : ''}
-    ${ci >= st.length ? nextHTML() : ''}
+    ${nextHTML(ci >= st.length)}
+    ${path.ret ? `<p class="g-ret">${esc(tx(path.ret))}</p>` : ''}
     ${C.after?.(O) || ''}
     <section class="g-sec g-foot">
       ${h.alt && free() ? `<details class="g-alt"><summary>${esc(s('alt'))}</summary><p>${esc(tx(h.alt.t))}</p>${h.alt.nt ? `<p class="g-note">${esc(tx(h.alt.nt))}</p>` : ''}
@@ -160,9 +206,11 @@ function render() {
 }
 function barHTML(p, ci) {
   const st = STEPS(), started = p.d.length > 0 || p.s;
-  if (!started) return `<button class="g-main" data-g="start">${esc(s('start'))}</button>`;
+  if (!started) return `<button class="g-main" data-g="start">${esc(PATH().go ? tx(PATH().go) : s('start'))}</button>`;
   if (ci >= st.length) return `<button class="g-sub" data-g="again">${esc(s('again'))}</button><button class="g-main" data-g="close">${esc(s('finish'))}</button>`;
   if (shut(ci)) return `<button class="g-main" data-g="pw">${esc(s('get_pro'))}</button>`;
+  // раскрыт не текущий шаг — главная кнопка ведёт к текущему и ничего не отмечает (Bugatti v2, А12)
+  if (p.o !== undefined && p.o !== null && p.o !== ci) return `<button class="g-sub" data-g="stuck">${esc(s('stuck'))}</button><button class="g-main" data-g="tocur">${esc(s('back_to', { n: ci + 1 }))}</button>`;
   return `<button class="g-sub" data-g="stuck">${esc(s('stuck'))}</button><button class="g-main" data-g="next">${esc(ci === st.length - 1 ? s('finish') : s('next'))}</button>`;
 }
 function toStep(i, smooth = true) {
@@ -211,12 +259,20 @@ function onClick(e) {
       break;
     }
     case 'open': p.o = p.o === i ? undefined : i; setProg(p); rerender(); break;
+    case 'tocur': delete p.o; setProg(p); rerender(); toStep(cur(p)); break;
     case 'path': if (p.path !== b.dataset.v) { C.haptic(); p.path = b.dataset.v; delete p.o; setProg(p); rerender(); C.event?.('guide_path', { id: O.id, path: p.path }); } break;
-    case 'zoom': { const v = layer.querySelector('#g-video'); v.innerHTML = `<div class="g-vbox"><button class="g-ib g-vx" data-g="vclose" aria-label="${esc(s('close'))}">${C.I.close}</button><img class="g-zoom" src="${esc(b.dataset.src)}" alt=""></div>`; v.hidden = false; break; }
+    case 'zoom': { const v = layer.querySelector('#g-video'); v.innerHTML = `<div class="g-vbox"><button class="g-ib g-vx" data-g="vclose" aria-label="${esc(s('close'))}">${C.I.close}</button><img class="g-zoom" src="${esc(b.dataset.src)}" alt="${esc(b.dataset.alt || '')}"></div>`; v.hidden = false; break; }
     case 'tag': {
       const x = st[i], k = +b.dataset.k, got = new Set(p.t[x.id] || []);
       got.has(k) ? got.delete(k) : got.add(k); p.t[x.id] = [...got]; C.haptic();
-      if (got.size >= x.need && !p.d.includes(x.id)) { setProg(p); rerender(); break; }
+      if (got.size >= x.need && !p.d.includes(x.id)) {   // набрали нужное число — шаг сделан, тост и к следующему шагу
+        p.d.push(x.id); delete p.o; setProg(p); rerender();
+        const nx = st[i + 1];
+        C.toast(s('tags_done', { a: x.need, next: nx ? plain(nx.hd || nx.t) : s('fin') }));
+        C.event?.('guide_step', { id: O.id, step: i + 1 });
+        const n = cur(p); if (n < st.length) toStep(n);
+        break;
+      }
       setProg(p); rerender(); break;
     }
     case 'stuck': openStuck(); break;

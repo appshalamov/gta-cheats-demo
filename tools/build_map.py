@@ -482,8 +482,15 @@ def guide_fields(it):
             if not t:
                 continue
             nums_same(t, f"{it.get('id')} шаг {i + 1}")
+            # Bugatti v2 (27.11): hd — короткий заголовок шага в одну строку (≤ 34 знаков, {enter} — один значок кнопки)
+            hd = bix(s, "head")
+            if hd:
+                nums_same(hd, f"{it.get('id')} шаг {i + 1} head")
+                for lg, x in hd.items():
+                    if len(x.replace("{enter}", "B")) > 34:
+                        sys.exit(f"СТОП build_map: {it.get('id')} шаг {s.get('id')} head [{lg}] длиннее 34 знаков: {x!r}")
             v = s.get("video") or {}
-            st.append({"id": s.get("id") or f"s{i + 1}", "t": t,
+            st.append({"id": s.get("id") or f"s{i + 1}", "t": t, **({"hd": hd} if hd else {}),
                        **({"tip": bix(s, "tip")} if bix(s, "tip") else {}),
                        # «Где в игре» — только если есть и ru, и en: без перевода в RU попадал английский (Mile Zero, 26.11)
                        **({"at": bix(s, "where")} if s.get("where") and s.get("where_ru") else {}),
@@ -499,7 +506,8 @@ def guide_fields(it):
                        **({"tg": [{"p": bix(x, "p"), **({"a": x["a"]} if x.get("a") else {}), **({"v": x["v"]} if x.get("v") else {})}
                                   for x in s["tags"] if bix(x, "p")], "need": int(s.get("need") or len(s["tags"]))} if s.get("tags") else {}),
                        # кадр шага с кольцом (решение «система гида»): src own|lic|svg|ref; ref — чужой, в прод не идёт (build_guide_index --prod)
-                       **({"img": {"f": s["img"]["file"], "src": s["img"].get("src", "ref"), **({"by": s["img"]["by"]} if s["img"].get("by") else {})}}
+                       **({"img": {"f": s["img"]["file"], "src": s["img"].get("src", "ref"), **({"by": s["img"]["by"]} if s["img"].get("by") else {}),
+                                   **({"cap": bix(s["img"], "cap")} if bix(s["img"], "cap") else {})}}
                           if isinstance(s.get("img"), dict) and s["img"].get("file") else {}),
                        **({"pt": s["part"]} if s.get("part") else {})})
             for k in ("ok", "tr"):
@@ -510,21 +518,34 @@ def guide_fields(it):
     if isinstance(h, dict) and h.get("steps"):
         st = conv(h["steps"])
         # два пути у одной находки (квест / баг): pa[] — свои шаги, время и пометка «могут закрыть патчем»; st — первый путь
+        def req_of(rs):
+            return [{"ty": r.get("type") if r.get("type") in GUIDE_REQ else "other", **({"ref": r["ref"]} if r.get("ref") else {}),
+                     "t": bix(r, "t")} for r in rs or [] if bix(r, "t")]
+
+        def wh_of(w):
+            return [w["yt"], int(w.get("t") or 0), int(w.get("min") or 0)] + ([str(w["by"])[:40]] if w.get("by") else []) if w.get("yt") else None
+
+        # Bugatti v2 (27.11): у пути свои «Коротко» (sm), время строкой (tm), «Перед выездом» (req), ролик (wh), кнопка старта (go),
+        # строка возвращения (ret), бесплатные шаги (fr) — включаются в guide.js только при наличии
         pa = [{"id": x["id"], "t": bix(x, "t"), "min": int(x.get("time_min") or 0) or None, "st": conv(x["steps"]),
-               **({"bug": 1} if x.get("bug") else {}), **({"nt": bix(x, "note")} if bix(x, "note") else {})}
+               **({"bug": 1} if x.get("bug") else {}), **({"nt": bix(x, "note")} if bix(x, "note") else {}),
+               **({"sm": bix(x, "sum")} if bix(x, "sum") else {}), **({"tm": str(x["time"])} if x.get("time") else {}),
+               **({"req": req_of(x["req"])} if req_of(x.get("req")) else {}), **({"wh": wh_of(x["whole"])} if wh_of(x.get("whole") or {}) else {}),
+               **({"go": bix(x, "go")} if bix(x, "go") else {}), **({"ret": bix(x, "ret")} if bix(x, "ret") else {}),
+               **({"fr": int(x["free_steps"])} if x.get("free_steps") is not None else {})}
               for x in h.get("paths") or [] if x.get("steps")]
         if pa:
             st = pa[0]["st"]
         ids = {x["id"] for p_ in pa for x in p_["st"]} | {x["id"] for x in st}
         alt = h.get("alt") or {}
         wh = h.get("whole") or {}
-        g = {"ta": bix(h, "action"), "rw": bix(h, "reward"),
-             **({"wh": [wh["yt"], int(wh.get("t") or 0), int(wh.get("min") or 0)]} if wh.get("yt") else {}),
+        g = {"ta": bix(h, "action"), "rw": bix(h, "reward"), **({"sb": bix(h, "reward_short")} if bix(h, "reward_short") else {}),
+             **({"wh": wh_of(wh)} if wh.get("yt") else {}),
              **({"self": h["self"]} if h.get("self") else {}), "lv": h.get("difficulty") or "medium", "min": int(h.get("time_min") or 0) or None,
-             "req": [{"ty": r.get("type") if r.get("type") in GUIDE_REQ else "other", **({"ref": r["ref"]} if r.get("ref") else {}),
-                      "t": bix(r, "t")} for r in h.get("req") or [] if bix(r, "t")],
+             "req": req_of(h.get("req")),
              "st": st, **({"pa": pa} if pa else {}),
-             "fx": [{"t": bix(f, "t"), **({"s": [x for x in f.get("steps") or [] if x in ids]} if f.get("steps") else {})}
+             "fx": [{"t": bix(f, "t"), **({"s": [x for x in f.get("steps") or [] if x in ids]} if f.get("steps") else {}),
+                    **({"v": [f["video"]["yt"], int(f["video"].get("t") or 0)]} if (f.get("video") or {}).get("yt") else {})}
                     for f in h.get("fails") or [] if bix(f, "t")],
              "alt": ({"t": bix(alt, "t"), **({"nt": bix(alt, "note")} if bix(alt, "note") else {}),
                       **({"v": [alt["video"]["yt"], int(alt["video"].get("t") or 0)]} if (alt.get("video") or {}).get("yt") else {})}

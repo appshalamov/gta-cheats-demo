@@ -254,6 +254,7 @@ const W = {
   infrastructure: { en: 'Port / road', ru: 'Порт / дорога', es: 'Puerto / vía', pt: 'Porto / via', fr: 'Port / route', de: 'Hafen / Straße', it: 'Porto / strada', tr: 'Liman / yol', uk: 'Порт / дорога', pl: 'Port / droga', zh: '港口/道路', ja: '港・道路', ko: '항구/도로' },
   sign: { en: 'Sign', ru: 'Вывеска', es: 'Letrero', pt: 'Placa', fr: 'Enseigne', de: 'Schild', it: 'Insegna', tr: 'Tabela', uk: 'Вивіска', pl: 'Znak', zh: '招牌', ja: '看板', ko: '간판' },
   other: { en: 'Place', ru: 'Место', es: 'Lugar', pt: 'Lugar', fr: 'Lieu', de: 'Ort', it: 'Luogo', tr: 'Yer', uk: 'Місце', pl: 'Miejsce', zh: '地点', ja: '場所', ko: '장소' },
+  cont: { en: 'Continue', ru: 'Продолжить', es: 'Continuar', pt: 'Continuar', de: 'Weiter', fr: 'Continuer', it: 'Continua', uk: 'Продовжити', pl: 'Kontynuuj', tr: 'Devam et' },
   steps: { en: 'Step by step', ru: 'По шагам', es: 'Paso a paso', pt: 'Passo a passo', de: 'Schritt für Schritt', fr: 'Pas à pas', it: 'Passo dopo passo', uk: 'Покроково', pl: 'Krok po kroku', tr: 'Adım adım' },
   egg: { en: 'Easter egg', ru: 'Пасхалка', es: 'Easter egg', pt: 'Easter egg', fr: 'Easter egg', de: 'Easter Egg', it: 'Easter egg', tr: 'Sürpriz', uk: 'Пасхалка', pl: 'Easter egg', zh: '彩蛋', ja: 'イースターエッグ', ko: '이스터에그' },
 };
@@ -606,22 +607,28 @@ function nearbyRow(p, i) {
 }
 function eggSheet(e, i) {
   const yt = (e.m || []).map(ytLink).filter(Boolean);
+  // Bugatti v2 (Е4): нет игрового фото — в половину «Игра» настоящий кадр-обложку инструкции (cv) с подписью правообладателя;
+  // кнопка «По шагам» / «Продолжить» — сразу под фото, до названия (решение 09)
+  const gl = gameList(e).length ? gameList(e) : e.cv?.f ? [asItem({ file: e.cv.f, thumb: e.cv.t || e.cv.f, credit: e.cv.by || '' })] : [];
   // инструкция «По шагам» (26.11.2026): главная кнопка открывает экран инструкции (js/guide.js через app.js, data-action="open-guide");
   // ползунок «игра ⇄ жизнь», места рядом, «Открыть в Картах» — без изменений
-  const cta = e.how?.st?.length
-    ? `<button class="mp-cta" data-action="open-guide" data-key="egg:${game}:${esc(e.id)}" data-from="map">${IC.list}<span>${esc(w('steps'))}</span></button>`
+  let started = false; try { started = !!JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${game}:${e.id}`]; } catch { }
+  const guide = !!e.how?.st?.length;
+  const cta = guide
+    ? `<button class="mp-cta mp-cta-guide" data-action="open-guide" data-key="egg:${game}:${esc(e.id)}" data-from="map">${IC.list}<span>${esc(w(started ? 'cont' : 'steps'))}</span></button>`
     : yt.length
     ? `<button class="mp-cta mp-cta-yt" data-mp="yt" data-v="${yt[0].id}" data-t="${yt[0].t}" data-l="${esc(yt[0].label)}">${IC.play}<span>${esc(w('seen'))} · ${esc(yt[0].label.split(' · ')[1] || '')}</span></button>`
     : `<a class="mp-cta" href="${panoLink(e.lat, e.lon, e.view)}" target="_blank" rel="noopener">${IC.pano}<span>${esc(w('look'))}</span></a>`;
   return `
     ${peekHead(txt(e.t), rp(e).split(',')[0], true)}
-    ${heroBox('e' + i, e.pairs, gameList(e), realList(e), { g: txt(e.t), r: rp(e).split(',')[0] }, { egg: true })}
+    ${heroBox('e' + i, e.pairs, gl, realList(e), { g: txt(e.t), r: rp(e).split(',')[0] }, { egg: true })}
+    ${guide ? `<div class="mp-acts mp-acts-guide">${cta}</div>` : ''}
     <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><h2>${esc(txt(e.how?.ta) || txt(e.t))}</h2></div></div>
-    ${e.how?.rw ? `<p class="mp-text">${esc(txt(e.how.rw))}</p>` : ''}
+    ${e.how?.rw ? `<p class="mp-text">${esc(txt(e.how.sb || e.how.rw))}</p>` : ''}
     ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(rp(e).split(',')[0])}</b><small>${esc(rp(e).split(',').slice(1).join(',').trim())}</small></div></div>` : ''}
     ${gameBlock(e.gm, e.ga, '', '', { k: 'e', i, real: rp(e) })}
     <div class="mp-picto"><span class="mp-pic">${meter(e.cf)}<small>${esc(w(e.cf || 'likely'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel(e)}</small></span>` : ''}</div>
-    <div class="mp-acts">${cta}
+    <div class="mp-acts">${guide ? '' : cta}
       <a class="mp-ib" href="${mapsLink(e.lat, e.lon, e.p)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}">${IC.nav}</a>
       ${favBtn('egg', e.id)}<button class="mp-ib" data-mp="share" data-t="${esc(txt(e.t))}" data-k="egg:${game}:${esc(e.id)}" aria-label="${esc(w('share'))}">${IC.share}</button></div>
     <p class="mp-text">${esc(txt(e.d))}</p>

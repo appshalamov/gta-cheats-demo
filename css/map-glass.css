@@ -244,3 +244,6 @@
 @media (prefers-reduced-motion: reduce) {
   .map-games button, .mc, .mchip, .mchip::before { transition: none; }
 }
+/* Bugatti v2 (Е4): у находки с инструкцией кнопка «По шагам» / «Продолжить» — отдельной строкой сразу под фото */
+.mp-acts-guide { margin: 12px 0 6px; }
+.mp-acts-guide .mp-cta { flex: 1 1 100%; }

@@ -13,8 +13,8 @@
 .g-ib svg { width: 22px; height: 22px; }
 .g-top .g-ib:first-child svg { transform: rotate(90deg); }
 /* обложка инструкции (27.11): настоящий кадр игры на всю ширину под шапкой, низ тает в фон, подпись правообладателя поверх */
-.g-cover { margin: 0 -20px 4px; aspect-ratio: 16 / 9; overflow: hidden; position: relative; background: var(--card-2, #222); }
-.g-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.g-cover { margin: 0 -20px 4px; aspect-ratio: 2 / 1; overflow: hidden; position: relative; background: var(--card-2, #222); }
+.g-cover img { width: 100%; height: 100%; object-fit: cover; object-position: center 60%; display: block; }
 .g-cover figcaption { position: absolute; right: 10px; bottom: 8px; z-index: 1; font-size: 11px; color: rgba(255,255,255,.78); text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 .g-cover::after { content: ''; position: absolute; inset: auto 0 0; height: 32%; background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none; }
 .g-h1 { font: var(--t-title-1); letter-spacing: -.03em; margin: 8px 0 10px; text-wrap: balance; }
@@ -39,9 +39,12 @@
 .g-step:first-child { border-top: 0; }
 .g-num { flex: none; width: 28px; height: 28px; display: grid; place-items: center; font: 700 15px/1 var(--font-num); color: var(--text-3, var(--text-2)); }
 .g-num svg { width: 18px; height: 18px; }
-.g-step .g-t { margin: 3px 0 0; font-size: 16px; line-height: 1.4; color: var(--text-2); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.g-step .g-t { flex: 1 1 auto; min-width: 0; margin: 3px 0 0; font-size: 16px; line-height: 1.4; color: var(--text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.g-step.has-hd .g-t { display: block; -webkit-line-clamp: unset; overflow: visible; color: var(--text); font-weight: 600; }   /* Bugatti v2: короткий заголовок целиком */
 .g-step.is-done .g-num { color: var(--ok); }
 .g-step.is-done .g-t { color: var(--text-3, var(--text-2)); }
+.g-ck { flex: none; align-self: flex-start; margin-top: 6px; color: var(--ok); }   /* пройденный шаг: номер остаётся, галочка справа */
+.g-ck svg { width: 14px; height: 14px; display: block; }
 .g-step.is-lock { opacity: .55; }
 .g-step.is-cur { cursor: default; padding: 16px 0 18px; }
 .g-step.is-cur .g-num { color: var(--accent-ink); background: var(--accent); border-radius: 50%; }
@@ -216,3 +219,33 @@
 .g-next .g-nx b { flex: 1 1 auto; font-size: 17px; font-weight: 700; }
 .g-next .g-nx small { display: block; font-size: 14px; color: var(--text-2); font-weight: 400; margin-top: 2px; }
 .g-next .g-nx > svg { width: 16px; height: 16px; flex: none; color: var(--text-3, var(--text-2)); }
+
+/* ── Bugatti v2 (27.11, ТЗ «03 Bugatti — критика и ТЗ v2»): включается только при наличии данных (hd, img.cap, pa[].sm/req/wh/go/ret, pt) ── */
+.g-sm { font: var(--t-callout); color: var(--text-2); margin: 4px 0 0; }
+.g-ways { font: var(--t-headline); letter-spacing: var(--t-headline-track, 0); margin: 18px 0 0; }
+.g-paths { margin-top: 8px; }
+.g-path { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; }
+.g-path::before { content: none; }
+.g-path:not(.on) b { color: var(--text); font-weight: 650; }
+.g-pt { flex: 1 1 auto; min-width: 0; }
+.g-radio { flex: none; position: relative; width: 22px; height: 22px; margin-top: 1px; border-radius: 50%; border: 2px solid var(--line-2); }
+.g-path.on .g-radio { background: var(--accent); border-color: var(--accent); }
+.g-path.on .g-radio::after { content: ""; position: absolute; left: 5px; top: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-ink); }
+.g-part { padding-top: var(--s-3xl); }
+.g-hd { margin: 1px 0 0; font: var(--t-title-2); letter-spacing: var(--t-title-2-track, 0); color: var(--text); }
+.g-tx { margin: 12px 0 0; font: var(--t-body); color: var(--text); }
+.g-tip { margin: 8px 0 0; font: var(--t-callout); color: var(--text-2); }
+.g-tsub { margin: 0 0 6px; font: var(--t-callout); color: var(--text-2); }
+.g-ret { margin: 12px 0 0; font: var(--t-caption); color: var(--text-2); }
+/* кадр во всю ширину экрана в раскрытом шаге: влево на колонку номера (20 + 28 + 14), вправо на поле 20 */
+.g-step.is-cur .g-img-w { margin: 14px -20px 2px -62px; }
+.g-step.is-cur .g-img-w button { border-radius: 0; }
+.g-step.is-cur .g-img-w figcaption { padding: 0 20px; }
+.g-img figcaption b { color: var(--text); font-weight: 700; }
+/* {enter} — значок кнопки геймпада в строке текста */
+.g-step .k { width: 24px; height: 24px; min-width: 24px; margin: 0 1px; vertical-align: -6px; font-size: 11px; }
+.g-step .k svg { width: 15px; height: 15px; }
+.g-step .k-xb span { font-size: 13px; }
+/* «Дальше»: заголовок и подпись строки — столбиком (раньше подпись вставала колонкой рядом с заголовком) */
+.g-next .g-nxt { flex: 1 1 auto; min-width: 0; }
+.g-next .g-nxt b { display: block; }
