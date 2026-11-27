@@ -1,3 +1,6 @@
+/* Игорь 27.11: двойной тап по «Дальше» приближал приложение — iOS игнорирует user-scalable=no; двойной тап глушит только
+   touch-action: manipulation. Стоит первым, чтобы правила элементов ниже (pan-y, none) перекрывали его. Проверка — pwa_guard double-tap-zoom. */
+html, body, button, a, input, label, select, textarea, summary, [role="button"], [data-action], [data-g], [data-k], [data-tab] { touch-action: manipulation; }
 /* Чит-коды GTA — стили. Тёмная тема по умолчанию, светлая — data-theme="light". */
 /* Цвета, шрифт, радиусы, движение — роли из css/tokens.css (подключён первым; акцент — от скина data-skin).
    Здесь — только то, чего в токенах нет: производные и размеры каркаса. */

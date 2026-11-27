@@ -50,7 +50,7 @@ const S = {
 const KEY = 'sb.gd', FIRST = 'sb.gd1';
 let C = null, O = null, layer = null, lock = null, stuckAll = false;
 // Игорь 27.11: шаги раскрываются по тапу и не закрывают уже открытые (несколько сразу); набор живёт, пока лист открыт
-let openSet = new Set(), barAway = false;
+let openSet = new Set(), barAway = false, lastMain = 0;
 let V = null;   // вид листа не «шаги» (settings) — свой модуль guide-set.js
 
 const s = (k, v = {}) => {
@@ -263,6 +263,8 @@ function openStuck() {
 function onClick(e) {
   const b = e.target.closest('[data-g]'); if (!b || !layer.contains(b)) return;
   const a = b.dataset.g, p = prog(), st = STEPS(), i = +b.dataset.i;
+  // Игорь 27.11: двойной тап по «Сделано, дальше» отмечал два шага — главная кнопка игнорирует повтор в течение 450 мс
+  if (b.classList.contains('g-main')) { const now = Date.now(); if (now - lastMain < 450) return; lastMain = now; }
   if (V?.click(a, b, i, e)) return;
   switch (a) {
     case 'close': closeGuide(); break;
