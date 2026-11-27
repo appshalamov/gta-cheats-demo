@@ -363,7 +363,8 @@ export function openGuide(o, ctx) {
   if (!o?.how?.st?.length) return false;
   C = ctx; O = o; stuckAll = false; openSet = new Set(); barAway = false; css();
   V?.stop(); V = o.how.vw === 'settings' ? setView({ C, O, layer: () => layer, prog, s, tx, esc, mmss, rerender, closeGuide })
-    : o.how.vw === 'stories' && o.how.pa?.length ? storiesView({ C, O, layer: () => layer, prog, setProg, s, tx, esc, mmss, rich, plain, ruMin, PATH, shut,
+    // сторис включается настоящей обложкой (решение Fable 28.11 «сторис для всех разделов»): один способ (Mile Zero) — тоже сторис
+    : o.how.vw === 'stories' && o.cv?.f ? storiesView({ C, O, layer: () => layer, prog, setProg, s, tx, esc, mmss, rich, plain, ruMin, PATH, shut,
       next: nextHTML, stuck: (i, all) => { stuckAll = !!all; return stuckHTML(i); }, wake, closeGuide, ovlOpen, ovlClose, got: gotOf, auto: autoTags,
       first: () => { try { if (!localStorage.getItem(FIRST)) localStorage.setItem(FIRST, kOf(O)); } catch { } } }) : null;
   layer = document.getElementById('guide');
