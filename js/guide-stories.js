@@ -35,7 +35,8 @@ export function view(A) {
   const s = (k, v = {}) => { const t = (SS[C.lang] || SS.en)[k] ?? SS.en[k]; if (t == null) return A.s(k, v); let x = t; for (const [a, b] of Object.entries(v)) x = x.split(`{${a}}`).join(b); return x; };
   const H = () => O.how, PA = () => H().pa || [];
   const L = () => A.layer();
-  let mode = A.prog().s ? 'story' : 'cover', sheet = false, fixAll = false, touch = null;
+  // Игорь 27.11: лист всегда открывается сверху — сторис всегда с обложки, на ней «Продолжить: шаг N»
+  let mode = 'cover', sheet = false, fixAll = false, touch = null;
 
   const path = () => A.PATH();
   const list = () => path().st || [];
@@ -69,7 +70,8 @@ export function view(A) {
     });
   }
   const img = (x, cls = '') => `<img class="${cls}" src="${esc(C.imgUrl(x.f))}" alt="" decoding="async" data-fx="${x.fx ?? 0.5}">`;
-  const wm = `<span class="st-dom" aria-hidden="true">${DOM}</span>`;
+  // домен (навык domen-na-ekranah): та же марка, что в шапке списка (.sb-brand) — знак SB, Secret Base, sbgta.app; на кадре шторки — .sb-wm
+  const wm = `<span class="sb-brand st-brand" aria-hidden="true"><img src="icons/brand-mark.svg" alt="" width="22" height="16"><span><b>Secret Base</b><small>${DOM}</small></span></span>`;
 
   // ── первый экран ──
   function statusHTML(x) {
@@ -90,7 +92,7 @@ export function view(A) {
         ${h.sb || h.rw ? `<p class="sc-rw" data-fit>${esc(tx(h.sb) || tx(h.rw))}</p>` : ''}
         ${ways}
       </div>
-      <footer class="g-bar st-bar"><button class="g-main" data-g="sgo">${esc(p.s ? s('cont') : s('go'))}</button></footer>
+      <footer class="g-bar st-bar"><button class="g-main" data-g="sgo">${esc(!p.s ? s('go') : kGet() >= off() && kGet() < last() ? A.s('resume', { n: kGet() - off() + 1 }) : s('cont'))}</button></footer>
     </div>`;
   }
 
@@ -110,7 +112,7 @@ export function view(A) {
     return `<div class="st-card st-plain" data-g="stap">${bg ? `<div class="st-bg">${img(bg)}</div>` : ''}
       <div class="st-mid"><h2 class="st-h">${esc(s('before'))}</h2>
         <ul class="st-req">${rq.map((r) => `<li>${IC[r.ic] || C.I[{ phone: 'phone', cash: 'wallet' }[r.ic]] || C.I.check}<span>${esc(tx(r.s) || tx(r.t))}</span></li>`).join('')}</ul>
-        <button class="st-more" data-g="smore">${esc(s('more'))}</button></div>
+        <button class="st-more" data-g="smore" aria-haspopup="dialog"><span>${esc(s('more'))}</span>${C.I.chevron}</button></div>
       <footer class="g-bar st-bar"><button class="g-main" data-g="snext">${esc(s('ready'))}</button></footer></div>`;
   }
   function tagsCard(x, i) {
@@ -120,7 +122,7 @@ export function view(A) {
         <p class="g-tn st-count"><b>${Math.min(got.length, x.need)}</b> ${esc(A.s('of'))} ${x.need}</p>
         ${x.n?.of ? `<p class="st-sub">${esc(A.s('tags_any', { of: x.n.of, need: x.need }))}</p>` : ''}
         <ol class="st-tags">${x.tg.map((q, k) => `<li><button class="${got.includes(k) ? 'on' : ''}" data-g="tag" data-i="${i}" data-k="${k}" aria-pressed="${got.includes(k)}" aria-label="${esc(s('tap_tag', { n: k + 1 }))}">${got.includes(k) ? C.I.check : k + 1}</button></li>`).join('')}</ol>
-        <button class="st-more" data-g="smore">${esc(s('more'))}</button></div>
+        <button class="st-more" data-g="smore" aria-haspopup="dialog"><span>${esc(s('more'))}</span>${C.I.chevron}</button></div>
       <footer class="g-bar st-bar"><button class="g-main" data-g="sdone">${esc(s('done'))}</button></footer></div>`;
   }
   function lockCard(i) {
@@ -137,7 +139,7 @@ export function view(A) {
       <div class="st-media">${x.img ? img(x.img) : ''}${x.img?.by ? `<span class="st-by">${esc(A.s('frame', { by: x.img.by }))}</span>` : ''}</div>
       <div class="st-txt"><p class="st-hd">${A.rich(x.hd || x.t)}</p>
         ${x.c ? `<p class="g-big st-big">${esc(x.c)}</p>` : x.bv ? `<p class="g-big g-big-t st-big">${esc(x.bv)}</p>` : ''}
-        <button class="st-more" data-g="smore">${esc(s('more'))}</button></div>
+        <button class="st-more" data-g="smore" aria-haspopup="dialog"><span>${esc(s('more'))}</span>${C.I.chevron}</button></div>
       <footer class="g-bar st-bar"><button class="g-main${done ? ' is-done' : ''}" data-g="sdone">${done ? C.I.check : ''}<span>${esc(s('done'))}</span></button></footer></div>`;
   }
   function finCard() {
@@ -163,7 +165,7 @@ export function view(A) {
         ${wh ? `<button class="g-tb" data-g="video" data-v="${esc(wh[0])}" data-t="${wh[1]}">${I.play}<span>${esc(wh[3] && wh[2] ? A.s('whole_by', { by: wh[3], n: wh[2], u: A.ruMin(wh[2]) }) : A.s('whole0'))}</span></button>` : ''}`;
     }
     const i = k - off(), x = list()[i], p = A.prog(), got = p.t[x.id] || [];
-    const fig = x.img ? `<figure class="g-img st-fig"><button data-g="zoom" data-src="${esc(C.imgUrl(x.img.f))}" aria-label="${esc(A.s('zoom'))}"><img src="${esc(C.imgUrl(x.img.f))}" alt="" decoding="async"></button>
+    const fig = x.img ? `<figure class="g-img st-fig"><button data-g="zoom" data-src="${esc(C.imgUrl(x.img.f))}" aria-label="${esc(A.s('zoom'))}"><img src="${esc(C.imgUrl(x.img.f))}" alt="" decoding="async"></button><span class="sb-wm" aria-hidden="true">${DOM}</span>
       ${x.img.cap || x.img.by ? `<figcaption>${x.img.cap ? `<b>${esc(A.s('ring', { c: A.plain(x.img.cap) }))}</b> ` : ''}${x.img.by ? esc(A.s('frame2', { by: x.img.by })) : ''}</figcaption>` : ''}</figure>` : '';
     const tags = x.tg?.length ? `<ol class="g-tags st-tlist">${x.tg.map((q, k2) => `<li class="${got.includes(k2) ? 'on' : ''}">
         <button class="g-tc" data-g="tag" data-i="${i}" data-k="${k2}" aria-pressed="${got.includes(k2)}">${I.check}</button>

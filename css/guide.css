@@ -255,8 +255,6 @@
    Жесты читаются без preventDefault; touch-action — pan-y (не none): в шторке «Подробнее» обычная прокрутка. */
 .st, .sc { position: relative; height: 100%; display: flex; flex-direction: column; overflow: hidden; touch-action: pan-y; background: var(--bg); }
 .st-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.st-dom { flex: none; font: 500 12px/1 var(--font-ui); letter-spacing: .01em; color: rgba(255,255,255,.78); text-shadow: 0 1px 3px rgba(0,0,0,.6);
-  pointer-events: none; user-select: none; -webkit-user-select: none; }
 .st-ib { pointer-events: auto; color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
 .st-by { position: absolute; left: 16px; bottom: 12px; z-index: 1; font-size: 11px; color: rgba(255,255,255,.72); text-shadow: 0 1px 3px rgba(0,0,0,.6); pointer-events: none; }
 .st .g-bar, .sc .g-bar { border-top: 0; background: transparent; position: relative; z-index: 1; }
@@ -290,7 +288,7 @@
 
 /* карточки */
 .st-top { position: absolute; top: 0; left: 0; right: 0; z-index: 3; padding: calc(var(--safe-t, 0px) + 8px) 8px 40px 12px;
-  background: linear-gradient(rgba(0,0,0,.72), rgba(0,0,0,.45) 55%, transparent); pointer-events: none; }
+  background: linear-gradient(rgba(0,0,0,.82), rgba(0,0,0,.55) 60%, transparent); pointer-events: none; }
 .st-bars { display: flex; gap: 4px; padding-right: 4px; }
 .st-bars i { flex: 1 1 0; height: 3px; border-radius: 2px; background: rgba(255,255,255,.28); }
 .st-bars i.on { background: rgba(255,255,255,.92); }
@@ -308,7 +306,11 @@
 .st-hd { margin: 0; font: 800 26px/1.15 var(--font-ui); letter-spacing: -.025em; color: var(--text); text-wrap: balance; }
 .st-hd .k { width: 28px; height: 28px; min-width: 28px; vertical-align: -5px; }
 .st-big { margin: 10px 0 0; }
-.st-more { display: inline-flex; align-items: center; min-height: 44px; padding: 0; margin-top: 2px; font: 650 16px/1 var(--font-ui); color: var(--accent); background: none; }
+.st-more { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0; margin-top: 2px; font: 650 16px/1 var(--font-ui); color: var(--accent); background: none; }
+.st-more svg { width: 18px; height: 18px; transform: rotate(-90deg); }
+.st-brand { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.55); }
+.st-brand small { color: rgba(255,255,255,.82); }
+.st-brand b { font-size: 13px; } .st-brand small { font-size: 11px; }
 .st .g-main { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .st .g-main svg { width: 20px; height: 20px; }
 .st .g-main.is-done { color: var(--text); background: var(--card-2); }
@@ -352,3 +354,37 @@
 .st-fix { margin-top: 14px; border-top: 1px solid var(--line); }
 .st-fix summary { list-style: none; min-height: 48px; display: flex; align-items: center; font: 650 16px/1 var(--font-ui); color: var(--text); cursor: pointer; }
 .st-fix summary::-webkit-details-marker { display: none; }
+
+/* статус бага (27.11): зелёная точка + «работает, проверено <дата>» */
+.g-works, .g-pt em.g-works { font-style: normal; color: var(--ok); white-space: nowrap; }
+.g-works i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); margin: 0 4px 1px 4px; vertical-align: middle; }
+
+/* домен на экранах (Игорь 27.11, навык domen-na-ekranah): по любому скрину видно, откуда он */
+.g-top { align-items: center; }
+.sb-brand { display: flex; align-items: center; gap: 8px; pointer-events: none; user-select: none; color: var(--text); }
+.sb-brand img { width: 26px; height: auto; display: block; }
+.sb-brand span { display: flex; flex-direction: column; line-height: 1.1; }
+.sb-brand b { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+.sb-brand small { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+/* шапка поверх обложки: прозрачная с мягкой тенью, обложка уходит под неё до самого верха; после обложки — сплошная */
+.g-top-over { background: linear-gradient(rgba(12,12,14,.62), rgba(12,12,14,0)); transition: background-color .2s; }
+.g-top-over.solid { background: var(--bg); box-shadow: 0 1px 0 var(--line); }
+.g-top-over:not(.solid) .sb-brand, .g-top-over:not(.solid) .g-ib { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.g-top-over:not(.solid) .sb-brand small { color: rgba(255,255,255,.82); }
+.g-top-over:not(.solid) .g-ib { background: rgba(0,0,0,.28); }
+.g-top-over + .g-cover { margin-top: calc(-1 * (var(--safe-t, 0px) + 56px)); }
+.g-img, .g-cover { position: relative; }
+.sb-wm { position: absolute; right: 8px; bottom: 8px; z-index: 2; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.8);
+  text-shadow: 0 1px 3px rgba(0,0,0,.65); pointer-events: none; user-select: none; line-height: 1; }
+.g-img .sb-wm { bottom: auto; top: 8px; }
+.g-cover .sb-wm { right: auto; left: 10px; }   /* справа внизу — подпись © Rockstar Games */
+.sb-wm-z { right: 50%; transform: translateX(50%); bottom: calc(var(--safe-b, 0px) + 18px); font-size: 13px; }
+
+/* шаги-раскрывашки (Игорь 27.11): видно, что шаг раскрывается; открытые не закрываются; у лишнего открытого — «свернуть» */
+.g-step[data-g="open"] { cursor: pointer; min-height: 48px; }
+.g-chev { flex: none; margin-left: auto; align-self: center; width: 20px; height: 20px; color: var(--text-3, var(--text-2)); }
+.g-chev svg { width: 20px; height: 20px; transform: rotate(90deg); }
+.g-step { position: relative; }
+.g-fold { position: absolute; right: 0; top: 2px; width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; color: var(--text-2); z-index: 1; }
+.g-fold svg { width: 20px; height: 20px; transform: rotate(-90deg); }
+.g-step:has(.g-fold) .g-body > .g-t { padding-right: 40px; }
