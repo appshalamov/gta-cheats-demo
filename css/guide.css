@@ -251,7 +251,7 @@
 .g-next .g-nxt b { display: block; }
 
 /* статус бага (27.11): зелёная точка + «работает, проверено <дата>» */
-.g-works { font-style: normal; color: var(--ok); white-space: nowrap; }
+.g-works, .g-pt em.g-works { font-style: normal; color: var(--ok); white-space: nowrap; }
 .g-works i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); margin: 0 4px 1px 4px; vertical-align: middle; }
 
 /* домен на экранах (Игорь 27.11, навык domen-na-ekranah): по любому скрину видно, откуда он */
