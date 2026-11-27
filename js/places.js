@@ -80,7 +80,7 @@ export const textOf = (o) => (o.kind === 'egg' ? L(o.d) : L(o.s));
 const IMG_BASE = /\/(beta|design)\//.test(location.pathname) ? '../' : '';
 export const imgUrl = (u) => (IMG_BASE && typeof u === 'string' && u.startsWith('img/map/') ? IMG_BASE + u : u);
 export function thumbOf(o, prefer = 'real') {
-  if (o.cv) return imgUrl(o.cv.t || o.cv.f);   // своя обложка инструкции (Игорь 27.11: Bugatti нарисована) — первой
+  if (o.cv) return imgUrl(o.cv.t || o.cv.f);   // обложка инструкции (настоящий кадр игры, Игорь 27.11) — первой
   const a = prefer === 'game' ? [o.pg, o.pr] : [o.pr, o.pg];
   const ph = a.find(Boolean);
   return imgUrl(ph ? (ph.thumb || ph.file) : '');

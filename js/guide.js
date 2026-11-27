@@ -132,7 +132,7 @@ function render() {
   layer.innerHTML = `<div class="g-scroll" id="g-scroll">
     <header class="g-top"><button class="g-ib" data-g="close" aria-label="${esc(s('close'))}">${I.chevron}</button>
       <button class="g-ib" data-g="share" aria-label="${esc(s('share'))}">${I.share}</button></header>
-    ${O.cv ? `<figure class="g-cover"><img src="${esc(C.imgUrl(O.cv.f))}" alt="" decoding="async" fetchpriority="high"></figure>` : ''}
+    ${O.cv ? `<figure class="g-cover"><img src="${esc(C.imgUrl(O.cv.f))}" alt="" decoding="async" fetchpriority="high">${O.cv.by ? `<figcaption>${esc(O.cv.by)}</figcaption>` : ''}</figure>` : ''}
     <h1 class="g-h1">${esc(tx(h.ta) || tx(O.t))}</h1>
     ${h.rw ? `<p class="g-rw">${esc(tx(h.rw))}</p>` : ''}
     ${h.pa?.length ? pathsHTML(h, path) : `<p class="g-meta">${esc(h.min ? s('meta', { n: st.length, m: h.min }) : s('meta0', { n: st.length }))}</p>`}
