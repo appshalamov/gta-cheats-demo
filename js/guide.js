@@ -77,7 +77,7 @@ const ruMin = (n) => { const a = n % 10, b = n % 100; return s(a === 1 && b !== 
 // шаги выбранного пути (квест / баг): по ним считается «шаг X из N» везде — в ленте, поиске, на Главной и в шторке карты
 export const pathSt = (o, p) => ((o.how?.pa || []).find((x) => x.id === p?.path) || (o.how?.pa || [])[0] || o.how || {}).st || [];
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
-function prog() { const p = read()[kOf(O)] || {}; return { d: p.d || [], t: p.t || {}, s: p.s || 0, o: p.o, path: p.path, ...(p.k ? { k: p.k } : {}) }; }   // k — карточка сторис по способам
+function prog() { const p = read()[kOf(O)] || {}; return { d: p.d || [], t: p.t || {}, s: p.s || 0, o: p.o, path: p.path, ...(p.k ? { k: p.k } : {}), ...(p.rq ? { rq: 1 } : {}) }; }   // k — карточка сторис по способам, rq — «Перед выездом» уже видели
 function setProg(p) { try { const all = read(); all[kOf(O)] = { ...p, at: Date.now() }; localStorage.setItem(KEY, JSON.stringify(all)); } catch { } }
 // для строк ленты и шторки на карте: сколько шагов пройдено (0 — не начато)
 export function progressOf(o) { const p = read()[kOf(o)]; return p ? pathSt(o, p).filter((x) => (p.d || []).includes(x.id)).length + (p.s ? 0.001 : 0) : 0; }

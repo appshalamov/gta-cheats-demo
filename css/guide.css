@@ -250,76 +250,101 @@
 .g-next .g-nxt { flex: 1 1 auto; min-width: 0; }
 .g-next .g-nxt b { display: block; }
 
-/* ── вид «сторис» (js/guide-stories.js, черновик 27.11 для решения Fable): включается только при how.vw = stories ──
+/* ── вид «сторис» (js/guide-stories.js; решение Fable 27.11 — «Критика 27.11/07»): включается только при how.vw = stories ──
    Обложка с выбором способа → карточки во весь экран. Кадр обрезается по высоте карточки, кольцо держится посередине (img.fx).
-   Жесты читаются без preventDefault; touch-action — pan-y (не none): в шторке «Подробнее» обычная прокрутка. */
+   Жесты читаются без preventDefault; touch-action — pan-y (не none): двойной тап и щипок не приближают, в шторке обычная прокрутка.
+   Цвет: розовый — действие и текущий шаг, зелёный — сделано и «работает», янтарный — ловушка (одна на карточку). */
 .st, .sc { position: relative; height: 100%; display: flex; flex-direction: column; overflow: hidden; touch-action: pan-y; background: var(--bg); }
+/* двойной тап и щипок не приближают ни на одном элементе сторис (iOS слушает только touch-action): pan-y и у потомков — у .st-mid и шторки
+   своя прокрутка, на них пересечение touch-action обрывается; вертикальный свайп при этом листает как обычно */
+.st *, .sc * { touch-action: pan-y; }
 .st-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .st-ib { pointer-events: auto; color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
 .st-by { position: absolute; left: 16px; bottom: 12px; z-index: 1; font-size: 11px; color: rgba(255,255,255,.72); text-shadow: 0 1px 3px rgba(0,0,0,.6); pointer-events: none; }
 .st .g-bar, .sc .g-bar { border-top: 0; background: transparent; position: relative; z-index: 1; }
+.st-brand { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.8), 0 0 10px rgba(0,0,0,.45); }
+.st-brand small { color: rgba(255,255,255,.82); }
+.st-brand b { font-size: 13px; } .st-brand small { font-size: 11px; }
 
-/* первый экран */
+/* обложка */
 .sc-media { flex: 1 1 auto; min-height: 0; position: relative; overflow: hidden; background: var(--card-2); }
 .sc-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .sc-media::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 34%; background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none; }
 .sc-media .st-by { left: auto; right: 16px; bottom: 44px; }
 .sc-top { position: absolute; top: 0; left: 0; right: 0; z-index: 2; padding: calc(var(--safe-t, 0px) + 6px) 8px 28px;
-  background: linear-gradient(rgba(0,0,0,.5), transparent); pointer-events: none; }
+  background: linear-gradient(rgba(0,0,0,.55), transparent); pointer-events: none; }
 .sc-top .st-ib:first-child svg { transform: none; }
 .sc-body { flex: none; position: relative; z-index: 1; margin-top: -30px; padding: 0 20px; }
 .sc-h1 { margin: 0 0 6px; font: 800 30px/1.12 var(--font-ui); letter-spacing: -.03em; white-space: nowrap; overflow: hidden; }
 .sc-rw { margin: 0; font: 500 16px/1.3 var(--font-ui); color: var(--text-2); white-space: nowrap; overflow: hidden; }
 .sc-ways { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
 .sc-way { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-height: 84px; padding: 14px 0 6px;
-  text-align: left; color: var(--text-2); background: none; border-top: 1px solid var(--line-2); }
+  text-align: left; color: var(--text); background: none; border-top: 1px solid var(--line-2); }
 .sc-way::before { content: ""; position: absolute; left: 0; right: 0; top: -2px; height: 4px; border-radius: 2px; background: transparent; transition: background .2s; }
 .sc-way.on::before { background: var(--accent); }
-.sc-way b { font: 800 24px/1.05 var(--font-ui); letter-spacing: -.02em; color: var(--text-2); }
-.sc-way.on b { color: var(--text); }
-.sc-way > span:not(.sc-st) { font: 600 16px/1.2 var(--font-ui); }
-.sc-way.on > span:not(.sc-st) { color: var(--text); }
+/* Fable: невыбранный способ — обычный светлый текст, не серый (серый читается как «недоступно») */
+.sc-way b { font: 650 24px/1.05 var(--font-ui); letter-spacing: -.02em; color: var(--text); }
+.sc-way.on b { font-weight: 800; }
+.sc-way > span:not(.sc-st) { font: 600 16px/1.2 var(--font-ui); color: var(--text); }
 .sc-st, .st-dot { display: inline-flex; align-items: center; gap: 7px; font: 650 14px/1.2 var(--font-ui); }
 .sc-st i, .st-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
 .sc-st.is-ok { color: var(--ok); } .sc-st.is-bad { color: var(--danger); }
 .st-dot.is-ok { background: var(--ok); } .st-dot.is-bad { background: var(--danger); }
-.sc-way small { font: 500 13px/1.2 var(--font-ui); color: var(--text-3); }
+.sc-way small { font: 500 13px/1.2 var(--font-ui); color: var(--text-2); }
+.sc-all { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin-top: 4px; padding: 0; font: 600 15px/1 var(--font-ui); color: var(--text-2); background: none; }
+.sc-all svg { width: 16px; height: 16px; }
+.sc .g-shoot { margin: 6px 0 0; padding: 8px 12px; }   /* «Снять про это» — только автору с рефкодом (guide-creators) */
+.st-fin .g-shoot { margin-top: 12px; }
 .g-path em.is-ok { color: var(--ok); }
 
-/* карточки */
-.st-top { position: absolute; top: 0; left: 0; right: 0; z-index: 3; padding: calc(var(--safe-t, 0px) + 8px) 8px 40px 12px;
-  background: linear-gradient(rgba(0,0,0,.82), rgba(0,0,0,.55) 60%, transparent); pointer-events: none; }
-.st-bars { display: flex; gap: 4px; padding-right: 4px; }
-.st-bars i { flex: 1 1 0; height: 3px; border-radius: 2px; background: rgba(255,255,255,.28); }
-.st-bars i.on { background: rgba(255,255,255,.92); }
+/* шапка карточки: затемнение сверху (чёрный 55 % → 0 за 96 pt), полоски — оглавление, способы словами, марка, крестик */
+.st-top { position: absolute; top: 0; left: 0; right: 0; z-index: 3; min-height: calc(var(--safe-t, 0px) + 96px); padding: calc(var(--safe-t, 0px) + 4px) 8px 0 12px;
+  background: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55) 45%, rgba(0,0,0,0)); pointer-events: none; }
+.st-bars { pointer-events: auto; display: flex; align-items: center; gap: 4px; width: 100%; height: 20px; padding: 0 4px 0 0; background: none; }
+.st-bars i { flex: 1 1 0; height: 3px; border-radius: 2px; background: rgba(255,255,255,.32); box-shadow: 0 0 2px rgba(0,0,0,.35); }
+.st-bars i.on { background: rgba(255,255,255,.95); }
 .st-bars i.cur { background: var(--accent); }
-.st-top .st-row { margin-top: 4px; }
-.st-way { pointer-events: auto; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 6px 0 2px; color: #fff; background: none;
+.st-ways { pointer-events: auto; display: flex; align-items: center; gap: 18px; }
+.st-way { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0; font: 700 17px/1 var(--font-ui); color: rgba(255,255,255,.66); background: none;
   text-shadow: 0 1px 3px rgba(0,0,0,.6); }
-.st-way b { font: 750 17px/1 var(--font-ui); }
-.st-way svg { width: 18px; height: 18px; opacity: .8; }
+.st-way.on { color: #fff; text-decoration: underline 2px; text-underline-offset: 7px; }
+.st-way .st-dot { width: 8px; height: 8px; box-shadow: 0 0 0 1.5px rgba(0,0,0,.35); }
+.st-note { margin: 0 0 0 2px; font: 600 14px/1.3 var(--font-ui); color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.7); transition: opacity .4s; }
+.st-note.out { opacity: 0; }
+
+/* карточка шага */
 .st-card { flex: 1 1 auto; min-height: 0; position: relative; display: flex; flex-direction: column; }
 .st-media { flex: 1 1 auto; min-height: 0; position: relative; overflow: hidden; background: var(--card-2); }
 .st-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .st-media::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 18%; background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none; }
-.st-txt { flex: none; position: relative; z-index: 1; margin-top: -8px; padding: 0 20px; }
-.st-hd { margin: 0; font: 800 26px/1.15 var(--font-ui); letter-spacing: -.025em; color: var(--text); text-wrap: balance; }
+.st-txt { flex: none; position: relative; z-index: 1; margin-top: -8px; padding: 0 20px 2px; }
+.st-hd { margin: 0; font: 800 26px/1.15 var(--font-ui); letter-spacing: -.025em; color: var(--text); white-space: nowrap; overflow: hidden; }
 .st-hd .k { width: 28px; height: 28px; min-width: 28px; vertical-align: -5px; }
 .st-big { margin: 10px 0 0; }
-.st-more { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0; margin-top: 2px; font: 650 16px/1 var(--font-ui); color: var(--accent); background: none; }
-.st-more svg { width: 18px; height: 18px; transform: rotate(-90deg); }
-.st-brand { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.55); }
-.st-brand small { color: rgba(255,255,255,.82); }
-.st-brand b { font-size: 13px; } .st-brand small { font-size: 11px; }
+.st-trap { margin: 6px 0 0; font: 650 15px/1.3 var(--font-ui); color: var(--warn); }
+/* «Подробнее» — строка во всю ширину 44 pt со стрелкой вверх: видно, что раскрывается */
+.st-more { flex: none; position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; margin-top: 10px;
+  padding: 0 20px; font: 650 16px/1 var(--font-ui); color: var(--text); background: none; border-top: 1px solid var(--line); }
+.st-up svg { display: block; width: 18px; height: 18px; color: var(--text-2); transform: rotate(-90deg); }
 .st .g-main { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .st .g-main svg { width: 20px; height: 20px; }
 .st .g-main.is-done { color: var(--text); background: var(--card-2); }
+.st-stuck { padding: 0 8px 0 4px; }
+/* подсказка один раз на первой карточке шага: «Тап справа — дальше», гаснет после первого тапа */
+.st-hint { position: absolute; right: 12px; bottom: 34px; z-index: 2; display: inline-flex; align-items: center; gap: 2px;
+  font: 650 15px/1 var(--font-ui); color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.85); pointer-events: none; animation: stHint 1.6s ease-in-out infinite; }
+.st-hint svg { width: 20px; height: 20px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.7)); }
+@keyframes stHint { 50% { transform: translateX(5px); } }
+@media (prefers-reduced-motion: reduce) { .st-hint { animation: none; } }
 
-/* карточки без кадра: «Перед выездом», метки, стена Pro, «Готово» */
+/* карточки без кадра шага: «Перед выездом», метки, стена Pro */
 .st-bg { position: absolute; inset: 0; overflow: hidden; }
 .st-bg img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.12); filter: blur(16px) brightness(.32) saturate(1.2); }
+.st-bg-cv img { transform: none; filter: brightness(.25); }
 .st-mid { flex: 1 1 auto; min-height: 0; position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center;
   padding: calc(var(--safe-t, 0px) + 84px) 24px 8px; overflow: hidden auto; overscroll-behavior: contain; }
+.st-mid-top { justify-content: flex-start; }
+.st-plain .st-more { border-top-color: rgba(255,255,255,.14); }
 .st-h { color: var(--text); margin: 0 0 14px; font: 800 32px/1.08 var(--font-ui); letter-spacing: -.03em; text-wrap: balance; }
 .st-req { list-style: none; margin: 4px 0 6px; padding: 0; }
 .st-req li { display: flex; align-items: center; gap: 16px; padding: 14px 0; font: 700 21px/1.2 var(--font-ui); letter-spacing: -.01em; }
@@ -328,32 +353,64 @@
 .st-count b { font: 800 104px/.95 var(--font-num); letter-spacing: -.04em; color: var(--text); margin-right: 4px; }
 .st-sub { margin: 10px 0 0; font: 450 16px/1.35 var(--font-ui); color: var(--text-2); }
 .st-tags { list-style: none; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 26px 0 8px; padding: 0; }
-.st-tags button { display: grid; place-items: center; width: 100%; aspect-ratio: 1; border-radius: 50%; border: 2px solid var(--line-2);
-  font: 700 18px/1 var(--font-num); color: var(--text); background: rgba(0,0,0,.25); }
+.st-tags button { display: grid; place-items: center; width: 100%; aspect-ratio: 1; border-radius: 50%; border: 2px solid rgba(255,255,255,.34); color: var(--text); background: rgba(0,0,0,.25); }
 .st-tags button.on { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
 .st-tags button svg { width: 22px; height: 22px; }
 .st-lock svg { width: 40px; height: 40px; color: var(--accent); margin-bottom: 14px; }
-.st-fin .st-mid { justify-content: flex-start; }
-.st-finck { display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 18px; border-radius: 50%; background: var(--ok); color: var(--bg); }
-.st-finck svg { width: 34px; height: 34px; }
-.st-fin .g-next { margin-top: 26px; }
-.st-fin-s { margin-top: -6px; font: 650 19px/1.3 var(--font-ui); color: var(--ok); }
+.g-wall .g-next { margin-top: 22px; }
 
-/* шторка «Подробнее» */
+/* финал: обложка на треть экрана, одна строка результата, «Дальше» с подписями в одну строку, «Начать заново» тихим текстом */
+.st-fin-media { flex: none; height: 33%; position: relative; overflow: hidden; background: var(--card-2); }
+.st-fin-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.st-fin-media::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none; }
+.st-fin-media .st-by { left: auto; right: 16px; bottom: 10px; }
+.st-fin .st-mid { padding-top: 10px; }
+.st-fin-h { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 30px; white-space: nowrap; overflow: hidden; }
+.st-fin-h svg { flex: none; width: 28px; height: 28px; color: var(--ok); }
+.st-fin .g-next { margin-top: 16px; }
+.st .g-nx b, .st .g-nx small, .st-sheet .g-nx b, .st-sheet .g-nx small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-again { align-self: flex-start; min-height: 44px; margin-top: 4px; padding: 0; font: 600 15px/1 var(--font-ui); color: var(--text-2); background: none; }
+
+/* шторка «Подробнее» и «Все шаги» */
 .st-scrim { position: absolute; inset: 0; z-index: 4; background: var(--scrim); }
-.st-sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; max-height: 84%; overflow: hidden auto; overscroll-behavior: contain;
+.st-sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; max-height: 86%; overflow: hidden auto; overscroll-behavior: contain;
   padding: 0 20px calc(var(--safe-b, 0px) + 24px); background: var(--bg-elev); border-radius: var(--r-sheet, 24px) var(--r-sheet, 24px) 0 0; box-shadow: var(--sh-overlay); }
 .st-scrim[hidden], .st-sheet[hidden] { display: none; }
-.st-sh-top { position: sticky; top: 0; z-index: 2; display: flex; justify-content: flex-end; margin: 0 -12px 0 0; padding-top: 4px; background: var(--bg-elev); }
-.st-sh-in { margin-top: -8px; }
+.st-sh-top { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; justify-content: space-between; margin: 0 -12px 0 0; padding-top: 4px; background: var(--bg-elev); }
+.st-sh-brand img { width: 22px; }
+.st-sh-brand b { font-size: 13px; } .st-sh-brand small { font-size: 11px; }
+.st-sh-in { padding-top: 4px; }
 .st-sh-h { margin: 6px 0 0; font: var(--t-title-2); letter-spacing: -.02em; }
+.st-sh-t { margin-top: 2px; }
 .st-fig { margin: 0 -20px 12px; }
 .st-fig button { border-radius: 0; }
 .st-fig figcaption { padding: 0 20px; }
-.st-tlist { list-style: none; margin: 14px 0 0; padding: 0; }
-.st-fix { margin-top: 14px; border-top: 1px solid var(--line); }
-.st-fix summary { list-style: none; min-height: 48px; display: flex; align-items: center; font: 650 16px/1 var(--font-ui); color: var(--text); cursor: pointer; }
-.st-fix summary::-webkit-details-marker { display: none; }
+.st-rows { margin-top: 16px; border-bottom: 1px solid var(--line); }
+.st-x { display: block; border-top: 1px solid var(--line); }
+.st-x summary, .st-xv { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 52px; padding: 0;
+  font: 650 16px/1.2 var(--font-ui); color: var(--text); text-align: left; background: none; cursor: pointer; }
+.st-x summary::-webkit-details-marker { display: none; }
+.st-x summary svg { flex: none; width: 18px; height: 18px; color: var(--text-2); transform: rotate(90deg); transition: transform .2s; }
+.st-x[open] summary svg { transform: rotate(-90deg); }
+.st-xv svg { flex: none; width: 20px; height: 20px; color: var(--accent); }
+.st-xb { padding: 0 0 14px; }
+.st-xb > p:first-child, .st-xb .g-fix > p:first-child { margin-top: 0; }
+.st-places { list-style: none; margin: 0; padding: 0; }
+.st-places li { display: flex; align-items: center; gap: 10px; min-height: 48px; border-top: 1px solid var(--line); }
+.st-places li:first-child { border-top: 0; }
+.st-places li > span { flex: 1 1 auto; font-size: 15px; line-height: 1.35; }
+.st-places small { display: block; font-size: 13px; color: var(--text-2); }
+.st-toc { list-style: none; margin: 10px 0 0; padding: 0; }
+.st-toc-r { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 50px; padding: 6px 0; text-align: left; color: var(--text); background: none;
+  border-top: 1px solid var(--line); font: 600 16px/1.25 var(--font-ui); }
+.st-toc li:first-child .st-toc-r { border-top: 0; }
+.st-toc-n { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--line-2); font: 700 13px/1 var(--font-num); color: var(--text-2); }
+.st-toc-n svg { width: 15px; height: 15px; }
+.st-toc-r.is-done .st-toc-n { border-color: var(--ok); color: var(--ok); }
+.st-toc-r.on .st-toc-n { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+.st-toc-r.on .st-toc-t { color: var(--accent); }
+.st-toc-t .k { width: 20px; height: 20px; min-width: 20px; vertical-align: -4px; }
+.st-sheet .g-next { margin-top: 18px; }
 
 /* статус бага (27.11): зелёная точка + «работает, проверено <дата>» */
 .g-works, .g-pt em.g-works { font-style: normal; color: var(--ok); white-space: nowrap; }

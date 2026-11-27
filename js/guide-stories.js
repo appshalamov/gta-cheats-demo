@@ -1,32 +1,42 @@
-// Вид «сторис» листа «По шагам» (27.11.2026, черновик для решения Fable; Игорь: «минимум текста, больше визуала, листать как сторис,
-// два способа переключать проще; не писать про патч — показывать статус бага»). Включается данными: how.vw === 'stories' (Bugatti первая).
-// Первый экран — обложка, заголовок и награда в одну строку, переключатель «Квест / Баг» со статусом бага, «Начать».
-// Дальше карточки: «Перед выездом» (значки) → шаги (кадр на всю карточку, одна строка действия, «Подробнее» — шторка) → «Готово» + «Дальше».
-// Тап справа — вперёд, слева — назад, свайп вбок — то же, свайп вниз — к обложке; «Сделано» отмечает шаг. Позиция карточки — своя у каждого способа
-// (sb.gd: p.k = {quest: 3, bug: 1}). Домен sbgta.app — в верхней строке каждой карточки и обложки (навык domen-na-ekranah).
+// Вид «сторис» листа «По шагам» (27.11.2026; Игорь: «минимум текста, больше визуала, листать как сторис, два способа переключать проще;
+// не писать про патч — показывать статус бага»). Решение Fable — «Критика 27.11/07 Решение Fable — Bugatti сторис.md».
+// Включается данными: how.vw === 'stories' (Bugatti первая); инструкция без кадров остаётся списком.
+// Обложка: настоящий кадр, заголовок и подзаголовок в одну строку, способы словами с временем и статусом бага, «Все шаги: N», одна кнопка
+// «Начать квест» / «Начать через баг» / «Продолжить: шаг N». Карточки: «Перед выездом» (один раз) → шаги (кадр во весь экран, заголовок
+// до 34 знаков, одно крупное значение) → «Готово» + «Дальше». Шапка карточки: полоски (тап — «Все шаги»), способы словами, марка sbgta.app,
+// крестик. Низ: строка «Подробнее» (шторка; свайп вверх — то же), «Не получается» слева, «Сделано» справа.
+// Тап справа — вперёд, слева — назад (только листает, отмечает одна «Сделано»), свайп вбок — то же, вниз — к обложке.
+// Позиция карточки — своя у каждого способа (sb.gd: p.k = {quest: 3, bug: 1}), p.rq — «Перед выездом» уже видели.
 // Подключается к js/guide.js крючками вида (как guide-set.js): list, render, click, stop.
 
 const SS = {
   ru: {
     min: '{m} мин', go: 'Начать', cont: 'Продолжить', works: 'Работает', broken: 'Не работает с {d}', checked: 'проверено {d}',
-    ready: 'Всё есть', done: 'Сделано', more: 'Подробнее', sway: 'Сменить способ', fin_t: 'Готово', fin_car: 'Машина ваша', fin_ok: 'Всё получилось', tags_t: 'Метки No Flusher',
-    tap_tag: 'Метка {n}', step_of: 'Шаг {a} из {b}', to_cover: 'К обложке', ways_aria: 'Способ', lock_t: 'Дальше в Pro',
+    ready: 'Всё есть', done: 'Сделано', more: 'Подробнее', where_t: 'Где искать', tip_t: 'Подсказка', all: 'Все шаги: {n}', toc: 'Все шаги',
+    tags_t: 'Метки No Flusher', tags_any: 'любые {need} из {of}', tag_add: 'Отметить метку', tag_del: 'Снять метку',
+    to_cover: 'К обложке', ways_aria: 'Способ', lock_t: 'Дальше в Pro', wall_s: 'Шаги {a}–{b}, точные места и разбор ошибок', hint: 'Тап справа — дальше',
+    way_at: '{w}: шаг {a} из {b}', way_0: '{w}: перед выездом', way_fin: '{w}: всё пройдено', fin: 'Готово. Машина ваша', fin_left: 'Отмечено {a} из {b}',
     mon: ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'],
   },
   en: {
     min: '{m} min', go: 'Start', cont: 'Continue', works: 'Works', broken: 'Broken since {d}', checked: 'checked {d}',
-    ready: 'Got it all', done: 'Done', more: 'Details', sway: 'Switch way', fin_t: 'Done', fin_car: 'The car is yours', fin_ok: 'You made it', tags_t: 'No Flusher tags',
-    tap_tag: 'Tag {n}', step_of: 'Step {a} of {b}', to_cover: 'Back to cover', ways_aria: 'Way', lock_t: 'The rest is in Pro',
+    ready: 'Got it all', done: 'Done', more: 'Details', where_t: 'Where to look', tip_t: 'Tip', all: 'All steps: {n}', toc: 'All steps',
+    tags_t: 'No Flusher tags', tags_any: 'any {need} of {of}', tag_add: 'Mark a tag', tag_del: 'Unmark a tag',
+    to_cover: 'Back to cover', ways_aria: 'Way', lock_t: 'The rest is in Pro', wall_s: 'Steps {a}–{b}, exact spots and fixes', hint: 'Tap right for next',
+    way_at: '{w}: step {a} of {b}', way_0: '{w}: before you go', way_fin: '{w}: all done', fin: 'Done. The car is yours', fin_left: 'Marked {a} of {b}',
     mon: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
   },
 };
-const DOM = 'sbgta.app';
+const DOM = 'sbgta.app', HINT = 'sb.gdtap';
 const sv = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 // значки «Перед выездом» (в icons.js таких нет): пистолет с глушителем, машина; телефон и деньги — из общего набора
 const IC = {
   gun: sv('<path d="M2 8.5h16.5V12H12l-1 2.5H8L9 12H4.5z"/><path d="M9.5 14.5 8.5 19H5l1.4-5.5"/><path d="M18.5 9.2H22v2.1h-3.5"/>'),
   car: sv('<path d="M3.5 16.5V13l2-4.5h13l2 4.5v3.5"/><path d="M3.5 13h17"/><circle cx="7.5" cy="16.5" r="1.8"/><circle cx="16.5" cy="16.5" r="1.8"/>'),
 };
+// двойной тап (Игорь 27.11): два касания подряд срабатывают один раз — иначе тап листал две карточки, а метка ставилась и снималась.
+// Главные кнопки (.g-main) глушит guide.js (450 мс); здесь — тап по карточке и остальные кнопки вида
+const DEB = new Set(['stap', 'tag', 'sway', 'path', 'stoc', 'smore', 'sstuck', 'sgoto', 'sclose', 'sagain', 'sless']);
 
 let live = null, bound = null;   // один слой #guide на всё время: слушатели касаний вешаем один раз, работают с последним видом
 
@@ -36,22 +46,28 @@ export function view(A) {
   const H = () => O.how, PA = () => H().pa || [];
   const L = () => A.layer();
   // Игорь 27.11: лист всегда открывается сверху — сторис всегда с обложки, на ней «Продолжить: шаг N»
-  let mode = 'cover', sheet = false, fixAll = false, touch = null;
+  let mode = 'cover', sheet = false, fixAll = false, touch = null, note = '', last0 = {};
 
   const path = () => A.PATH();
+  const pid = () => path().id || 'one';
   const list = () => path().st || [];
   const date = (d) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); if (!m) return ''; const mo = s('mon')[+m[2] - 1]; return C.lang === 'ru' ? `${+m[3]} ${mo}` : `${mo} ${+m[3]}`; };
   // карточки: 0 — «Перед выездом» (если есть), дальше шаги, последняя — «Готово»
-  const hasReq = () => !!(path().req || H().req || []).length;
-  const off = () => (hasReq() ? 1 : 0);
+  const reqs = () => path().req || H().req || [];
+  const off = () => (reqs().length ? 1 : 0);
   const last = () => list().length + off();
   function kGet() {
-    const p = A.prog(), k = p.k?.[path().id || 'one'];
+    const p = A.prog(), k = p.k?.[pid()];
     if (Number.isInteger(k)) return Math.max(0, Math.min(k, last()));
     const st = list(), i = st.findIndex((x) => !p.d.includes(x.id));   // первая не отмеченная — для старых прогрессов без p.k (v2)
-    return p.d.length ? (i < 0 ? last() : i + off()) : 0;
+    return st.some((x) => p.d.includes(x.id)) ? (i < 0 ? last() : i + off()) : 0;
   }
-  function kSet(k, p = A.prog()) { p.k = { ...(p.k || {}), [path().id || 'one']: k }; A.setProg(p); return p; }
+  // «Продолжить» ведёт на карточку, где остановились; «Перед выездом» после «Всё есть» пропускаем (назад свайпом она доступна)
+  const kEff = () => { const k = kGet(); return k < off() && A.prog().rq ? off() : k; };
+  const started = () => { const p = A.prog(); return !!p.s && (Number.isInteger(p.k?.[pid()]) || list().some((x) => p.d.includes(x.id))); };
+  function kSet(k, p = A.prog()) { p.k = { ...(p.k || {}), [pid()]: k }; if (k >= off() && off()) p.rq = 1; A.setProg(p); return p; }
+  const wayName = (x) => tx(x.sh) || tx(x.t);
+  const title = (x) => (x.tg?.length ? esc(s('tags_t')) : A.rich(x.hd || x.t));
 
   // кадр обрезается по высоте карточки: держим x центра кольца (img.fx) посередине, без выхода за края кадра
   function focus() {
@@ -62,7 +78,7 @@ export function view(A) {
       im.style.objectPosition = `${(offx / (W - iw)) * 100}% 50%`;
     });
   }
-  // заголовок и награда — одна строка: ужимаем шрифт, пока не влезет (не ниже 70 %)
+  // заголовок, подзаголовок, заголовок шага и строка финала — одна строка: ужимаем шрифт, пока не влезет (не ниже 70 %)
   function fit() {
     L().querySelectorAll('[data-fit]').forEach((el) => {
       el.style.fontSize = ''; const f0 = parseFloat(getComputedStyle(el).fontSize); let f = f0;
@@ -70,115 +86,147 @@ export function view(A) {
     });
   }
   const img = (x, cls = '') => `<img class="${cls}" src="${esc(C.imgUrl(x.f))}" alt="" decoding="async" data-fx="${x.fx ?? 0.5}">`;
+  const cover = (fx = 0.36) => (O.cv ? `<img src="${esc(C.imgUrl(O.cv.f))}" alt="" decoding="async" data-fx="${fx}">` : '');
   // домен (навык domen-na-ekranah): та же марка, что в шапке списка (.sb-brand) — знак SB, Secret Base, sbgta.app; на кадре шторки — .sb-wm
-  const wm = `<span class="sb-brand st-brand" aria-hidden="true"><img src="icons/brand-mark.svg" alt="" width="22" height="16"><span><b>Secret Base</b><small>${DOM}</small></span></span>`;
+  const brand = (cls = 'st-brand') => `<span class="sb-brand ${cls}" aria-hidden="true"><img src="icons/brand-mark.svg" alt="" width="22" height="16"><span><b>Secret Base</b><small>${DOM}</small></span></span>`;
+  const up = () => `<span class="st-up" aria-hidden="true">${C.I.chevron}</span>`;
+  const sheetBox = () => `<div class="st-scrim" data-g="sless" hidden></div><div class="st-sheet" id="st-sheet" role="dialog" hidden></div>`;
 
-  // ── первый экран ──
+  // ── обложка ──
   function statusHTML(x) {
     if (!x.sta) return '';
     return x.sta.ok ? `<span class="sc-st is-ok"><i></i>${esc(s('works'))}</span><small>${esc(s('checked', { d: date(x.sta.d) }))}</small>`
       : `<span class="sc-st is-bad"><i></i>${esc(s('broken', { d: date(x.sta.d) }))}</span>`;
   }
+  function mainLabel() {
+    const k = kEff();
+    if (!started()) return tx(path().go) || s('go');
+    return k >= off() && k < last() ? A.s('resume', { n: k - off() + 1 }) : s('cont');
+  }
   function coverHTML() {
-    const h = H(), cur = path(), p = A.prog(), I = C.I;
+    const h = H(), cur = path(), I = C.I;
     const ways = PA().length > 1 ? `<div class="sc-ways" role="radiogroup" aria-label="${esc(s('ways_aria'))}">${PA().map((x) => `<button class="sc-way${x.id === cur.id ? ' on' : ''}" role="radio" data-g="path" data-v="${esc(x.id)}" aria-checked="${x.id === cur.id}">
-      <b>${esc(tx(x.sh) || tx(x.t))}</b><span>${esc(x.min ? s('min', { m: x.min }) : '')}</span>${statusHTML(x)}</button>`).join('')}</div>` : '';
+      <b>${esc(wayName(x))}</b><span>${esc(x.min ? s('min', { m: x.min }) : '')}</span>${statusHTML(x)}</button>`).join('')}</div>` : '';
     return `<div class="sc">
-      <div class="sc-media">${O.cv ? `<img src="${esc(C.imgUrl(O.cv.f))}" alt="" decoding="async" fetchpriority="high" data-fx="0.36">${O.cv.by ? `<span class="st-by">${esc(O.cv.by)}</span>` : ''}` : ''}</div>
-      <header class="st-row sc-top"><button class="g-ib st-ib" data-g="close" aria-label="${esc(s('close'))}">${I.back}</button>${wm}
-        <button class="g-ib st-ib" data-g="share" aria-label="${esc(s('share'))}">${I.share}</button></header>
+      <div class="sc-media">${cover()}${O.cv?.by ? `<span class="st-by">${esc(O.cv.by)}</span>` : ''}</div>
+      <header class="st-row sc-top"><button class="g-ib st-ib" data-g="close" aria-label="${esc(A.s('close'))}">${I.back}</button>${brand()}
+        <button class="g-ib st-ib" data-g="share" aria-label="${esc(A.s('share'))}">${I.share}</button></header>
       <div class="sc-body">
         <h1 class="g-h1 sc-h1" data-fit>${esc(tx(h.ta) || tx(O.t))}</h1>
         ${h.sb || h.rw ? `<p class="sc-rw" data-fit>${esc(tx(h.sb) || tx(h.rw))}</p>` : ''}
         ${ways}
+        <button class="sc-all" data-g="stoc" aria-haspopup="dialog"><span>${esc(s('all', { n: list().length }))}</span>${I.chevron}</button>
+        ${C.after?.(O) || ''}
       </div>
-      <footer class="g-bar st-bar"><button class="g-main" data-g="sgo">${esc(!p.s ? s('go') : kGet() >= off() && kGet() < last() ? A.s('resume', { n: kGet() - off() + 1 }) : s('cont'))}</button></footer>
+      <footer class="g-bar st-bar"><button class="g-main" data-g="sgo">${esc(mainLabel())}</button></footer>
+      ${sheetBox()}
     </div>`;
   }
 
   // ── карточки ──
-  function barsHTML(k) {
-    const st = list(), p = A.prog(), i = k - off();
-    return `<div class="st-bars" aria-hidden="true">${st.map((x, j) => `<i class="${p.d.includes(x.id) ? 'on' : ''}${j === i ? ' cur' : ''}"></i>`).join('')}</div>`;
-  }
   function topHTML(k) {
-    const cur = path(), two = PA().length > 1, dot = cur.sta ? `<i class="st-dot ${cur.sta.ok ? 'is-ok' : 'is-bad'}"></i>` : '';
-    return `<div class="st-top">${barsHTML(k)}<div class="st-row">
-      ${two ? `<button class="st-way" data-g="sway" aria-label="${esc(s('sway'))}">${dot}<b>${esc(tx(cur.sh) || tx(cur.t))}</b>${C.I.swap}</button>` : '<span></span>'}
-      ${wm}<button class="g-ib st-ib" data-g="sclose" aria-label="${esc(s('to_cover'))}">${C.I.close}</button></div></div>`;
+    const st = list(), p = A.prog(), i = k - off(), cur = path();
+    const bars = `<button class="st-bars" data-g="stoc" aria-haspopup="dialog" aria-label="${esc(s('all', { n: st.length }))}">${st.map((x, j) => `<i class="${p.d.includes(x.id) ? 'on' : ''}${j === i ? ' cur' : ''}"></i>`).join('')}</button>`;
+    // Fable п. 3: способы словами «Квест  Баг» — выбранный белый с подчёркиванием, второй приглушён и переключает одним тапом; у бага точка статуса
+    const way = (x) => { const dot = x.sta ? `<i class="st-dot ${x.sta.ok ? 'is-ok' : 'is-bad'}"></i>` : '';
+      return x.id === cur.id ? `<span class="st-way on" aria-current="true">${esc(wayName(x))}${dot}</span>`
+        : `<button class="st-way" data-g="sway" data-v="${esc(x.id)}">${esc(wayName(x))}${dot}</button>`; };
+    const ways = PA().length > 1 ? `<div class="st-ways" role="group" aria-label="${esc(s('ways_aria'))}">${PA().map(way).join('')}</div>` : '<span></span>';
+    return `<div class="st-top">${bars}<div class="st-row">${ways}${brand()}
+      <button class="g-ib st-ib" data-g="sclose" aria-label="${esc(s('to_cover'))}">${C.I.close}</button></div>
+      ${note ? `<p class="st-note" role="status">${esc(note)}</p>` : ''}</div>`;
   }
+  const bar = (main) => `<footer class="g-bar st-bar">${main}</footer>`;
+  const stuckBar = (done) => bar(`<button class="g-sub st-stuck" data-g="sstuck" aria-haspopup="dialog">${esc(A.s('stuck'))}</button>
+    <button class="g-main${done ? ' is-done' : ''}" data-g="sdone">${done ? C.I.check : ''}<span>${esc(s('done'))}</span></button>`);
+  const moreRow = (lbl = s('more'), x = '') => `<button class="st-more" data-g="smore"${x ? ` data-x="${x}"` : ''} aria-haspopup="dialog"><span>${esc(lbl)}</span>${up()}</button>`;
   function reqCard() {
-    const rq = (path().req || H().req || []).slice(0, 3), bg = list().find((x) => x.img)?.img;
-    return `<div class="st-card st-plain" data-g="stap">${bg ? `<div class="st-bg">${img(bg)}</div>` : ''}
-      <div class="st-mid"><h2 class="st-h">${esc(s('before'))}</h2>
-        <ul class="st-req">${rq.map((r) => `<li>${IC[r.ic] || C.I[{ phone: 'phone', cash: 'wallet' }[r.ic]] || C.I.check}<span>${esc(tx(r.s) || tx(r.t))}</span></li>`).join('')}</ul>
-        <button class="st-more" data-g="smore" aria-haspopup="dialog"><span>${esc(s('more'))}</span>${C.I.chevron}</button></div>
-      <footer class="g-bar st-bar"><button class="g-main" data-g="snext">${esc(s('ready'))}</button></footer></div>`;
+    // Fable: фон — обложка, затемнённая до 25 %; три строки со значками без точек; последствия — в «Подробнее»
+    return `<div class="st-card st-plain" data-g="stap"><div class="st-bg st-bg-cv">${cover()}</div>
+      <div class="st-mid"><h2 class="st-h">${esc(A.s('before'))}</h2>
+        <ul class="st-req">${reqs().slice(0, 3).map((r) => `<li>${IC[r.ic] || C.I[{ phone: 'phone', cash: 'wallet' }[r.ic]] || C.I.check}<span>${esc(tx(r.s) || tx(r.t))}</span></li>`).join('')}</ul></div>
+      ${moreRow()}${bar(`<button class="g-main" data-g="snext">${esc(s('ready'))}</button>`)}</div>`;
   }
   function tagsCard(x, i) {
-    const got = A.prog().t[x.id] || [], bg = [...list().slice(0, i)].reverse().find((y) => y.img)?.img;
+    // Fable п. 7: 10 кружков без цифр, заполняются по порядку; тап по пустому — плюс одна, по последнему заполненному — минус одна
+    const n = Math.min((A.prog().t[x.id] || []).length, x.need), bg = [...list().slice(0, i)].reverse().find((y) => y.img)?.img;
     return `<div class="st-card st-plain" data-g="stap">${bg ? `<div class="st-bg">${img(bg)}</div>` : ''}
-      <div class="st-mid"><h2 class="st-h">${A.rich(x.hd || { ru: s('tags_t'), en: s('tags_t') })}</h2>
-        <p class="g-tn st-count"><b>${Math.min(got.length, x.need)}</b> ${esc(A.s('of'))} ${x.need}</p>
-        ${x.n?.of ? `<p class="st-sub">${esc(A.s('tags_any', { of: x.n.of, need: x.need }))}</p>` : ''}
-        <ol class="st-tags">${x.tg.map((q, k) => `<li><button class="${got.includes(k) ? 'on' : ''}" data-g="tag" data-i="${i}" data-k="${k}" aria-pressed="${got.includes(k)}" aria-label="${esc(s('tap_tag', { n: k + 1 }))}">${got.includes(k) ? C.I.check : k + 1}</button></li>`).join('')}</ol>
-        <button class="st-more" data-g="smore" aria-haspopup="dialog"><span>${esc(s('more'))}</span>${C.I.chevron}</button></div>
-      <footer class="g-bar st-bar"><button class="g-main" data-g="sdone">${esc(s('done'))}</button></footer></div>`;
+      <div class="st-mid"><h2 class="st-h">${esc(s('tags_t'))}</h2>
+        <p class="g-tn st-count"><b>${n}</b> ${esc(A.s('of'))} ${x.need}</p>
+        ${x.n?.of ? `<p class="st-sub">${esc(s('tags_any', { of: x.n.of, need: x.need }))}</p>` : ''}
+        <ol class="st-tags">${Array.from({ length: x.need }, (_, k) => `<li><button class="${k < n ? 'on' : ''}" data-g="tag" data-i="${i}" data-k="${k}" aria-pressed="${k < n}"
+          aria-label="${esc(k < n ? s('tag_del') : s('tag_add'))}">${k < n ? C.I.check : ''}</button></li>`).join('')}</ol></div>
+      ${moreRow(s('where_t'), 'where')}${stuckBar(A.prog().d.includes(x.id))}</div>`;
   }
-  function lockCard(i) {
+  function lockCard() {
     const fr = H().fr ?? 2, n = list().length;
-    return `<div class="st-card st-plain g-wall" data-g="stap"><div class="st-mid"><span class="st-lock">${C.I.lock}</span><h2 class="st-h">${esc(s('lock_t'))}</h2>
-      <p class="st-sub">${esc(A.s('wall', { a: fr + 1, b: n }))}</p></div>
-      <footer class="g-bar st-bar"><button class="g-main" data-g="pw">${esc(A.s('get_pro'))}</button></footer></div>`;
+    return `<div class="st-card st-plain g-wall" data-g="stap"><div class="st-bg st-bg-cv">${cover()}</div><div class="st-mid st-mid-top"><span class="st-lock">${C.I.lock}</span><h2 class="st-h">${esc(s('lock_t'))}</h2>
+      <p class="st-sub">${esc(s('wall_s', { a: fr + 1, b: n }))}</p>${A.next(true)}</div>
+      ${bar(`<button class="g-main" data-g="pw">${esc(A.s('get_pro'))}</button>`)}</div>`;
   }
-  function stepCard(x, i) {
-    if (A.shut(i)) return lockCard(i);
+  function stepCard(x, i, k) {
+    if (A.shut(i)) return lockCard();
     if (x.tg?.length) return tagsCard(x, i);
-    const done = A.prog().d.includes(x.id);
+    let hint = false; try { hint = k === off() && !localStorage.getItem(HINT); } catch { }
+    // на карточке — заголовок до 34 знаков и одно крупное значение; ловушка кода — одной янтарной строкой под ним (Fable)
     return `<div class="st-card" data-g="stap">
-      <div class="st-media">${x.img ? img(x.img) : ''}${x.img?.by ? `<span class="st-by">${esc(A.s('frame', { by: x.img.by }))}</span>` : ''}</div>
-      <div class="st-txt"><p class="st-hd">${A.rich(x.hd || x.t)}</p>
-        ${x.c ? `<p class="g-big st-big">${esc(x.c)}</p>` : x.bv ? `<p class="g-big g-big-t st-big">${esc(x.bv)}</p>` : ''}
-        <button class="st-more" data-g="smore" aria-haspopup="dialog"><span>${esc(s('more'))}</span>${C.I.chevron}</button></div>
-      <footer class="g-bar st-bar"><button class="g-main${done ? ' is-done' : ''}" data-g="sdone">${done ? C.I.check : ''}<span>${esc(s('done'))}</span></button></footer></div>`;
+      <div class="st-media">${x.img ? img(x.img) : ''}${x.img?.by ? `<span class="st-by">${esc(A.s('frame', { by: x.img.by }))}</span>` : ''}
+        ${hint ? `<span class="st-hint" aria-hidden="true">${esc(s('hint'))}${C.I.chevron}</span>` : ''}</div>
+      <div class="st-txt"><p class="st-hd" data-fit>${A.rich(x.hd || x.t)}</p>
+        ${x.c ? `<p class="g-big st-big">${esc(x.c)}</p>${x.cw ? `<p class="st-trap">${esc(A.s('not_this', { c: x.cw }))}</p>` : ''}` : x.bv ? `<p class="g-big g-big-t st-big">${esc(x.bv)}</p>` : ''}</div>
+      ${moreRow()}${stuckBar(A.prog().d.includes(x.id))}</div>`;
   }
   function finCard() {
-    const p = A.prog(), all = list().every((x) => p.d.includes(x.id));
-    return `<div class="st-card st-plain st-fin"><div class="st-mid">
-      <span class="st-finck">${C.I.check}</span><h2 class="st-h">${esc(s('fin_t'))}</h2>
-      ${all ? `<p class="st-sub st-fin-s">${esc(O.k === 'vehicle' ? s('fin_car') : s('fin_ok'))}</p>` : ''}
-      ${A.next(true)}</div>
-      <footer class="g-bar st-bar"><button class="g-sub" data-g="sagain">${esc(A.s('again'))}</button><button class="g-main" data-g="close">${esc(A.s('close'))}</button></footer></div>`;
+    const p = A.prog(), st = list(), n = st.filter((x) => p.d.includes(x.id)).length, all = n === st.length;
+    // Fable: сверху обложка на треть экрана (её скриншотят — домен в шапке), одна строка результата, «Дальше» 1–3 строки, одна главная кнопка
+    return `<div class="st-card st-fin"><div class="st-fin-media">${cover()}${O.cv?.by ? `<span class="st-by">${esc(O.cv.by)}</span>` : ''}</div>
+      <div class="st-mid st-mid-top">
+        <h2 class="st-h st-fin-h" data-fit>${all ? `${C.I.check}<span>${esc(tx(H().fin) || s('fin'))}</span>` : `<span>${esc(s('fin_left', { a: n, b: st.length }))}</span>`}</h2>
+        ${A.next(true)}${C.after?.(O) || ''}
+        <button class="st-again" data-g="sagain">${esc(A.s('again'))}</button></div>
+      ${bar(`<button class="g-main" data-g="close">${esc(A.s('close'))}</button>`)}</div>`;
   }
   function cardHTML(k) {
     if (k < off()) return reqCard();
     if (k >= last()) return finCard();
-    return stepCard(list()[k - off()], k - off());
+    return stepCard(list()[k - off()], k - off(), k);
   }
 
-  // ── шторка «Подробнее»: кадр целиком, полный текст, «Получилось, если», ролик с секунды, «Не получается» ──
-  function moreHTML(k) {
-    const I = C.I;
+  // ── шторка «Подробнее»: сразу — целый кадр с подписью кольца, текст шага, ловушка, «Получилось, если»;
+  // остальное — строки со стрелкой, раскрываются по тапу и не закрывают друг друга (Игорь 27.11) ──
+  const row = (x, lbl, body, open) => `<details class="st-x" data-x="${x}"${open ? ' open' : ''}><summary><span>${esc(lbl)}</span>${C.I.chevron}</summary><div class="st-xb">${body}</div></details>`;
+  const vrow = (v, lbl) => `<button class="st-x st-xv" data-g="video" data-v="${esc(v[0])}" data-t="${v[1]}"><span>${esc(lbl)}</span>${C.I.play}</button>`;
+  function moreHTML(k, open) {
     if (k < off()) {
-      const rq = path().req || H().req || [], wh = path().wh || H().wh;
-      return `<h2 class="st-sh-h">${esc(s('before'))}</h2><ul class="g-req">${rq.map((r) => `<li>${esc(tx(r.t))}</li>`).join('')}</ul>
-        ${wh ? `<button class="g-tb" data-g="video" data-v="${esc(wh[0])}" data-t="${wh[1]}">${I.play}<span>${esc(wh[3] && wh[2] ? A.s('whole_by', { by: wh[3], n: wh[2], u: A.ruMin(wh[2]) }) : A.s('whole0'))}</span></button>` : ''}`;
+      const wh = path().wh || H().wh;
+      return `<h2 class="st-sh-h">${esc(A.s('before'))}</h2><ul class="g-req">${reqs().map((r) => `<li>${esc(tx(r.t))}</li>`).join('')}</ul>
+        ${wh ? `<div class="st-rows">${vrow(wh, wh[3] && wh[2] ? A.s('whole_by', { by: wh[3], n: wh[2], u: A.ruMin(wh[2]) }) : A.s('whole0'))}</div>` : ''}`;
     }
-    const i = k - off(), x = list()[i], p = A.prog(), got = p.t[x.id] || [];
+    const i = k - off(), x = list()[i];
     const fig = x.img ? `<figure class="g-img st-fig"><button data-g="zoom" data-src="${esc(C.imgUrl(x.img.f))}" aria-label="${esc(A.s('zoom'))}"><img src="${esc(C.imgUrl(x.img.f))}" alt="" decoding="async"></button><span class="sb-wm" aria-hidden="true">${DOM}</span>
       ${x.img.cap || x.img.by ? `<figcaption>${x.img.cap ? `<b>${esc(A.s('ring', { c: A.plain(x.img.cap) }))}</b> ` : ''}${x.img.by ? esc(A.s('frame2', { by: x.img.by })) : ''}</figcaption>` : ''}</figure>` : '';
-    const tags = x.tg?.length ? `<ol class="g-tags st-tlist">${x.tg.map((q, k2) => `<li class="${got.includes(k2) ? 'on' : ''}">
-        <button class="g-tc" data-g="tag" data-i="${i}" data-k="${k2}" aria-pressed="${got.includes(k2)}">${I.check}</button>
-        <span>${esc(tx(q.p))}${q.a ? `<small>${esc(q.a)}</small>` : ''}</span>
-        ${q.v ? `<button class="g-tv" data-g="video" data-v="${esc(q.v[0])}" data-t="${q.v[1]}" aria-label="${esc(A.s('video_at', { t: mmss(q.v[1]) }))}">${I.play}<span>${mmss(q.v[1])}</span></button>` : ''}</li>`).join('')}</ol>` : '';
-    return `${fig}<p class="st-sh-h">${A.rich(x.hd || x.t)}</p><p class="g-tx">${A.rich(x.t)}</p>
-      ${x.c ? `<p class="g-big">${esc(x.c)}</p>` : ''}${x.bv ? `<p class="g-big g-big-t">${esc(x.bv)}</p>${x.bn ? `<p class="g-trap">${esc(tx(x.bn))}</p>` : ''}` : ''}
+    const places = x.tg?.length ? `<ol class="st-places">${x.tg.map((q) => `<li><span>${esc(tx(q.p))}${q.a ? `<small>${esc(q.a)}</small>` : ''}</span>
+        ${q.v ? `<button class="g-tv" data-g="video" data-v="${esc(q.v[0])}" data-t="${q.v[1]}" aria-label="${esc(A.s('video_at', { t: mmss(q.v[1]) }))}">${C.I.play}<span>${mmss(q.v[1])}</span></button>` : ''}</li>`).join('')}</ol>` : '';
+    return `${fig}<p class="g-tx st-sh-t">${A.rich(x.t)}</p>
+      ${x.bn ? `<p class="g-tx">${esc(tx(x.bn))}</p>` : ''}
       ${x.tr ? `<p class="g-trap">${A.rich(x.tr)}</p>` : ''}
       ${x.ok ? `<p class="g-ok"><b>${esc(A.s('ok'))}</b> ${A.rich(x.ok).replace(/^(It worked if|Получилось, если)\s*/i, '')}</p>` : ''}
-      ${x.tip ? `<p class="g-tip">${A.rich(x.tip)}</p>` : ''}${tags}
-      ${x.at ? `<p class="g-at">${I.pin}<span>${esc(A.s('in_game'))}: ${esc(typeof x.at === 'string' ? x.at : tx(x.at))}</span></p>` : ''}
-      ${x.v ? `<button class="g-tb" data-g="video" data-v="${esc(x.v[0])}" data-t="${x.v[1]}">${I.play}<span>${esc(A.s('video_at', { t: mmss(x.v[1]) }))}</span></button>` : ''}
-      <details class="st-fix"${fixAll ? ' open' : ''}><summary>${esc(A.s('stuck'))}</summary>${A.stuck(i, fixAll)}</details>`;
+      <div class="st-rows">
+        ${places ? row('where', s('where_t'), places, open.has('where')) : ''}
+        ${x.tip ? row('tip', s('tip_t'), `<p class="g-tip">${A.rich(x.tip)}</p>`, open.has('tip')) : ''}
+        ${x.at ? row('at', A.s('in_game'), `<p class="g-at">${C.I.pin}<span>${esc(typeof x.at === 'string' ? x.at : tx(x.at))}</span></p>`, open.has('at')) : ''}
+        ${x.v ? vrow(x.v, A.s('video_at', { t: mmss(x.v[1]) })) : ''}
+        ${row('stuck', A.s('stuck'), A.stuck(i, fixAll), open.has('stuck'))}
+      </div>`;
+  }
+  // «Все шаги» (Fable п. 8): оглавление коротких названий, тап ведёт на карточку; внизу — «Дальше» (серии без тупиков)
+  function tocHTML() {
+    const p = A.prog(), st = list(), cur = kGet();
+    const r = (k, n, t, done, lock) => `<li><button class="st-toc-r${k === cur ? ' on' : ''}${done ? ' is-done' : ''}" data-g="sgoto" data-k="${k}"${k === cur ? ' aria-current="step"' : ''}>
+      <span class="st-toc-n">${lock ? C.I.lock : done ? C.I.check : n}</span><span class="st-toc-t">${t}</span></button></li>`;
+    return `<h2 class="st-sh-h">${esc(s('toc'))}</h2><ol class="st-toc">
+      ${off() ? r(0, '', esc(A.s('before')), !!p.rq, false) : ''}
+      ${st.map((x, i) => r(i + off(), i + 1, title(x), p.d.includes(x.id), A.shut(i))).join('')}</ol>${A.next(true)}`;
   }
 
   function render() {
@@ -187,10 +235,9 @@ export function view(A) {
       lay.innerHTML = `${coverHTML()}<div class="g-video" id="g-video" hidden></div>`;
     } else {
       const k = kGet();
-      lay.innerHTML = `<div class="st" data-k="${k}">${topHTML(k)}${cardHTML(k)}
-        <div class="st-scrim" data-g="sless" hidden></div><div class="st-sheet" id="st-sheet" hidden></div></div>
-        <div class="g-video" id="g-video" hidden></div>`;
+      lay.innerHTML = `<div class="st" data-k="${k}">${topHTML(k)}${cardHTML(k)}${sheetBox()}</div><div class="g-video" id="g-video" hidden></div>`;
       const nx = list()[k + 1 - off()]?.img; if (nx) { const im = new Image(); im.src = C.imgUrl(nx.f); }   // следующий кадр — заранее
+      if (note) { const t = note; setTimeout(() => { if (note === t) { note = ''; L().querySelector('.st-note')?.classList.add('out'); } }, 1800); }
     }
     lay.querySelectorAll('img[data-fx]').forEach((im) => { if (!im.complete) im.addEventListener('load', focus, { once: true }); });
     requestAnimationFrame(() => { focus(); fit(); });
@@ -201,13 +248,25 @@ export function view(A) {
     if (mode !== 'story') mode = 'story';
     render(); return p;
   }
-  function openMore() {
+  function begin() {   // первый вход в сторис (кнопка обложки или строка «Все шаги»)
+    const p = A.prog(); if (!p.s) { p.s = 1; A.setProg(p); A.first(); C.event?.('guide_start', { id: O.id }); }
+    A.wake(true); mode = 'story';
+  }
+  function openSheet(html, at) {
     const box = L().querySelector('#st-sheet'); if (!box) return;
-    box.innerHTML = `<div class="st-sh-top"><button class="g-ib" data-g="sless" aria-label="${esc(A.s('close'))}">${C.I.close}</button></div><div class="st-sh-in">${moreHTML(kGet())}</div>`;
-    box.hidden = false; L().querySelector('.st-scrim').hidden = false; sheet = true;
-    C.event?.('guide_more', { id: O.id, k: kGet() });
+    box.innerHTML = `<div class="st-sh-top">${brand('st-sh-brand')}<button class="g-ib" data-g="sless" aria-label="${esc(A.s('close'))}">${C.I.close}</button></div><div class="st-sh-in">${html}</div>`;
+    box.hidden = false; L().querySelector('.st-scrim').hidden = false; sheet = true; box.scrollTop = 0;
+    const el = at && box.querySelector(`[data-x="${at}"]`); if (el) box.scrollTop = Math.max(0, el.offsetTop - 64);
+  }
+  function openMore(at) {
+    const box = L().querySelector('#st-sheet');
+    const open = new Set(sheet && box ? [...box.querySelectorAll('details[open]')].map((d) => d.dataset.x) : []);
+    if (at) open.add(at);
+    openSheet(moreHTML(kGet(), open), at);
+    C.event?.('guide_more', { id: O.id, k: kGet(), at: at || '' });
   }
   function closeMore() { const box = L().querySelector('#st-sheet'); if (box) { box.hidden = true; box.innerHTML = ''; } const sc = L().querySelector('.st-scrim'); if (sc) sc.hidden = true; sheet = false; }
+  function hintSeen() { try { localStorage.setItem(HINT, '1'); } catch { } L().querySelector('.st-hint')?.remove(); }
   function done() {
     const k = kGet(), i = k - off(), st = list(), p = A.prog();
     if (i >= 0 && i < st.length) {
@@ -215,8 +274,9 @@ export function view(A) {
       if (!p.d.includes(st[i].id)) { p.d.push(st[i].id); A.setProg(p); C.event?.('guide_step', { id: O.id, step: i + 1 }); }
       C.haptic();
     }
-    go(k + 1);
+    hintSeen(); go(k + 1);
   }
+  // Fable п. 2: тап только листает; отмечает шаг одна кнопка «Сделано»
   function nav(dir) {
     const k = kGet(), i = k - off();
     if (dir > 0 && i >= 0 && i < list().length && A.shut(i)) return;   // за стеной Pro дальше не листаем
@@ -230,16 +290,35 @@ export function view(A) {
     if (!to || to === cur) return;
     const p = A.prog(); p.path = to; A.setProg(p); C.haptic(); fixAll = false;
     C.event?.('guide_path', { id: O.id, path: to });
+    if (mode === 'story') {   // короткая строка, где вы в другом способе: «Баг: шаг 6 из 10»; «Перед выездом» уже видели — сразу к шагу
+      const k = kEff(), w = wayName(path()), n = list().length; kSet(k);
+      note = k < off() ? s('way_0', { w }) : k >= last() ? s('way_fin', { w }) : s('way_at', { w, a: k - off() + 1, b: n });
+    }
     render();
   }
+  function tag(i, k) {
+    const st = list(), x = st[i], p = A.prog(), got = [...(p.t[x.id] || [])], n = Math.min(got.length, x.need);
+    if (k >= n && n < x.need) { for (let j = 0; j < (x.tg?.length || x.need); j++) if (!got.includes(j)) { got.push(j); break; } }
+    else if (k === n - 1) got.splice(n - 1);
+    else return;
+    p.t[x.id] = got; C.haptic();
+    if (got.length >= x.need && !p.d.includes(x.id)) {   // набрали нужное — шаг сделан, тост и следующая карточка
+      p.d.push(x.id); A.setProg(p); const nx = st[i + 1];
+      C.toast(A.s('tags_done', { a: x.need, next: nx ? A.plain(nx.hd || nx.t) : A.s('fin') }));
+      C.event?.('guide_step', { id: O.id, step: i + 1 });
+      go(i + off() + 1); return;
+    }
+    A.setProg(p); render();
+  }
 
-  // жесты: тап по карточке — слева назад, справа вперёд; свайп вбок — то же; свайп вниз — к обложке. Только чтение касаний, без preventDefault:
-  // вертикальный свайп у экрана свой (нечего прокручивать), в шторке «Подробнее» — обычная прокрутка (её касания не трогаем)
+  // жесты: тап по карточке — слева назад, справа вперёд; свайп вбок — то же; вниз — к обложке, вверх — шторка «Подробнее».
+  // Только чтение касаний, без preventDefault: touch-action у экрана pan-y (не none), в шторке — обычная прокрутка (её касания не трогаем)
   function onStart(e) { if (mode !== 'story' || sheet || e.touches.length !== 1 || e.target.closest('.st-sheet, .g-video')) { touch = null; return; } touch = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() }; }
   function onEnd(e) {
     if (!touch) return; const c = e.changedTouches[0], dx = c.clientX - touch.x, dy = c.clientY - touch.y; touch = null;
     if (dy > 80 && dy > Math.abs(dx) * 1.3) { mode = 'cover'; render(); return; }
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) nav(dx < 0 ? 1 : -1);
+    if (dy < -70 && -dy > Math.abs(dx) * 1.3) { openMore(); return; }
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) { hintSeen(); nav(dx < 0 ? 1 : -1); }
   }
   function bind() {
     const lay = L(); if (bound === lay) return; bound = lay;
@@ -251,40 +330,34 @@ export function view(A) {
     stories: true, onStart, onEnd,
     list,
     render() { bind(); render(); },
-    stop() { touch = null; sheet = false; if (live === api) live = null; },
+    stop() { touch = null; sheet = false; note = ''; if (live === api) live = null; },
     click(a, b, i, ev) {
+      if (DEB.has(a)) { const now = Date.now(); if (now - (last0[a] || 0) < 350) return true; last0[a] = now; }
       switch (a) {
         case 'path': if (mode === 'cover') { switchWay(b.dataset.v); return true; } return false;
-        case 'sgo': {
-          const p = A.prog(); if (!p.s) { p.s = 1; A.setProg(p); A.first(); C.event?.('guide_start', { id: O.id }); }
-          C.haptic(); A.wake(true); mode = 'story'; go(kGet()); return true;
-        }
-        case 'sway': switchWay(); return true;
-        case 'sclose': mode = 'cover'; render(); return true;
-        case 'stap': { const r = b.getBoundingClientRect(), x = (ev?.clientX ?? r.right) - r.left; nav(x < r.width / 3 ? -1 : 1); return true; }
+        case 'sgo': begin(); C.haptic(); go(kEff()); return true;
+        case 'sway': switchWay(b.dataset.v); return true;
+        case 'sclose': mode = 'cover'; note = ''; render(); return true;
+        case 'stap': { const r = b.getBoundingClientRect(), x = (ev?.clientX ?? r.right) - r.left; hintSeen(); nav(x < r.width / 3 ? -1 : 1); return true; }
         case 'snext': go(kGet() + 1); return true;
         case 'sdone': done(); return true;
-        case 'smore': openMore(); return true;
-        case 'sless': closeMore(); return true;
-        case 'sagain': { const p = A.prog(); A.setProg({ ...p, d: p.d.filter((id) => !list().some((x) => x.id === id)), t: {}, k: { ...(p.k || {}), [path().id || 'one']: 0 } }); mode = 'cover'; render(); return true; }
-        case 'still': fixAll = true; if (sheet) openMore(); return true;
-        case 'tag': {
-          const st = list(), x = st[i], k = +b.dataset.k, p = A.prog(), got = new Set(p.t[x.id] || []);
-          got.has(k) ? got.delete(k) : got.add(k); p.t[x.id] = [...got]; C.haptic();
-          if (got.size >= x.need && !p.d.includes(x.id)) {   // набрали нужное — шаг сделан, тост и следующая карточка
-            p.d.push(x.id); A.setProg(p); const nx = st[i + 1];
-            C.toast(A.s('tags_done', { a: x.need, next: nx ? A.plain(nx.hd || nx.t) : A.s('fin') }));
-            C.event?.('guide_step', { id: O.id, step: i + 1 });
-            go(i + off() + 1); return true;
-          }
-          A.setProg(p);
-          if (sheet) { const y = L().querySelector('#st-sheet')?.scrollTop || 0; render(); openMore(); L().querySelector('#st-sheet').scrollTop = y; } else render();
-          return true;
+        case 'smore': openMore(b.dataset.x); return true;
+        case 'sstuck': openMore('stuck'); return true;
+        case 'stoc': openSheet(tocHTML()); C.event?.('guide_toc', { id: O.id }); return true;
+        case 'sgoto': {
+          let k = +b.dataset.k; const fr = H().fr ?? 2;
+          if (k >= off() && A.shut(k - off())) k = fr + off();   // закрытый шаг — на стену Pro
+          if (mode === 'cover') begin();
+          go(k); return true;
         }
+        case 'sless': closeMore(); return true;
+        case 'sagain': { const p = A.prog(); A.setProg({ ...p, d: p.d.filter((id) => !list().some((x) => x.id === id)), t: {}, rq: 0, k: { ...(p.k || {}), [pid()]: 0 } }); mode = 'cover'; render(); return true; }
+        case 'still': fixAll = true; if (sheet) openMore('stuck'); return true;
+        case 'tag': tag(i, +b.dataset.k); return true;
         // старые действия списка («Начать», «Сделано, дальше», «Не получается») в сторис ведут себя по-новому
         case 'start': return this.click('sgo', b, i, ev);
         case 'next': done(); return true;
-        case 'stuck': openMore(); return true;
+        case 'stuck': openMore('stuck'); return true;
         case 'open': case 'tocur': case 'again': case 'unstuck': return true;
         default: return false;
       }

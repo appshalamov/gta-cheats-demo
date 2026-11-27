@@ -547,6 +547,7 @@ def guide_fields(it):
         alt = h.get("alt") or {}
         wh = h.get("whole") or {}
         g = {**({"vw": h["view"]} if h.get("view") in ("stories",) else {}), "ta": bix(h, "action"), "rw": bix(h, "reward"), **({"sb": bix(h, "reward_short")} if bix(h, "reward_short") else {}),
+             **({"fin": bix(h, "done")} if bix(h, "done") else {}),   # строка финала сторис («Готово. Thrax ваш», решение Fable 27.11)
              **({"wh": wh_of(wh)} if wh.get("yt") else {}),
              **({"self": h["self"]} if h.get("self") else {}), "lv": h.get("difficulty") or "medium", "min": int(h.get("time_min") or 0) or None,
              "req": req_of(h.get("req")),
