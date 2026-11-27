@@ -506,8 +506,10 @@ def guide_fields(it):
                        **({"tg": [{"p": bix(x, "p"), **({"a": x["a"]} if x.get("a") else {}), **({"v": x["v"]} if x.get("v") else {})}
                                   for x in s["tags"] if bix(x, "p")], "need": int(s.get("need") or len(s["tags"]))} if s.get("tags") else {}),
                        # кадр шага с кольцом (решение «система гида»): src own|lic|svg|ref; ref — чужой, в прод не идёт (build_guide_index --prod)
+                       # fx — x центра кольца (доля ширины): в сторис кадр обрезается по высоте карточки, кольцо держим в середине (27.11)
                        **({"img": {"f": s["img"]["file"], "src": s["img"].get("src", "ref"), **({"by": s["img"]["by"]} if s["img"].get("by") else {}),
-                                   **({"cap": bix(s["img"], "cap")} if bix(s["img"], "cap") else {})}}
+                                   **({"cap": bix(s["img"], "cap")} if bix(s["img"], "cap") else {}),
+                                   **({"fx": round(float(s["img"]["fx"]), 3)} if s["img"].get("fx") is not None else {})}}
                           if isinstance(s.get("img"), dict) and s["img"].get("file") else {}),
                        **({"pt": s["part"]} if s.get("part") else {})})
             for k in ("ok", "tr"):
@@ -519,8 +521,10 @@ def guide_fields(it):
         st = conv(h["steps"])
         # два пути у одной находки (квест / баг): pa[] — свои шаги, время и пометка «могут закрыть патчем»; st — первый путь
         def req_of(rs):
+            # сторис (27.11): s — 2–4 слова для карточки «Перед выездом», ic — значок (gun / phone / car / cash)
             return [{"ty": r.get("type") if r.get("type") in GUIDE_REQ else "other", **({"ref": r["ref"]} if r.get("ref") else {}),
-                     "t": bix(r, "t")} for r in rs or [] if bix(r, "t")]
+                     "t": bix(r, "t"), **({"s": bix(r, "short")} if bix(r, "short") else {}),
+                     **({"ic": r["icon"]} if r.get("icon") in ("gun", "phone", "car", "cash") else {})} for r in rs or [] if bix(r, "t")]
 
         def wh_of(w):
             return [w["yt"], int(w.get("t") or 0), int(w.get("min") or 0)] + ([str(w["by"])[:40]] if w.get("by") else []) if w.get("yt") else None
@@ -532,14 +536,17 @@ def guide_fields(it):
                **({"sm": bix(x, "sum")} if bix(x, "sum") else {}), **({"tm": str(x["time"])} if x.get("time") else {}),
                **({"req": req_of(x["req"])} if req_of(x.get("req")) else {}), **({"wh": wh_of(x["whole"])} if wh_of(x.get("whole") or {}) else {}),
                **({"go": bix(x, "go")} if bix(x, "go") else {}), **({"ret": bix(x, "ret")} if bix(x, "ret") else {}),
-               **({"fr": int(x["free_steps"])} if x.get("free_steps") is not None else {})}
+               **({"fr": int(x["free_steps"])} if x.get("free_steps") is not None else {}),
+               # сторис (Игорь 27.11): sh — имя способа в переключателе («Квест» / «Баг»), sta — статус бага {ok, d} вместо слов про патч
+               **({"sh": bix(x, "short")} if bix(x, "short") else {}),
+               **({"sta": {"ok": 1 if x["status"].get("ok") else 0, "d": str(x["status"].get("d") or "")[:10]}} if isinstance(x.get("status"), dict) else {})}
               for x in h.get("paths") or [] if x.get("steps")]
         if pa:
             st = pa[0]["st"]
         ids = {x["id"] for p_ in pa for x in p_["st"]} | {x["id"] for x in st}
         alt = h.get("alt") or {}
         wh = h.get("whole") or {}
-        g = {"ta": bix(h, "action"), "rw": bix(h, "reward"), **({"sb": bix(h, "reward_short")} if bix(h, "reward_short") else {}),
+        g = {**({"vw": h["view"]} if h.get("view") in ("stories",) else {}), "ta": bix(h, "action"), "rw": bix(h, "reward"), **({"sb": bix(h, "reward_short")} if bix(h, "reward_short") else {}),
              **({"wh": wh_of(wh)} if wh.get("yt") else {}),
              **({"self": h["self"]} if h.get("self") else {}), "lv": h.get("difficulty") or "medium", "min": int(h.get("time_min") or 0) or None,
              "req": req_of(h.get("req")),

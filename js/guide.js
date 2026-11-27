@@ -6,6 +6,7 @@
 // Тот же компонент потом — гид прохождения (req.ty mission/chapter + ref) и предупреждения (miss).
 
 import { view as setView } from './guide-set.js';
+import { view as storiesView } from './guide-stories.js';   // вид «сторис» (how.vw === 'stories', Bugatti первая; черновик 27.11)
 import { recByKey, nextFor } from './guide-core.js';
 import { btn } from './icons.js';   // {enter} в тексте шага — кнопка геймпада по платформе (Bugatti v2, 27.11)   // «Дальше» в финале — по указателю (серии, seriya-uderzhanie)   // вид «настройки» (guide-settings)
 
@@ -20,7 +21,7 @@ const S = {
     fin_car: 'Готово. Машина ваша.', fin: 'Готово. Всё получилось.', again: 'Начать заново',
     meta: '{n} шагов, около {m} минут', meta0: '{n} шагов', missable: 'Можно упустить навсегда', no_fix: 'Для этого шага частых ошибок нет. Посмотрите ролик или общий список.',
     en_only: 'Инструкция на английском', offline: 'Ролики работают с сетью',
-    up: 'Дальше', inLife: 'Это место в жизни', path_meta: '{n} шагов, около {m} минут', patch: 'могут закрыть патчем', quiet: 'Как заехать тихо', bugPart: 'Баг: сквозь дверь гаража',
+    up: 'Дальше', inLife: 'Это место в жизни', path_meta: '{n} шагов, около {m} минут', quiet: 'Как заехать тихо', bugPart: 'Баг: сквозь дверь гаража',
     questPart: 'Квест No Flusher', finPart: 'Гараж и регистрация', frame: 'кадр: {by}, YouTube', zoom: 'Открыть кадр',
     // Bugatti v2 (27.11): два способа, ролик пути, «Пока ждёте», «К шагу N», счётчик меток, ролик неудачи, кнопка геймпада
     ways: 'Два способа', always: 'Работает всегда', path_tm: '{n} шагов, {m} минут', whole_by: 'Весь путь в ролике {by}, {n} {u}',
@@ -38,7 +39,7 @@ const S = {
     fin_car: 'Done. The car is yours.', fin: 'Done. You made it.', again: 'Start over',
     meta: '{n} steps, about {m} min', meta0: '{n} steps', missable: 'Missable', no_fix: 'No common mistakes for this step. Watch the video or the full list.',
     en_only: 'Guide in English', offline: 'Videos need a connection',
-    up: 'Next', inLife: 'This place in real life', path_meta: '{n} steps, about {m} min', patch: 'may be patched out', quiet: 'Get in quietly', bugPart: 'Bug: through the garage door',
+    up: 'Next', inLife: 'This place in real life', path_meta: '{n} steps, about {m} min', quiet: 'Get in quietly', bugPart: 'Bug: through the garage door',
     questPart: 'No Flusher quest', finPart: 'Garage and registration', frame: 'frame: {by}, YouTube', zoom: 'Open frame',
     ways: 'Two ways', always: 'Always works', path_tm: '{n} steps, {m} min', whole_by: 'Watch the whole route by {by}, {n} {u}',
     min1: 'min', min2: 'min', min5: 'min', wait: 'While you wait, or for a break', back_to: 'Back to step {n}',
@@ -74,7 +75,7 @@ const ruMin = (n) => { const a = n % 10, b = n % 100; return s(a === 1 && b !== 
 // шаги выбранного пути (квест / баг): по ним считается «шаг X из N» везде — в ленте, поиске, на Главной и в шторке карты
 export const pathSt = (o, p) => ((o.how?.pa || []).find((x) => x.id === p?.path) || (o.how?.pa || [])[0] || o.how || {}).st || [];
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
-function prog() { const p = read()[kOf(O)] || {}; return { d: p.d || [], t: p.t || {}, s: p.s || 0, o: p.o, path: p.path }; }
+function prog() { const p = read()[kOf(O)] || {}; return { d: p.d || [], t: p.t || {}, s: p.s || 0, o: p.o, path: p.path, ...(p.k ? { k: p.k } : {}) }; }   // k — карточка сторис по способам
 function setProg(p) { try { const all = read(); all[kOf(O)] = { ...p, at: Date.now() }; localStorage.setItem(KEY, JSON.stringify(all)); } catch { } }
 // для строк ленты и шторки на карте: сколько шагов пройдено (0 — не начато)
 export function progressOf(o) { const p = read()[kOf(o)]; return p ? pathSt(o, p).filter((x) => (p.d || []).includes(x.id)).length + (p.s ? 0.001 : 0) : 0; }
@@ -129,11 +130,12 @@ function stepHTML(x, i, p, open) {
   </div>${ck}</li>`;
 }
 // два способа (решение 09, Bugatti v2): подзаголовок «Два способа», кружок-переключатель, мета «N шагов, M минут»;
-// у бага — янтарное «могут закрыть патчем» в мете и строка проверки под путями (без повтора про патч)
+// у бага вместо слов про патч — статус «Работает / Не работает с …» (Игорь 27.11: «пишем, что актуален, показываем статус»)
 function pathsHTML(h, cur) {
   const anyBug = h.pa.some((x) => x.bug);
+  const sta = (x) => (x.sta ? `, <em class="${x.sta.ok ? 'is-ok' : ''}">${esc(x.sta.ok ? (C.lang === 'ru' ? 'работает' : 'works') : (C.lang === 'ru' ? 'не работает' : 'broken'))}</em>` : '');
   return `<h2 class="g-ways">${esc(s('ways'))}</h2><div class="g-paths">${h.pa.map((x) => `<button class="g-path${x.id === cur.id ? ' on' : ''}" data-g="path" data-v="${esc(x.id)}" aria-pressed="${x.id === cur.id}">
-    <i class="g-radio" aria-hidden="true"></i><span class="g-pt"><b>${esc(tx(x.t))}</b><span>${esc(x.tm ? s('path_tm', { n: x.st.length, m: x.tm }) : x.min ? s('path_meta', { n: x.st.length, m: x.min }) : s('meta0', { n: x.st.length }))}${x.bug ? `, <em>${esc(s('patch'))}</em>` : anyBug ? `. ${esc(s('always'))}` : ''}</span></span></button>`).join('')}</div>
+    <i class="g-radio" aria-hidden="true"></i><span class="g-pt"><b>${esc(tx(x.t))}</b><span>${esc(x.tm ? s('path_tm', { n: x.st.length, m: x.tm }) : x.min ? s('path_meta', { n: x.st.length, m: x.min }) : s('meta0', { n: x.st.length }))}${x.bug ? sta(x) : anyBug ? `. ${esc(s('always'))}` : ''}</span></span></button>`).join('')}</div>
     ${cur.bug && cur.nt ? `<p class="g-miss">${C.I.alert}<span>${esc(tx(cur.nt))}</span></p>` : ''}`;
 }
 // заголовок части листа: «Как заехать тихо» → «Баг» / «Квест» → «Гараж и регистрация»
@@ -242,7 +244,7 @@ function openStuck() {
 function onClick(e) {
   const b = e.target.closest('[data-g]'); if (!b || !layer.contains(b)) return;
   const a = b.dataset.g, p = prog(), st = STEPS(), i = +b.dataset.i;
-  if (V?.click(a, b, i)) return;
+  if (V?.click(a, b, i, e)) return;
   switch (a) {
     case 'close': closeGuide(); break;
     case 'share': C.share(O); break;
@@ -290,7 +292,10 @@ function onClick(e) {
 export function openGuide(o, ctx) {
   if (!o?.how?.st?.length) return false;
   C = ctx; O = o; stuckAll = false; css();
-  V?.stop(); V = o.how.vw === 'settings' ? setView({ C, O, layer: () => layer, prog, s, tx, esc, mmss, rerender, closeGuide }) : null;
+  V?.stop(); V = o.how.vw === 'settings' ? setView({ C, O, layer: () => layer, prog, s, tx, esc, mmss, rerender, closeGuide })
+    : o.how.vw === 'stories' && o.how.pa?.length ? storiesView({ C, O, layer: () => layer, prog, setProg, s, tx, esc, mmss, rich, plain, ruMin, PATH, shut,
+      next: nextHTML, stuck: (i, all) => { stuckAll = !!all; return stuckHTML(i); }, wake, closeGuide,
+      first: () => { try { if (!localStorage.getItem(FIRST)) localStorage.setItem(FIRST, kOf(O)); } catch { } } }) : null;
   layer = document.getElementById('guide');
   if (!layer) {
     layer = document.createElement('div'); layer.id = 'guide'; layer.setAttribute('role', 'dialog'); layer.setAttribute('aria-modal', 'true');
