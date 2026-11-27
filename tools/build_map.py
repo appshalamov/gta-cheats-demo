@@ -14,6 +14,7 @@ import os
 import pathlib
 import re
 import shutil
+import sys
 import subprocess
 import urllib.parse
 import urllib.request
@@ -533,6 +534,8 @@ def guide_fields(it):
              **({"miss": bix(h, "miss_note") or True} if h.get("missable") else {})}
         out["how"] = {k: v for k, v in g.items() if v not in (None, [], "")}
     cv = it.get("cover")   # 27.11 Игорь: обложка инструкции — только настоящий кадр игры (не рисовать, не генерировать), by — подпись — в карточке и шапке «По шагам»
+    if isinstance(cv, dict) and cv.get("f") and not cv.get("by"):
+        sys.exit(f"СТОП build_map: обложка {it.get('id')} без by — только настоящий кадр игры с подписью правообладателя (Игорь 27.11: рисунки и генерации запрещены)")
     if isinstance(cv, dict) and cv.get("f"):
         out["cv"] = {"f": cv["f"], **({"t": cv["t"]} if cv.get("t") else {}), **({"by": str(cv["by"])[:60]} if cv.get("by") else {})}
     f = it.get("finder")
