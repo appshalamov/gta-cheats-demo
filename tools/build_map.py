@@ -852,7 +852,7 @@ def build(game, cfg):
             "lat": lat, "lon": lon, "cf": it.get("confidence", "likely"), "m": media(it), "src": src0(it),
             # rk g — находка из игры (Игорь 28.11: «точку Bugatti делать не островом, а Bugatti из игры»): фото из жизни не берём
             "pg": photo(it, game, "photo_game"), "pr": None if rk == "g" else photo(it, game, "photo_real"), "gg": gal(it, game, "game_gallery", 4),
-            "_gxy": it.get("game_xy"), "_ggid": it.get("game_gid"), "_gacc": it.get("game_acc"), "_pair": bool(it.get("pair_photos")) and rk != "g",
+            "_gxy": it.get("game_xy"), "_ggid": it.get("game_gid"), "_gaddr": it.get("game_addr"), "_gacc": it.get("game_acc"), "_pair": bool(it.get("pair_photos")) and rk != "g",
             **map_flags(it), **({"ev": 1} if it.get("life_event") else {}),   # ev — событие в жизни (в игре этого нет): метка «в жизни»
             "rk": rk,   # точка в жизни: p — прообраз, r — отсылка, g — находка только в игре (на реальной карте — кадром игры)
             **({"dt": it["found"]} if it.get("found") else {}),

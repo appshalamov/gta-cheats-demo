@@ -52,7 +52,11 @@ const CATS = {
 };
 let activeCat = null;
 const G2M = (gx, gy) => { const fx = (gx + 16384) / 32768, fy = (16384 - gy) / 32768; return [fx * 360 - 180, Math.atan(Math.sinh(Math.PI * (1 - 2 * fy))) * 180 / Math.PI]; };
-const ll = (x) => (!tilesGame() ? [x.lon, x.lat] : x.gm ? G2M(x.gm[0], x.gm[1]) : null);
+// xr — без точки на реальной карте (находка из игры без честного соответствия месту в жизни, точка вне региона; опись 28.11)
+const ll = (x) => (!tilesGame() ? (x.xr ? null : [x.lon, x.lat]) : x.gm ? G2M(x.gm[0], x.gm[1]) : null);
+// rk g — находка из игры (Игорь 28.11: «точку Bugatti делать не островом, а Bugatti из игры»): без фото жизни, маршрута и «Где в жизни»
+const isFind = (e) => e?.rk === 'g';
+const findFrame = (e) => (e.cv?.f ? { file: e.cv.f, thumb: e.cv.t || e.cv.f, credit: e.cv.by || '' } : e.pg || null);
 const llPt = (q) => (!tilesGame() ? [q[5], q[4]] : q[11] ? G2M(q[11][0], q[11][1]) : null);
 // ───── «Леонида» — приблизительная карта GTA 6 до выхода игры ─────
 // Регионы — официальные названия Rockstar и их реальные прототипы (проверено по официальным материалам, без утечек).
@@ -256,6 +260,8 @@ const W = {
   other: { en: 'Place', ru: 'Место', es: 'Lugar', pt: 'Lugar', fr: 'Lieu', de: 'Ort', it: 'Luogo', tr: 'Yer', uk: 'Місце', pl: 'Miejsce', zh: '地点', ja: '場所', ko: '장소' },
   cont: { en: 'Continue', ru: 'Продолжить', es: 'Continuar', pt: 'Continuar', de: 'Weiter', fr: 'Continuer', it: 'Continua', uk: 'Продовжити', pl: 'Kontynuuj', tr: 'Devam et' },
   steps: { en: 'Step by step', ru: 'По шагам', es: 'Paso a paso', pt: 'Passo a passo', de: 'Schritt für Schritt', fr: 'Pas à pas', it: 'Passo dopo passo', uk: 'Покроково', pl: 'Krok po kroku', tr: 'Adım adım' },
+  inLife: { en: 'In real life', ru: 'В жизни', uk: 'У житті', es: 'En la vida real', pt: 'Na vida real', de: 'Im echten Leben', fr: 'Dans la vraie vie', it: 'Nella vita reale', tr: 'Gerçek hayatta', pl: 'W prawdziwym życiu' },
+  find: { en: 'In-game find', ru: 'Находка в игре', uk: 'Знахідка в грі', es: 'Hallazgo en el juego', pt: 'Achado no jogo', de: 'Fund im Spiel', fr: 'Trouvaille du jeu', it: 'Scoperta nel gioco', tr: 'Oyun içi buluntu', pl: 'Znalezisko w grze' },
   egg: { en: 'Easter egg', ru: 'Пасхалка', es: 'Easter egg', pt: 'Easter egg', fr: 'Easter egg', de: 'Easter Egg', it: 'Easter egg', tr: 'Sürpriz', uk: 'Пасхалка', pl: 'Easter egg', zh: '彩蛋', ja: 'イースターエッグ', ko: '이스터에그' },
 };
 const devLang = () => (navigator.language || 'en').slice(0, 2).toLowerCase();
@@ -517,6 +523,8 @@ function heroBox(key, pairs, gl, rl, names, o = {}) {
     const act = `data-mp="view" data-ref="${kind}:${key}" data-n="0" data-i="${o.i ?? ''}"`;
     return `<button class="mp-shot ${kind}" ${act} aria-label="${esc(label)}"><img src="${esc(ph.url)}"${frameAttr(ph)} alt="${esc(label)}" decoding="async"><span class="mp-badge">${icon}<b>${esc(label)}</b></span>${ph.ap ? `<span class="mp-approx" title="${esc(w('approxT'))}">${esc(w('approx'))}</span>` : ''}<span class="mp-shot-exp" aria-hidden="true">${IC.expand}</span><span class="sb-wm" aria-hidden="true">sbgta.app</span></button>`;   // домен на фото карточки (Игорь 27.11)
   };
+  // находка из игры: один кадр игры во всю ширину, половины «Жизнь» нет (Игорь 28.11)
+  if (o.one) return `<div class="mp-media-box" data-key="${key}"><div class="mp-hero mp-hero-one" style="grid-template-columns:1fr">${tile(cov[0], 'g')}</div>${all}</div>`;
   const mid = `<span class="mp-vs">${o.egg ? IC.egg : IC.swap}</span>`;
   return `<div class="mp-media-box" data-key="${key}"><div class="mp-hero">${tile(cov[0], 'g')}${tile(cov[1], 'r')}${mid}</div>${all}</div>`;
 }
@@ -554,7 +562,7 @@ function gameBlock(gm, addr, region, gid, ref = {}) {
 }
 // пасхалки места (в бете — выше реального мира: игрокам они интереснее)
 function eggBlocks(p) {
-  return (p.eggs || []).map((e) => { const yt = (e.m || []).map(ytLink).filter(Boolean)[0]; return `<div class="mp-eggblk">${favBtn('egg', e.id, true)}<span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><b>${esc(txt(e.t))}</b><p>${esc(txt(e.d))}</p>${yt ? `<button class="mp-ytbtn" data-mp="yt" data-v="${yt.id}" data-t="${yt.t}" data-l="${esc(yt.label)}">${IC.play}<span>${esc(yt.label)}</span></button>` : ''}</div></div>`; }).join('');
+  return (p.eggs || []).map((e) => { const yt = (e.m || []).map(ytLink).filter(Boolean)[0]; return `<div class="mp-eggblk">${favBtn('egg', e.id, true)}<span class="mp-eggic">${IC.egg}</span><div><small>${esc(w(e.ev ? 'inLife' : 'egg'))}</small><b>${esc(txt(e.t))}</b><p>${esc(txt(e.d))}</p>${yt ? `<button class="mp-ytbtn" data-mp="yt" data-v="${yt.id}" data-t="${yt.t}" data-l="${esc(yt.label)}">${IC.play}<span>${esc(yt.label)}</span></button>` : ''}</div></div>`; }).join('');
 }
 function playerBlock(gc) {
   const c = CATS[gc];
@@ -606,6 +614,7 @@ function nearbyRow(p, i) {
   }).join('')}</div></div>`;
 }
 function eggSheet(e, i) {
+  if (isFind(e)) return findSheet(e, i);
   const yt = (e.m || []).map(ytLink).filter(Boolean);
   // Bugatti v2 (Е4): нет игрового фото — в половину «Игра» настоящий кадр-обложку инструкции (cv) с подписью правообладателя;
   // кнопка «По шагам» / «Продолжить» — сразу под фото, до названия (решение 09)
@@ -623,7 +632,7 @@ function eggSheet(e, i) {
     ${peekHead(txt(e.t), rp(e).split(',')[0], true)}
     ${heroBox('e' + i, e.pairs, gl, realList(e), { g: txt(e.t), r: rp(e).split(',')[0] }, { egg: true })}
     ${guide ? `<div class="mp-acts mp-acts-guide">${cta}</div>` : ''}
-    <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('egg'))}</small><h2>${esc(txt(e.how?.ta) || txt(e.t))}</h2></div></div>
+    <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w(e.ev ? 'inLife' : 'egg'))}</small><h2>${esc(txt(e.how?.ta) || txt(e.t))}</h2></div></div>
     ${e.how?.rw ? `<p class="mp-text">${esc(txt(e.how.sb || e.how.rw))}</p>` : ''}
     ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(rp(e).split(',')[0])}</b><small>${esc(rp(e).split(',').slice(1).join(',').trim())}</small></div></div>` : ''}
     ${gameBlock(e.gm, e.ga, '', '', { k: 'e', i, real: rp(e) })}
@@ -635,6 +644,44 @@ function eggSheet(e, i) {
     ${yt.length > 1 ? `<div class="mp-yt">${yt.slice(1).map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
     ${e.src ? `<div class="mp-src">${IC.link}<span>${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span></div>` : ''}
     <p class="mp-cred">${credLines([e.pg, e.pr])}</p>`;
+}
+// карточка находки из игры (rk g, Игорь 28.11): только кадр игры (cv или pg с подписью), без «Где в жизни», маршрута,
+// расстояния и фото из жизни; «Где в игре» переводит на карту игры (на карте игры обратного пути «в жизнь» нет)
+function findSheet(e, i) {
+  const yt = (e.m || []).map(ytLink).filter(Boolean);
+  const fr = findFrame(e);
+  const gl = fr ? [asItem(fr), ...(e.gg || []).map(asItem)] : (e.gg || []).map(asItem);
+  let started = false; try { started = !!JSON.parse(localStorage.getItem('sb.gd') || '{}')[`${game}:${e.id}`]; } catch { }
+  const guide = !!e.how?.st?.length;
+  const cta = guide
+    ? `<button class="mp-cta mp-cta-guide" data-action="open-guide" data-key="egg:${game}:${esc(e.id)}" data-from="map">${IC.list}<span>${esc(w(started ? 'cont' : 'steps'))}</span></button>`
+    : yt.length ? `<button class="mp-cta mp-cta-yt" data-mp="yt" data-v="${yt[0].id}" data-t="${yt[0].t}" data-l="${esc(yt[0].label)}">${IC.play}<span>${esc(w('seen'))} · ${esc(yt[0].label.split(' · ')[1] || '')}</span></button>` : '';
+  return `
+    ${peekHead(txt(e.t), w('find'), true)}
+    <div class="mp-find">${heroBox('e' + i, [], gl, [], { g: txt(e.t), r: '' }, { egg: true, one: true })}</div>
+    ${cta ? `<div class="mp-acts mp-acts-guide">${cta}</div>` : ''}
+    <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('find'))}</small><h2>${esc(txt(e.how?.ta) || txt(e.t))}</h2></div></div>
+    ${e.how?.rw ? `<p class="mp-text">${esc(txt(e.how.sb || e.how.rw))}</p>` : ''}
+    ${mode === 'game' ? '' : gameBlock(e.gm, e.ga, '', '', { k: 'e', i })}
+    <div class="mp-acts">${favBtn('egg', e.id)}<button class="mp-ib" data-mp="share" data-t="${esc(txt(e.t))}" data-k="egg:${game}:${esc(e.id)}" aria-label="${esc(w('share'))}">${IC.share}</button></div>
+    <p class="mp-text">${esc(txt(e.d))}</p>
+    ${yt.length > (guide ? 0 : 1) ? `<div class="mp-yt">${yt.slice(guide ? 0 : 1).map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
+    ${e.src ? `<div class="mp-src">${IC.link}<span>${esc(String(e.src).replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</span></div>` : ''}
+    <p class="mp-cred">${credLines([fr, ...(e.gg || [])])}</p>`;
+}
+// точка находки с инструкцией: тап сразу открывает обложку сторис (опись 28.11, раздел 4); «Назад» — та же карта и масштаб.
+// Открываем через тот же data-action="open-guide" (app.js openGuideKey, from=map); шторку перед этим закрываем — после «Назад»
+// инструкция не должна возвращать чужую карточку
+function openEgg(i) {
+  const e = data[game].eggs[i];
+  if (isFind(e) && e.how?.st?.length) {
+    ctx?.closeSheet?.();
+    const b = document.createElement('button');
+    b.hidden = true; b.dataset.action = 'open-guide'; b.dataset.key = `egg:${game}:${e.id}`; b.dataset.from = 'map';
+    (document.getElementById('view-map') || document.body).append(b); b.click(); b.remove();
+    return;
+  }
+  mapSheet(eggSheet(e, i));
 }
 // фото точек сообщества — из открытого репозитория gtadb.org на GitHub (CC BY 4.0; кадры игры © Rockstar Games).
 // Пара «игра ⇄ жизнь» с одного ракурса — для сравнения ползунком (главная функция, Игорь 14.10.2026: не убирать).
@@ -1148,7 +1195,7 @@ function geo(kind) {
   const at = (c, props) => (c ? pt(c[0], c[1], props) : null);
   const est = (x) => (mode === 'game' && x.gm && x.gm[2] === 2 ? 1 : 0);   // место в игре оценено по соседним точкам
   if (kind === 'places') return fc((d?.places || []).map((p, i) => at(ll(p), { i, cf: p.cf, egg: (p.eggs || []).length ? 1 : 0, est: est(p), gc: p.gc || '' })).filter(Boolean));
-  if (kind === 'eggs') return fc((d?.eggs || []).map((e, i) => at(ll(e), { i, cf: e.cf, est: est(e), rk: e.rk || 'p' })).filter(Boolean));
+  if (kind === 'eggs') return fc((d?.eggs || []).map((e, i) => at(ll(e), { i, cf: e.cf, est: est(e), rk: e.rk || 'p', ...(isFind(e) ? { im: findImg(e) } : {}) })).filter(Boolean));
   if (kind === 'gtadb') return fc(show.gtadb && gtadb[game] ? gtadb[game].points.map((p, i) => at(llPt(p), { i, gc: p[12] || '' })).filter(Boolean) : []);
   if (kind === 'gl') { const lk = glData ? glLinks() : []; return fc(glShown() && glData ? glData.map((p, i) => (glOn.has(p.k) && !lk[i] && !(glHideGot && GL[p.k].g !== 'eggs' && glGot.has(glId(p))) ? pt(...G2M(p.x, p.y), { i, k: p.k, got: glGot.has(glId(p)) ? 1 : 0, sec: GL[p.k].g === 'eggs' ? 1 : 0 }) : null)).filter(Boolean) : []); }
   if (kind === 'sel') {
@@ -1269,9 +1316,9 @@ function glLinks() {
   const d = data[game];
   if (!glData || !d) return [];
   if (glLinkMemo && glLinkMemo.d === d && glLinkMemo.n === glData.length) return glLinkMemo.v;
+  // GL-секреты GTA 5 — мир игры: связываем только с находками из игры (rk g), не с реальными местами и отсылками (опись 28.11)
   const cand = [];
-  d.eggs.forEach((e, i) => { if (e.gm && e.gm[2] < 2) cand.push({ x: e.gm[0], y: e.gm[1], t: 'e', i }); });
-  d.places.forEach((p, i) => (p.eggs || []).forEach((e) => { if (e.gm && e.gm[2] < 2) cand.push({ x: e.gm[0], y: e.gm[1], t: 'p', i, id: e.id }); }));
+  d.eggs.forEach((e, i) => { if (isFind(e) && e.gm && e.gm[2] < 2) cand.push({ x: e.gm[0], y: e.gm[1], t: 'e', i }); });
   const v = glData.map((p) => {
     if (GL[p.k]?.g !== 'eggs') return null;
     let best = null, bd = 70 * 70;
@@ -1284,7 +1331,7 @@ function glLinks() {
 function openGL(i) {
   const L = glLinks()[i];
   if (!L) { mapSheet(glSheet(i)); return; }
-  if (L.t === 'e') { mapSheet(eggSheet(data[game].eggs[L.i], L.i)); return; }
+  if (L.t === 'e') { openEgg(L.i); return; }
   openPlace(L.i, false);
   setTimeout(() => document.querySelector(`#sheet-body [data-mp="fav"][data-id="${CSS.escape(L.id)}"]`)?.closest('.mp-eggblk')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 450);
 }
@@ -1398,8 +1445,50 @@ function addLegend2Layers(z, game_) {
   // пасхалки: с прообразом — круг места со знаком; отсылка — в жизни квадрат (z ≥ 11), в игре «?»
   if (!map.getLayer('eggs')) circ('eggs', 'eggs', { filter: ['==', ['get', 'rk'], 'p'] });
   if (!map.getLayer('eggs-b')) badge('eggs-b', 'eggs', ['==', ['get', 'rk'], 'p']);
-  if (!map.getLayer('eggs-ref')) map.addLayer({ id: 'eggs-ref', type: 'symbol', source: 'eggs', filter: ['!=', ['get', 'rk'], 'p'], minzoom: game_ ? 0 : 11,
+  if (!map.getLayer('eggs-ref')) map.addLayer({ id: 'eggs-ref', type: 'symbol', source: 'eggs', filter: ['all', ['!=', ['get', 'rk'], 'p'], ['!=', ['get', 'rk'], 'g']], minzoom: game_ ? 0 : 11,
     layout: { 'icon-image': game_ ? 'egg-q' : 'ref-film', 'icon-size': z(0.6, 1), 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+  // находка из игры — кадром игры на всех зумах (на реальной карте — у места, которое соответствует её месту в игре)
+  ensureFindImages();
+  if (!map.getLayer('eggs-g')) map.addLayer({ id: 'eggs-g', type: 'symbol', source: 'eggs', filter: ['==', ['get', 'rk'], 'g'],
+    layout: { 'icon-image': ['get', 'im'], 'icon-size': z(0.62, 1), 'icon-allow-overlap': true, 'icon-ignore-placement': true } });
+}
+// значки находок: кадр игры в скруглённом квадрате с розовой рамкой; пока кадр грузится или его нет — значок «игра»
+const findImgs = {};   // url → ImageData (переживает смену стиля карты)
+const findName = (e) => `gf-${game}-${e.id}`;
+const findImg = (e) => (map?.hasImage(findName(e)) ? findName(e) : 'egg-gm');
+function findTile(draw) {
+  const S = 72, c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d');
+  const r = (x, y, ww, h, rad) => { g.beginPath(); g.moveTo(x + rad, y); g.arcTo(x + ww, y, x + ww, y + h, rad); g.arcTo(x + ww, y + h, x, y + h, rad); g.arcTo(x, y + h, x, y, rad); g.arcTo(x, y, x + ww, y, rad); g.closePath(); };
+  r(4, 4, 64, 64, 14); g.fillStyle = '#1b1f27'; g.fill();
+  g.save(); r(7, 7, 58, 58, 11); g.clip(); draw(g, 7, 58); g.restore();
+  r(4, 4, 64, 64, 14); g.lineWidth = 5; g.strokeStyle = COLORS.egg; g.stroke();
+  return g.getImageData(0, 0, S, S);
+}
+function ensureFindImages() {
+  if (!map.hasImage('egg-gm')) map.addImage('egg-gm', findTile((g, o, n) => {
+    g.strokeStyle = COLORS.egg; g.lineWidth = 4; g.lineJoin = 'round'; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(22, 30); g.lineTo(50, 30); g.quadraticCurveTo(58, 30, 58, 40); g.quadraticCurveTo(58, 50, 50, 48); g.lineTo(44, 44); g.lineTo(28, 44); g.lineTo(22, 48); g.quadraticCurveTo(14, 50, 14, 40); g.quadraticCurveTo(14, 30, 22, 30); g.stroke();
+    g.beginPath(); g.moveTo(25, 34); g.lineTo(25, 41); g.moveTo(21.5, 37.5); g.lineTo(28.5, 37.5); g.stroke();
+    g.fillStyle = COLORS.egg; g.beginPath(); g.arc(46, 36, 2.4, 0, 7); g.arc(50, 40.5, 2.4, 0, 7); g.fill();
+  }), { pixelRatio: 2 });
+  let left = 0;
+  for (const e of data[game]?.eggs || []) {
+    const ph = isFind(e) && findFrame(e); if (!ph) continue;
+    const name = findName(e), url = rebase(ph.thumb || ph.file);
+    if (map.hasImage(name)) continue;
+    if (findImgs[url]) { map.addImage(name, findImgs[url], { pixelRatio: 2 }); continue; }
+    if (findImgs[url] === null) continue;   // уже грузится или не загрузился
+    findImgs[url] = null; left++;
+    const im = new Image(); im.decoding = 'async';
+    im.onload = () => {
+      findImgs[url] = findTile((g, o, n) => { const k = Math.max(n / im.width, n / im.height), ww = im.width * k, h = im.height * k; g.drawImage(im, o + (n - ww) / 2, o + (n - h) / 2, ww, h); });
+      if (map && !map.hasImage(name)) map.addImage(name, findImgs[url], { pixelRatio: 2 });
+      map?.getSource('eggs')?.setData(geo('eggs'));
+    };
+    im.onerror = () => { delete findImgs[url]; };
+    im.src = url;
+  }
+  if (!left) map.getSource('eggs')?.setData(geo('eggs'));
 }
 // шторка «Обозначения» (одобрена Игорем 15.10.2026): пять видов точек живыми значками и что значит заливка
 function legendSheet() {
@@ -1415,6 +1504,7 @@ function legendSheet() {
     ${row(c('c', b), T('Пасхалка с местом в жизни', 'Easter egg with a real place'), T('можно прийти и сравнить', 'you can visit and compare'))}
     ${row(ref, T('Отсылка: место съёмок', 'Reference: filming location'), T('самого места из игры в жизни нет', 'the game place itself does not exist'))}
     ${row(q, T('Пасхалка без места', 'Easter egg without a place'), T('только на карте игры', 'only on the game map'))}
+    ${row('<svg viewBox="-13 -13 26 26" width="28" height="28"><rect x="-11" y="-11" width="22" height="22" rx="5" fill="#1b1f27" stroke="#f472b6" stroke-width="2.2"/><path d="M-6 -2h12a3 3 0 0 1 0 6l-2-1.5h-8l-2 1.5a3 3 0 0 1 0-6z" fill="none" stroke="#f472b6" stroke-width="1.5"/></svg>', T('Находка из игры', 'In-game find'), T('кадр игры у похожего места в жизни, в самой жизни её нет', 'a game frame at the matching real spot; the find itself is only in the game'))}
     ${row(`<svg viewBox="-13 -13 26 26" width="28" height="28"><circle r="4.5" fill="${COLORS.gtadb}"/></svg>`, T('Точка сообщества', 'Community point'), T('видна только вблизи', 'shown when zoomed in'))}
     </div><div class="lg-fills">${c('c')}<span>${esc(T('подтверждено', 'confirmed'))}</span>${c('l')}<span>${esc(T('вероятно', 'likely'))}</span>${c('s')}<span>${esc(T('догадка', 'guess'))}</span></div>
     <p class="lg-src">${esc(game === 'gta6' && !COMMUNITY6
@@ -1423,7 +1513,7 @@ function legendSheet() {
       : T('Карта игры — gtadb.org (CC BY 4.0; © Rockstar Games). Реальная карта — OpenStreetMap и OpenFreeMap в цветах карты GTA.',
         'Game map: gtadb.org (CC BY 4.0; © Rockstar Games). Real map: OpenStreetMap and OpenFreeMap in GTA map colors.'))}</p>`;
 }
-const PICK_ALIAS = { 'cl-pt': 'places', 'eggs-ref': 'eggs', 'gl-col': 'gl' };
+const PICK_ALIAS = { 'cl-pt': 'places', 'eggs-ref': 'eggs', 'eggs-g': 'eggs', 'gl-col': 'gl' };
 function addLayers() {
   const dark = themeKey() === 'dark';
   const stroke = dark ? '#0b0b0d' : '#ffffff';
@@ -1504,9 +1594,10 @@ function applyCat() {
   const glow = mode === 'game' ? null : ['==', ['get', 'cf'], 'confirmed'];
   for (const l of ['places', 'places-glow', 'places-egg', 'gtadb']) if (map.getLayer(l)) map.setFilter(l, l === 'places-glow' ? (f && glow ? ['all', glow, f] : f || glow) : l === 'places-egg' ? (f ? ['all', ['==', ['get', 'egg'], 1], f] : ['==', ['get', 'egg'], 1]) : f);
   if (map.getLayer('gtadb')) map.setLayerZoomRange('gtadb', activeCat ? 0 : (tilesGame() ? 5 : LEGEND2 ? 14 : 11.5), 24);
-  for (const l of ['eggs', 'eggs-b', 'eggs-ref']) if (map.getLayer(l)) map.setLayoutProperty(l, 'visibility', activeCat ? 'none' : (show.eggs ? 'visible' : 'none'));
+  for (const l of ['eggs', 'eggs-b', 'eggs-ref', 'eggs-g']) if (map.getLayer(l)) map.setLayoutProperty(l, 'visibility', activeCat ? 'none' : (show.eggs ? 'visible' : 'none'));
 }
 function refreshData() {
+  if (map.getLayer('eggs-g')) ensureFindImages();   // другая игра — свои кадры находок
   for (const k of ['gtadb', 'places', 'eggs', 'sel']) map.getSource(k)?.setData(geo(k));
   map.getSource('places-cl')?.setData(geo('places'));
 }
@@ -1517,7 +1608,7 @@ function applyShow() {
   map.setLayoutProperty('places', 'visibility', vis(show.places));
   if (map.getLayer('places-glow')) map.setLayoutProperty('places-glow', 'visibility', vis(show.places));
   for (const l of ['places-egg', 'cl', 'cl-n', 'cl-pt', 'cl-egg']) if (map.getLayer(l)) map.setLayoutProperty(l, 'visibility', vis(show.places));
-  for (const l of ['eggs', 'eggs-b', 'eggs-ref']) if (map.getLayer(l)) map.setLayoutProperty(l, 'visibility', vis(show.eggs));
+  for (const l of ['eggs', 'eggs-b', 'eggs-ref', 'eggs-g']) if (map.getLayer(l)) map.setLayoutProperty(l, 'visibility', vis(show.eggs));
 }
 
 function openPlace(i, fly, want) {
@@ -1653,8 +1744,10 @@ function pickAt(e) {
   // пока ждали 250 мс, ушли с карты или открылся пейвол (замок 20 с) — точку не открываем
   if (document.body.dataset.tab !== 'map' || document.getElementById('paywall')?.classList.contains('open')) return;
   const r = 14, { x, y } = e.point;
-  const layers = ['eggs', 'eggs-ref', 'places', 'cl-pt', 'cl', 'gl', 'gl-col', 'gtadb'].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, 'visibility') !== 'none');
-  const raw = map.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]], { layers });
+  const layers = ['eggs', 'eggs-ref', 'eggs-g', 'places', 'cl-pt', 'cl', 'gl', 'gl-col', 'gtadb'].filter((l) => map.getLayer(l) && map.getLayoutProperty(l, 'visibility') !== 'none');
+  let raw = map.queryRenderedFeatures([[x - r, y - r], [x + r, y + r]], { layers });
+  // кадр находки крупнее точек сообщества под ним: тап по кадру — сама находка, а не список «здесь несколько точек»
+  if (raw.some((h) => h.layer.id === 'eggs-g')) raw = raw.filter((h) => h.layer.id !== 'gtadb');
   const clh = raw.find((h) => h.layer.id === 'cl');
   if (clh) {   // кластер: приблизить, как в Google Maps
     map.getSource('places-cl').getClusterExpansionZoom(clh.properties.cluster_id).then((zz) => map.easeTo({ center: clh.geometry.coordinates, zoom: Math.min(zz + 0.3, 12), duration: 500 })).catch(() => map.easeTo({ center: clh.geometry.coordinates, zoom: map.getZoom() + 2 }));
@@ -1673,7 +1766,7 @@ function pickAt(e) {
   const nearest = uniq[0];
   const i = nearest.properties.i, l = nearest.layer.id;
   ctx.haptic();
-  if (l === 'eggs') mapSheet(eggSheet(data[game].eggs[i], i));
+  if (l === 'eggs') openEgg(i);
   else if (l === 'places') openPlace(i, false);
   else if (l === 'gl') openGL(i);
   else openPoint(i, false);
@@ -1683,7 +1776,7 @@ function chooserSheet(hits) {
     const i = h.properties.i, l = h.layer.id;
     let img = '', title = '', sub = '', ic = IC.pin;
     if (l === 'places') { const p = data[game].places[i]; img = (p.pg || p.pr || {}).thumb || (p.pg || p.pr || {}).file || ''; title = realShort(p); sub = GAMES[game]?.title || ''; }
-    else if (l === 'eggs') { const e = data[game].eggs[i]; img = (e.pg || e.pr || {}).thumb || (e.pg || e.pr || {}).file || ''; title = txt(e.t); sub = w('egg'); ic = IC.egg; }
+    else if (l === 'eggs') { const e = data[game].eggs[i], ph = isFind(e) ? findFrame(e) : e.pg || e.pr; img = rebase((ph || {}).thumb || (ph || {}).file || ''); title = txt(e.t); sub = w(isFind(e) ? 'find' : e.ev ? 'inLife' : 'egg'); ic = IC.egg; }
     else if (l === 'gl') { const p = glData[i], L = GL[p.k]; title = tr(L.t) + (p.n ? ` № ${p.n}` : ''); sub = p.key && GL_EGG[p.key] ? tr(GL_EGG[p.key]) : tr(GL_GROUPS.find((x) => x[0] === L.g)[1]); ic = `<span class="gl-ic">${L.ic}</span>`; }
     else { const q = gtadb[game].points[i]; const ph = gtadbPhotos(q, gtadb[game].game); img = (ph.pg || ph.pr || {}).file || ''; title = q[3].split(',')[0]; sub = q[1] || q[2]; }
     return `<button class="mp-ch" data-mp="pick" data-l="${l}" data-i="${i}">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : `<span class="mp-ch-ic">${ic}</span>`}<span><b>${esc(title)}</b><small>${IC.game}${esc(sub || '')}</small></span></button>`;
@@ -1786,7 +1879,7 @@ document.addEventListener('click', (e) => {
   else if (a === 'all') { ctx?.haptic(); openAll(el.dataset.key, 'r'); }
   else if (a === 'viewer-close') closeViewer();
   else if (a === 'peekup') { ctx?.haptic(); ctx.setSnap?.('half'); }
-  else if (a === 'pick') { const i = +el.dataset.i, l = el.dataset.l; backToChooser = true; if (l === 'places') openPlace(i, false); else if (l === 'eggs') mapSheet(eggSheet(data[game].eggs[i], i)); else if (l === 'gl') openGL(i); else openPoint(i, false); }
+  else if (a === 'pick') { const i = +el.dataset.i, l = el.dataset.l; backToChooser = true; if (l === 'places') openPlace(i, false); else if (l === 'eggs') openEgg(i); else if (l === 'gl') openGL(i); else openPoint(i, false); }
   else if (a === 'gl-panel') { ctx?.haptic(); loadGL().then(() => ctx.openSheet(glPanel(), 'sheet-map', null, snapOpt('half'))); }
   else if (a === 'gl-toggle' || a === 'gl-all') {
     ctx?.haptic();
@@ -2277,9 +2370,11 @@ export async function focus(g, kind, id) {
   if (!map) return false;
   if (g && g !== game) await setGame(g);
   const d = await loadGame(game);
+  // нет точки на реальной карте (xr) — показать на карте игры, если место в игре известно (опись 28.11: ?open= на находку в «Жизни»)
+  const toGame = async (x) => { if (x?.xr && mode !== 'game' && x.gm && GAME_MAP[game]) { await switchMode('game'); return true; } return false; };
   if (kind === 'place') {
     const i = d.places.findIndex((x) => x.id === id);
-    if (i >= 0) { openPlace(i, true); return true; }
+    if (i >= 0) { await toGame(d.places[i]); openPlace(i, true); return true; }
     // QA 27.11: «Это место в жизни» в «Дальше» инструкции — ключ place:<игра>:<id пасхалки>; места с таким id нет — ищем пасхалку ниже
     // (было: «Место по ссылке не найдено»)
   }
@@ -2292,6 +2387,7 @@ export async function focus(g, kind, id) {
   }
   const ei = d.eggs.findIndex((x) => x.id === id);
   if (ei >= 0) {
+    await toGame(d.eggs[ei]);
     const e = d.eggs[ei], c = ll(e);
     if (c) map.easeTo({ center: c, zoom: Math.max(map.getZoom(), tilesGame() ? 6.5 : 15), duration: 700, offset: camOffset() });
     mapSheet(eggSheet(e, ei)); return true;

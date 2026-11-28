@@ -1813,9 +1813,11 @@ function paywallPanel(st) {
 async function pwThing(pw) {
   const k = giftKey(); if (!k) return;
   const o = await findByKey(k).catch(() => null); if (!o || !pw.classList.contains('open')) return;
-  const img = thumbOf(o, 'real');
+  const img = thumbOf(o, o.kind === 'egg' ? 'game' : 'real');   // пасхалка — кадр игры или значок, не фото жизни (опись 28.11)
   const el = pw.querySelector('.pw-thing'); if (!el) return;
-  el.innerHTML = `${img ? `<img src="${esc(img)}" alt="" decoding="async">` : `<span class="pt-ph">${I.pin}</span>`}<span class="pt-t"><b>${esc(realName(o))}</b><small>${t('pw_thing')}</small></span>`;
+  // находка из игры (rk g) — своё название, а не «реальное место» (у Bugatti было бы «Star Island»)
+  const name = o.rk === 'g' ? L(o.t) : realName(o);
+  el.innerHTML = `${img ? `<img src="${esc(img)}" alt="" decoding="async">` : `<span class="pt-ph">${o.kind === 'egg' ? I.egg : I.pin}</span>`}<span class="pt-t"><b>${esc(name)}</b><small>${t('pw_thing')}</small></span>`;
   el.hidden = false;
 }
 let pwSt = 'pro';
