@@ -80,7 +80,7 @@ function layer(ctx) {
 }
 
 // один проход «пальца» по ползунку: середина → влево → вправо → середина (1,8 с), ползунок едет вместе с ним
-function fingerSlide(L, st, setX, ms = 1800) {
+function fingerSlide(L, st, setX, ms = 1800, stop = { v: false }) {
   return new Promise((res) => {
     const f = L.finger, ease = (k) => (k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2);
     const pts = [[0, 50], [0.3, 22], [0.72, 78], [1, 50]];
@@ -91,7 +91,7 @@ function fingerSlide(L, st, setX, ms = 1800) {
       let i = 0; while (i < pts.length - 2 && p > pts[i + 1][0]) i++;
       const [a, va] = pts[i], [b, vb] = pts[i + 1], k = ease((p - a) / (b - a || 1)), v = va + (vb - va) * k;
       const r = st.getBoundingClientRect();
-      if (!st.isConnected) { f.classList.remove('on'); res(); return; }
+      if (!st.isConnected || stop.v) { f.classList.remove('on'); res(); return; }   // человек взялся за ползунок сам — показ прерываем
       f.style.transform = `translate(${r.left + r.width * v / 100 - 22}px,${r.top + r.height / 2 - 22}px)`;
       setX(st, v);
       if (p < 1) requestAnimationFrame(tick); else { setTimeout(() => f.classList.remove('on'), 120); res(); }
@@ -146,8 +146,9 @@ export async function mapTour(ctx) {
     ev('onb_step', { n: B + 2 });
     L.show(ctx.t('onb_slide'), { n: B + 2, m: M }, { target: st, block: true, onGone: () => end('gone') });
     let anim = false, moved = false;
-    const t0 = Date.now();
-    const slide = async () => { if (ctx.reduced) { st.classList.add('tr-ring'); return; } anim = true; await fingerSlide(L, st, m.tourSlide); anim = false; };
+    const t0 = Date.now(), stop = { v: false };
+    st.addEventListener('pointerdown', () => { stop.v = true; anim = false; }, { capture: true });   // тянет сам во время показа «пальца» — считаем его движение
+    const slide = async () => { if (ctx.reduced) { st.classList.add('tr-ring'); return; } if (stop.v) return; anim = true; await fingerSlide(L, st, m.tourSlide, 1800, stop); anim = false; };
     const passed = new Promise((res) => {
       const mo = new MutationObserver(() => {
         if (anim || moved) return;
