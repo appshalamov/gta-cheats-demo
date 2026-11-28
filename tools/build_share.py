@@ -273,8 +273,9 @@ def page(game, kind, x):
     else:
         p_ = x.get("p") or ""
         # место пасхалки: «название, адрес» — название жирно, адрес отдельно (15.10: строка повторялась дважды)
-        name_r_ru = addr_ru = None
         name_g, name_r, addr = t(x.get("t"), "en"), p_.split(",")[0], (p_.split(",", 1)[1].strip() if "," in p_ else "")
+        pn = x.get("pn") or ""   # реальное место по-русски (tools/names_ru.json; data-tails 28.11 — раньше в RU шло английское)
+        name_r_ru, addr_ru = (pn.split(",")[0], (pn.split(",", 1)[1].strip() if "," in pn else "")) if pn else (None, None)
         d_ru, d_en = t(x.get("d"), "ru"), t(x.get("d"), "en")
     gimg, gcred = game_img(x)
     rimg, rcred = real_img(x)
@@ -395,7 +396,9 @@ def db_items(game):
     gt = GAMES[game][0]
     v = 6 if game == "gta6" else 5
     out = []
-    for q in json.loads(fp.read_text("utf-8"))["points"]:
+    dj = json.loads(fp.read_text("utf-8"))
+    rn, rr = dj.get("rn") or {}, dj.get("rr") or {}   # русские имя и реальное место (tools/names_ru.py gtadb, data-tails 28.11)
+    for q in dj["points"]:
         pid, name, district, real, lat, lon, typ = q[:7]
         if lat is None or not pid:
             continue
@@ -406,7 +409,8 @@ def db_items(game):
         out.append({
             "id": pid, "_file": f"db-{pid}", "lat": lat, "lon": lon,
             "g": name or district or pid, "n": rname, "a": real.split(",", 1)[1].strip() if "," in real else "",
-            "s": {"ru": f"{name or district}{where} в {gt} — реальное место: {real}. Сравни кадр игры и фото из жизни.",
+            **({"nr": rr[pid].split(",")[0], "ar": rr[pid].split(",", 1)[1].strip() if "," in rr[pid] else ""} if pid in rr else {}),
+            "s": {"ru": f"{rn.get(pid) or name or district}{where} в {gt} — реальное место: {rr.get(pid) or real}. Сравни кадр игры и фото из жизни.",
                   "en": f"{name or district}{where} in {gt} is a real place: {real}. Compare the game shot with real life."},
             "pg": ig, "pairs": [{"g": ig, "r": rl}] if ig and rl else [],
         })

@@ -34,7 +34,8 @@ LATIN_OK = re.compile(r"Wikimedia Commons|CC BY(?:-SA)?(?: \d\.\d)?|Public domai
 # tools/names_ru.json, где перевод = оригиналу (имя переводить не нужно), и текст в «ёлочках» (вывеска, цитата, название).
 PROPER_EXTRA = ["Ocarina of Time", "Know Your Meme", "Gons and Audet", "Bank of America", "Toyota of Downtown LA",
                 "Everglades on the Bay", "Brickell on the River", "Quantum on the Bay", "Zak the Baker", "Jack of Hearts",
-                "King of Diamonds", "Adrienne Arsht Center for the Performing Arts", "Hobbs Milford", "Duke of Wellington", "loanDepot park"]
+                "King of Diamonds", "Adrienne Arsht Center for the Performing Arts", "Hobbs Milford", "Duke of Wellington", "loanDepot park",
+                "Thomson Plaza for the Arts", "Back Channel", "TAP"]   # TAP — карта метро Лос-Анджелеса (data-tails 28.11)
 def _proper():
     f = ROOT / "tools" / "names_ru.json"
     ru = json.loads(f.read_text("utf-8")) if f.exists() else {}

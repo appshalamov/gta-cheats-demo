@@ -942,8 +942,10 @@ def build(game, cfg):
     if sf:
         data["sf"] = sf
     import names_ru; names_ru.apply(data)   # nr / ar — русские названия мест с пояснениями (21.11.2026)
+    g_rn, g_rr = names_ru.gtadb(pts)   # точки gtadb: русские имя и реальное место словарями рядом (data-tails 28.11)
     (OUT / f"{game}.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), "utf-8")
-    (OUT / f"gtadb_{game}.json").write_text(json.dumps({"game": cfg["gtadb"], "points": pts, **({"sf": sf} if sf else {})}, ensure_ascii=False, separators=(",", ":")), "utf-8")
+    (OUT / f"gtadb_{game}.json").write_text(json.dumps({"game": cfg["gtadb"], "points": pts, **({"sf": sf} if sf else {}),
+                                                        **({"rn": g_rn} if g_rn else {}), **({"rr": g_rr} if g_rr else {})}, ensure_ascii=False, separators=(",", ":")), "utf-8")
     print(f"{game}: мест {len(places)} ({pf.name if pf else '—'}), с парой для сравнения {sum(1 for x in places if x.get('pairs'))}, пасхалок отдельно {len(eggs)}, точек gtadb {len(pts)} · без дублей: {rep_}")
 
 
