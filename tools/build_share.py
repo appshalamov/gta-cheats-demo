@@ -41,8 +41,14 @@ def absu(u):
     return u if u.startswith("http") else SITE + u.lstrip("./")
 
 
+def find_cv(x):
+    """Находка из игры (rk g, Игорь 28.11): обложка инструкции — настоящий кадр игры с подписью (cv.by) — первой."""
+    cv = x.get("cv") if x.get("rk") == "g" else None
+    return [{"file": cv["f"], "credit": f"© Rockstar Games · {cv['by']}" if cv.get("by") and "Rockstar" not in cv["by"] else (cv.get("by") or "© Rockstar Games")}] if cv and cv.get("f") else []
+
+
 def game_img(x):
-    for ph in [x.get("pg")] + (x.get("gg") or []) + [p.get("g") for p in x.get("pairs") or []]:
+    for ph in find_cv(x) + [x.get("pg")] + (x.get("gg") or []) + [p.get("g") for p in x.get("pairs") or []]:
         if ph and (ph.get("file") or ph.get("url")):
             return absu(ph.get("file") or ph.get("url")), ph.get("credit", "")
     return "", ""
@@ -53,7 +59,7 @@ def og_game_img(x):
     с героиней). Кадры gtadb — снимки места в игре, обычно без людей; кадры трейлеров — часто с героями. Но мутный
     кадр хуже героини (Игорь 15.10: «не надо ужасных фото»): кадр gtadb берём, если он не заметно мутнее (og_render.quality: размер × резкость)."""
     cands = []
-    for ph in [x.get("pg")] + (x.get("gg") or []) + [p.get("g") for p in x.get("pairs") or []]:
+    for ph in find_cv(x) + [x.get("pg")] + (x.get("gg") or []) + [p.get("g") for p in x.get("pairs") or []]:
         if ph and (ph.get("file") or ph.get("url")):
             u = absu(ph.get("file") or ph.get("url"))
             if u not in [c[0] for c in cands]:
@@ -82,6 +88,8 @@ def og_game_img(x):
 
 
 def real_img(x):
+    if x.get("rk") == "g":   # находка из игры — фото из жизни в превью нет
+        return "", ""
     for ph in [x.get("pr")] + (x.get("gl") or []):
         if ph and "Wikimedia Commons" in (ph.get("credit") or ""):
             return absu(ph.get("file") or ph.get("url")), ph.get("credit", "")
@@ -188,11 +196,27 @@ def _stamp(u):
         return ""
 
 
-def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=()):
+def og_card(game, pid, gurl, rurl, rcred="", title="", sub="", pairs=(), find=False):
     """Превью 1200×630 «игра | жизнь» → путь от s/ или ''. Как рисуется — tools/og_render.py.
     Первым — пара с одного ракурса (как ползунок в приложении), если кадр игры в ней не мутный."""
     if Image is None or not (gurl or rurl or pairs):
         return ""
+    if find:   # находка из игры: только кадр игры, подпись «Only in the game» (без «Where is it in real life?»)
+        sig = hashlib.sha1(f"find1|{gurl}|{rcred}|{_stamp(gurl)}".encode()).hexdigest()[:8]
+        rel = f"og/{game}/{pid}.{sig}.jpg"
+        fp = OUT / rel
+        OG_MADE.add(fp)
+        if fp.exists():
+            return rel
+        g = _src_safe(gurl) if gurl else None
+        if g is None:
+            OG_MADE.discard(fp); return ""
+        c = Image.new("RGB", (og_render.W, og_render.H), og_render.BG)
+        c.paste(og_render._cover(og_render.trim(g), og_render.W, og_render.TOP), (0, 0))
+        og_render._band(c, center_label="Only in the game", credits=(rcred or og_render.GAME_CREDIT,))
+        fp.parent.mkdir(parents=True, exist_ok=True)
+        c.save(fp, "JPEG", quality=74, optimize=True, progressive=True, subsampling=2)
+        return rel
     gf = CFG.get("og_game_frame", True)
     # рубильник og_gtadb_pairs (аналитика 15.10, вопрос юристу до 04.11): false — пары со снимками gtadb (Street View)
     # в превью не берём, остаются варианты Commons; старые картинки с парами удалит эта же сборка (их нет в OG_MADE)
@@ -262,11 +286,15 @@ def page(game, kind, x):
     prs = tuple((absu(p["g"].get("url") or p["g"].get("file") or ""), absu(p["r"].get("url") or p["r"].get("file") or ""), p["r"].get("credit", ""), bool(p.get("own")))
                 for p in (x.get("pairs") or []) if p.get("g") and p.get("r"))[:3]
     o_r, o_c = (REPL[x["id"]] if (x["id"] in REPL and "BY-SA" in (rcred or "") and not prs) else (rimg, rcred))
-    og = og_card(game, fid, gimg if kind == "db" else og_game_img(x), o_r, o_c, name_g or name_r, f"{name_r}" if name_g else "", prs)
+    find = x.get("rk") == "g"
+    og = (og_card(game, fid, gimg, "", gcred, find=True) if find else
+          og_card(game, fid, gimg if kind == "db" else og_game_img(x), o_r, o_c, name_g or name_r, f"{name_r}" if name_g else "", prs))
     # нет своего превью и кадра игры — запасное превью сайта (QA 20.11.2026: 202 страницы уходили в мессенджер без картинки)
     og_abs = f"{SITE}s/{og}" if og else (gimg or f"{SITE}s/og/site.jpg")
-    title = f"{name_g} = {name_r}" if name_g and name_r else (name_g or name_r)
-    og_title = f"{title} · {gt} in real life · Secret Base"
+    if find:   # находка из игры: реального места нет — строка «где в игре» вместо адреса, без маршрута
+        name_r, addr = x.get("ga") or "", ""
+    title = f"{name_g} = {name_r}" if name_g and name_r and not find else (name_g or name_r)
+    og_title = f"{title} · {gt} · Secret Base" if find else f"{title} · {gt} in real life · Secret Base"
     og_desc = (d_en or d_ru)[:190]
     key = f"{kind}:{game}:{x['id']}"
     app = f"../../?open={key}"
@@ -324,11 +352,11 @@ background:linear-gradient(90deg,#22c3d9,#7ee0ff)}}.sub{{display:block;text-alig
 </style></head><body><main>
 <div class="brand"><img src="../../icons/icon-192.png" alt=""><span class="lk">SBgta<b>.app</b></span><span class="tag">{e(gt)} · <span data-ru="{e(city_ru)} в жизни" data-en="{e(city_en)} in real life">{e(city_en)} in real life</span></span></div>
 <h1{h1_lang}>{e(name_g or name_r)}</h1>
-<p class="real">📍 {real_line}</p>
+{(f'<p class="real">🎮 {e(name_r or gt)}</p>' if find else f'<p class="real">📍 {real_line}</p>')}
 {imgs if has_cmp else f'<div class="pics">{imgs}</div>'}
 <a class="cta" href="{e(app)}" data-ru="Открыть в Secret Base" data-en="Open in Secret Base">Open in Secret Base</a>
 <p class="d" data-ru="{e(d_ru)}" data-en="{e(d_en)}">{e(d_en or d_ru)}</p>
-<a class="sub" href="{e(maps)}" data-ru="Как добраться — Google Maps" data-en="Directions — Google Maps">Directions — Google Maps</a>
+{'' if find else f'<a class="sub" href="{e(maps)}" data-ru="Как добраться — Google Maps" data-en="Directions — Google Maps">Directions — Google Maps</a>'}
 <p class="cred">{e(credits)}{' · ' if credits else ''}<span data-ru="Неофициальное приложение, не связано с Rockstar Games." data-en="Unofficial fan app, not affiliated with Rockstar Games.">Unofficial fan app, not affiliated with Rockstar Games.</span></p>
 </main>
 <script>(()=>{{const ru=(navigator.language||'').toLowerCase().startsWith('ru')||(navigator.language||'').toLowerCase().startsWith('uk');

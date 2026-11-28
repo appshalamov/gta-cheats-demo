@@ -21,7 +21,7 @@ const S = {
     fin_car: 'Готово. Машина ваша.', fin: 'Готово. Всё получилось.', again: 'Начать заново',
     meta: '{n} шагов, около {m} минут', meta0: '{n} шагов', missable: 'Можно упустить навсегда', no_fix: 'Для этого шага частых ошибок нет. Посмотрите ролик или общий список.',
     en_only: 'Инструкция на английском', offline: 'Ролики работают с сетью',
-    up: 'Дальше', inLife: 'Это место в жизни', path_meta: '{n} шагов, около {m} минут', works: 'работает, проверено {d}', quiet: 'Как заехать тихо', bugPart: 'Баг: сквозь дверь гаража',
+    up: 'Дальше', inLife: 'Это место в жизни', twin: 'Двойник этого места в жизни', path_meta: '{n} шагов, около {m} минут', works: 'работает, проверено {d}', quiet: 'Как заехать тихо', bugPart: 'Баг: сквозь дверь гаража',
     questPart: 'Квест No Flusher', finPart: 'Гараж и регистрация', frame: 'кадр: {by}, YouTube', zoom: 'Открыть кадр',
     // Bugatti v2 (27.11): два способа, ролик пути, «Пока ждёте», «К шагу N», счётчик меток, ролик неудачи, кнопка геймпада
     ways: 'Два способа', always: 'Работает всегда', path_tm: '{n} шагов, {m} минут', whole_by: 'Весь путь в ролике {by}, {n} {u}',
@@ -39,7 +39,7 @@ const S = {
     fin_car: 'Done. The car is yours.', fin: 'Done. You made it.', again: 'Start over',
     meta: '{n} steps, about {m} min', meta0: '{n} steps', missable: 'Missable', no_fix: 'No common mistakes for this step. Watch the video or the full list.',
     en_only: 'Guide in English', offline: 'Videos need a connection',
-    up: 'Next', inLife: 'This place in real life', path_meta: '{n} steps, about {m} min', works: 'works, checked {d}', quiet: 'Get in quietly', bugPart: 'Bug: through the garage door',
+    up: 'Next', inLife: 'This place in real life', twin: 'Its real-life twin', path_meta: '{n} steps, about {m} min', works: 'works, checked {d}', quiet: 'Get in quietly', bugPart: 'Bug: through the garage door',
     questPart: 'No Flusher quest', finPart: 'Garage and registration', frame: 'frame: {by}, YouTube', zoom: 'Open frame',
     ways: 'Two ways', always: 'Always works', path_tm: '{n} steps, {m} min', whole_by: 'Watch the whole route by {by}, {n} {u}',
     min1: 'min', min2: 'min', min5: 'min', wait: 'While you wait, or for a break', back_to: 'Back to step {n}', resume: 'Continue: step {n}', fold: 'Collapse step', unfold: 'Expand step',
@@ -175,7 +175,7 @@ function nextHTML(fin = true) {
   // O.nx — свои строки «Дальше» у инструкций без записи в указателе (сохранения: решение Fable 28.11, таблица «Дальше»)
   const rows = (O.nx || (rec ? nextFor(rec, O.game || 'gta6') : [])).filter((r) => !C.canOpen || C.canOpen(r.k) || /^(place|egg):/.test(r.k));
   if (!rows.length) return '';
-  return `<section class="g-sec g-next"><h2>${esc(s(fin ? 'up' : 'wait'))}</h2>${rows.map((r) => `<button class="g-nx" data-g="go" data-k="${esc(r.k)}"><span class="g-nxt"><b>${esc(r.t ? tx(r.t) : s('inLife'))}</b>${r.sub ? `<small>${esc(tx(r.sub))}</small>` : !r.t && O.p && r.k.endsWith(`:${O.id}`) ? `<small>${esc(String(O.p).split(',').slice(0, 2).join(','))}</small>` : ''}</span>${C.I.chevron}</button>`).join('')}</section>`;
+  return `<section class="g-sec g-next"><h2>${esc(s(fin ? 'up' : 'wait'))}</h2>${rows.map((r) => `<button class="g-nx" data-g="go" data-k="${esc(r.k)}"><span class="g-nxt"><b>${esc(r.t ? tx(r.t) : s(/^place:/.test(r.k) && !r.k.endsWith(`:${O.id}`) ? 'twin' : 'inLife'))}</b>${r.sub ? `<small>${esc(tx(r.sub))}</small>` : !r.t && O.p && r.k.endsWith(`:${O.id}`) ? `<small>${esc(String(O.p).split(',').slice(0, 2).join(','))}</small>` : ''}</span>${C.I.chevron}</button>`).join('')}</section>`;
 }
 function stuckHTML(ci) {
   const h = H(), st = STEPS(), x = st[ci];
