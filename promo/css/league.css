@@ -305,7 +305,7 @@
 .cr-deck .cr-empty { position: absolute; inset: 0; justify-content: center; }
 .cr-card { position: absolute; inset: 0; display: flex; flex-direction: column; border-radius: 24px; overflow: hidden; background: var(--card); border: 1px solid var(--line-2);
   box-shadow: var(--sh-float); transform: translateY(calc(var(--d) * 10px)) scale(calc(1 - var(--d) * .045)); transform-origin: 50% 100%;
-  transition: transform var(--d-base) var(--e-out); touch-action: none; user-select: none; -webkit-user-select: none; --ok: 0; --no: 0; }
+  transition: transform var(--d-base) var(--e-out); touch-action: pan-y; user-select: none; -webkit-user-select: none; --ok: 0; --no: 0; }
 .cr-card.drag { transition: none; }
 .cr-card.fly-r { transform: translateX(140%) rotate(16deg) !important; transition: transform .26s ease-in; }
 .cr-card.fly-l { transform: translateX(-140%) rotate(-16deg) !important; transition: transform .26s ease-in; }

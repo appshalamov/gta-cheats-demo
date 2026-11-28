@@ -14,7 +14,11 @@
   <meta name="theme-color" content="#f4f1ec" media="(prefers-color-scheme: light)">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- black-translucent — осознанное исключение из pwa_guard (правило 12 скилла pwa-iphone-bez-oshibok): у Secret Base своё
+       лечение короткого окна «Домой» с 14.10.2026 (css/layout.css + fitViewport в app.js: корень без fixed, высота 100vh,
+       WebKit 301994), проверено на iPhone Игоря; стекло шапки и карта уходят под статус-бар — с «black» там была бы чёрная
+       полоса. Переход на «black» — только с диагностикой на устройстве (references/диагностика-на-устройстве.md). -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" data-allow-translucent="свой фикс высоты окна, css/layout.css">
   <meta name="apple-mobile-web-app-title" content="Secret Base">
   <!-- экран запуска установленного приложения на iPhone (tools/make_splash.py), 28.10.2026 -->
   <link rel="apple-touch-startup-image" href="icons/splash/splash-1320x2868.jpg" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
@@ -76,7 +80,7 @@
   <!-- Основное приложение -->
   <main id="main">
     <section class="view" id="view-map">
-      <div id="map"></div>
+      <div id="map" data-allow-touch="карта — полноэкранный холст: свайп в любую сторону двигает карту (css/styles.css, «Жесты карты»)"></div>
       <div class="map-top">
         <div class="map-games" id="map-games"></div>
         
