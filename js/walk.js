@@ -12,7 +12,7 @@ import { topHTML, coverHTML, bindTop } from './hub-cover.js';   // обложк�
 
 const S = {
   ru: {
-    st_go: 'Перед «{m}»', st_go0: 'Перед следующей миссией', st_n: '{n} карточек, около {t} мин', pre_before: 'Перед миссией', pre_during: 'В миссии',
+    st_go: 'Перед «{m}»', st_go0: 'Перед следующей миссией', st_n: 'Карточек: {n}, около {t} мин', pre_before: 'Перед миссией', pre_during: 'В миссии',
     pre_after: 'После миссии', pre_miss: 'Упустить нельзя', miss_am: 'Упустите навсегда', st_fin: 'Можно начинать', st_go_m: 'Перед миссией: {m}',
     st_on_map: 'Миссия на карте', st_end: 'Концовки: что влияет', st_drive: 'Настроить вождение', st_one: 'Один источник, проверяем',
     title: 'Прохождение', sub: 'Что сделать перед следующими миссиями. Дальше вашего места ничего не раскрываем.',
@@ -34,7 +34,7 @@ const S = {
     st_mark0: 'После «{m}»: что сделать до следующих миссий', st_none: 'Где вы в игре? Отметьте, покажем, что не упустить',
   },
   en: {
-    st_go: 'Before “{m}”', st_go0: 'Before the next mission', st_n: '{n} cards, about {t} min', pre_before: 'Before the mission', pre_during: 'In the mission',
+    st_go: 'Before “{m}”', st_go0: 'Before the next mission', st_n: 'Cards: {n}, about {t} min', pre_before: 'Before the mission', pre_during: 'In the mission',
     pre_after: 'After the mission', pre_miss: 'Don’t miss it', miss_am: 'Lost forever if missed', st_fin: 'Ready to start', st_go_m: 'Before the mission: {m}',
     st_on_map: 'Mission on the map', st_end: 'Endings: what matters', st_drive: 'Set up driving', st_one: 'Single source, checking',
     title: 'Walkthrough', sub: 'What to do before your next missions. Nothing past your point is revealed.',
