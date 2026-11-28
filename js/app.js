@@ -1370,7 +1370,9 @@ function favStartHTML() {
   const g = store.game, code = (POPULAR[g] || [])[0];
   const rows = g === 'gta6'
     ? startRow(STORY_KEY, t('sw_bug'), '', 'img/guide/gta6/bugatti/cover-t.jpg') + (code ? startRow(`code:${code}`, t('fs_code'), L(byId(code)?.name), HERO.gta6.banners[0] + '.webp') : '')
-      + startRow('place:gta6:gta6-ocean-drive-art-deco', t('fs_od'), '', 'img/map/gta6/t/gta6-ocean-drive-art-deco_game.jpg')
+      + (canOpenPlace('place:gta6:gta6-ocean-drive-art-deco')   // без Pro карточка места — стена; строка не должна упираться в пейвол (серия до стены)
+        ? startRow('place:gta6:gta6-ocean-drive-art-deco', t('fs_od'), '', 'img/map/gta6/t/gta6-ocean-drive-art-deco_game.jpg')
+        : startRow('map', tf('fs_map', { c: mapPlaceName(g) }), '', 'img/map/gta6/t/gta6-ocean-drive-art-deco_game.jpg'))
     : (code ? startRow(`code:${code}`, t('fs_code'), L(byId(code)?.name), HERO[g]?.banners[0] + '.webp') : '') + startRow('map', tf('fs_map', { c: mapPlaceName(g) }), '', HERO[g]?.load + '.webp');
   return `<div class="fav-start"><h3>${t('fav_start')}</h3><div class="start-rows">${rows}</div></div>`;
 }

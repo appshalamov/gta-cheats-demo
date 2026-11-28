@@ -108,9 +108,17 @@ if not only_check:
     print('записано', p, os.path.getsize(p), 'байт')
     # записи для указателя гида (tools/build_guide_index.py, решение Fable раздел 3): подсказки этой функции, ключ walk:<игра>:<id>
     G = base['game']
+    # «Серии» (решение Fable 28.11, п. 6): у каждой подсказки ≥ 1 строка «Дальше» в другую функцию — перед точкой невозврата
+    # сохранения, иначе пасхалка Bugatti по шагам (вождение уже стоит у трёх подсказок вручную)
+    PNR = {f"m:{m['id']}" for m in base['m'] if m.get('pnr')}
+    def cross_next(t):
+        n = list(t['next'])
+        if all(k.startswith('walk:') for k in n):
+            n.append(f'saves:{G}:all' if t.get('until') in PNR else f'guide:{G}:egg-bugatti-thrax-andrew-node')
+        return n
     items = [{'k': f"walk:{G}:{t['id']}", 'kind': 'tip', 't': t['t'], 'sub': t['rw'], 'm': t.get('until'), 'from': t.get('from'), 'until': t.get('until'),
               **({'dur': True} if t.get('dur') else {}), 'sp': t.get('sp', 0), 'lvl': t['lvl'], 'st': t['st'], 'src_n': len(set(t.get('s', []))),
-              'steps_n': len(t['how']['st']), 'fr': t['how'].get('fr', 2), **({'min': t['min']} if t.get('min') else {}), 'next': t['next'],
+              'steps_n': len(t['how']['st']), 'fr': t['how'].get('fr', 2), **({'min': t['min']} if t.get('min') else {}), 'next': cross_next(t),
               'ch': base and next((m['ch'] for m in base['m'] if f"m:{m['id']}" == t.get('until')), None)} for t in tips]
     items = [{k: v for k, v in r.items() if v is not None} for r in items]
     q = os.path.join(ROOT, 'data', 'guide', f'entries-walk-{G}.json')

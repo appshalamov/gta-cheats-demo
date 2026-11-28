@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 REPO="$PWD"; SHA=$(git rev-parse HEAD)
 [ -n "$(git status --porcelain --untracked-files=no)" ] && { echo "СТОП: есть незакоммиченные правки — проверяется только коммит"; exit 1; }
 T="$REPO/../Тестирование 21.10"; OUT="$T/снимки/critical-$(git rev-parse --short HEAD)"; mkdir -p "$OUT"
-TESTS="critical_core,ref_link,cheat_platforms,onb_full,home_game_switch,map_pro,map_switch_chooser,place_card,paywall_conversion,try_free,offline,guide_hub,guide_spoilers,search_kw,guide_open_top,guide_double_tap,guide_details"
+TESTS="critical_core,ref_link,cheat_platforms,onb_v2,reset,settings_structure,search_guide,fav_guides,series_no_dead_end,guide_back_stack,map_game_finds,home_game_switch,map_pro,map_switch_chooser,place_card,paywall_conversion,try_free,offline,guide_hub,guide_spoilers,search_kw,guide_open_top,guide_double_tap,guide_details"
 touch "$OUT/.start"   # 28.11: проверка идёт по рабочей папке — правки во время прогона делают метку ложной
 cd "$T"
 heavy-run -p 2 -n "критичное $(git -C "$REPO" rev-parse --short HEAD)" -- ~/.video-venv/bin/python run_local.py "$REPO" "" "$OUT" "$TESTS" > "$OUT/log.txt" 2>&1 || true
