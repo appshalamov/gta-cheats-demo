@@ -63,7 +63,7 @@ export const CONF = ['confirmed', 'likely', 'speculative'];
 export const titleOf = (o) => (o.kind === 'egg' ? L(o.t) : rg(o));
 // у пасхалки место в жизни — первая часть адреса без пояснений («Piru United Methodist Church — прообраз …», «(Оаху)»):
 // пояснения в данных по-русски и с игровыми названиями (тест 21.10.2026: русский текст на Главной в английском интерфейсе)
-export const realOf = (o) => (o.kind === 'egg' ? rp(o).split(',')[0].split(' — ')[0].replace(/\s*\([^)]*[А-Яа-яЁё][^)]*\)/g, '').trim() : rn(o));
+export const realOf = (o) => (o.kind === 'egg' ? (o.rk === 'g' && o.ga ? String(o.ga) : rp(o)).split(',')[0].split(' — ')[0].replace(/\s*\([^)]*[А-Яа-яЁё][^)]*\)/g, '').trim() : rn(o));
 // Решение Игоря №15: на карточках мест (Главная, Поиск, Избранное) крупно — настоящее место, как в карточке карты
 // (map.js realShort: до первой запятой или скобки); игровое название не показываем. Мелко — адрес (место) или город (пасхалка).
 export const realName = (o) => { const r = realOf(o); return (o.kind === 'egg' ? r : r.split(/,| \(/)[0].trim()) || r || catLabel(o.c); };
