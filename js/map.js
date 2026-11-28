@@ -581,7 +581,7 @@ function placeSheet(p, i) {
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(GAMES[game]?.title || '')}</b><small>${esc(tr(GAMES[game]?.place || {}))}</small></div></div>
       <a class="mp-nm r mp-nm-link" href="${mapsLink(p.lat, p.lon, p.n)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(rn(p))}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(rn(p))}</b>${p.a ? `<small>${esc(ra(p))}</small>` : ''}</div><span class="mp-nm-go">${IC.nav}</span></a>
     </div>
-    ${gameBlock(p.gm, p.ga, p.r, '', { k: 'p', i, real: [rn(p), ra(p)].filter(Boolean).join(' · ') })}
+    ${gameBlock(p.gm, gaOf(p), p.r, '', { k: 'p', i, real: [rn(p), ra(p)].filter(Boolean).join(' · ') })}
     ${playerBlock(p.gc)}
     ${BETA ? eggBlocks(p) : ''}
     <div class="mp-picto">
@@ -635,7 +635,7 @@ function eggSheet(e, i) {
     <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w(e.ev ? 'inLife' : 'egg'))}</small><h2>${esc(txt(e.how?.ta) || txt(e.t))}</h2></div></div>
     ${e.how?.rw ? `<p class="mp-text">${esc(txt(e.how.sb || e.how.rw))}</p>` : ''}
     ${e.p ? `<div class="mp-nm r"><span class="mp-nic">${IC.pin}</span><div><b>${esc(rp(e).split(',')[0])}</b><small>${esc(rp(e).split(',').slice(1).join(',').trim())}</small></div></div>` : ''}
-    ${gameBlock(e.gm, e.ga, '', '', { k: 'e', i, real: rp(e) })}
+    ${gameBlock(e.gm, gaOf(e), '', '', { k: 'e', i, real: rp(e) })}
     <div class="mp-picto"><span class="mp-pic">${meter(e.cf)}<small>${esc(w(e.cf || 'likely'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel(e)}</small></span>` : ''}</div>
     <div class="mp-acts">${guide ? '' : cta}
       <a class="mp-ib" href="${mapsLink(e.lat, e.lon, e.p)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}">${IC.nav}</a>
@@ -662,7 +662,7 @@ function findSheet(e, i) {
     ${cta ? `<div class="mp-acts mp-acts-guide">${cta}</div>` : ''}
     <div class="mp-egghead"><span class="mp-eggic">${IC.egg}</span><div><small>${esc(w('find'))}</small><h2>${esc(txt(e.how?.ta) || txt(e.t))}</h2></div></div>
     ${e.how?.rw ? `<p class="mp-text">${esc(txt(e.how.sb || e.how.rw))}</p>` : ''}
-    ${mode === 'game' ? '' : gameBlock(e.gm, e.ga, '', '', { k: 'e', i })}
+    ${mode === 'game' ? '' : gameBlock(e.gm, gaOf(e), '', '', { k: 'e', i })}
     <div class="mp-acts">${favBtn('egg', e.id)}<button class="mp-ib" data-mp="share" data-t="${esc(txt(e.t))}" data-k="egg:${game}:${esc(e.id)}" aria-label="${esc(w('share'))}">${IC.share}</button></div>
     <p class="mp-text">${esc(txt(e.d))}</p>
     ${yt.length > (guide ? 0 : 1) ? `<div class="mp-yt">${yt.slice(guide ? 0 : 1).map((m) => `<button data-mp="yt" data-v="${m.id}" data-t="${m.t}" data-l="${esc(m.label)}">${IC.play}<span>${esc(m.label)}</span></button>`).join('')}</div>` : ''}
@@ -691,20 +691,25 @@ function gtadbPhotos(p, g) {
   const u = (k) => `${k === 'ig' ? ASSETS : GTADB_RAW}map/photos/${v}/${id},${k}.jpg`;
   return { pg: p[7] ? { file: u('ig'), credit: '© Rockstar Games · gtadb.org' } : null, pr: p[8] ? { file: u('rl'), credit: 'gtadb.org and contributors (CC BY 4.0)' } : null };
 }
+// RU-названия точек gtadb (28.11, lang_check): build_map кладёт rn/rr {id: по-русски} в gtadb_*.json
+const dbRu = (k, id) => (getLang() === 'ru' ? gtadb[game]?.[k]?.[id] : null);
+const dbReal = (q) => dbRu('rr', q[0]) || q[3];
+const dbName = (q) => dbRu('rn', q[0]) || q[1];
+const gaOf = (o) => (getLang() === 'ru' && o.gar) || o.ga;
 function gtadbSheet(p, g, i) {
-  const [id, name, district, real, lat, lon, type] = p;
+  const [id, , district, , lat, lon, type] = p, name = dbName(p), real = dbReal(p);
   const ph = gtadbPhotos(p, g);
   return `
     ${peekHead(real.split(',')[0], GAMES[game]?.title || '')}
     ${heroBox('d' + i, ph.pg && ph.pr ? [{ g: ph.pg, r: ph.pr }] : [], gameList(ph), realList(ph), { g: GAMES[game]?.title || '', r: real.split(',')[0] })}
     <div class="mp-names">
       <div class="mp-nm g"><span class="mp-nic">${IC.game}</span><div><b>${esc(GAMES[game]?.title || '')}</b><small>${esc(tr(GAMES[game]?.place || {}))}</small></div></div>
-      <a class="mp-nm r mp-nm-link" href="${mapsLink(lat, lon, real)}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(real.split(',')[0])}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(real.split(',')[0])}</b><small>${esc(real.split(',').slice(1).join(',').trim())}</small></div><span class="mp-nm-go">${IC.nav}</span></a>
+      <a class="mp-nm r mp-nm-link" href="${mapsLink(lat, lon, p[3])}" target="_blank" rel="noopener" aria-label="${esc(w('route'))}: ${esc(real.split(',')[0])}"><span class="mp-nic">${IC.pin}</span><div><b>${esc(real.split(',')[0])}</b><small>${esc(real.split(',').slice(1).join(',').trim())}</small></div><span class="mp-nm-go">${IC.nav}</span></a>
     </div>
     ${p[11] ? gameBlock([p[11][0], p[11][1], 0], '', '', id, { k: 'd', i, real }) : ''}
     ${playerBlock(p[12])}
     <div class="mp-picto"><span class="mp-pic">${IC.other}<small>${esc(type || w('other'))}</small></span>${me ? `<span class="mp-pic">${IC.pin}<small>${distLabel({ lat, lon })}</small></span>` : ''}</div>
-    ${actions(lat, lon, real, `${real.split(',')[0]} — ${GAMES[game]?.title || ''}`, '', p[10] || null, `db:${game}:${id}`)}
+    ${actions(lat, lon, p[3], `${real.split(',')[0]} — ${GAMES[game]?.title || ''}`, '', p[10] || null, `db:${game}:${id}`)}
     <div class="mp-src">${IC.link}<span>gtadb.org (CC BY 4.0)</span></div>
     <p class="d-note">${t('map_gtadb_credit')}</p>`;
 }
@@ -1159,7 +1164,7 @@ function renderCards() {
       const ph = gtadbPhotos(q, g.game);
       return `<button class="mc mc-d${i === selectedD ? ' on' : ''}" data-mp="dcard" data-d="${i}" data-i="${i}">
         <span class="mc-ph">${ph.pg ? `<img src="${esc(ph.pg.file)}" alt="" loading="lazy" decoding="async">` : `<i class="g">${IC.game}</i>`}${ph.pr ? `<img src="${esc(ph.pr.file)}" alt="" loading="lazy" decoding="async">` : `<i class="r">${IC.camera}</i>`}<em>${IC.game}</em><em class="r">${IC.camera}</em></span>
-        <span class="mc-t"><b>${esc(q[3].split(',')[0])}</b><small>${IC.game}${esc(q[1] || q[2] || q[0])}</small></span>
+        <span class="mc-t"><b>${esc(dbReal(q).split(',')[0])}</b><small>${IC.game}${esc(dbName(q) || q[2] || q[0])}</small></span>
         <span class="mc-ic">${IC.other}<span class="mc-dot"></span>${me ? `<em>${distLabel({ lat: q[4], lon: q[5] })}</em>` : ''}</span>
       </button>`;
     }).join('');
@@ -1778,7 +1783,7 @@ function chooserSheet(hits) {
     if (l === 'places') { const p = data[game].places[i]; img = (p.pg || p.pr || {}).thumb || (p.pg || p.pr || {}).file || ''; title = realShort(p); sub = GAMES[game]?.title || ''; }
     else if (l === 'eggs') { const e = data[game].eggs[i], ph = isFind(e) ? findFrame(e) : e.pg || e.pr; img = rebase((ph || {}).thumb || (ph || {}).file || ''); title = txt(e.t); sub = w(isFind(e) ? 'find' : e.ev ? 'inLife' : 'egg'); ic = IC.egg; }
     else if (l === 'gl') { const p = glData[i], L = GL[p.k]; title = tr(L.t) + (p.n ? ` № ${p.n}` : ''); sub = p.key && GL_EGG[p.key] ? tr(GL_EGG[p.key]) : tr(GL_GROUPS.find((x) => x[0] === L.g)[1]); ic = `<span class="gl-ic">${L.ic}</span>`; }
-    else { const q = gtadb[game].points[i]; const ph = gtadbPhotos(q, gtadb[game].game); img = (ph.pg || ph.pr || {}).file || ''; title = q[3].split(',')[0]; sub = q[1] || q[2]; }
+    else { const q = gtadb[game].points[i]; const ph = gtadbPhotos(q, gtadb[game].game); img = (ph.pg || ph.pr || {}).file || ''; title = dbReal(q).split(',')[0]; sub = dbName(q) || q[2]; }
     return `<button class="mp-ch" data-mp="pick" data-l="${l}" data-i="${i}">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : `<span class="mp-ch-ic">${ic}</span>`}<span><b>${esc(title)}</b><small>${IC.game}${esc(sub || '')}</small></span></button>`;
   };
   return `<h2 class="pick-t">${esc(w('here'))}</h2><div class="mp-chooser">${hits.map(row).join('')}</div>`;

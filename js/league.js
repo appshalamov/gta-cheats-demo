@@ -720,7 +720,7 @@ const gtadbCache = {};
 async function dbPoint(ref) {
   const j = await (gtadbCache[ref.world] = gtadbCache[ref.world] || fetch(`data/map/gtadb_${ref.world}.json`).then((r) => r.json()).catch(() => null));
   const q = j?.points?.find((x) => 'db-' + x[0] === ref.id); if (!q) return;
-  const [n, ...rest] = String(q[3] || q[1] || '').split(',');
+  const [n, ...rest] = String((getLang() === 'ru' && j.rr?.[q[0]]) || q[3] || q[1] || '').split(',');   // RU-имя реального места (28.11)
   placeCache[ref.world].set(ref.id, { id: ref.id, kind: 'place', game: ref.world, n: n.trim(), a: rest.join(',').trim(), lat: q[4], lon: q[5], db: true });
 }
 async function placesOf(list) { await Promise.all(list.map((x) => x && x.place && place(x.place))); }
