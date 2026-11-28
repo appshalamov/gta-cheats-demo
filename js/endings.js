@@ -6,10 +6,12 @@
 // Данные — data/guide/endings.json; миссии и главы — общая база data/guide/missions.json (ведёт guide-walkthrough), здесь только ссылки по id.
 // Прогресс — на телефоне, localStorage sb.ge: { <игра>: { ch: <n главы>, c: {<развилка>: <вариант>}, r: {<концовка>: 1|2}, rs: [<шаги маршрута>], all: 0|1 } }.
 
+import { COVERS, topHTML as hubTop, coverHTML, bindTop } from './hub-cover.js';   // обложка хаба и марка (решение Fable 28.11)
 import { pos, setPos, pickPos, loadBase, openKey, hasOpener } from './guide-core.js';   // ядро гида: позиция sb.gp, шторка «Где вы», ключи ?open=
 
 const S = {
   ru: {
+    route_go: 'Пройти развилки карточками', open_n: 'Открыто {a} из {b}',
     close: 'Закрыть', share: 'Поделиться', title: 'Концовки', found: 'Найдено {n}', found_note: 'Как считают', src_n: 'Собрано по {n} источникам',
     where: 'Докуда вы дошли', where_none: 'Отметьте главу, и откроются развилки, которые вы уже прошли', where_pick: 'Выбрать главу',
     ch: 'Глава {n}', ch_cur: 'Сейчас', ch_ahead: 'Название откроется, когда дойдёте',
@@ -28,6 +30,7 @@ const S = {
     sources: 'Источники', reset: 'Начать заново', start: 'Отметить, докуда дошёл', done: 'Готово',
   },
   en: {
+    route_go: 'Go through the choices', open_n: '{a} of {b} still open',
     close: 'Close', share: 'Share', title: 'Endings', found: '{n} found', found_note: 'How we count', src_n: 'Collected from {n} sources',
     where: 'How far you are', where_none: 'Pick your chapter to unlock the choices you have already made', where_pick: 'Pick a chapter',
     ch: 'Chapter {n}', ch_cur: 'Now', ch_ahead: 'Name unlocks when you get there',
@@ -150,7 +153,7 @@ function forksHTML(p, st = false) {
   const vis = fs.filter((f) => reached(f, p) && onBranch(f, p)), ahead = st ? 0 : fs.filter((f) => !reached(f, p) && onBranch(f, p)).length;
   if (!vis.length && !ahead) return '';
   const curI = p.of && vis.some((f) => f.id === p.of) ? -1 : vis.findIndex((f) => !p.c[f.id]);
-  return `<section class="g-sec${st ? ' e-check' : ''}"><h2>${esc(s(st ? 'check4' : 'forks'))}</h2>${st ? `<p class="g-meta">${esc(s('check4_sub'))}</p>` : ''}
+  return `<section class="g-sec${st ? ' e-check' : ''}"><h2>${esc(s(st ? 'check4' : 'forks'))}</h2>${st ? `<p class="g-meta">${esc(s('check4_sub'))}</p>` : C.openHow && vis.length ? `<button class="g-main e-story" data-e="story">${C.I.play}<span>${esc(s('route_go'))}</span></button>` : ''}
     <ol class="g-steps e-forks">${vis.map((f, i) => {
     const done = !!p.c[f.id], open = i === curI || p.of === f.id;
     if (!open) return `<li class="g-step${done ? ' is-done' : ''}" data-e="fopen" data-f="${esc(f.id)}"><span class="g-num">${done ? C.I.check : i + 1}</span>
@@ -225,13 +228,36 @@ export function endingsLine(game = 'gta6', lang = 'ru') {
   return (LINE[lang] || LINE.en).replace('{a}', c[0]).replace('{b}', c[1]);
 }
 try { window.SB = window.SB || {}; window.SB.endingsLine = endingsLine; } catch { }
+// «Маршрут развилок» — сторис (решение Fable 28.11, п. 4): развилки, до которых дошли, и одна следующая; эффекты — в «Подробнее»
+function openRoute() {
+  const p = prog(), fs = D.forks.filter((f) => !isState(f)).sort((a, b) => forkCh(a) - forkCh(b) || (a.n || 0) - (b.n || 0));
+  const vis = fs.filter((f) => reached(f, p) && onBranch(f, p)), ahead = fs.filter((f) => !reached(f, p) && onBranch(f, p)).length; if (!vis.length) return;
+  const T = (k, v = {}) => Object.fromEntries(['ru', 'en'].map((lg) => [lg, Object.entries(v).reduce((a, [q, w]) => a.split(`{${q}}`).join(w), RS[lg][k])]));
+  C.openHow({ game: G, id: 'endings-route', k: 'reference', free: true, t: T('route_t'), cv: COVERS.endings,
+    picked: (fid) => prog().c[fid],
+    onPick: (fid, o) => { const q = prog(); q.c[fid] = o; delete q.of; setProg(q); C.event?.('endings_pick', { f: fid, o, from: 'story' });
+      const r = prog(); C.toast?.(s('open_n', { a: real().filter((e) => state(e, r) !== 'closed').length, b: real().length })); rerender(); },
+    nx: [{ k: 'saves:gta6:all', t: { ru: 'Как сохраняться до следующей развилки', en: 'How to save before the next choice' } },
+      { k: 'walk:gta6', t: { ru: 'Прохождение: что сейчас важно', en: 'Walkthrough: what matters now' } }],
+    how: { vw: 'stories', ta: T('route_t'), sb: T('route_n', { n: vis.length }), fr: 99, notyet: T('not_yet'),
+      fin: ahead ? T('route_ahead', { n: ahead }) : T('route_done'),
+      st: vis.map((f) => ({ id: `f-${f.id}`, fid: f.id, pre: T('fork_ch', { n: forkCh(f) }), hd: f.q, t: f.hint || f.q, op: f.opts, ml: T('show_pick'),
+        tip: { ru: f.opts.map((o) => `${tx2(o.t, 'ru')}: ${tx2(o.eff, 'ru')}`).join('. '), en: f.opts.map((o) => `${tx2(o.t, 'en')}: ${tx2(o.eff, 'en')}`).join('. ') } })) } });
+  C.event?.('endings_route', { n: vis.length });
+}
+const tx2 = (o, lg) => (o ? o[lg] || o.en || o.ru || '' : '');
+const RS = {
+  ru: { route_t: 'Маршрут развилок', route_n: 'Развилок: {n}', not_yet: 'Ещё не дошёл', route_ahead: 'Ещё {n} впереди', route_done: 'Все развилки пройдены',
+    fork_ch: 'Развилка, глава {n}', show_pick: 'Показать, что выбрать' },
+  en: { route_t: 'Choices route', route_n: 'Choices: {n}', not_yet: 'Not there yet', route_ahead: '{n} more ahead', route_done: 'All choices done',
+    fork_ch: 'Choice, chapter {n}', show_pick: 'Show what to pick' },
+};
 function render() {
   const p = prog();
   p.cnt = [real().filter((e) => state(e, p) !== 'closed').length, real().length];
   if (String((readAll()[G] || {}).cnt) !== String(p.cnt)) setProg(p);
   layer.innerHTML = `<div class="g-scroll" id="e-scroll">
-    <header class="g-top"><button class="g-ib" data-e="close" aria-label="${esc(s('close'))}">${C.I.chevron}</button>
-      <button class="g-ib" data-e="share" aria-label="${esc(s('share'))}">${C.I.share}</button></header>
+    ${hubTop(`<button class="g-ib" data-e="close" aria-label="${esc(s('close'))}">${C.I.chevron}</button>`, `<button class="g-ib" data-e="share" aria-label="${esc(s('share'))}">${C.I.share}</button>`)}${coverHTML('endings', esc)}
     ${topHTML(p)}
     ${p.all ? '' : whereHTML(p)}
     ${forksHTML(p, true)}
@@ -251,7 +277,7 @@ function render() {
   <footer class="g-bar">${p.ch || p.all ? `<button class="g-main" data-e="close">${esc(s('done'))}</button>` : `<button class="g-main" data-e="where">${esc(s('start'))}</button>`}</footer>`;
   sheet = layer.querySelector('#e-sheet');
 }
-function rerender() { const y = layer.querySelector('#e-scroll')?.scrollTop || 0; render(); layer.querySelector('#e-scroll').scrollTop = y; }
+function rerender() { const y = layer.querySelector('#e-scroll')?.scrollTop || 0; render(); layer.querySelector('#e-scroll').scrollTop = y; bindTop(layer); }
 // выбор главы: пройденные и текущая — с названием, дальше — только номер (название — спойлер)
 function whereSheet() {
   const p = prog();
@@ -273,6 +299,7 @@ function onClick(e) {
       break;
     case 'unsheet': sheet.hidden = true; break;
     case 'ch': C.haptic(); setPos(G, { c: `c${b.dataset.n}`, via: 'self' }); sheet.hidden = true; rerender(); C.event?.('endings_ch', { ch: +b.dataset.n }); break;
+    case 'story': openRoute(); break;
     case 'pick': {
       const f = b.dataset.f, o = b.dataset.o; C.haptic();
       if (p.c[f] === o) delete p.c[f]; else p.c[f] = o;
@@ -319,7 +346,7 @@ export async function openEndings(game, ctx) {
     document.body.appendChild(layer); layer.addEventListener('click', onClick);
   }
   if (ctx.focus && D.forks.some((f) => f.id === ctx.focus)) { const p = prog(); p.of = ctx.focus; setProg(p); }   // ключ endings:gta6:<развилка>
-  render();
+  render(); bindTop(layer);
   if (ctx.focus) requestAnimationFrame(() => { const el = layer.querySelector(`[data-f="${ctx.focus}"]`)?.closest('li'); const sc = layer.querySelector('#e-scroll'); if (el && sc) sc.scrollTop = el.getBoundingClientRect().top - sc.getBoundingClientRect().top - 80; });
   requestAnimationFrame(() => layer.classList.add('open'));
   document.documentElement.classList.add('guide-open');

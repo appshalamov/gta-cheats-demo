@@ -477,3 +477,13 @@
 #guide .g-vbox .st-vbrand { position: absolute; top: calc(var(--safe-t, 0px) + 12px); left: 50%; transform: translateX(-50%); z-index: 2; }
 /* сторис «Перед миссией»: тихая строка над заголовком карточки — перед миссией / в миссии / после (решение Fable 28.11, п. 5) */
 #guide .st-pre { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.72); }
+/* сторис «Маршрут развилок» (Концовки): варианты строками-кнопками, выбранный — розовой рамкой с галочкой (решение Fable 28.11, п. 4) */
+#guide .st-ops { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+#guide .st-op { width: 100%; min-height: 48px; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; text-align: left;
+  background: rgba(255,255,255,.1); color: #fff; font-size: 16px; font-weight: 600; touch-action: manipulation; border: 1.5px solid transparent; }
+#guide .st-op svg { width: 18px; height: 18px; opacity: 0; flex: none; }
+#guide .st-op.on { border-color: var(--accent, #ff8aa0); background: rgba(255,138,160,.16); }
+#guide .st-op.on svg { opacity: 1; color: var(--accent, #ff8aa0); }
+/* «Концовки»: вход в «Маршрут развилок» — строка-кнопка во всю ширину (не квадрат с огромным значком) */
+.e-story { width: 100%; min-height: 48px; margin: 4px 0 12px; display: flex; align-items: center; justify-content: center; gap: 8px; touch-action: manipulation; }
+.e-story svg { width: 18px; height: 18px; flex: none; }

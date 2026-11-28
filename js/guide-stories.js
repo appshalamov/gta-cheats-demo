@@ -37,7 +37,7 @@ const IC = {
 // двойной тап (Игорь 27.11): два касания подряд срабатывают один раз — иначе тап листал две карточки, а метка ставилась и снималась.
 // Кнопки нижней панели глушит guide.js (450 мс); здесь — одно окно 350 мс на все касания вида: после касания, которое меняет экран
 // («Начать заново», смена способа, оглавление), второе касание двойного тапа не попадает в то, что оказалось под пальцем (QA 27.11, урок 4)
-const DEB = new Set(['sfin', 'lvid', 'stap', 'tag', 'sway', 'path', 'stoc', 'smore', 'sstuck', 'sgoto', 'sclose', 'sagain', 'sless', 'sgo', 'snext', 'sdone']);
+const DEB = new Set(['sopt', 'sfin', 'lvid', 'stap', 'tag', 'sway', 'path', 'stoc', 'smore', 'sstuck', 'sgoto', 'sclose', 'sagain', 'sless', 'sgo', 'snext', 'sdone']);
 
 let live = null, bound = null;   // один слой #guide на всё время: слушатели касаний вешаем один раз, работают с последним видом
 document.fonts?.addEventListener?.('loadingdone', () => live?.resize());   // догрузился шрифт — строки [data-fit] шире, пересчитать
@@ -177,8 +177,9 @@ export function view(A) {
         ${hint ? `<span class="st-hint" aria-hidden="true">${esc(s('hint'))}${C.I.chevron}</span>` : ''}</div>
       <div class="st-txt">${x.pre ? `<p class="st-pre">${esc(tx(x.pre))}</p>` : ''}<p class="st-hd" data-fit>${A.rich(x.hd || x.t)}</p>
         ${x.am ? `<p class="st-trap">${esc(tx(x.am))}</p>` : ''}
+        ${x.op ? `<ol class="st-ops">${x.op.map((o) => `<li><button class="st-op${O.picked?.(x.fid) === o.id ? ' on' : ''}" data-g="sopt" data-o="${esc(o.id)}" aria-pressed="${O.picked?.(x.fid) === o.id}">${C.I.check}<span>${esc(tx(o.t))}</span></button></li>`).join('')}</ol>` : ''}
         ${x.c ? `<p class="g-big st-big">${esc(x.c)}</p>${x.cw ? `<p class="st-trap">${esc(A.s('not_this', { c: x.cw }))}</p>` : ''}` : x.bv ? `<p class="g-big g-big-t st-big">${esc(x.bv)}</p>` : ''}</div>
-      ${moreRow()}${stuckBar(A.prog().d.includes(x.id))}</div>`;
+      ${moreRow(x.ml ? tx(x.ml) : s('more'))}${x.op ? bar(`<button class="g-sub st-stuck" data-g="sclose">${esc(tx(H().notyet) || s('to_cover'))}</button>`) : stuckBar(A.prog().d.includes(x.id))}</div>`;
   }
   function finCard() {
     const p = A.prog(), st = list(), n = st.filter((x) => p.d.includes(x.id)).length, all = n === st.length;
@@ -404,6 +405,11 @@ export function view(A) {
           v.hidden = false; A.ovlOpen('video'); C.event?.('guide_video', { id: O.id, v: 'menu', t: +b.dataset.t || 0 }); return true;
         }
         case 'sfin': { const f = O.onFin; A.closeGuide(); setTimeout(() => f?.(), 80); return true; }   // «Прошёл «X»» (Прохождение): отметить и вернуться
+        case 'sopt': {   // выбор варианта развилки (Концовки): записать, отметить карточку, следующая
+          const k = kGet(), x = list()[k - off()]; if (!x?.op) return true;
+          O.onPick?.(x.fid, b.dataset.o); const p = A.prog(); if (!p.d.includes(x.id)) { p.d.push(x.id); A.setProg(p); }
+          C.haptic(); go(k + 1); return true;
+        }
         case 'sless': closeMore(); return true;
         case 'sagain': { const p = A.prog(); A.setProg({ ...p, d: p.d.filter((id) => !list().some((x) => x.id === id)), t: {}, rq: 0, k: { ...(p.k || {}), [pid()]: 0 } }); mode = 'cover'; render(); return true; }
         case 'still': fixAll = true; if (sheet) openMore('stuck'); return true;

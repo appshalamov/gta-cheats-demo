@@ -606,6 +606,12 @@ async function openEndingsKey(g = 'gta6', from = '', focus = '') {
   const m = await endingsMod();
   const ok = await m.openEndings(g, {
     lang: getLang(), I, from, focus, haptic, toast, access, linked: from === 'link',
+    // «Маршрут развилок» сторис (решение Fable 28.11): тот же экран «По шагам», что у сохранений
+    openHow: async (o) => (await guideMod()).openGuide(o, { lang: getLang(), I, from: 'endings', linked: true, access, haptic, toast, date: guideDate, imgUrl, credit,
+      paywall: () => openPaywall(mapPw()), share: () => shareText(`${L(o.t)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=endings:${g}`),
+      event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } }, open: (k) => { guideMod().then((m) => m.closeGuide()); setTimeout(() => { if (!gcore.openKey(k, { from: 'guide' })) toast(t('place_nf')); }, 120); },
+      canOpen: (k) => gcore.hasOpener(gcore.parseOpen(k)?.kind),
+      onClose: () => { if (m.isOpen?.()) document.documentElement.classList.add('guide-open'); } }),
     paywall: () => openPaywall(mapPw()),
     share: () => shareText(`${L(END_ROW.t)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=endings:${g}`),
     event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
