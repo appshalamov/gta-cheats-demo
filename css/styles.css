@@ -259,7 +259,11 @@ body.in-ob #onboarding { display: flex; }
 .ob-photo.is-banner { height: 60%; background: var(--bg); }
 .ob-photo.is-banner img { object-position: 50% 50%; }
 .ob-photo.is-banner::after { background: linear-gradient(180deg, rgba(0,0,0,.3), rgba(0,0,0,0) 28%, rgba(0,0,0,0) 62%, var(--bg)); }
-.ob-ui { position: relative; z-index: 1; flex: 1 0 auto; display: flex; flex-direction: column; justify-content: flex-end; padding: calc(var(--safe-t) + 68px) 10px calc(var(--safe-b) + 10px); }
+.ob-ui { position: relative; z-index: 1; flex: 1 0 auto; display: flex; flex-direction: column; justify-content: flex-end; padding: calc(var(--safe-t) + 68px) 10px calc(var(--safe-b) + 10px);
+  min-height: calc(100% + 2px); }
+/* min-height (pwa_guard dead-zone, 28.11.2026): экран онбординга помещается целиком, и #onboarding (overflow-y: auto) был
+   нечем прокручивать — вертикальный свайп с фото/шапки «мёртвый», iOS даже не пружинила. На 2px выше окна — контейнер живой:
+   свайп вверх-вниз с любого места отвечает родной прокруткой с отскоком, вид не меняется (фото и панель стоят на месте). */
 .ob-back { position: absolute; left: 16px; top: calc(var(--safe-t) + 12px); width: 44px; height: 44px; padding: 11px; border-radius: 50%; color: var(--on-photo);
   background: var(--glass-thin-bg); border: 1px solid var(--glass-thin-edge); box-shadow: var(--glass-thin-hi); backdrop-filter: var(--glass-thin-filter); -webkit-backdrop-filter: var(--glass-thin-filter); }
 .ob-panel { padding: 22px 18px 16px; border-radius: 34px;
@@ -492,6 +496,14 @@ body[data-sheet] #map-lock .ml-box { opacity: 0; pointer-events: none; }
 .maplibregl-ctrl-attrib { background: color-mix(in srgb, var(--card) 85%, transparent) !important; color: var(--text-2); font-size: 10px; }
 .maplibregl-ctrl-attrib a { color: var(--text-2) !important; }
 .maplibregl-ctrl-attrib-button { filter: invert(var(--attrib-invert, 1)); }
+/* Жесты карты (pwa_guard, 28.11.2026). Стили MapLibre (vendor/maplibre/maplibre-gl.css) не правим — переопределяем здесь, #map
+   сильнее vendor-селекторов, хотя vendor грузится позже (loadLib в map.js).
+   Кнопки карты — только касание, не жест: компас и зум не глушат вертикальный свайп и не приближают двойным тапом. */
+#map .maplibregl-ctrl-group button, #map .maplibregl-ctrl-group button.maplibregl-ctrl-compass { touch-action: manipulation; }
+/* allow-touch: сама карта — полноэкранный холст (#map на весь экран, data-allow-touch в index.html): вертикальный свайп по ней
+   обязан двигать карту во все стороны, а не листать — листать под картой нечего; щипок — масштаб карты, а не страницы. */
+#map .maplibregl-canvas-container.maplibregl-touch-zoom-rotate.maplibregl-touch-drag-pan,
+#map .maplibregl-canvas-container.maplibregl-touch-zoom-rotate.maplibregl-touch-drag-pan .maplibregl-canvas { touch-action: none; }
 :root[data-theme="light"] { --attrib-invert: 0; }
 .map-top { position: absolute; left: 0; right: 0; top: 0; z-index: 2; display: flex; gap: 10px; align-items: center; padding: calc(var(--safe-t) + 8px) 12px 10px;
   background: linear-gradient(var(--bg) 35%, transparent); pointer-events: none; }
@@ -743,11 +755,11 @@ body[data-sheet] #map-lock .ml-box { opacity: 0; pointer-events: none; }
 .mpv-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* ───── карта: сравнение «игра ⇄ жизнь» с ползунком ───── */
-#mp-viewer { touch-action: none; overscroll-behavior: contain; justify-content: flex-start; padding-top: calc(var(--safe-t) + 64px); overflow: hidden; }
-#mp-viewer .mpv-thumbs { touch-action: pan-x; }
+#mp-viewer { touch-action: pan-y; overscroll-behavior: contain; justify-content: flex-start; padding-top: calc(var(--safe-t) + 64px); overflow: hidden; }
+#mp-viewer .mpv-thumbs { touch-action: pan-x pan-y; }
 .mpv-tabs { left: 12px; right: 60px; overflow-x: auto; scrollbar-width: none; }
 .mpv-tabs::-webkit-scrollbar { display: none; }
-.cmp-stage { position: relative; width: 100%; aspect-ratio: 4 / 3; max-height: 56vh; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; background: #111; cursor: ew-resize; }
+.cmp-stage { position: relative; width: 100%; aspect-ratio: 4 / 3; max-height: 56vh; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; background: #111; cursor: ew-resize; }
 .cmp-stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 .cmp-stage .cmp-r { clip-path: inset(0 0 0 var(--x)); }
 .cmp-line { position: absolute; top: 0; bottom: 0; left: var(--x); width: 3px; margin-left: -1.5px; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,.6); pointer-events: none; }
@@ -817,7 +829,7 @@ body[data-sheet] #map-lock .ml-box { opacity: 0; pointer-events: none; }
 .mpa-add b { font-size: 12.5px; color: #fff; }
 .mpa-add em { display: inline-flex; gap: 3px; align-items: center; font-style: normal; font-size: 11px; font-weight: 700; color: #f5b942; }
 .mpa-add em svg { width: 12px; height: 12px; }
-.cmp-pairs { display: flex; gap: 8px; max-width: 100%; overflow-x: auto; padding: 4px 14px; touch-action: pan-x; scrollbar-width: none; }
+.cmp-pairs { display: flex; gap: 8px; max-width: 100%; overflow-x: auto; padding: 4px 14px; touch-action: pan-x pan-y; scrollbar-width: none; }
 .cmp-pairs::-webkit-scrollbar { display: none; }
 .cmp-pairs button { flex: none; display: flex; width: 88px; height: 48px; border-radius: 9px; overflow: hidden; padding: 0; border: 2px solid transparent; opacity: .6; gap: 1px; background: #222; }
 .cmp-pairs button img { width: 50%; height: 100%; object-fit: cover; }
@@ -861,7 +873,7 @@ body[data-sheet] #map-lock .ml-box { opacity: 0; pointer-events: none; }
 .mp-shot-360 small { font-size: 13px; font-weight: 700; text-align: center; padding: 0 10px; }
 
 /* ───── карта: просмотр фото v2 — панель в стиле карточки (ручка, вкладки, свайпы) ───── */
-#mp-viewer { padding: 0; gap: 0; justify-content: flex-end; align-items: stretch; background: rgba(0,0,0,calc(.62 * var(--dim, 1))); touch-action: none; overflow: hidden; }
+#mp-viewer { padding: 0; gap: 0; justify-content: flex-end; align-items: stretch; background: rgba(0,0,0,calc(.62 * var(--dim, 1))); touch-action: pan-y; overflow: hidden; }
 #mp-viewer.closing { background: rgba(0,0,0,0); transition: background .22s; }
 .mpv-panel { position: relative; display: flex; flex-direction: column; height: calc(100% - var(--safe-t) - 8px); background: #0c0c0e; color: #fff; border-radius: 22px 22px 0 0; overflow: hidden; box-shadow: 0 -10px 40px rgba(0,0,0,.45); transition: transform .24s cubic-bezier(.2,.8,.2,1); will-change: transform; }
 #mp-viewer.open:not(.closing) .mpv-panel.enter { animation: mpvUp .26s cubic-bezier(.2,.8,.2,1); }
@@ -892,7 +904,7 @@ body[data-sheet] #map-lock .ml-box { opacity: 0; pointer-events: none; }
 #mp-viewer .mpa-grid { align-self: stretch; padding-top: 2px; }
 #mp-viewer .mpa-img { aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: #111; }
 #mp-viewer .mpa-img img, #mp-viewer .cmp-stage img, #mp-viewer .cmp-pairs img { max-width: none; max-height: none; object-fit: cover; }
-#mp-viewer .mpv-cmp { border-radius: 0; touch-action: none; }
+#mp-viewer .mpv-cmp { border-radius: 0; touch-action: pan-y; }
 #mp-viewer .mpv-stage { position: relative; flex: 1; min-height: 0; width: 100%; }
 #mp-viewer .mpv-stage img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; object-fit: contain; }
 #mp-viewer .mpv-arr { z-index: 2; }
