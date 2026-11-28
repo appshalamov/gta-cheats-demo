@@ -216,6 +216,8 @@ def attach_ingame(game, cfg, places, eggs, pts):
     print(f"  где в игре: опорные точки {lm_path.name} ({len(lm)})")
     ctrl =[(k, it[1], it[4]) for k, it in lm.items() if it[1] and it[4]
             and not any(t.lower() == "events" or re.fullmatch(r"l\d+", t.lower()) for t in it[6])]
+    def near_km(lat, lon):   # до ближайшей опоры — предохранитель «дальше 50 км не оценивать» (опись 28.11: Providence Canyon за 222 км)
+        return min(meters((lat, lon), (rl[0], rl[1])) for _, _, rl in ctrl) / 1000
     def est(lat, lon):
         near = sorted(((meters((lat, lon), (rl[0], rl[1])), ig) for _, ig, rl in ctrl), key=lambda t: t[0])[:6]
         ws = [1 / max(d, 50) ** 2 for d, _ in near]
@@ -233,12 +235,18 @@ def attach_ingame(game, cfg, places, eggs, pts):
                 return m.group(1)
         return None
     n = {0: 0, 1: 0, 2: 0}
+    far = []
     for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
         own = x.get("_gtadb")
-        if x.get("_gxy"):   # место в игре задано вручную (правки_вручную.json: game_xy / game_addr / game_gid)
-            x["gm"] = [round(x["_gxy"][0], 1), round(x["_gxy"][1], 1), 0] + ([x["_ggid"]] if x.get("_ggid") else [])
+        if x.get("_nm"):   # no_map: ни на карте игры, ни на реальной (вне региона — только лента и поиск)
+            x.pop("gm", None); continue
+        if x.get("_gxy"):   # место в игре задано вручную (правки_вручную.json: game_xy / game_addr / game_gid / game_acc)
+            acc = int(x.get("_gacc") or 0)
+            x["gm"] = [round(x["_gxy"][0], 1), round(x["_gxy"][1], 1), acc] + ([x["_ggid"]] if x.get("_ggid") else [])
             x["ga"] = x.get("_gaddr") or ""
-            n[0] += 1
+            n[acc] += 1
+            continue
+        if x.get("rk") == "g":   # находка из игры (Игорь 28.11): место в игре — только game_xy, без оценки по реальной точке
             continue
         if own in lm and lm[own][1]:
             k, acc = own, 0
@@ -248,6 +256,10 @@ def attach_ingame(game, cfg, places, eggs, pts):
             x["gm"] = [round(lm[k][1][0], 1), round(lm[k][1][1], 1), acc, k]
             x["ga"] = lm[k][0]
         else:
+            if x.get("ev") or near_km(x["lat"], x["lon"]) > 50:   # событие в жизни — только своя точка; дальняя оценка — мусор
+                if not x.get("ev"):
+                    far.append(x["id"])
+                continue
             x["gm"] = est(x["lat"], x["lon"]) + [2]
         n[x["gm"][2]] += 1
     for q in pts:
@@ -256,7 +268,7 @@ def attach_ingame(game, cfg, places, eggs, pts):
             while len(q) < 11:
                 q.append([] if len(q) == 9 else None)
             q[11:] = [[round(it[1][0], 1), round(it[1][1], 1)]]
-    print(f"  где в игре: точно {n[0]}, по соседней паре {n[1]}, оценка {n[2]}")
+    print(f"  где в игре: точно {n[0]}, по соседней паре {n[1]}, оценка {n[2]}" + (f", не оценено (опоры дальше 50 км) {len(far)}" if far else ""))
 
 
 def attach_approx(game, places, eggs):
@@ -266,6 +278,8 @@ def attach_approx(game, places, eggs):
     sel = (json.loads(f.read_text("utf-8")) if f.exists() else {}).get(game) or {}
     n = 0
     for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
+        if x.get("rk") == "g":   # находка из игры: без фото жизни, пар и подобранных кадров (Игорь 28.11)
+            continue
         s = sel.get(x["id"]) or {}
         if s.get("game") and not (x.get("pg") or x.get("pairs") or x.get("gg")):
             x["pg"] = {"url": to_assets(s["game"]["url"]), "credit": s["game"]["credit"], "ap": 1}; n += 1
@@ -295,6 +309,8 @@ def attach_commons(game, places, eggs):
     sel = (json.loads(f.read_text("utf-8")) if f.exists() else {}).get(game) or {}
     n = [0, 0]
     for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
+        if x.get("rk") == "g":   # находка из игры: без фото жизни, пар и подобранных кадров (Игорь 28.11)
+            continue
         s = sel.get(x["id"])
         if not s:
             continue
@@ -333,6 +349,8 @@ def attach_igframes(game, places, eggs):
     sel = (json.loads(f.read_text("utf-8")) if f.exists() else {}).get(game) or {}
     n = 0
     for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
+        if x.get("rk") == "g":   # находка из игры: без фото жизни, пар и подобранных кадров (Игорь 28.11)
+            continue
         s = sel.get(x["id"])
         if not s or x.get("pg") or x.get("gg") or x.get("pairs"):
             continue
@@ -352,6 +370,8 @@ def pair_from_frame(game, places, eggs):
     v = 5 if game == "gta5" else 6
     n = 0
     for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
+        if x.get("rk") == "g":   # находка из игры: без фото жизни, пар и подобранных кадров (Игорь 28.11)
+            continue
         pg = x.get("pg") or {}
         m = re.search(r"/(L\d+),ig\.jpg", str(pg.get("url") or pg.get("file") or ""))
         if x.get("pairs") or not m:
@@ -378,6 +398,14 @@ def auto_rk(it):
     txt = " ".join(str(it.get(k) or "") for k in ("title", "title_ru", "description", "description_ru", "real_place"))
     it["_rk_auto"] = True
     return "r" if REF_WORDS.search(txt) else "p"
+
+
+PLACE_MAP_KEYS = ("game_xy", "game_addr", "game_gid", "game_acc", "real_map", "no_map")
+
+
+def map_flags(it):
+    """_nr — без точки на реальной карте (real_map: false или no_map), _nm — ни на одной карте (no_map: вне региона, опись 28.11)."""
+    return {**({"_nr": 1} if it.get("real_map") is False or it.get("no_map") else {}), **({"_nm": 1} if it.get("no_map") else {})}
 
 
 def manual(game, key, default):
@@ -745,6 +773,8 @@ def dedupe(places, eggs, pts):
         pts_left.append(head)
     eggs_left = []
     for e in eggs:
+        if e.get("rk") == "g":   # находка из игры — своя точка, не блок в карточке реального места (опись 28.11: AHOL, НЛО Чилиада)
+            eggs_left.append(e); continue
         best = None
         for k, pl in enumerate(places):
             d = meters((e["lat"], e["lon"]), (pl["lat"], pl["lon"]))
@@ -763,10 +793,14 @@ def dedupe(places, eggs, pts):
 def build(game, cfg):
     pf, ef = first_existing(cfg["places"]), first_existing(cfg["eggs"])
     places, eggs = [], []
+    # карта мест из правок (опись 28.11): game_xy / game_acc — место в игре, real_map false / no_map — без точки на реальной / обеих картах
+    pfix = {k: {f: v[f] for f in PLACE_MAP_KEYS if f in v} for k, v in (manual(game, "fix", {}) or {}).items() if isinstance(v, dict)}
     for i, it in enumerate(json.loads(pf.read_text("utf-8")) if pf else []):
         tr = TRANSLATIONS.get(it.get("id") or "")
         if tr:
             it = {**it, **{k: v for k, v in tr.items() if v and not it.get(k)}}
+        if pfix.get(it.get("id")):
+            it = {**it, **pfix[it["id"]]}
         lat, lon = num(it.get("lat")), num(it.get("lon"))
         if lat is None or lon is None:
             continue
@@ -787,7 +821,8 @@ def build(game, cfg):
             "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"),
             "gl": gal(it, game, "gallery"), "gg": gal(it, game, "game_gallery", 4),
             "_gtadb": it.get("gtadb_id") or "",
-            "_gxy": it.get("game_xy"), "_gaddr": it.get("game_addr"), "_ggid": it.get("game_gid"),
+            "_gxy": it.get("game_xy"), "_gaddr": it.get("game_addr"), "_ggid": it.get("game_gid"), "_gacc": it.get("game_acc"),
+            **map_flags(it),
             "_hadr": 1 if isinstance(it.get("photo_real"), dict) and banned_real(it["photo_real"]) else 0,
             "dt": it.get("found", ""),   # дата добавления (20.11.2026): свежее 7 дней — первым в ленте и с меткой «Новое»
         }
@@ -810,13 +845,16 @@ def build(game, cfg):
         why = "не проверена" if it.get("verified") is False else leak_reason(it, game)
         if why:
             skipped.append(f"{it.get('id')} ({why})"); continue
+        rk = {"prototype": "p", "reference": "r", "game": "g"}.get(it.get("real_kind"), "") or auto_rk(it)
         eggs.append({
             "id": it.get("id") or f"{game}-e{i}",
             "t": bi(it, "title"), "d": bi(it, "description"), "p": it.get("real_place", ""),
             "lat": lat, "lon": lon, "cf": it.get("confidence", "likely"), "m": media(it), "src": src0(it),
-            "pg": photo(it, game, "photo_game"), "pr": photo(it, game, "photo_real"), "gg": gal(it, game, "game_gallery", 4),
-            "_gxy": it.get("game_xy"), "_ggid": it.get("game_gid"), "_pair": bool(it.get("pair_photos")),
-            "rk": {"prototype": "p", "reference": "r"}.get(it.get("real_kind"), "") or auto_rk(it),   # точка в жизни: прообраз / отсылка
+            # rk g — находка из игры (Игорь 28.11: «точку Bugatti делать не островом, а Bugatti из игры»): фото из жизни не берём
+            "pg": photo(it, game, "photo_game"), "pr": None if rk == "g" else photo(it, game, "photo_real"), "gg": gal(it, game, "game_gallery", 4),
+            "_gxy": it.get("game_xy"), "_ggid": it.get("game_gid"), "_gaddr": it.get("game_addr"), "_gacc": it.get("game_acc"), "_pair": bool(it.get("pair_photos")) and rk != "g",
+            **map_flags(it), **({"ev": 1} if it.get("life_event") else {}),   # ev — событие в жизни (в игре этого нет): метка «в жизни»
+            "rk": rk,   # точка в жизни: p — прообраз, r — отсылка, g — находка только в игре (на реальной карте — кадром игры)
             **({"dt": it["found"]} if it.get("found") else {}),
             **guide_fields(it),   # 26.11.2026: пасхалка-инструкция «как получить» (основа гида прохождения)
         })
@@ -862,6 +900,8 @@ def build(game, cfg):
         if pr:
             pl["pairs"] = pr
     for e in eggs:
+        if e["rk"] == "g":   # находка из игры — без пар «игра ⇄ жизнь»
+            continue
         pr = pairs_for(e["lat"], e["lon"], (e["t"].get("en"), e.get("p")), e.get("_ggid") or "")   # своя точка gtadb — пара сразу
         if not pr and e.get("_pair") and e.get("pg") and e.get("pr"):   # пара из своих кадров (люк LOST: игра ⇄ сериал, 15.10.2026)
             pr = [{"g": {"url": e["pg"]["file"], "credit": e["pg"].get("credit", "")}, "r": {"url": e["pr"]["file"], "credit": e["pr"].get("credit", "")}, "own": 1}]
@@ -891,7 +931,9 @@ def build(game, cfg):
     attach_ingame(game, cfg, places, eggs, pts)
     attach_cats(places, pts)
     for x in places + eggs + [e for pl in places for e in pl.get("eggs", [])]:
-        for k in ("_gtadb", "_gxy", "_gaddr", "_ggid", "_hadr", "_pair"):
+        if x.pop("_nr", None):
+            x["xr"] = 1   # xr — без точки на реальной карте (нет честного соответствия месту в игре / вне региона)
+        for k in ("_gtadb", "_gxy", "_gaddr", "_ggid", "_gacc", "_hadr", "_pair", "_nm"):
             x.pop(k, None)
     photo_rights_gate(game, places, eggs)
     data = {"game": game, "center": cfg["center"], "zoom": cfg["zoom"],

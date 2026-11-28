@@ -63,7 +63,7 @@ export const CONF = ['confirmed', 'likely', 'speculative'];
 export const titleOf = (o) => (o.kind === 'egg' ? L(o.t) : rg(o));
 // у пасхалки место в жизни — первая часть адреса без пояснений («Piru United Methodist Church — прообраз …», «(Оаху)»):
 // пояснения в данных по-русски и с игровыми названиями (тест 21.10.2026: русский текст на Главной в английском интерфейсе)
-export const realOf = (o) => (o.kind === 'egg' ? rp(o).split(',')[0].split(' — ')[0].replace(/\s*\([^)]*[А-Яа-яЁё][^)]*\)/g, '').trim() : rn(o));
+export const realOf = (o) => (o.kind === 'egg' ? (o.rk === 'g' && o.ga ? String(o.ga) : rp(o)).split(',')[0].split(' — ')[0].replace(/\s*\([^)]*[А-Яа-яЁё][^)]*\)/g, '').trim() : rn(o));
 // Решение Игоря №15: на карточках мест (Главная, Поиск, Избранное) крупно — настоящее место, как в карточке карты
 // (map.js realShort: до первой запятой или скобки); игровое название не показываем. Мелко — адрес (место) или город (пасхалка).
 export const realName = (o) => { const r = realOf(o); return (o.kind === 'egg' ? r : r.split(/,| \(/)[0].trim()) || r || catLabel(o.c); };
@@ -81,6 +81,9 @@ const IMG_BASE = /\/(beta|design)\//.test(location.pathname) ? '../' : '';
 export const imgUrl = (u) => (IMG_BASE && typeof u === 'string' && u.startsWith('img/map/') ? IMG_BASE + u : u);
 export function thumbOf(o, prefer = 'real') {
   if (o.cv) return imgUrl(o.cv.t || o.cv.f);   // обложка инструкции (настоящий кадр игры, Игорь 27.11) — первой
+  // пасхалка без кадра игры — значок, а не фото из жизни (опись 28.11: у Skunk Ape в ленте и поиске стояла реальная статуя);
+  // у находки из игры (rk g) фото жизни нет вовсе
+  if (o.kind === 'egg' || o.rk) return imgUrl(o.pg ? (o.pg.thumb || o.pg.file) : '');
   const a = prefer === 'game' ? [o.pg, o.pr] : [o.pr, o.pg];
   const ph = a.find(Boolean);
   return imgUrl(ph ? (ph.thumb || ph.file) : '');
