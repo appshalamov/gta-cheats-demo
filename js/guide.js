@@ -389,25 +389,32 @@ export function openGuide(o, ctx) {
   // Игорь 27.11: лист всегда открывается сверху (раньше прыгал к текущему шагу — «открывается с середины»); к шагу ведёт кнопка внизу
   const sc0 = layer.querySelector('#g-scroll'); if (sc0) sc0.scrollTop = 0;
   if (p.d.length || p.s) wake(true);
-  requestAnimationFrame(syncBar);
   history.pushState({ guide: 1 }, '');
+  // «Назад» из следующей серии (решение Fable 28.11 п. 5): открыть там, где нажали «Дальше» — финал или «Все шаги» (их шторка — слой со своей записью)
+  if (ctx.at) { if (V?.restore) V.restore(ctx.at); else if (sc0 && ctx.at.y) sc0.scrollTop = ctx.at.y; }
+  requestAnimationFrame(syncBar);
   C.event?.('guide_open', { id: o.id, from: ctx.from || '' });
   return true;
 }
-export function closeGuide(fromPop = false) {
+// why — почему закрыли (стек серий в app.js): 'pop' — системное «Назад», 'go' — «Дальше» в другую серию, 'away' — ушли в другой раздел,
+// 'close' — крестик или «Готово» (сразу в точку входа)
+export function closeGuide(fromPop = false, why = '') {
   if (!layer?.classList.contains('open')) return false;
   layer.classList.remove('open'); document.documentElement.classList.remove('guide-open');
   const top = !!ovl && !!history.state?.gov; ovlHide();
   wake(false); V?.stop();
-  C?.onClose?.();
+  C?.onClose?.(why || (fromPop ? 'pop' : 'close'));
   if (!fromPop && history.state?.guide) { if (top) history.go(-2); else history.back(); }   // со слоем поверх — две записи
   return true;
 }
 export const isOpen = () => !!layer?.classList.contains('open');
+// где сейчас открыта инструкция — для «Назад» из следующей серии: сторис — карточка и шторка «Все шаги», список — прокрутка
+export const where = () => (V?.where ? V.where() : { y: layer?.querySelector('#g-scroll')?.scrollTop || 0 });
 addEventListener('popstate', () => {
   if (popSkip && Date.now() - popSkip < 1500) { popSkip = 0; return; }   // это наш шаг назад после закрытия слоя крестиком
   popSkip = 0;
   if (!isOpen()) return;
   if (ovl) { ovlHide(); return; }   // «Назад» при ролике, кадре или «Не получается» закрывает только слой
+  if (C?.layer?.()) { history.pushState({ guide: 1 }, ''); return; }   // пейвол поверх инструкции — «Назад» закрывает его, инструкция остаётся
   closeGuide(true);
 });

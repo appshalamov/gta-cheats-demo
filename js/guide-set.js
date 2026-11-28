@@ -149,7 +149,7 @@ export function view(A) {
       case 'play': play(i); return true;
       case 'shotx': { const v = L().querySelector('#g-shotv'); v.innerHTML = ''; v.hidden = true; return true; }
       case 'svid': video(+b.dataset.t || 0); return true;
-      case 'go': A.closeGuide(); setTimeout(() => C.open?.(b.dataset.k), 60); C.event?.('guide_next', { id: O.id, to: b.dataset.k }); return true;
+      case 'go': C.open?.(b.dataset.k); C.event?.('guide_next', { id: O.id, to: b.dataset.k }); return true;
       case 'open': case 'next': case 'again': stop(); return false;
     }
     return false;

@@ -290,7 +290,7 @@ function onClick(e) {
   const b = e.target.closest('[data-e]'); if (!b || !layer.contains(b)) return;
   const a = b.dataset.e, p = prog();
   switch (a) {
-    case 'close': closeEndings(); break;
+    case 'close': closeEndings(false, 'close'); break;
     case 'share': C.share?.(); break;
     case 'where':   // общая шторка «Где вы» (guide-core.pickPos); без базы миссий — запасная шторка глав, тоже пишет sb.gp
       if (M?.m?.length) pickPos(G, { lang: C.lang, esc, openSheet: (html, cls) => { sheet.innerHTML = `<div class="g-sh-in ${cls || ''}"><div class="g-sh-top"><b></b><button class="g-ib" data-e="unsheet" aria-label="${esc(s('close'))}">${C.I.close}</button></div>${html}</div>`; sheet.hidden = false; }, closeSheet: () => { sheet.hidden = true; } })
@@ -354,10 +354,10 @@ export async function openEndings(game, ctx) {
   C.event?.('endings_open', { from: ctx.from || '' });
   return true;
 }
-export function closeEndings(fromPop = false) {
+export function closeEndings(fromPop = false, why = '') {
   if (!layer?.classList.contains('open')) return false;
   layer.classList.remove('open'); document.documentElement.classList.remove('guide-open');
-  C?.onClose?.();
+  C?.onClose?.(fromPop ? 'pop' : why);   // стек серий в app.js: 'pop' — системное «Назад», 'close' — крестик хаба
   if (!fromPop && history.state?.endings) history.back();
   return true;
 }
