@@ -2177,7 +2177,7 @@ const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').match
 const obEvent = (n, d) => { try { (window.__sbEv ||= []).push([n, d || {}]); window.SB?.track?.(n, d); } catch { } };   // onb_step, onb_skip, onb_story_open, onb_slide_ms
 const STORY_KEY = 'guide:gta6:egg-bugatti-thrax-andrew-node';
 const tourCtx = () => ({ t, tf, haptic, setSnap, reduced: reducedMotion(), pro: access() === 'pro', event: obEvent, closeSheet,
-  openStory: () => openGuideKey(STORY_KEY, 'tour'),
+  openStory: () => openGuideKey(STORY_KEY, 'map'),   // как тап по точке находки: «Назад» — та же карта и масштаб (стек серий)
   codeId: (POPULAR[store.game] || [])[0] || 'g6_money', isFav: (id) => store.favs.includes(id) });
 let codesBusy = false;
 async function startMapTour(replay = false, after = false) {
