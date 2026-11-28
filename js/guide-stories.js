@@ -37,7 +37,7 @@ const IC = {
 // двойной тап (Игорь 27.11): два касания подряд срабатывают один раз — иначе тап листал две карточки, а метка ставилась и снималась.
 // Кнопки нижней панели глушит guide.js (450 мс); здесь — одно окно 350 мс на все касания вида: после касания, которое меняет экран
 // («Начать заново», смена способа, оглавление), второе касание двойного тапа не попадает в то, что оказалось под пальцем (QA 27.11, урок 4)
-const DEB = new Set(['lvid', 'stap', 'tag', 'sway', 'path', 'stoc', 'smore', 'sstuck', 'sgoto', 'sclose', 'sagain', 'sless', 'sgo', 'snext', 'sdone']);
+const DEB = new Set(['sfin', 'lvid', 'stap', 'tag', 'sway', 'path', 'stoc', 'smore', 'sstuck', 'sgoto', 'sclose', 'sagain', 'sless', 'sgo', 'snext', 'sdone']);
 
 let live = null, bound = null;   // один слой #guide на всё время: слушатели касаний вешаем один раз, работают с последним видом
 document.fonts?.addEventListener?.('loadingdone', () => live?.resize());   // догрузился шрифт — строки [data-fit] шире, пересчитать
@@ -175,7 +175,8 @@ export function view(A) {
     return `<div class="st-card" data-g="stap">
       <div class="st-media${x.img ? '' : ' st-cvbg'}">${x.img ? img(x.img) : cover()}${x.img?.by ? `<span class="st-by">${esc(A.s('frame', { by: x.img.by }))}</span>` : !x.img && O.cv?.by ? `<span class="st-by">${esc(O.cv.by)}</span>` : ''}
         ${hint ? `<span class="st-hint" aria-hidden="true">${esc(s('hint'))}${C.I.chevron}</span>` : ''}</div>
-      <div class="st-txt"><p class="st-hd" data-fit>${A.rich(x.hd || x.t)}</p>
+      <div class="st-txt">${x.pre ? `<p class="st-pre">${esc(tx(x.pre))}</p>` : ''}<p class="st-hd" data-fit>${A.rich(x.hd || x.t)}</p>
+        ${x.am ? `<p class="st-trap">${esc(tx(x.am))}</p>` : ''}
         ${x.c ? `<p class="g-big st-big">${esc(x.c)}</p>${x.cw ? `<p class="st-trap">${esc(A.s('not_this', { c: x.cw }))}</p>` : ''}` : x.bv ? `<p class="g-big g-big-t st-big">${esc(x.bv)}</p>` : ''}</div>
       ${moreRow()}${stuckBar(A.prog().d.includes(x.id))}</div>`;
   }
@@ -187,7 +188,7 @@ export function view(A) {
         <h2 class="st-h st-fin-h" data-fit>${all ? `${C.I.check}<span>${esc(tx(H().fin) || s('fin'))}</span>` : `<span>${esc(s('fin_left', { a: n, b: st.length }))}</span>`}</h2>
         ${A.next(true)}${C.after?.(O) || ''}
         <button class="st-again" data-g="sagain">${esc(A.s('again'))}</button></div>
-      ${bar(`<button class="g-main" data-g="close">${esc(A.s('close'))}</button>`)}</div>`;
+      ${bar(H().fgo && O.onFin ? `<button class="g-main" data-g="sfin">${esc(tx(H().fgo))}</button>` : `<button class="g-main" data-g="close">${esc(A.s('close'))}</button>`)}</div>`;
   }
   function cardHTML(k) {
     if (k < off()) return reqCard();
@@ -402,6 +403,7 @@ export function view(A) {
             <div class="g-vf"><video src="${esc(b.dataset.src)}#t=${+b.dataset.t || 0}" controls autoplay playsinline muted preload="metadata"></video></div><p class="g-note st-mcap">${esc(s('mcap'))}</p></div>`;
           v.hidden = false; A.ovlOpen('video'); C.event?.('guide_video', { id: O.id, v: 'menu', t: +b.dataset.t || 0 }); return true;
         }
+        case 'sfin': { const f = O.onFin; A.closeGuide(); setTimeout(() => f?.(), 80); return true; }   // «Прошёл «X»» (Прохождение): отметить и вернуться
         case 'sless': closeMore(); return true;
         case 'sagain': { const p = A.prog(); A.setProg({ ...p, d: p.d.filter((id) => !list().some((x) => x.id === id)), t: {}, rq: 0, k: { ...(p.k || {}), [pid()]: 0 } }); mode = 'cover'; render(); return true; }
         case 'still': fixAll = true; if (sheet) openMore('stuck'); return true;

@@ -8,9 +8,13 @@
 
 import * as core from './guide-core.js';   // ядро гида (eggs-community): pos/setPos по правилам sb.gp, база миссий, строки шторки
 import { I as ICONS } from './icons.js';
+import { topHTML, coverHTML, bindTop } from './hub-cover.js';   // обложка хаба и марка (решение Fable 28.11)
 
 const S = {
   ru: {
+    st_go: 'Перед «{m}»', st_go0: 'Перед следующей миссией', st_n: '{n} карточек, около {t} мин', pre_before: 'Перед миссией', pre_during: 'В миссии',
+    pre_after: 'После миссии', pre_miss: 'Упустить нельзя', miss_am: 'Упустите навсегда', st_fin: 'Можно начинать', st_go_m: 'Перед миссией: {m}',
+    st_on_map: 'Миссия на карте', st_end: 'Концовки: что влияет', st_drive: 'Настроить вождение', st_one: 'Один источник, проверяем',
     title: 'Прохождение', sub: 'Что сделать перед следующими миссиями. Дальше вашего места ничего не раскрываем.',
     where: 'Где вы в игре', last: 'Последняя пройденная', none: 'Ещё ничего не прошли', change: 'Изменить', set: 'Отметить, где я',
     set_sub: 'Отметьте последнюю пройденную миссию: покажем, что важно сделать до следующих.',
@@ -30,6 +34,9 @@ const S = {
     st_mark0: 'После «{m}»: что сделать до следующих миссий', st_none: 'Где вы в игре? Отметьте, покажем, что не упустить',
   },
   en: {
+    st_go: 'Before “{m}”', st_go0: 'Before the next mission', st_n: '{n} cards, about {t} min', pre_before: 'Before the mission', pre_during: 'In the mission',
+    pre_after: 'After the mission', pre_miss: 'Don’t miss it', miss_am: 'Lost forever if missed', st_fin: 'Ready to start', st_go_m: 'Before the mission: {m}',
+    st_on_map: 'Mission on the map', st_end: 'Endings: what matters', st_drive: 'Set up driving', st_one: 'Single source, checking',
     title: 'Walkthrough', sub: 'What to do before your next missions. Nothing past your point is revealed.',
     where: 'Where you are', last: 'Last completed', none: 'Nothing completed yet', change: 'Change', set: 'Mark where I am',
     set_sub: 'Mark the last mission you finished and we will show what to do before the next ones.',
@@ -209,6 +216,32 @@ function amberHTML(near, ext) {
     ${items.length ? `<p class="w-amb-t">${esc(s('amb_do', { n: items.length }))}</p><ul class="w-amb-l">${items.slice(0, 4).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
     ${C.can?.('saves:gta6:how') ? `<button class="g-link" data-w="save">${I.doc}<span>${esc(s('how_save'))}</span></button>` : ''}</section>`;
 }
+// ── сторис «Перед миссией X» (методичка, data/guide/walk-stories-gta6.json; грузится лениво) ──
+let SD = null, SDP = null;
+function loadStories() { return (SDP ||= fetch(new URL('data/guide/walk-stories-gta6.json', document.baseURI).href, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => { SD = d; return d; })); }
+const hidN = (m) => m.sp >= 2 && !reveal;   // название миссии скрыто до «Открыть название» (спойлер)
+function storyRow(m) {
+  const x = SD.m[m.id], n = x.st.length, miss = x.st.filter((c) => c.k === 'miss').length;
+  return `<button class="w-row w-story" data-w="story"><span class="w-ic">${C.I.play}</span><span class="w-tt"><b>${esc(hidN(m) ? s('st_go0') : s('st_go', { m: mTitle(m) }))}</b>
+    <small>${esc(s('st_n', { n, t: Math.max(1, Math.round(n * 0.4)) }))}</small>${miss ? `<small class="w-when"><span class="w-mi">${C.I.alert}${esc(s('missable'))}: ${miss}</span></small>` : ''}</span><i class="w-chev">${C.I.chevron}</i></button>`;
+}
+function openStory() {
+  const st = stage(), m = D.order[(st ?? -1) + 1], x = m && SD?.m?.[m.id]; if (!x) return;
+  const pre = { before: s('pre_before'), during: s('pre_during'), after: s('pre_after'), miss: s('pre_miss') };
+  const two = (k, v) => ({ ru: S.ru[k].replace('{m}', v?.ru ?? v ?? ''), en: S.en[k].replace('{m}', v?.en ?? v ?? '') });
+  const title = hidN(m) ? { ru: S.ru.st_go0, en: S.en.st_go0 } : two('st_go', m.t);
+  const nx = [m.pl ? { k: m.pl, t: { ru: S.ru.st_on_map, en: S.en.st_on_map }, sub: m.pln } : null,
+    ['hey-arnold', 'safe-word'].includes(m.id) ? { k: 'endings:gta6', t: { ru: S.ru.st_end, en: S.en.st_end } } : null,
+    { k: 'saves:gta6:all', t: { ru: 'Не упустить навсегда', en: "Don't miss it forever" } },
+    { k: 'guide:gta6:set-driving', t: { ru: S.ru.st_drive, en: S.en.st_drive } }].filter(Boolean).slice(0, 3);
+  C.openTip?.({ game: D.game, id: `walk-before-${m.id}`, k: 'tip', t: title, cv: x.cv, nx,
+    onFin: () => { if (!layer?.classList.contains('open')) return; layer.querySelector('[data-w="pass"]')?.click(); },
+    how: { vw: 'stories', ta: title, sb: { ru: S.ru.st_n.replace('{n}', x.st.length).replace('{t}', Math.max(1, Math.round(x.st.length * 0.4))), en: S.en.st_n.replace('{n}', x.st.length).replace('{t}', Math.max(1, Math.round(x.st.length * 0.4))) },
+      fin: { ru: S.ru.st_fin, en: S.en.st_fin }, fgo: hidN(m) ? { ru: S.ru.passed0, en: S.en.passed0 } : two('passed', m.t), fr: 99,
+      st: x.st.map((c) => ({ id: c.id, hd: c.hd, t: c.t, pre: { ru: S.ru[`pre_${c.k}`], en: S.en[`pre_${c.k}`] }, ...(c.k === 'miss' ? { am: { ru: S.ru.miss_am, en: S.en.miss_am } } : {}),
+        ...(c.one ? { tip: { ru: S.ru.st_one, en: S.en.st_one } } : {}) })) } });
+  C.event?.('walk_story', { m: m.id });
+}
 let EXT = null;   // предупреждения справочника для текущей точки невозврата (подгружаются асинхронно)
 function render() {
   const I = C.I, p = getProg(D.game), st = stage(D, p), last = st != null && st >= 0 ? D.order[st] : null;
@@ -219,7 +252,7 @@ function render() {
   const pl = next?.pl ? tx(next.pln) : '';
   const fork = next && ['hey-arnold', 'safe-word'].includes(next.id) && C.can?.('endings:gta6');
   layer.innerHTML = `<div class="g-scroll" id="w-scroll">
-    <header class="g-top"><button class="g-ib" data-w="close" aria-label="${esc(s('close'))}">${I.chevron}</button></header>
+    ${topHTML(`<button class="g-ib" data-w="close" aria-label="${esc(s('close'))}">${I.chevron}</button>`)}${coverHTML('walk', esc)}
     <h1 class="g-h1">${esc(s('title'))}</h1>
     <p class="g-meta">${esc(s('sub'))}</p>
     <section class="w-where">
@@ -230,6 +263,7 @@ function render() {
         ${stale ? `<p class="w-stale"><span>${esc(s('stale', { m: mTitle(last) }))}</span><button class="g-link" data-w="fresh">${esc(s('yes'))}</button><button class="g-link" data-w="pick">${esc(s('change'))}</button></p>` : ''}`}
     </section>
     ${near ? amberHTML(near, EXT) : ''}
+    ${st != null && next && SD?.m?.[next.id] ? storyRow(next) : ''}
     ${st != null ? `<section class="g-sec w-now">${tips.length ? groupsHTML(tips, next) : `<p class="g-meta">${esc(s('now0'))}</p>`}
       ${later ? `<p class="g-note w-later">${esc(s('later', { n: later }))}</p>` : ''}</section>` : ''}
     ${next ? `<section class="g-sec w-next"><h2>${esc(s('next'))}</h2>
@@ -250,7 +284,7 @@ function render() {
     <div class="g-pad"></div>
   </div>`;
 }
-const rerender = () => { const y = layer.querySelector('#w-scroll')?.scrollTop || 0; render(); layer.querySelector('#w-scroll').scrollTop = y; };
+const rerender = () => { const y = layer.querySelector('#w-scroll')?.scrollTop || 0; render(); layer.querySelector('#w-scroll').scrollTop = y; bindTop(layer); };
 // предупреждения справочника у ближайшей точки невозврата — если ветка guide-saves подключена (ctx.saves = () => import('./saves.js'))
 async function loadExt() {
   EXT = null; const near = nearPnr(stage()); if (!near || !C.saves) return;
@@ -280,6 +314,7 @@ function onClick(e) {
     case 'more': moreNext = true; rerender(); break;
     case 'any': e.preventDefault(); openAny = !openAny; rerender(); break;
     case 'tip': openTip(b.dataset.id); break;
+    case 'story': openStory(); break;
     case 'save': C.openKey?.('saves:gta6:how'); break;
     case 'key': C.openKey?.(b.dataset.k); break;
     case 'map': C.openPlace?.(b.dataset.k); break;
@@ -296,7 +331,7 @@ export async function openWalk(ctx, game = 'gta6', tipId = '') {
     layer = document.createElement('div'); layer.id = 'walk'; layer.setAttribute('role', 'dialog'); layer.setAttribute('aria-modal', 'true');
     document.body.appendChild(layer); layer.addEventListener('click', onClick);
   }
-  render(); loadExt();
+  render(); bindTop(layer); loadExt(); loadStories().then(() => { if (layer?.classList.contains('open')) { rerender(); } });
   if (tipId && D.tips.some((t) => t.id === tipId)) setTimeout(() => openTip(tipId), 60);   // ключ walk:gta6:<подсказка>
   layer.classList.add('open'); document.documentElement.classList.add('walk-open');
   history.pushState({ walk: 1 }, '');
