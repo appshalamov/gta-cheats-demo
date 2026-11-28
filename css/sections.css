@@ -1,0 +1,45 @@
+/* Доработка разделов (решение Fable 28.11, п. 1–4, 6): онбординг одним экраном, тур 3 шага, «С чего начать», Поиск «Гид»,
+   Настройки четырьмя группами, Избранное «Начните с этого», тост с действием. Своим файлом — поверх styles.css и hub.css. */
+
+/* экран 1: приветствие и платформа вместе */
+.ob-one .ob-lead { margin-top: 10px; }
+.ob-one .ob-q { margin-top: 18px; font-size: 21px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+.ob-one .opts { margin-top: 12px; }
+.ob-one .o-trial { margin-top: 14px; }
+
+/* тур, шаг 3: точка-находка — кольцо по точке на карте, тап открывает обложку сторис */
+#tour .tr-pt, .tr-pt.tr-pulse { position: fixed; left: 0; top: 0; width: 52px; height: 52px; border-radius: 50%; pointer-events: auto; touch-action: manipulation;
+  box-shadow: 0 0 0 3px var(--accent); background: transparent; will-change: transform; z-index: 36; }
+.tr-pt.tr-pulse { pointer-events: none; z-index: 20; }
+#tour.out .tr-pt { pointer-events: none; }
+
+/* строки «С чего начать» (Главная) и «Начните с этого» (Избранное) */
+.start-blk .start-rows, .fav-start .start-rows { border-radius: 20px; background: var(--card); padding: 0 14px; }
+.srow { min-height: 64px; }
+.srow:last-child { border-bottom: 0; }
+.srow .row-chev { margin-left: 4px; }
+.fav-start { margin-top: 22px; text-align: left; width: 100%; }
+.fav-start h3 { margin: 0 0 10px; font-size: 17px; font-weight: 750; }
+
+/* Поиск и Избранное: строка инструкции «Гид» — тип одним словом справа */
+.grow .gr-type { flex: none; max-width: 34%; font-size: 13px; font-weight: 600; color: var(--text-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grow .gr-go { flex: none; min-height: 36px; padding: 0 12px; border-radius: 12px; font-size: 14px; font-weight: 650; color: var(--accent); background: var(--accent-soft); }
+.grow .pr-t small.gr-next { color: var(--accent); }
+.browse.b4 { grid-template-columns: repeat(2, 1fr); }
+.s-other { display: flex; justify-content: center; margin: 6px 0 4px; }
+.frow { touch-action: pan-x pan-y; }
+
+/* Настройки: подпись под названием строки */
+.row-l small.one { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rs-conf p { margin: 8px 0 18px; font-size: 15px; line-height: 1.45; color: var(--text-2); }
+.rs-conf .btn-primary { width: 100%; background: var(--danger, #e5484d); color: #fff; }
+.rs-conf .btn-ghost { width: 100%; margin-top: 8px; }
+.about-rows { margin-top: 14px; }
+
+/* тост с действием («Открыть карту» после смены игры) */
+#toast.has-act { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 18px; }
+#toast .toast-act { flex: none; min-height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 650; color: #16151a; background: var(--accent); }
+/* тур, шаг 1: кнопки кода своей платформы загораются по порядку (талон #d-code) */
+.pass-keys [data-i] { transition: transform .18s ease, box-shadow .18s ease; }
+.pass-keys .tr-lit { transform: scale(1.14); box-shadow: 0 0 0 2px var(--accent); }
+@media (prefers-reduced-motion: reduce) { .pass-keys [data-i] { transition: none; } }

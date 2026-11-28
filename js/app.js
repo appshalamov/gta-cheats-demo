@@ -8,13 +8,13 @@ import * as ref from './ref.js';
 import { t, tn, L, setLang, getLang, SPEAK, credit } from './i18n.js';
 import { I, platformIcon, comboHTML, btn, balanceCombos } from './icons.js';
 import { SKINS, switchTo } from './skin.js';
-import { kwHit, loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, newsUpdated, refreshPlaces, newOnMap, hasPhoto, placesNow, newsNow, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
+import { kwHit, qWords, loadPlaces, loadedPlaces, MAP_GAMES, placeKey, parseKey, findByKey, featured, isNew, loadNews, newsUpdated, refreshPlaces, newOnMap, hasPhoto, placesNow, newsNow, imgUrl, searchPlaces, realName, realSub, cityOf, thumbOf, catLabel, catIcon, CAT_LABELS, CONF } from './places.js';
 
 // ───────── хранилище ─────────
 const KEY = 'cheats.v1';
 // pro / proPlan / proUntil — демо-покупка на устройстве; trialStart — первое открытие (пробный 72 часа, 31 §4.2);
 // linkKeys — места, открытые по ссылке «поделиться»: видны и без Pro (31 §4.2, «одна вещь из ссылки»)
-const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google', ftUntil: 0, tourMap: false, tourCodes: false, platByGame: {} };
+const DEFAULTS = { onboarded: false, game: 'gta6', g6: 0, platform: 'playstation', favs: [], favPlaces: [], recent: [], pro: false, proPlan: null, proUntil: 0, trialStart: 0, trialEndSeen: false, linkKeys: [], theme: 'dark', lang: null, haptic: true, installHint: false, mapsApp: 'google', ftUntil: 0, tourMap: false, tourCodes: false, platByGame: {}, startBlock: 0, obWatch: 0 };
 const store = (() => {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { }
@@ -184,8 +184,17 @@ document.addEventListener('error', (e) => {
 }, true);
 function toast(msg) {
   const el = $('#toast');
-  el.textContent = msg; el.classList.add('show');
+  el.classList.remove('has-act'); el.textContent = msg; el.classList.add('show');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), msg.length > 40 ? 4200 : 1800);
+}
+
+// тост с одной кнопкой действия (смена игры → «Открыть карту»; решение Fable 28.11 п. 6): дольше обычного, тап по кнопке — действие
+function toastAct(msg, label, fn) {
+  const el = $('#toast');
+  el.innerHTML = `<span>${esc(msg)}</span><button class="toast-act" type="button">${esc(label)}</button>`;
+  el.classList.add('show', 'has-act');
+  el.querySelector('.toast-act').onclick = () => { el.classList.remove('show', 'has-act'); clearTimeout(toastTimer); fn(); };
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show', 'has-act'), 5200);
 }
 
 // ───────── высота окна ─────────
@@ -872,6 +881,35 @@ async function renderHub() {
 }
 // скелетон ленты: те же карточки по размеру, мерцание вместо фото
 const skRow = (cls = '', n = 3) => `<div class="hscroll sk-row" aria-hidden="true">${`<div class="pcard sk${cls}"><span class="sk-line"></span><span class="sk-line short"></span></div>`.repeat(n)}</div>`;
+// ── строки «Начните с этого» / «С чего начать» (решение Fable 28.11 п. 3, 4, 6): настоящие кадры, каждая открывает своё ──
+// k: guide:… — обложка сторис; code:<id> — шторка кода; place:… — карточка места; codes — все коды; set:gta6 — «Настроить игру»; map — карта
+const startThumb = (src) => `<span class="pr-th"><img src="${esc(src)}" alt="" loading="lazy" decoding="async"></span>`;
+function startRow(k, title, sub, img, act = 'start-go') {
+  return `<div class="prow srow" data-action="${act}" data-k="${esc(k)}" role="button" tabindex="0">${startThumb(img)}
+    <span class="pr-t"><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</span><span class="row-chev">${I.chevron}</span></div>`;
+}
+const bugStep = () => { const r = gcore.recByKey('gta6', STORY_KEY); const d = r ? gdDone(r) : -1; return d >= 0 && d < (r.steps_n || 99) ? d + 1 : 0; };
+function startGo(k) {
+  haptic();
+  if (k.startsWith('guide:')) return openGuideKey(k, ui.tab);
+  if (k.startsWith('code:')) return openCheat(k.slice(5));
+  if (k === 'codes') { closeSheet(); ui.cat = DEFAULT_CATEGORY; ui.tab = 'cheats'; renderAll(); return; }
+  if (k === 'map') { closeSheet(); ui.mapHold = null; ui.tab = 'map'; renderAll(); return; }
+  if (k === 'set:gta6') return openSetList();
+  if (/^(place|egg):/.test(k)) return openOnMap(k);
+  if (!gcore.openKey(k, { from: ui.tab })) toast(t('place_nf'));
+}
+// Главная после пейвола (конец онбординга): разовый блок «С чего начать» — уходит после тапа по строке или «Скрыть»
+function startHTML() {
+  if (store.startBlock !== 2 || store.game !== 'gta6') return '';
+  const n = bugStep(), p = store.obWatch || !PLATFORMS[store.platform] ? '' : L(PLATFORMS[store.platform]);
+  return `<section class="hub-sec start-blk" id="start-blk"><div class="hub-h"><div><h2>${esc(t('sw_h'))}</h2></div><button class="hub-more" data-action="start-hide">${esc(t('sw_hide'))}</button></div>
+    <div class="start-rows">
+      ${startRow(STORY_KEY, t('sw_bug'), n ? tf('g_cont', { n, m: gcore.recByKey('gta6', STORY_KEY)?.steps_n || '' }) : '', 'img/guide/gta6/bugatti/cover-t.jpg', 'start-blk')}
+      ${startRow('codes', p ? tf('sw_codes', { p }) : t('sw_codes0'), '', HERO.gta6.banners[0] + '.webp', 'start-blk')}
+      ${startRow('set:gta6', t('sw_set'), '', 'img/guide/gta6/set-driving-t.jpg', 'start-blk')}
+    </div></section>`;
+}
 function paintHub(box, isMap, pd, newsAll, favPreview) {
   const list = cheats();
   const popular = (POPULAR[store.game] || []).map((id) => list.find((c) => c.id === id)).filter(Boolean);
@@ -884,6 +922,7 @@ function paintHub(box, isMap, pd, newsAll, favPreview) {
   const placesBtn = `<button class="hub-more" data-action="tab" data-tab="map">${t('open_map')}${I.chevron}</button>`;
   const noPd = isMap && !pd;
   box.innerHTML = `
+    ${startHTML()}
     ${forecastBanner()}
     ${hubSection(t('hub_cheats'), `<button class="hub-plat" data-action="switch">${esc(L(PLATFORMS[store.platform]))}<i class="gsw-chev">${I.chevron}</i></button>`, `<button class="hub-more" data-action="open-cheats" data-cat="">${t('see_all')}${I.chevron}</button>`,
       `<div class="cat-grid">${CATEGORIES.map((c) => `<button class="cat-tile cat-${c.id}" data-action="open-cheats" data-cat="${c.id}">
@@ -1021,12 +1060,85 @@ function searchCheats(list, q, cat) {
     return qq.split(/\s+/).every((w) => hay.includes(w) || (w.length >= 3 && CODE_WORDS.split(' ').some((cw) => cw.startsWith(w)))) || (qd.length >= 3 && (c.codes.phone || '').replace(/\D/g, '').includes(qd));
   });
 }
+// ── Поиск и Избранное: «Гид» — все инструкции указателя data/guide/index-<игра>.json (решение Fable 28.11 п. 2, 3) ──
+// пасхалки, советы настроек, сохранения, концовки, подсказки прохождения. Ищутся название, подпись, ключевые фразы и тип;
+// значения шагов не ищутся. Записи со спойлером (sp ≥ 1) в поиск не идут (guide-core.searchable).
+const GTYPE = { egg: 'gt_egg', bug: 'gt_egg', set: 'gt_set', save: 'gt_save', warn: 'gt_save', ending: 'gt_end', fork: 'gt_end', tip: 'gt_walk' };
+const GTYPE_EN = { egg: 'easter egg', bug: 'easter egg bug', set: 'game settings setting', save: 'saves save saving', warn: 'saves save point of no return', ending: 'endings ending', fork: 'endings ending choice', tip: 'walkthrough' };
+const GSYN = { set: 'настройки игры настроить настройка', save: 'сохранения сохраниться сохранить сохранение слот', warn: 'сохранения сохраниться точка невозврата',
+  ending: 'концовки концовка финал', fork: 'концовки развилка выбор', tip: 'прохождение совет', egg: 'пасхалка', bug: 'пасхалка баг' };
+const GORDER = { egg: 0, bug: 0, set: 1, save: 2, ending: 3, warn: 4, fork: 4, tip: 5 };
+const gIdx = (g) => (g === 'gta6' ? (gcore.index(g).items || []).filter((r) => GTYPE[r.kind] && gcore.searchable(r) && gcore.canShow(r, g).title) : []);
+// миниатюра — обложка раздела (тот же кадр, что в сторис и хабе)
+function gThumb(r, pd) {
+  const [kind, g, id = ''] = r.k.split(':');
+  if (r.kind === 'egg' || r.kind === 'bug') { const o = (pd || placesNow(g))?.eggs?.find((x) => `egg:${g}:${x.id}` === r.place || x.id === id); const u = o && (thumbOf(o, 'game') || thumbOf(o, 'real')); if (u) return u; }
+  if (r.kind === 'set') return `img/guide/${g}/${id}-t.jpg`;
+  if (kind === 'saves') return `img/guide/${g}/saves-cover-t.jpg`;
+  if (kind === 'endings') return `img/guide/${g}/endings-cover-t.jpg`;
+  return `img/guide/${g}/walk-cover-t.jpg`;
+}
+// прогресс инструкции (sb.gd): ключ записи указателя → ключ прогресса, который пишет guide.js (`<игра>:<id инструкции>`)
+function gdKeyOf(k) {
+  const [kind, g, id = ''] = k.split(':');
+  return kind === 'guide' ? `${g}:${id}` : kind === 'saves' && id ? `${g}:saves-${id}` : kind === 'walk' && id ? `${g}:walk-${id}` : kind === 'endings' && !id ? `${g}:endings-route` : '';
+}
+const gdAll = () => { try { return JSON.parse(localStorage.getItem('sb.gd') || '{}'); } catch { return {}; } };
+// {a: текущий шаг (с 1), n: шагов, done, at} | null — не начинали
+function gProg(r, gd = gdAll()) {
+  const v = gd[gdKeyOf(r.k)]; if (!v || (!v.s && !(v.d || []).length)) return null;
+  const n = (r.paths || []).find((x) => x.id === v.path)?.n || v.n || r.steps_n || 0, d = (v.d || []).length;
+  const done = n > 0 && d >= n, a = Math.min(Math.max(0, gcore.stepAt(r, v)), Math.max(0, n - 1)) + 1;
+  return { a, n, done, at: v.at || 0 };
+}
+const gMeta = (r, pr = gProg(r)) => (pr && !pr.done ? tf('s_step', { a: pr.a, b: pr.n }) : r.steps_n ? tn(r.steps_n, 'n_steps') : L(r.sub));
+function gHay(r) {
+  if (!r._h) {
+    const kw = [...(r.kw?.ru || []), ...(r.kw?.en || [])].join(' | ');
+    const ty = `${T_RU(GTYPE[r.kind])} | ${GTYPE_EN[r.kind]} | ${GSYN[r.kind] || ''}`;
+    r._kw = norm(`${kw} | ${ty}`);
+    r._h = norm(`${r.t?.ru} | ${r.t?.en} | ${r.sub?.ru || ''} | ${r.sub?.en || ''} | ${r._kw} | gta 6 gta6`);
+  }
+  return r._h;
+}
+const T_RU = (k) => ({ gt_egg: 'пасхалка', gt_set: 'настройки игры', gt_save: 'сохранения', gt_end: 'концовки', gt_walk: 'прохождение' }[k] || '');
+// {list, strong}: записи по запросу; strong — все слова в ключевых фразах или типе (тогда секция «Гид» первой)
+function searchGuide(g, q, pdEggs = []) {
+  const w = qWords(q), items = gIdx(g);
+  if (!w.length) return { list: [], strong: false };
+  const hit = new Map();
+  for (const r of items) {
+    const h = gHay(r); if (!w.every((x) => h.includes(x))) continue;
+    const strong = w.every((x) => r._kw.includes(x)), tt = norm(`${r.t?.ru} ${r.t?.en}`);
+    hit.set(r.k, { r, sc: (strong ? 10 : 0) + w.filter((x) => tt.includes(x)).length * 3 - (GORDER[r.kind] ?? 6) * 0.1, strong });
+  }
+  // пасхалки с инструкцией, найденные поиском мест (имя в игре, место, опечатки), — та же запись указателя
+  for (const o of pdEggs) { const r = items.find((x) => x.k === `guide:${g}:${o.id}`); if (r && !hit.has(r.k)) hit.set(r.k, { r, sc: kwHit(o, q) ? 10 : 2, strong: kwHit(o, q) }); }
+  const list = [...hit.values()].sort((a, b) => b.sc - a.sc);
+  return { list: list.map((x) => x.r), strong: list.some((x) => x.strong) };
+}
+// строка «Гид»: кадр раздела, название, «Шаг X из N» или число шагов, тип одним словом справа (сердца нет: инструкция сохраняет себя сама)
+function gRow(r, pd, o = {}) {
+  const pr = gProg(r);
+  return `<div class="prow erow has-how grow" data-action="gopen-s" data-k="${esc(r.k)}" data-key="${esc(r.k)}" role="button" tabindex="0">
+    <span class="pr-th"><img src="${esc(gThumb(r, pd))}" alt="" loading="lazy" decoding="async"></span>
+    <span class="pr-t"><b>${esc(L(r.t))}</b><small>${esc(o.sub || gMeta(r, pr))}</small>${o.next ? `<small class="gr-next">${esc(o.next)}</small>` : ''}</span>
+    ${o.go ? `<button class="gr-go" data-action="gopen-s" data-k="${esc(r.k)}">${esc(t('s_cont'))}</button>` : `<span class="gr-type">${esc(t(GTYPE[r.kind]))}</span>`}
+  </div>`;
+}
+// начатые и пройденные — по всем разделам указателя (Избранное, пустой Поиск); новые — первыми
+function gStarted(g = 'gta6') {
+  const gd = gdAll(), cur = [], done = [];
+  for (const r of (gcore.index(g).items || [])) { if (!GTYPE[r.kind]) continue; const p = gProg(r, gd); if (!p) continue; (p.done ? done : cur).push({ r, p }); }
+  const by = (a, b) => b.p.at - a.p.at;
+  return { cur: cur.sort(by).map((x) => x.r), done: done.sort(by).map((x) => x.r) };
+}
 function chip(action, v, label, on, extra = '') {
   return `<button class="fchip${on ? ' on' : ''}" data-action="${action}" data-v="${esc(v)}" aria-pressed="${!!on}" ${extra}>${label}</button>`;
 }
 function renderSearchFilters(counts = {}) {
   const sg = sf.game || store.game;
-  const types = [['all', t('f_all')], ['cheats', t('f_cheats')], ['places', t('f_places')], ['eggs', t('f_eggs')]];
+  const types = [['all', t('f_all')], ['cheats', t('f_cheats')], ['places', t('f_places')], ['eggs', t('f_eggs')], ...(gIdx(sg).length ? [['guide', t('f_guide')]] : [])];
   let row2 = liveGames().map((g) => chip('sf-game', g.id, esc(g.title), g.id === sg)).join('');
   let row3 = '';
   if (sf.type === 'cheats') row3 = chip('sf-cat', '', t('any'), !sf.cat) + CATEGORIES.map((c) => chip('sf-cat', c.id, `${I[c.icon]}${L(c)}`, sf.cat === c.id)).join('');
@@ -1051,9 +1163,10 @@ async function renderSearch() {
   const box = $('#search-results');
   // данных мест ещё нет — сразу скелетон списка (вкладка отвечает на тап мгновенно), потом результаты
   if (MAP_GAMES.includes(sg) && !placesNow(sg)) box.innerHTML = `<div class="s-sec sk-list" aria-busy="true">${'<div class="sk-item"><span class="sk-box sk-ava"></span><span class="sk-txt"><span class="sk-box"></span><span class="sk-box"></span></span></div>'.repeat(7)}</div>`;
-  const [pd] = await Promise.all([loadPlaces(sg), loadGame(sg).catch(() => null)]);
+  const [pd] = await Promise.all([loadPlaces(sg), loadGame(sg).catch(() => null), gcore.loadIndex(sg).catch(() => null)]);
   placesSync[sg] = pd;
   if (my !== searchSeq) return;
+  if (sf.type === 'guide' && !gIdx(sg).length) sf.type = 'all';   // GTA 5: гида нет — чипа и секции нет
   const browsing = !q && sf.type === 'all' && !sf.cat && !sf.conf;
   const cheatList = data[sg]?.cheats || [];
   const R = {
@@ -1061,26 +1174,34 @@ async function renderSearch() {
     places: searchPlaces(pd, q, { kind: 'place', cat: sf.type === 'places' ? sf.cat : '', conf: sf.conf }),
     eggs: searchPlaces(pd, q, { kind: 'egg', conf: sf.conf }),
   };
+  const G = q ? searchGuide(sg, q, R.eggs.filter(hasGuide)) : { list: gIdx(sg), strong: false };
+  const eggsOnly = R.eggs.filter((o) => !hasGuide(o) || !gIdx(sg).length);
   // счётчики видны и в обзоре (экран 8 этапа 2): в обзоре — сколько всего, при запросе — сколько нашлось
-  renderSearchFilters(browsing ? { cheats: cheatList.length, places: pd.places.length, eggs: pd.eggs.length } : { all: R.cheats.length + R.places.length + R.eggs.length, cheats: R.cheats.length, places: R.places.length, eggs: R.eggs.length });
-  if (browsing) {
-    // подсказки — под игру пользователя: у GTA 6 нет «бессмертия» и «вертолёта» (QA 20.11.2026)
-    const hints = store.game === 'gta6'
-      ? (getLang() === 'ru' ? ['патроны', 'бронежилет', 'Ocean Drive', 'мост', 'отель', 'розыск'] : ['ammo', 'armor', 'Ocean Drive', 'bridge', 'hotel', 'wanted'])
-      : (getLang() === 'ru' ? ['вертолёт', 'бессмертие', 'Ocean Drive', 'мост', 'отель', 'розыск'] : ['helicopter', 'invincibility', 'Ocean Drive', 'bridge', 'hotel', 'wanted']);
-    const qchip = (h, ic = '') => `<button class="qchip" data-action="hint" data-q="${esc(h)}">${ic}<span>${esc(h)}</span></button>`;
-    // плитки «Обзор» — настоящие фото мест; без сети — подложка эпохи со значком
-    const ph = (list, prefer) => { const o = list.find((x) => thumbOf(x, prefer)); return o ? `<img src="${esc(thumbOf(o, prefer))}" alt="" loading="lazy" decoding="async">` : ''; };
-    const tile = (type, ic, label, img) => `<button class="btile" data-action="search-browse" data-type="${type}"><span class="bt-ic">${ic}</span>${img}<b>${label}</b></button>`;
-    box.innerHTML = `
-      ${store.recent.length ? `<div class="s-sec"><div class="s-h">${t('recent')}<button data-action="recent-clear">${t('clear')}</button></div><div class="qchips">${store.recent.map((h) => qchip(h, I.search)).join('')}</div></div>` : ''}
-      <div class="s-sec"><div class="s-h">${t('search_hint')}</div><div class="qchips">${hints.map((h) => qchip(h)).join('')}</div></div>
-      <div class="s-sec"><div class="s-h">${t('browse')}</div>
-        <div class="browse">
+  renderSearchFilters(browsing ? { cheats: cheatList.length, places: pd.places.length, eggs: pd.eggs.length, guide: gIdx(sg).length }
+    : { all: R.cheats.length + R.places.length + eggsOnly.length + G.list.length, cheats: R.cheats.length, places: R.places.length, eggs: eggsOnly.length, guide: G.list.length });
+  const g6 = gIdx(sg).length > 0;
+  // плитки «Обзор» — настоящие кадры; у GTA 6 четыре (2×2): Места, Пасхалки, Коды, Гид (обложка Bugatti), у GTA 5 три
+  const ph = (list, prefer) => { const o = list.find((x) => thumbOf(x, prefer)); return o ? `<img src="${esc(thumbOf(o, prefer))}" alt="" loading="lazy" decoding="async">` : ''; };
+  const tile = (type, ic, label, img) => `<button class="btile" data-action="search-browse" data-type="${type}"><span class="bt-ic">${ic}</span>${img}<b>${label}</b></button>`;
+  const browseHTML = () => `<div class="s-sec"><div class="s-h">${t('browse')}</div>
+        <div class="browse${g6 ? ' b4' : ''}">
           ${tile('places', I.map, t('browse_places'), ph(featured(pd, 'place', 4), 'real'))}
           ${tile('eggs', I.egg, t('browse_eggs'), ph(featured(pd, 'egg', 4), 'game'))}
           ${tile('cheats', I.gamepad, t('browse_cheats'), ph(featured(pd, 'place', 4).slice(1), 'game'))}
+          ${g6 ? tile('guide', I.doc, t('browse_guide'), `<img src="img/guide/${sg}/bugatti/cover-t.jpg" alt="" loading="lazy" decoding="async">`) : ''}
         </div></div>`;
+  if (browsing) {
+    // подсказки — под игру пользователя: у GTA 6 нет «бессмертия» и «вертолёта» (QA 20.11.2026); у GTA 6 — и инструкции гида
+    const hints = sg === 'gta6'
+      ? (getLang() === 'ru' ? ['патроны', 'розыск', 'Bugatti', 'как сохраниться', 'концовки', 'Ocean Drive'] : ['ammo', 'wanted', 'Bugatti', 'how to save', 'endings', 'Ocean Drive'])
+      : (getLang() === 'ru' ? ['вертолёт', 'бессмертие', 'Ocean Drive', 'мост', 'отель', 'розыск'] : ['helicopter', 'invincibility', 'Ocean Drive', 'bridge', 'hotel', 'wanted']);
+    const qchip = (h, ic = '') => `<button class="qchip" data-action="hint" data-q="${esc(h)}">${ic}<span>${esc(h)}</span></button>`;
+    const cont = g6 ? gStarted(sg).cur[0] : null;   // «Продолжить» — одна строка начатой инструкции
+    box.innerHTML = `
+      ${cont ? `<div class="s-sec s-cont"><div class="s-h">${t('s_cont')}</div>${gRow(cont, pd, { go: true })}</div>` : ''}
+      ${store.recent.length ? `<div class="s-sec"><div class="s-h">${t('recent')}<button data-action="recent-clear">${t('clear')}</button></div><div class="qchips">${store.recent.map((h) => qchip(h, I.search)).join('')}</div></div>` : ''}
+      <div class="s-sec"><div class="s-h">${t('search_hint')}</div><div class="qchips">${hints.map((h) => qchip(h)).join('')}</div></div>
+      ${browseHTML()}`;
     return;
   }
   const sec = (k, title, items, render, limit) => {
@@ -1089,17 +1210,29 @@ async function renderSearch() {
     return `<div class="s-sec"><div class="s-h">${title} <em>${items.length}</em>${limit && items.length > limit ? `<button data-action="sf-type" data-v="${k}">${t('show_all')}</button>` : ''}</div>${shown.map((x) => render(x)).join('')}</div>`;
   };
   const lim = sf.type === 'all' ? 4 : 0;
-  // инструкции «По шагам» — первой секцией, одна находка — одна строка (решение Fable 09)
-  const guides = R.eggs.filter(hasGuide), eggsOnly = R.eggs.filter((o) => !hasGuide(o));
-  // «По шагам» первой — только при сильном совпадении (ключевые фразы); иначе после кодов («сбросить розыск» — коды первыми)
-  const gSec = sf.type === 'all' || sf.type === 'eggs' ? sec('guides', t('g_btn'), guides, (o) => eggRow(o), 0) : '';
-  const gFirst = guides.some((o) => kwHit(o, q));
+  // «Гид» — одна секция на все инструкции (решение Fable 28.11 п. 2): первой при совпадении по ключевым фразам, иначе после «Кодов»; 3 строки и «Все N»
+  const gList = sf.type === 'eggs' ? G.list.filter((r) => r.kind === 'egg' || r.kind === 'bug') : G.list;
+  const gSec = sf.type === 'all' || sf.type === 'guide' || sf.type === 'eggs' ? sec('guide', t('f_guide'), gList, (r) => gRow(r, pd), sf.type === 'all' ? 3 : 0) : '';
+  const gFirst = G.strong;
   const html = (gFirst ? gSec : '')
     + (sf.type === 'all' || sf.type === 'cheats' ? sec('cheats', t('f_cheats'), R.cheats, (c) => cardHTML(c, { badge: true, q }), lim) : '')
     + (gFirst ? '' : gSec)
     + (sf.type === 'all' || sf.type === 'places' ? sec('places', t('f_places'), R.places, (o) => placeRow(o, { q }), lim) : '')
     + (sf.type === 'all' || sf.type === 'eggs' ? sec('eggs', t('f_eggs'), eggsOnly, (o) => placeRow(o, { q }), lim) : '');
-  box.innerHTML = html || `<div class="empty-big"><span class="eb-ic">${I.search}</span><h3>${t('search_empty')}</h3><p>${t('search_empty_hint')}</p>${(sf.cat || sf.conf) ? `<button class="btn-ghost" data-action="sf-reset">${t('clear_filters')}</button>` : ''}</div>`;
+  if (html) { box.innerHTML = html; return; }
+  // ничего не нашлось: в другой игре есть совпадения — кнопка «В GTA 5: N»; ниже плитки «Обзор»
+  const other = liveGames().find((g) => g.id !== sg && (data[g.id] || placesNow(g.id)));
+  let n = 0;
+  if (other && q) {
+    n = searchCheats(data[other.id]?.cheats || [], q, '').length;
+    const po = placesNow(other.id); if (po) n += searchPlaces(po, q, { kind: 'place' }).length + searchPlaces(po, q, { kind: 'egg' }).length;
+    if (other.id === 'gta6') n += searchGuide('gta6', q).list.length;
+  }
+  box.innerHTML = `<div class="empty-big"><span class="eb-ic">${I.search}</span><h3>${t('search_empty')}</h3><p>${t('search_empty_hint')}</p>${(sf.cat || sf.conf) ? `<button class="btn-ghost" data-action="sf-reset">${t('clear_filters')}</button>` : ''}
+    ${n ? `<div class="s-other"><button class="btn-ghost" data-action="sf-game" data-v="${esc(other.id)}">${esc(tf('s_other', { g: other.title, n }))}</button></div>` : ''}</div>
+    ${browseHTML()}`;
+  // коды другой игры ещё не загружены — догрузить (25 КБ) и пересчитать кнопку
+  if (q && !other) { const og = liveGames().find((g) => g.id !== sg); if (og && !data[og.id]) loadGame(og.id).then(() => { if (my === searchSeq) renderSearch(); }).catch(() => { }); }
 }
 function rememberQuery() {
   const q = ui.query.trim();
@@ -1118,36 +1251,44 @@ async function favItems() {
   return [...places, ...cheatsF];
 }
 let favSeq = 0;
-// начатые и пройденные инструкции (sb.gd) — для Избранного
-async function guidesStarted() {
-  let gd = {}; try { gd = JSON.parse(localStorage.getItem('sb.gd') || '{}'); } catch { }
-  const cur = [], done = [];
-  for (const [key, v] of Object.entries(gd)) {
-    const [g, id] = key.split(':'); if (!MAP_GAMES.includes(g) || !v || (!v.s && !(v.d || []).length)) continue;
-    const pd = await loadPlaces(g); const o = pd.eggs.find((x) => x.id === id); if (!hasGuide(o)) continue;
-    const st = (o.how.pa?.find((x) => x.id === v.path) || o.how).st;
-    (st.every((x) => (v.d || []).includes(x.id)) ? done : cur).push(o);
-  }
-  return { cur, done };
+// «Дальше: …» у пройденной инструкции — первый ключ её next (решение Fable 28.11 п. 3)
+function nextTitle(k) {
+  const r = gcore.recByKey('gta6', k); if (r) return L(r.t);
+  const [kind, g, id] = k.split(':');
+  if (kind === 'walk') return t('gt_walk'); if (kind === 'saves') return t('gt_save'); if (kind === 'endings') return t('gt_end'); if (kind === 'set') return t('st_setguide');
+  if (kind === 'place' || kind === 'egg') { const pd = placesNow(g), o = pd && (pd.places.find((x) => x.id === id) || pd.eggs.find((x) => x.id === id)); return o ? (L(o.t) || L(o.gr) || o.g || '') : ''; }
+  return '';
+}
+// «Начните с этого» (пустое Избранное): настоящие кадры — обложка Bugatti, кадр игры к коду, карточка Ocean Drive; у GTA 5 — код и карта
+function favStartHTML() {
+  const g = store.game, code = (POPULAR[g] || [])[0];
+  const rows = g === 'gta6'
+    ? startRow(STORY_KEY, t('sw_bug'), '', 'img/guide/gta6/bugatti/cover-t.jpg') + (code ? startRow(`code:${code}`, t('fs_code'), L(byId(code)?.name), HERO.gta6.banners[0] + '.webp') : '')
+      + startRow('place:gta6:gta6-ocean-drive-art-deco', t('fs_od'), '', 'img/map/gta6/t/gta6-ocean-drive-art-deco_game.jpg')
+    : (code ? startRow(`code:${code}`, t('fs_code'), L(byId(code)?.name), HERO[g]?.banners[0] + '.webp') : '') + startRow('map', tf('fs_map', { c: mapPlaceName(g) }), '', HERO[g]?.load + '.webp');
+  return `<div class="fav-start"><h3>${t('fav_start')}</h3><div class="start-rows">${rows}</div></div>`;
 }
 async function renderFavs() {
   const my = ++favSeq;
-  const all = await favItems();
+  const [all] = await Promise.all([favItems(), gcore.loadIndex('gta6').catch(() => null)]);
   if (my !== favSeq) return;
   const places = all.filter((x) => x.kind), cheatsF = all.filter((x) => !x.kind);
-  const f = ui.favFilter || 'all';
-  $('#fav-filters').innerHTML = all.length ? `<div class="frow">${[['all', t('f_all'), all.length], ['cheats', t('f_cheats'), cheatsF.length], ['places', t('f_places'), places.length]]
+  const gs = gStarted('gta6'), nG = gs.cur.length + gs.done.length;
+  let f = ui.favFilter || 'all'; if (f === 'guide' && !nG) f = 'all';
+  $('#fav-filters').innerHTML = all.length || nG ? `<div class="frow">${[['all', t('f_all'), all.length + nG], ['cheats', t('f_cheats'), cheatsF.length], ['places', t('f_places'), places.length], ...(nG ? [['guide', t('f_guide'), nG]] : [])]
     .map(([k, l, n]) => chip('fav-filter', k, `${l} <em>${n}</em>`, f === k)).join('')}</div>` : '';
-  if (!all.length && !(await guidesStarted()).cur.length) {
+  if (!all.length && !nG) {
     $('#fav-list').innerHTML = `<div class="empty-big"><span class="eb-ic">${I.heart}</span><h3>${t('fav_empty_t')}</h3><p>${t('fav_empty')}</p>
+      ${favStartHTML()}
       <div class="empty-acts"><button class="btn-primary" data-action="tab" data-tab="map">${I.map}${t('go_map')}</button><button class="btn-ghost" data-action="open-cheats" data-cat="">${I.gamepad}${t('browse_cheats')}</button></div></div>`;
     return;
   }
-  const showP = f !== 'cheats' && places.length, showC = f !== 'places' && cheatsF.length;
-  const gs = f === 'all' ? await guidesStarted() : { cur: [], done: [] };
-  if (my !== favSeq) return;
-  $('#fav-list').innerHTML = (gs.cur.length ? `<div class="s-sec"><div class="s-h">${t('g_started')} <em>${gs.cur.length}</em></div>${gs.cur.map(eggRow).join('')}</div>` : '')
-    + (gs.done.length ? `<div class="s-sec"><div class="s-h">${t('g_done')} <em>${gs.done.length}</em></div>${gs.done.map(eggRow).join('')}</div>` : '')
+  const showG = f === 'all' || f === 'guide', showP = (f === 'all' || f === 'places') && places.length, showC = (f === 'all' || f === 'cheats') && cheatsF.length;
+  const pd = placesNow('gta6');
+  const doneRow = (r) => { const nx = (r.next || []).map(nextTitle).find(Boolean); return gRow(r, pd, { sub: t('g_done'), next: nx ? tf('fav_next', { t: nx }) : '' }); };
+  const doneShown = f === 'all' ? gs.done.slice(0, 2) : gs.done;
+  $('#fav-list').innerHTML = (showG && gs.cur.length ? `<div class="s-sec"><div class="s-h">${t('g_started')} <em>${gs.cur.length}</em></div>${gs.cur.map((r) => gRow(r, pd, { go: true })).join('')}</div>` : '')
+    + (showG && gs.done.length ? `<div class="s-sec"><div class="s-h">${t('g_done')} <em>${gs.done.length}</em>${f === 'all' && gs.done.length > 2 ? `<button data-action="fav-filter" data-v="guide">${t('fav_all')}</button>` : ''}</div>${doneShown.map(doneRow).join('')}</div>` : '')
     + (showP ? `<div class="s-sec"><div class="s-h">${t('f_places')} <em>${places.length}</em></div>${places.map((o) => placeRow(o, { game: true })).join('')}</div>` : '')
     + (showC ? `<div class="s-sec"><div class="s-h">${t('f_cheats')} <em>${cheatsF.length}</em></div>${cheatsF.map((c) => cardHTML(c, { badge: true })).join('')}</div>` : '')
     || `<div class="empty">${t('fav_filter_empty')}</div>`;
@@ -1171,7 +1312,7 @@ function proRowHTML() {
   const renew = a === 'pro' && kind === 'pass' && end - Date.now() < 7 * DAY;
   const ended = a === 'pro' && pay.proActive() && pay.pro()?.cancel;   // подписка отменена: Pro до конца оплаченного срока, без продления
   const sub = a === 'pro' ? (d ? tf(ended ? 'st_pro_cancelled' : { work: 'st_pro_work', pass: 'st_pro_pass', month: 'st_pro_month', free: 'st_pro_free3' }[kind] || 'st_pro_year', { d }) : '')
-    : a === 'trial' ? tf('trial_left', { t: trialLeft() }) : tf('st_pro_row', { p: usd(zone().year) });
+    : a === 'trial' ? tf('st_trial_row', { t: trialLeft() }) : tf('st_pro_row', { p: usd(zone().year) });   // пробный открывает коды и инструкции (guide.js free())
   const done = a === 'pro' && !renew;
   return `<button class="row pro-card pro-row${a === 'pro' ? ' on' : ''}" data-action="${done ? 'noop' : 'paywall'}"><span class="row-ic">${I.crown}</span>
     <span class="row-l">${a === 'pro' ? t('st_pro_on') : t('st_pro')}${sub ? `<small>${esc(sub)}</small>` : ''}</span>${done ? `<span class="row-v">${I.check}</span>` : `<span class="row-chev">${I.chevron}</span>`}</button>`;
@@ -1274,34 +1415,47 @@ const segRow = (icon, label, items, cur, action) => `<div class="row row-static"
   <span class="mini-seg" role="radiogroup" aria-label="${esc(label)}">${items.map(([k, n]) => `<button class="${cur === k ? 'on' : ''}" role="radio" aria-checked="${cur === k}" data-action="${action}" data-v="${k}">${esc(n)}</button>`).join('')}</span></div>`;
 // только свои страницы (terms, privacy): адрес всегда «./<страница>.html» — check_links видит, что это не наружу
 const linkRow = (page, icon, label) => `<a class="row" href="./${page}.html?lang=${getLang()}"><span class="row-ic">${icon}</span><span class="row-l">${esc(label)}</span><span class="row-v"></span><span class="row-chev">${I.chevron}</span></a>`;
+// Решение Fable 28.11 п. 1 (вариант «б»): четыре группы — Pro и аккаунт → Игра → Приложение → Помощь. «Карты» — строкой в «Приложении»,
+// «Авторам» — строкой в «Помощи», «Условия» и «Конфиденциальность» — в шторке «О приложении и условия». «Оценить» — только когда
+// есть ссылка магазина (APP.storeUrl). «Начать заново» — красной строкой внизу, с подтверждением.
+const verText = () => `${APP.shortName} ${String(APP.version).replace(/\s*demo\s*/i, '').trim()}`;
+async function setCount() { const d = await loadSettings('gta6'); return d?.guides?.length || 0; }
 function renderSettings() {
   const g = game(), lg = getLang();
   const th = { dark: t('th_dark'), light: t('th_light'), auto: t('th_auto') };
   const acct = acctHTML().replace(/^<div class="group">|<\/div>$/g, '');
+  const sub = (x) => `<small class="one">${esc(x)}</small>`;
+  const nSet = setData.gta6?.guides?.length || 5;
+  const guideRow = store.game === 'gta6' ? row('set-guides', I.gamepad, `${t('st_setguide')}${sub(tf('st_setguide_s', { n: tn(nSet, 'n_tips') }))}`)
+    : row('switch', I.gamepad, t('st_guide6'));   // в GTA 5 гида нет — строка возвращает в GTA 6 (шторка «Игра и платформа»)
   const authors = window.Capacitor?.isNativePlatform?.() ? ''   // в iOS-сборке раздела нет (07 §2.2)
-    : `<div class="group">${row('creators', I.video, `${t('st_creators_row')}<small class="one">${esc(t(noPay() ? 'st_creators_sub_np' : 'st_creators_sub'))}</small>`)}</div>`;
+    : row('creators', I.video, `${t('st_creators_row')}${sub(t('st_creators_sub'))}`);
   $('#settings-body').innerHTML = `
     ${stGroup(t('st_g_account'), `<div class="group">${proRowHTML()}${acct}</div>`)}
     ${stGroup(t('st_g_game'), `<div class="group">
       ${row('switch', platformIcon(store.platform), t('st_codes_for'), esc(`${g.title}, ${L(PLATFORMS[store.platform])}`))}
-      ${row('howto', I.info, t('st_howto'))}
-      ${store.game === 'gta6' ? row('set-guides', I.gamepad, t('st_setguide')) : ''}</div>`)}
+      ${guideRow}
+      ${row('howto', I.info, t('st_howto'))}</div>`)}
     ${stGroup(t('st_g_app'), `<div class="group">
       ${segRow(I.globe, t('st_lang'), [['ru', 'RU'], ['en', 'EN']], lg, 'lang')}
       ${segRow(I.moon, t('st_theme'), ['dark', 'light', 'auto'].map((k) => [k, th[k]]), store.theme, 'theme')}
       <div class="row row-static"><span class="row-ic">${I.vibe}</span><span class="row-l">${t('st_haptic')}</span>
-        <button class="switch${store.haptic ? ' on' : ''}" data-action="haptic-toggle" role="switch" aria-checked="${!!store.haptic}" aria-label="${esc(t('st_haptic'))}"><i></i></button></div></div>`)}
-    ${stGroup(t('st_g_maps'), `<div class="group">${segRow(I.pin, t('st_maps_open'), MAPS_APPS, store.mapsApp || 'google', 'maps-app')}</div>`)}
+        <button class="switch${store.haptic ? ' on' : ''}" data-action="haptic-toggle" role="switch" aria-checked="${!!store.haptic}" aria-label="${esc(t('st_haptic'))}"><i></i></button></div>
+      ${segRow(I.pin, t('st_maps'), MAPS_APPS, store.mapsApp || 'google', 'maps-app')}</div>`)}
     ${stGroup(t('st_g_help'), `<div class="group">
       ${row('tour', I.map, t('st_tour'))}
       ${row('share-app', I.share, t('st_share_app'))}
-      ${row('rate', I.star, t('st_rate'))}
-      ${linkRow('terms', I.doc, t('pw_terms'))}
-      ${linkRow('privacy', I.shield, t('pw_privacy'))}
-      ${row('about', I.home, t('st_about'))}</div>`)}
-    ${stGroup(t('st_g_authors'), authors)}
+      ${APP.storeUrl ? row('rate', I.star, t('st_rate')) : ''}
+      ${authors}
+      ${row('about', I.doc, t('st_about'))}</div>`)}
     <div class="group st-reset">${row('reset', I.reset, t('st_reset'), '', false)}</div>
-    <p class="ver">${t('hub_foot')}<br>${esc(APP.shortName)}, v${esc(APP.version)}</p>`;
+    <p class="ver">${t('hub_foot')}<br>${esc(verText())}</p>`;
+  if (store.game === 'gta6' && !setData.gta6) setCount().then((n) => { if (n && n !== 5 && ui.tab === 'settings') renderSettings(); }).catch(() => { });
+}
+// «Начать заново?» — шторка подтверждения (было: стирало сразу). sb.gd (прогресс инструкций) не стирается — в тексте его нет.
+function openReset() {
+  openSheet(`<div class="rs-conf"><h2 class="pick-t">${t('rs_h')}</h2><p>${t('rs_p')}</p>
+    <button class="btn-primary" data-action="reset-yes">${t('rs_yes')}</button><button class="btn-ghost" data-action="sheet-close">${t('rs_no')}</button></div>`, 'sheet-pick');
 }
 
 function updateFavBadge(pulse = false) {
@@ -1643,7 +1797,11 @@ function openHowto() {
   openSheet(`<h2 class="pick-t">${t('st_howto')}</h2>${g.platforms.map((p) => `<div class="howto"><div class="plat-h">${platformIcon(p)}<span>${L(PLATFORMS[p])}</span></div><p>${esc(howto(p))}</p></div>`).join('')}<p class="d-note">${t('howto_warn')}</p>`, 'sheet-pick');
 }
 function openAbout() {
-  openSheet(`<h2 class="pick-t">${t('st_about')}</h2><p class="about">${t('about_text')}</p>${OWN_ART ? '' : `<p class="about">${esc(t('frames_credit'))}</p>`}<p class="d-note">${esc((getLang() === 'en' ? data[store.game]?.source_en : data[store.game]?.source) || '')}</p><div class="ver">v${esc(APP.version)} · ${window.__vp ? `vp in ${__vp.inner} vh ${__vp.vh} dvh ${__vp.dvh} scr ${__vp.screen} sb ${__vp.safeB}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}${__vp.overflow ? ' OVERFLOW' : ''}` : ''}</div>`, 'sheet-pick');
+  // «О приложении и условия» (решение Fable 28.11 п. 1, 6): текст, «Условия», «Конфиденциальность», в конце — две строки перехода
+  openSheet(`<h2 class="pick-t">${t('about_h')}</h2><p class="about">${t('about_text')}</p>${OWN_ART ? '' : `<p class="about">${esc(t('frames_credit'))}</p>`}<p class="d-note">${esc((getLang() === 'en' ? data[store.game]?.source_en : data[store.game]?.source) || '')}</p>
+    <div class="group about-rows">${linkRow('terms', I.doc, t('pw_terms'))}${linkRow('privacy', I.shield, t('pw_privacy'))}</div>
+    <div class="group about-rows">${row('tour', I.map, t('st_tour'))}<button class="row" data-action="start-go" data-k="map"><span class="row-ic">${I.pin}</span><span class="row-l">${t('go_map')}</span><span class="row-v"></span><span class="row-chev">${I.chevron}</span></button></div>
+    <div class="ver">${esc(verText())}${window.__vp ? ` · vp in ${__vp.inner} vh ${__vp.vh} dvh ${__vp.dvh} scr ${__vp.screen} sb ${__vp.safeB}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}${__vp.overflow ? ' OVERFLOW' : ''}` : ''}</div>`, 'sheet-pick');
   // 5 нажатий на заголовок — включить или выключить тестовую оплату Stripe (для проверки до live)
   const h = document.querySelector('#sheet-body .pick-t'); let n = 0, tm = 0;
   if (h && pay.apiBase()) h.addEventListener('click', () => { clearTimeout(tm); tm = setTimeout(() => { n = 0; }, 2500); if (++n < 5) return; n = 0; toast(pay.togglePaytest() ? t('pay_test_on') : t('pay_test_off')); onAccess(); renderAll(); });
@@ -1869,6 +2027,8 @@ function backGuard() {
 function closePaywall() {
   pay.closeInApp(); promoUi = '';
   $('#paywall').classList.remove('open');
+  // конец онбординга (решение Fable 28.11 п. 4, был тупик): пейвол карты закрыт крестиком → Главная и разовый блок «С чего начать»
+  if (store.startBlock === 1 && store.onboarded && ui.tab === 'map' && access() !== 'pro') { store.startBlock = 2; save(); closeSheet(); ui.tab = 'home'; renderAll(); return; }
   if (store.tourMap && !store.tourCodes && ui.tab === 'map' && store.onboarded) { closeSheet(); ui.tab = 'home'; renderAll(); return; }   // после пейвола — Главная и одна анимация кодов; карточку места закрыть (QA 22.11: оставалась поверх Главной и тур кодов не начинался)
   maybeInstallHint();
 }
@@ -1886,55 +2046,51 @@ function obDefaultPlatform(gameId) {
   const g = GAMES.find((x) => x.id === gameId);
   return g.platforms.includes(store.platform) ? store.platform : g.platforms[0];
 }
-// экран 1 «Обещание»: фото эпохи и стеклянная панель снизу, в зоне большого пальца
+// Экран 1 (решение Fable 28.11 п. 4): приветствие и платформа вместе. Кнопок «Дальше» и «Начать» нет — тап по варианту сразу
+// ведёт на Главную и в тур. Строка пробного называет, что открыто сейчас (коды и инструкции), — «3 дня бесплатно» на пейволе не спорит.
 function welcomeHTML() {
-  const sec = (ic, k) => `<div class="ob-sec"><span class="ob-sec-ic">${ic}</span><span><b>${t(k)}</b><small>${t(k + '_s')}</small></span></div>`;
   return `<div class="ob-brand"><img src="icons/favicon.svg" alt="" width="44" height="44"><h1>Secret Base</h1></div>
-    ${sec(I.gamepad, 'w_codes')}${sec(I.map, 'w_map')}
-    <p class="ob-more">${t('w_more')}</p>
-    ${access() === 'trial' ? `<div class="o-trial">${I.clock}<span>${esc(tf('trial_left', { t: trialLeft() }))}</span></div>` : ''}
-    <button class="btn-primary ob-cta" data-action="ob-start">${t('next')}</button>
+    <p class="ob-lead">${t('w_lead')}</p>
+    <h2 class="ob-q">${t('ob_platform_title')}</h2>
+    <div class="opts">${platListHTML('gta6', '', 'ob-platform') + optHTML('', 'ob-watch', 'watch', I.map, esc(t('ob_watch')), esc(t('ob_watch_s')))}</div>
+    ${access() === 'trial' ? `<div class="o-trial">${I.clock}<span>${esc(tf('w_trial', { t: trialLeft() }))}</span></div>` : ''}
     <p class="ob-fine">${t('w_note')}</p>`;
 }
 function renderOnboarding(dir = 0) {
   const ob = $('#onboarding');
-  const step = ui.obStep;
-  const g = ui.obGame || store.game;
-  // скин: до выбора игры — GTA 6, на шаге платформы — выбранной игры; фото — «Привет» баннер, дальше «вид» (без анимации смены игры)
-  const sk = step === 'platform' ? g : 'gta6';
-  applySkin(sk);
-  const img = step === 'welcome' ? HERO.gta6.banners[0] : HERO[sk]?.load;
+  applySkin('gta6');
+  const img = HERO.gta6.banners[0];
   if (!ob.querySelector('.ob-photo')) ob.innerHTML = '<div class="ob-photo"></div><div class="ob-ui"></div>';
   const ph = ob.querySelector('.ob-photo');
-  if (ph.dataset.src !== img) { ph.dataset.src = img; ph.classList.toggle('is-banner', step === 'welcome'); ph.innerHTML = step === 'welcome' ? pic(img) : pic(img, '', 860, 1864); }
+  if (ph.dataset.src !== img) { ph.dataset.src = img; ph.classList.add('is-banner'); ph.innerHTML = pic(img); }
   const anim = dir > 0 ? ' ob-in-right' : dir < 0 ? ' ob-in-left' : '';
-  if (step === 'welcome') { ob.querySelector('.ob-ui').innerHTML = `<div class="ob-panel wl${anim}">${welcomeHTML()}</div>`; return; }
-  const isGame = step === 'game';
-  ob.querySelector('.ob-ui').innerHTML = `
-    <button class="ob-back" data-action="ob-back" aria-label="${esc(t('back'))}">${I.back}</button>
-    <div class="ob-panel${anim}">
-      <div class="ob-prog" aria-label="${isGame ? 1 : 2} / 2"><i class="on"></i><i${isGame ? '' : ' class="on"'}></i></div>
-      <h1>${isGame ? t('ob_game_title') : t('ob_platform_title')}</h1><p class="ob-lead">${isGame ? t('ob_game_sub') : t('ob_plat_sub')}</p>
-      <div class="opts">${isGame ? gameListHTML(g, 'ob-game', true) : platListHTML(g, ui.obPlatform, 'ob-platform') + optHTML('', 'ob-watch', 'watch', I.map, esc(t('ob_watch')), esc(t('ob_watch_s')))}</div>
-      <button class="btn-primary ob-cta" data-action="ob-next">${isGame ? t('next') : t('start')}</button>
-    </div>`;
+  ob.querySelector('.ob-ui').innerHTML = `<div class="ob-panel wl ob-one${anim}">${welcomeHTML()}</div>`;
 }
 // ───────── знакомство на карте и с кодами (js/tour.js; Игорь 22.11.2026, сценарий «Гибрид») ─────────
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-const tourCtx = () => ({ t, tf, haptic, setSnap, reduced: reducedMotion(), pro: access() === 'pro',
+const obEvent = (n, d) => { try { (window.__sbEv ||= []).push([n, d || {}]); window.SB?.track?.(n, d); } catch { } };   // onb_step, onb_skip, onb_story_open, onb_slide_ms
+const STORY_KEY = 'guide:gta6:egg-bugatti-thrax-andrew-node';
+const tourCtx = () => ({ t, tf, haptic, setSnap, reduced: reducedMotion(), pro: access() === 'pro', event: obEvent, closeSheet,
+  openStory: () => openGuideKey(STORY_KEY, 'tour'),
   codeId: (POPULAR[store.game] || [])[0] || 'g6_money', isFav: (id) => store.favs.includes(id) });
 let codesBusy = false;
 async function startMapTour(replay = false, after = false) {
   document.body.classList.add('in-tour');
   if (mapLock.t0 && !mapLock.pausedAt) mapLock.pausedAt = Date.now();   // повтор из Настроек: показ стоит, не сбрасывается
   renderMapLock();
-  let r = 'error';
-  try { r = await (await import('./tour.js')).mapTour({ ...tourCtx(), ...(after ? { base: 3, total: 6 } : {}) }); } catch { }
+  let r = 'error', tm = null;
+  try { tm = await import('./tour.js'); r = await tm.mapTour(tourCtx()); } catch { }
   store.tourMap = true; save();
+  // шаг 3 открыл обложку сторис: тур закончен; пока сторис открыта, 20 с показа стоят (in-tour), пейвола нет
+  if (r === 'story') {
+    await new Promise((ok) => { const t0 = Date.now(); const iv = setInterval(() => { if ((Date.now() - t0 > 1500 && !document.querySelector('#guide.open')) || Date.now() - t0 > 30 * 60e3) { clearInterval(iv); ok(); } }, 200); });
+    if (ui.tab === 'map') { try { tm?.freeHint(tourCtx()); } catch { } }
+  }
   document.body.classList.remove('in-tour');
   if (mapLock.pausedAt) { mapLock.t0 += Date.now() - mapLock.pausedAt; mapLock.pausedAt = 0; }
-  if (r === 'nomap') { ui.tab = 'home'; renderAll(); }   // нет карты (нет сети) — на Главную
-  else renderMapLock();
+  if (r === 'nomap') { if (store.startBlock === 1) store.startBlock = 2; save(); ui.tab = 'home'; renderAll(); return; }   // нет карты (нет сети) — Главная с блоком «С чего начать»
+  try { tm?.ringReal(MAP_DEMO); } catch { }   // страховка: «Где в жизни» в первой карточке за 20 с — кольцом, без пузыря
+  renderMapLock();
 }
 // Игорь 23.11.2026: знакомство начинается с кодов — Главная → популярный код (кнопки, «Озвучить») → «в Избранное» → карта Майами
 // (пролёт, ползунок «игра ⇄ жизнь», «Где в жизни»). Пока идёт шаг с кодом, карта прогревается: сначала «Игра», потом «Жизнь».
@@ -1956,7 +2112,7 @@ async function startTour(replay = false) {
     if (r === 'skip') {
       store.tourMap = true; save();
       document.body.classList.remove('in-tour');
-      ui.tab = 'map'; renderAll(); return;
+      ui.tab = 'map'; renderAll(); import('./tour.js').then((m) => m.ringReal(MAP_DEMO)).catch(() => { }); return;
     }
     await new Promise((ok) => setTimeout(ok, 320));   // шторка уехала — потом вкладка «Карта»
   }
@@ -1993,7 +2149,7 @@ function obPickThen(el, fn) {
   setTimeout(() => { obBusy = false; fn(); }, 260);
 }
 async function finishOnboarding(tab = 'home') {
-  store.game = ui.obGame; store.platform = ui.obPlatform; store.onboarded = true; save();
+  store.game = 'gta6'; store.platform = ui.obPlatform; store.onboarded = true; store.startBlock = 1; save();   // блок «С чего начать» — после пейвола (п. 4)
   try { await loadGame(store.game); } catch { /* нет сети при первом запуске — данные подгрузятся позже, не держим на онбординге */ }
   const tour = !store.tourMap;
   if (tour) document.body.classList.add('in-tour');   // 20 с показа карты стоят, пока идёт знакомство
@@ -2057,7 +2213,14 @@ function changeGame(v, fromSheet = false) {
   const g = game(), pb = store.platByGame[v];
   if (pb && g.platforms.includes(pb)) store.platform = pb; else if (!g.platforms.includes(store.platform)) store.platform = g.platforms[0];
   save();
-  switchTo(v, { prepare: () => loadGame(v), apply: () => { if (fromSheet) closeSheet(); renderAll(); }, haptic });
+  switchTo(v, { prepare: () => loadGame(v), apply: () => { if (fromSheet) closeSheet(); renderAll(); gameToast(v); }, haptic });
+}
+// после смены игры человек остаётся на той же вкладке; тост «GTA 5: карта Лос-Анджелеса и 36 кодов» с кнопкой «Открыть карту» (числа из данных)
+function gameToast(v) {
+  const g = GAMES.find((x) => x.id === v); if (!g) return;
+  const n = (data[v]?.cheats || []).length, mg = MAP_OF(v);
+  setTimeout(() => toastAct(tf('gs_toast', { g: g.title, c: t('city_' + mg), n: tn(n, 'n_codes') }), t('go_map'),
+    () => { haptic(); closeSheet(); ui.mapHold = null; ui.tab = 'map'; renderAll(); }), 450);
 }
 // бета: игру на карте меняет сама карта (data-mp="game", map.js) — слой смены идёт поверх, скин за картой
 document.addEventListener('click', (e) => {
@@ -2147,6 +2310,10 @@ document.addEventListener('click', async (e) => {
     case 'open-walk': haptic(); openWalk(ui.tab); break;
     case 'open-endings': haptic(); openEndingsKey(el.dataset.v || 'gta6', ui.tab); break;
     case 'gopen': haptic(); gopen(el.dataset.k); break;
+    case 'gopen-s': e.stopPropagation(); haptic(); rememberQuery(); if (!gcore.openKey(el.dataset.k, { from: ui.tab })) toast(t('place_nf')); break;   // строка «Гид»: обложка сторис (или хаб)
+    case 'start-go': startGo(el.dataset.k); break;
+    case 'start-blk': store.startBlock = 0; save(); $('#start-blk')?.remove(); startGo(el.dataset.k); break;
+    case 'start-hide': haptic(); store.startBlock = 0; save(); $('#start-blk')?.remove(); break;
     case 'egg-filter': haptic(); ui.eggf = v; renderFeed(); break;
     case 'cn-home': haptic(); window.SB.openCreator('cn_now'); break;
     case 'cn-shoot': haptic(); guideMod().then((m) => m.closeGuide()); window.SB.openCreator('cn_find', { guide: el.dataset.key }); break;
@@ -2185,7 +2352,9 @@ document.addEventListener('click', async (e) => {
     case 'about': openAbout(); break;
     case 'creators': haptic(); window.SB.openCreator('hub'); break;
     case 'rate': toast(t('rated')); break;
-    case 'reset': {   // «Начать заново»: демо-Pro снят, настройки и избранное — по умолчанию; срок пробного прежний
+    case 'reset': haptic(); openReset(); break;   // сначала подтверждение (решение Fable 28.11 п. 1)
+    case 'reset-yes': {   // «Начать заново»: демо-Pro снят, настройки и избранное — по умолчанию; срок пробного прежний
+      import('./tour.js').then((m) => m.skip()).catch(() => { });   // идёт тур — закрыть его (cheats-pwa-onb)
       ui.stopPlay?.(); Object.assign(store, { ...DEFAULTS, lang: store.lang, theme: store.theme, trialStart: store.trialStart || Date.now(), ftUntil: store.ftUntil, linkKeys: [] }); save();   // пробный НЕ начинается заново (QA 20.11.2026: «Начать заново» давал ещё 72 ч)
       Object.assign(mapLock, { t0: 0, seen: 0, paywall: false }); clearInterval(mapLock.timer); mapLock.timer = 0;
       closeSheet(); closePaywall(); $('#install').classList.remove('show'); lastAccess = access(); showOnboarding(); renderMapLock(); break;
@@ -2194,7 +2363,9 @@ document.addEventListener('click', async (e) => {
     case 'try-free':
       haptic();
       if (!canTryFree()) break;
-      store.ftUntil = Date.now() + 3 * DAY; save();
+      store.ftUntil = Date.now() + 3 * DAY;
+      { const pulse = store.startBlock === 1 && ui.tab === 'map'; if (store.startBlock === 1) store.startBlock = 0; save();   // «3 дня бесплатно» после показа карты — остаёмся на карте, точка Bugatti пульсирует
+        if (pulse) setTimeout(() => import('./tour.js').then((m) => m.pulseFind()).catch(() => { }), 500); }
       closePaywall(); toast(t('pw_try_on')); onAccess(); renderAll();
       break;
     case 'plan': plan = v; haptic(); openPaywall(pwSt); $('#paywall .pw-close').classList.add('show'); break;
@@ -2257,9 +2428,9 @@ document.addEventListener('click', async (e) => {
       save(); refreshFavUI(); el.classList.toggle('on', on); el.setAttribute('aria-pressed', on); el.innerHTML = `${on ? I.heartFill : I.heart}<span>${t(on ? 'saved' : 'save')}</span>`;
       break;
     }
-    case 'ob-watch': haptic(); obPickThen(el, () => finishOnboarding('map')); break;
+    case 'ob-watch': haptic(); obPickThen(el, () => { store.obWatch = 1; finishOnboarding('map'); }); break;
     case 'ob-game': haptic(); obPickThen(el, () => { ui.obGame = v; obGo('platform', 1); }); break;
-    case 'ob-platform': haptic(); obPickThen(el, () => { ui.obPlatform = v; finishOnboarding('map'); }); break;   // Игорь 22.11.2026: после платформы — карта Майами
+    case 'ob-platform': haptic(); obPickThen(el, () => { ui.obPlatform = v; store.obWatch = 0; finishOnboarding('map'); }); break;   // Игорь 22.11.2026: после платформы — карта Майами
     case 'ob-back': haptic(); if (!obBusy) obGo('welcome', -1); break;
     case 'ob-start': haptic(); ui.obGame = 'gta6'; obGo('platform', 1); break;   // шаг выбора игры убран: сразу GTA 6 (20.11.2026)
     case 'ob-next':

@@ -256,6 +256,43 @@ const T = {
     install_btn: 'Install', later: 'Later',
   },
 };
+// Доработка разделов (решение Fable 28.11, п. 1–4, 6): онбординг, Поиск «Гид», Настройки, Избранное, «С чего начать», смена игры.
+// Отдельным блоком поверх словаря — чтобы правки других веток в тех же строках не спорили с этими.
+Object.assign(T.ru, {
+  w_lead: 'Коды по кнопкам вашей приставки. Места GTA 6 на карте настоящего Майами',
+  // пробный (trialStart) открывает коды и инструкции (js/guide.js free(): access() !== 'locked'), карта — 20 с показа
+  w_trial: 'Коды и инструкции открыты {t}. Коды GTA 5 тоже здесь',
+  onb_voice: 'Код по кнопкам. «Озвучить» — продиктуем по порядку', onb_tomap: 'К карте', onb_done: 'Готово',
+  onb_find: 'Точка с кадром — находка. Нажмите: как угнать Bugatti',
+  sw_h: 'С чего начать', sw_hide: 'Скрыть', sw_bug: 'Угнать Bugatti без трекера', sw_codes: 'Все коды для {p}', sw_codes0: 'Все коды', sw_set: 'Настроить игру: 5 советов',
+  st_g_account: 'Pro и аккаунт', st_g_help: 'Помощь', st_trial_row: 'Коды и инструкции открыты ещё {t}',
+  st_setguide: 'Настроить игру', st_setguide_s: '{n}: вождение, прицел, картинка', n_tips: 'совет|совета|советов', st_guide6: 'Гид по шагам — в GTA 6',
+  st_share_app: 'Поделиться приложением', st_creators_sub: 'Для тех, кто снимает места из игры', st_creators_sub_np: 'Для тех, кто снимает места из игры',
+  st_about: 'О приложении и условия', about_h: 'О приложении',
+  rs_h: 'Начать заново?', rs_p: 'Сотрём Избранное и настройки на этом устройстве. Pro и пробные дни не изменятся.', rs_yes: 'Стереть и начать заново', rs_no: 'Отмена',
+  f_guide: 'Гид', gt_egg: 'Пасхалка', gt_set: 'Настройки игры', gt_save: 'Сохранения', gt_end: 'Концовки', gt_walk: 'Прохождение',
+  s_step: 'Шаг {a} из {b}', browse_guide: 'Весь гид', s_other: 'В {g}: {n}', s_cont: 'Продолжить',
+  fav_empty: 'Нажмите на сердце у кода или места — они появятся здесь. Начатые инструкции сохраняются сами.',
+  fav_start: 'Начните с этого', fs_code: 'Самый популярный код', fs_od: 'Ocean Drive: игра и жизнь', fs_map: 'Карта: {c}', fav_next: 'Дальше: {t}', fav_all: 'Все',
+  city_gta6: 'Майами', city_gta5: 'Лос-Анджелеса', gs_toast: '{g}: карта {c} и {n}',
+});
+Object.assign(T.en, {
+  w_lead: "Codes as your controller's buttons. GTA 6 places on the real Miami map",
+  w_trial: 'Codes and guides unlocked for {t}. GTA 5 codes are here too',
+  onb_voice: 'The code, button by button. Tap Read aloud to hear it in order', onb_tomap: 'To the map', onb_done: 'Done',
+  onb_find: 'A point with a frame is a find. Tap to see how to steal the Bugatti',
+  sw_h: 'Where to start', sw_hide: 'Hide', sw_bug: 'Steal the Bugatti without a tracker', sw_codes: 'All codes for {p}', sw_codes0: 'All codes', sw_set: 'Game settings: 5 tips',
+  st_g_account: 'Pro & account', st_g_help: 'Help', st_trial_row: 'Codes and guides unlocked: {t} left',
+  st_setguide: 'Game settings', st_setguide_s: '{n}: driving, aim, picture', n_tips: 'tip|tips', st_guide6: 'Step-by-step guide is in GTA 6',
+  st_share_app: 'Share the app', st_creators_sub: 'For people who film game locations', st_creators_sub_np: 'For people who film game locations',
+  st_about: 'About & terms', about_h: 'About',
+  rs_h: 'Start over?', rs_p: 'This erases Favorites and settings on this device. Pro and trial days stay the same.', rs_yes: 'Erase and start over', rs_no: 'Cancel',
+  f_guide: 'Guide', gt_egg: 'Easter egg', gt_set: 'Game settings', gt_save: 'Saves', gt_end: 'Endings', gt_walk: 'Walkthrough',
+  s_step: 'Step {a} of {b}', browse_guide: 'Full guide', s_other: 'In {g}: {n}', s_cont: 'Continue',
+  fav_empty_t: 'Nothing here yet', fav_empty: 'Tap the heart on a code or place to keep it here. Guides you start are saved automatically.',
+  fav_start: 'Start with these', fs_code: 'The most popular code', fs_od: 'Ocean Drive: game and life', fs_map: 'Map: {c}', fav_next: 'Next: {t}', fav_all: 'All',
+  city_gta6: 'Miami', city_gta5: 'Los Angeles', gs_toast: '{g}: {c} map and {n}',
+});
 
 // Как произносить кнопки при озвучке
 export const SPEAK = {
