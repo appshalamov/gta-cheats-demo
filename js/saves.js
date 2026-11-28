@@ -239,6 +239,7 @@ export async function openSaves(ctx, key = 'all') {
   C = ctx; langK = ctx.lang; css();
   D = await load(ctx.game); if (!D) return false;
   if (key === 'before-code') key = 'code';
+  if (key === 'how') key = plat();   // saves:gta6:how — «Как сохраняться» для платформы пользователя (опись 28.11, п. 3)
   if (['playstation', 'xbox', 'code'].includes(key)) { const o = await howObj(ctx.game, key); if (o) { C.openHow?.(o); return true; } }
   layer = document.getElementById('saves');
   if (!layer) {
@@ -262,4 +263,5 @@ export function closeSaves(fromPop = false) {
   return true;
 }
 export const isOpen = () => !!layer?.classList.contains('open');
-addEventListener('popstate', () => { if (isOpen() && !document.getElementById('guide')?.classList.contains('open')) closeSaves(true); });
+// закрыли инструкцию поверх хаба (крестик, «Готово», «Назад») — её history.back приводит на запись хаба {saves}: хаб остаётся (опись 28.11, п. 1)
+addEventListener('popstate', () => { if (isOpen() && !history.state?.saves && !history.state?.guide) closeSaves(true); });

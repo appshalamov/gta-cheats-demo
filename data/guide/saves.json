@@ -411,8 +411,8 @@
     "en": "Autosave didn't always trigger"
    },
    "fix": {
-    "ru": "Возможно, исправлено в обновлении 01.002.002 от 23.11 — пока это пишет один трекер патчей. Проверьте версию игры и всё равно сохраняйтесь вручную.",
-    "en": "Possibly fixed in update 01.002.002 from Nov 23 — only one patch tracker says so. Check your game version and keep saving manually."
+    "ru": "Статус не подтверждён: пишет один источник, проверено 26 ноября. Всё равно сохраняйтесь вручную перед выходом.",
+    "en": "Status unconfirmed: one source says so, checked Nov 26. Keep saving manually before you quit anyway."
    },
    "src": [
     "https://beebom.com/gta-6-patch-notes-updates-tracker/"
