@@ -22,6 +22,10 @@ try { const v = new URLSearchParams(location.search).get('paytest'); if (v === '
 export const paytest = () => ls.get(PT) === '1';
 export function togglePaytest() { ls.set(PT, paytest() ? null : '1'); return paytest(); }
 export const enabled = () => !!apiBase() && (!PAY.test || (DEV ? !!ls.get('sb.payapi') : paytest()));
+// Локальный адрес без своего сервера (sb.payapi): боевой pay.sbgta.app отвечает только своим адресам приложения (CORS —
+// okReturn в server/pay-worker), запрос с localhost заведомо падает «access control checks» — это ошибка страницы в WebKit
+// (pwa_guard, 28.11.2026). Такой запрос не шлём: итог тот же, что при его ошибке (нет свойств сервера, вход — «нет сети»).
+const noCors = () => DEV && !ls.get('sb.payapi');
 
 let st = {};
 try { st = JSON.parse(ls.get(KEY) || '{}') || {}; } catch { st = {}; }
@@ -114,6 +118,7 @@ export async function refresh(sync = false) {
 // переход уводил всё окно на страницу ошибки браузера, а из приложения «на экране Домой» назад не вернуться (QA 20.11 и 22.11).
 // false — сервер недоступен, приложение остаётся на месте (тост показывает вызывающий).
 export async function signIn(plan = null) {
+  if (noCors()) return false;
   try {
     const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 6000);
     const r = await fetch(apiBase() + '/health', { cache: 'no-store', signal: ac.signal }); clearTimeout(tm);
@@ -180,7 +185,7 @@ export async function checkoutInApp(plan, { promo = null, mount, onDone } = {}) 
 let feat = null, featP = null;
 export const features = () => feat || {};
 export function loadFeatures() {
-  if (feat || !enabled()) return Promise.resolve(feat || {});
+  if (feat || !enabled() || noCors()) return Promise.resolve(feat || {});
   return featP || (featP = fetch(apiBase() + '/health', { cache: 'no-store' }).then((r) => r.json())
     .then((d) => (feat = { promo: d.promo === true, embedded: d.embedded === true }))
     .catch(() => ({})).finally(() => { featP = null; }));
