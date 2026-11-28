@@ -530,6 +530,11 @@ async function openGuideKey(key, from = '', linked = false) {
   await gcore.loadIndex(g);   // «Дальше» в финале читает указатель — загрузить и при входе по ссылке
   const m = await guideMod();
   const ctx = guideCtx(g, from, linked || store.linkKeys.includes(`guide:${g}:${id}`) || store.linkKeys.includes(`egg:${g}:${id}`), (x) => `guide:${g}:${x.id}`);
+  if (from === 'settings' && /^set-/.test(id)) {   // открыли из списка «Настроить игру» — после «Назад» / крестика снова список (опись 28.11, п. 4)
+    let onward = false; const open0 = ctx.open, close0 = ctx.onClose;
+    ctx.open = (k) => { onward = true; open0(k); };
+    ctx.onClose = () => { close0(); if (!onward) setTimeout(() => { if (!m.isOpen() && !$('#sheet-layer').classList.contains('open')) openSetList(); }, 60); };
+  }
   if (back) {
     let onward = false; const open0 = ctx.open, close0 = ctx.onClose;
     ctx.open = (k) => { onward = true; open0(k); };   // «Дальше» ведёт в другую серию — карточку не возвращаем

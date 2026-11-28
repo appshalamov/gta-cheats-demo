@@ -322,7 +322,7 @@ function onClick(e) {
     case 'reset': setProg({ c: {}, r: {}, rs: [], all: 0, fe: p.fe, cnt: p.cnt }); render(); break;   // свои выборы; позиция в игре (sb.gp) общая — её не трогаем, бесплатная концовка та же
     case 'report': C.toast(s('report_ok')); C.event?.('endings_report', {}); break;
     case 'nx': C.event?.('endings_next', { a: b.dataset.action, v: b.dataset.v || b.dataset.key || '' }); closeEndings();
-      if (b.dataset.action === 'open-key') openKey(b.dataset.key, { from: 'endings' });   // ключ гида (saves:…) — через ядро; иначе — общий обработчик data-action
+      if (b.dataset.action === 'open-key') { const k = b.dataset.key; setTimeout(() => openKey(k, { from: 'endings' }), 120); }   // после history.back (опись 28.11, п. 5)   // ключ гида (saves:…) — через ядро; иначе — общий обработчик data-action
       break;
   }
 }
@@ -362,4 +362,5 @@ export function closeEndings(fromPop = false) {
   return true;
 }
 export const isOpen = () => !!layer?.classList.contains('open');
-addEventListener('popstate', () => { if (isOpen()) closeEndings(true); });
+// «Маршрут развилок» (сторис) поверх хаба: его закрытие возвращает на запись {endings} — хаб остаётся
+addEventListener('popstate', () => { if (isOpen() && !history.state?.endings && !history.state?.guide) closeEndings(true); });

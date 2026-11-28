@@ -2,7 +2,7 @@
 // места, лента) — сначала сеть, но не дольше 3 с, затем кэш; остальные (карта, коды) — сразу из кэша и в фоне обновить
 // (23.11.2026: на слабой сети Главная ждала 1–2 МБ данных при каждом запуске). Плитки карты (своя карта игры и OpenFreeMap) — свой кэш, переживает обновления приложения.
 // При изменении файлов оболочки поднимите VERSION.
-const VERSION = 'v136';
+const VERSION = 'v137';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/tokens.css', 'css/styles.css', 'css/onboarding.css', 'css/hub.css', 'css/layout.css', 'css/map-glass.css', 'css/skin.css', 'css/league.css', 'css/guide.css', 'js/app.js', 'js/config.js', 'js/i18n.js', 'js/icons.js', 'js/map.js', 'js/mapstyle.js', 'js/places.js', 'js/live.js', 'js/skin.js', 'js/league.js', 'js/api.js', 'js/demo-data.js', 'js/pay.js', 'js/ref.js', 'js/tour.js', 'js/guide.js', 'js/guide-core.js', 'js/guide-hub.js', 'data/guide/index-gta6.json', 'js/guide-menu.js', 'js/guide-set.js', 'js/guide-stories.js', 'js/hub-cover.js', 'data/guide/gta6-settings.json', 'css/walk.css', 'js/walk.js', 'data/guide/missions.json', 'data/guide/walk-stories-gta6.json', 'vendor/maplibre/maplibre-gl.js', 'vendor/maplibre/maplibre-gl.css', 'data/gta5.json', 'data/gta6.json', 'data/news.json', 'css/saves.css', 'js/saves.js', 'data/guide/saves.json', 'css/endings.css', 'js/endings.js', 'data/guide/endings-gta6.json', 'js/progress.js', 'css/progress.css', 'data/guide/trophies.json', 'js/creators.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon.svg',
@@ -64,7 +64,7 @@ self.addEventListener('activate', (e) => {
 // Чужие сайты (хостинг кадров, gtadb, Commons) отдают CORS — берём копию в режиме cors (не «непрозрачную»).
 const PHOTOS = 'photos-v2', PHOTOS_MAX = 600;
 const isPhoto = (u) => /\.(jpe?g|png|webp)$/i.test(u.pathname) && (
-  (u.origin === location.origin && u.pathname.includes('/img/map/'))
+  (u.origin === location.origin && (u.pathname.includes('/img/map/') || u.pathname.includes('/img/guide/')))   // img/guide — кадры и обложки сторис (опись 28.11, п. 7)
   || u.host === 'appshalamov.github.io' && /^\/gta-map-assets\/(map\/photos|official)\//.test(u.pathname)   // official/ — чистые кадры GTA 6
   || u.host === 'raw.githubusercontent.com' && u.pathname.startsWith('/rolux/gtadb.org/')
   || u.host === 'upload.wikimedia.org');

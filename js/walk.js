@@ -292,7 +292,10 @@ async function loadExt() {
 }
 function openTip(id) {
   const t = D.tips.find((x) => x.id === id); if (!t) return;
-  C.openTip?.({ game: D.game, id: `walk-${t.id}`, k: 'tip', t: t.t, next: t.next, how: { ...t.how, ta: t.t, rw: t.rw, miss: t.miss ? t.lose || true : undefined }, sn: (t.s || []).map((k) => D.src[k]?.n).filter(Boolean), st: t.st });
+  const um = t.until ? D.mid[t.until] : null;
+  const nx = [um?.pl ? { k: um.pl, t: { ru: S.ru.st_on_map, en: S.en.st_on_map }, sub: um.pln } : null,
+    { k: 'saves:gta6:all', t: { ru: 'Не упустить навсегда', en: "Don't miss it forever" } }, { k: 'guide:gta6:set-driving', t: { ru: S.ru.st_drive, en: S.en.st_drive } }].filter(Boolean);
+  C.openTip?.({ game: D.game, id: `walk-${t.id}`, k: 'tip', t: t.t, next: t.next, nx, how: { ...t.how, ta: t.t, rw: t.rw, miss: t.miss ? t.lose || true : undefined }, sn: (t.s || []).map((k) => D.src[k]?.n).filter(Boolean), st: t.st });
   C.event?.('walk_tip', { id: t.id });
 }
 function afterMark(before) {
