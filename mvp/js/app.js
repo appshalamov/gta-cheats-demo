@@ -1256,7 +1256,18 @@ function bindTour() {
   }).catch(() => { });
   if (!cmp) return;
   const setX = (e) => { const r = cmp.getBoundingClientRect(); cmp.style.setProperty('--x', Math.max(4, Math.min(96, (e.clientX - r.left) / r.width * 100)) + '%'); };
-  // ползунок, а не листание: горизонтальный жест на картинке двигает ручку (touch-action: none в css/mvp.css)
+  // ползунок, а не листание: горизонтальный жест на картинке двигает ручку; вертикальный — родная прокрутка (pan-y в css/mvp.css,
+  // правило «свайп вверх-вниз листает с любого места»). Направление — на первом touchmove: вбок — preventDefault до конца жеста,
+  // чтобы iOS не начала прокрутку и не прислала ползунку pointercancel (корень бага 14.10.2026, как у ползунка карточки в map.js)
+  let tvT = null;
+  cmp.addEventListener('touchstart', (e) => { tvT = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY, h: null } : null; }, { passive: true });
+  cmp.addEventListener('touchmove', (e) => {
+    if (!tvT) return;
+    if (tvT.h === null) { const t = e.touches[0], dx = Math.abs(t.clientX - tvT.x), dy = Math.abs(t.clientY - tvT.y); if (dx + dy < 1) return; tvT.h = dx >= dy * 0.7; }
+    if (tvT.h && e.cancelable) e.preventDefault();
+  }, { passive: false });
+  cmp.addEventListener('touchend', () => { tvT = null; }, { passive: true });
+  cmp.addEventListener('touchcancel', () => { tvT = null; }, { passive: true });
   cmp.addEventListener('pointerdown', (e) => { cmp.setPointerCapture(e.pointerId); cmp.classList.add('drag'); setX(e); e.stopPropagation(); });
   cmp.addEventListener('pointermove', (e) => { if (cmp.classList.contains('drag')) setX(e); });
   const end = () => cmp.classList.remove('drag');
