@@ -1223,10 +1223,13 @@ function searchGuide(g, q, pdEggs = []) {
 // строка «Гид»: кадр раздела, название, «Шаг X из N» или число шагов, тип одним словом справа (сердца нет: инструкция сохраняет себя сама)
 function gRow(r, pd, o = {}) {
   const pr = gProg(r);
-  return `<div class="prow erow has-how grow" data-action="gopen-s" data-k="${esc(r.k)}" data-key="${esc(r.k)}" role="button" tabindex="0">
+  // пасхалка — тем же входом, что строка «По шагам» раньше (open-guide, ключ egg:…): стек «Назад» серий знает эту точку входа
+  const eg = (r.kind === 'egg' || r.kind === 'bug') && r.k.startsWith('guide:') ? `egg:${r.k.slice(6)}` : '';
+  const act = eg ? `data-action="open-guide" data-key="${esc(eg)}" data-k="${esc(r.k)}"` : `data-action="gopen-s" data-k="${esc(r.k)}" data-key="${esc(r.k)}"`;
+  return `<div class="prow erow has-how grow" ${act} role="button" tabindex="0">
     <span class="pr-th"><img src="${esc(gThumb(r, pd))}" alt="" loading="lazy" decoding="async"></span>
     <span class="pr-t"><b>${esc(L(r.t))}</b><small>${esc(o.sub || gMeta(r, pr))}</small>${o.next ? `<small class="gr-next">${esc(o.next)}</small>` : ''}</span>
-    ${o.go ? `<button class="gr-go" data-action="gopen-s" data-k="${esc(r.k)}">${esc(t('s_cont'))}</button>` : `<span class="gr-type">${esc(t(GTYPE[r.kind]))}</span>`}
+    ${o.go ? `<button class="gr-go" ${act}>${esc(t('s_cont'))}</button>` : `<span class="gr-type">${esc(t(GTYPE[r.kind]))}</span>`}
   </div>`;
 }
 // начатые и пройденные — по всем разделам указателя (Избранное, пустой Поиск); новые — первыми
@@ -2412,7 +2415,7 @@ document.addEventListener('click', async (e) => {
       haptic(); changeGame(v); break;
     }
     case 'open-news': haptic(); openNews(el.dataset.id); break;
-    case 'open-guide': haptic(); openGuideKey(el.dataset.key, el.dataset.from || ui.tab); break;
+    case 'open-guide': haptic(); if (ui.tab === 'search') rememberQuery(); openGuideKey(el.dataset.key, el.dataset.from || ui.tab); break;
     case 'open-walk': haptic(); openWalk(ui.tab); break;
     case 'open-endings': haptic(); openEndingsKey(el.dataset.v || 'gta6', ui.tab); break;
     case 'gopen': haptic(); gopen(el.dataset.k); break;
