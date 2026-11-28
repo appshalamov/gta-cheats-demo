@@ -790,7 +790,7 @@ function heroHTML() {
 function renderTrialLine() {
   const box = $('#hub-trial'); if (!box) return;
   const a = access(), g = gift();
-  box.innerHTML = (a === 'trial' ? `<button class="h-trial" data-action="paywall">${I.clock}<span>${esc(tf('trial_left', { t: trialLeft() }))}</span>${I.chevron}</button>` : '')
+  box.innerHTML = (a === 'trial' ? `<button class="h-trial" data-action="paywall">${I.clock}<span>${esc(tf('st_trial_row', { t: trialLeft() }))}</span>${I.chevron}</button>` : '')
     + (g ? `<button class="h-trial h-gift" data-action="paywall" data-pw="link">${I.gift}<span>${esc(tf('gift_home', { n: g.from }))}</span>${I.chevron}</button>` : '');
 }
 function renderHero() {
@@ -1801,7 +1801,7 @@ function openAbout() {
   openSheet(`<h2 class="pick-t">${t('about_h')}</h2><p class="about">${t('about_text')}</p>${OWN_ART ? '' : `<p class="about">${esc(t('frames_credit'))}</p>`}<p class="d-note">${esc((getLang() === 'en' ? data[store.game]?.source_en : data[store.game]?.source) || '')}</p>
     <div class="group about-rows">${linkRow('terms', I.doc, t('pw_terms'))}${linkRow('privacy', I.shield, t('pw_privacy'))}</div>
     <div class="group about-rows">${row('tour', I.map, t('st_tour'))}<button class="row" data-action="start-go" data-k="map"><span class="row-ic">${I.pin}</span><span class="row-l">${t('go_map')}</span><span class="row-v"></span><span class="row-chev">${I.chevron}</span></button></div>
-    <div class="ver">${esc(verText())}${window.__vp ? ` · vp in ${__vp.inner} vh ${__vp.vh} dvh ${__vp.dvh} scr ${__vp.screen} sb ${__vp.safeB}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}${__vp.overflow ? ' OVERFLOW' : ''}` : ''}</div>`, 'sheet-pick');
+    <div class="ver">${esc(verText())}${window.__vp && VPTEST ? ` · vp in ${__vp.inner} vh ${__vp.vh} dvh ${__vp.dvh} scr ${__vp.screen} sb ${__vp.safeB}${__vp.standalone ? ' sa' : ''}${__vp.guard ? ' guard' : ''}${__vp.overflow ? ' OVERFLOW' : ''}` : ''}</div>`, 'sheet-pick');
   // 5 нажатий на заголовок — включить или выключить тестовую оплату Stripe (для проверки до live)
   const h = document.querySelector('#sheet-body .pick-t'); let n = 0, tm = 0;
   if (h && pay.apiBase()) h.addEventListener('click', () => { clearTimeout(tm); tm = setTimeout(() => { n = 0; }, 2500); if (++n < 5) return; n = 0; toast(pay.togglePaytest() ? t('pay_test_on') : t('pay_test_off')); onAccess(); renderAll(); });
