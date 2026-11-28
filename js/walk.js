@@ -305,7 +305,7 @@ function afterMark(before) {
 function onClick(e) {
   const b = e.target.closest('[data-w]'); if (!b || !layer.contains(b)) return;
   switch (b.dataset.w) {
-    case 'close': closeWalk(); break;
+    case 'close': closeWalk(false, 'close'); break;
     case 'pick': { const before = stage(); pickPos(C, D.game, { extra: C.pickExtra?.(D.game) || [], onDone: () => afterMark(before) }); break; }
     case 'fresh': { const p = getProg(D.game); setProg(D.game, { ...p, via: 'self' }); render(); break; }
     case 'pass': {
@@ -342,11 +342,11 @@ export async function openWalk(ctx, game = 'gta6', tipId = '') {
   return true;
 }
 export const refresh = () => { if (layer?.classList.contains('open')) rerender(); };
-export function closeWalk(fromPop = false) {
+export function closeWalk(fromPop = false, why = '') {
   if (!layer?.classList.contains('open')) return false;
   closePick();
   layer.classList.remove('open'); document.documentElement.classList.remove('walk-open');
-  C?.onClose?.();
+  C?.onClose?.(fromPop ? 'pop' : why);   // стек серий в app.js: 'pop' — системное «Назад», 'close' — крестик хаба
   if (!fromPop && history.state?.walk) history.back();
   return true;
 }

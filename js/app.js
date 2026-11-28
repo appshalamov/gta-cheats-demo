@@ -519,7 +519,7 @@ function setStories(x) {
 function guideCtx(g, from, linked, shareKey, onClose) {
   return {
     lang: getLang(), I, from, linked, access, haptic, toast, date: guideDate, imgUrl, credit, platform: store.platform,
-    open: (k) => { guideMod().then((m) => m.closeGuide()); setTimeout(() => { if (!gcore.openKey(k, { from: 'guide' })) toast(t('place_nf')); }, 120); },   // сначала закрыть инструкцию, потом следующая серия (иначе экран под #guide)
+    open: serGo,   // «Дальше» — следующая серия; текущая — в цепочку «Назад» (стек серий ниже)
     canOpen: (k) => gcore.hasOpener(gcore.parseOpen(k)?.kind),   // «Дальше» — только на то, что в сборке умеют открыть
     paywall: () => openPaywall(mapPw()),
     share: (x) => shareText(`${guideTitle(x)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=${shareKey(x)}`),
@@ -529,27 +529,122 @@ function guideCtx(g, from, linked, shareKey, onClose) {
     after: (x) => (typeof cnShootHTML === 'function' ? cnShootHTML(`guide:${g}:${x.id}`) : ''),   // «Снять про это» — только автору с рефкодом, в демо-режиме partner (guide-creators)
   };
 }
-async function openGuideKey(key, from = '', linked = false) {
+// ── стек серий (решение Fable 28.11 п. 5 «Назад и вперёд»). «Дальше» кладёт открытую инструкцию в цепочку (до 5, самая старая вытесняется,
+// одна и та же подряд — один раз). Системное «Назад» (свайп от края, кнопка Android): слой — закрыть слой (guide.js); иначе закрыть инструкцию
+// и открыть предыдущую на том экране, где нажали «Дальше» (финал или «Все шаги»); цепочка пуста — точка входа. По шагам «Назад» не ходит.
+// Крестик и «Готово» — сразу в точку входа, цепочка очищается. Точка входа запоминается при открытии первой серии: вкладка и прокрутка;
+// карта — режим, центр, масштаб, открытая карточка; поиск — запрос и фильтры; «Настроить игру» — открытый список; хаб — сам хаб.
+// Уровни: «Дальше» увёл в хаб или карточку (out) — инструкция оттуда начинает свою цепочку поверх; хаб/карточку закрыли «Назад» — прошлая серия.
+const SER = [];   // уровни: { entry, chain: [{ key, reopen(ser), at }], cur, out: '' | 'sheet' | 'walk' | 'saves' | 'endings' }
+const serTop = () => SER[SER.length - 1];
+const SER_HUBS = ['walk', 'saves', 'endings'];
+const hubOpen = (h) => !!document.getElementById(h)?.classList.contains('open');
+const hubArg = {};   // с чем открыт хаб в последний раз — вернуть его же
+let serSheetHold = false, serSheetBack = false;
+window.SB.serState = () => SER.map((l) => ({ entry: l.entry && { tab: l.entry.tab, hub: l.entry.hub || '', card: l.entry.card || '', set: !!l.entry.set }, chain: l.chain.map((f) => f.key), cur: l.cur?.key || '', out: l.out || '' }));   // для тестов
+function serEntry(from) {
+  const tab = ui.tab, e = { tab, feed: ui.feed, y: document.querySelector(`#view-${tab} .scroll`)?.scrollTop || 0 };
+  const hub = SER_HUBS.find(hubOpen) || (SER_HUBS.includes(from) ? from : '');
+  if (hub) { e.hub = hub; e.arg = hubArg[hub]; return e; }
+  const sh = $('#sheet-layer').classList.contains('open');
+  if (from === 'settings' || (sh && $('#sheet-body .set-opt'))) e.set = 1;   // открыли из списка «Настроить игру» — вернуть список
+  if (tab === 'search') { e.q = ui.query; e.sf = { ...sf }; }
+  if (tab === 'map') {
+    const mp = window.__gtaMap;
+    if (mp) e.cam = { center: mp.getCenter().toArray(), zoom: mp.getZoom(), bearing: mp.getBearing(), pitch: mp.getPitch() };
+    // открытая карточка: её ключ — у кнопки «Поделиться» в шапке (первый ключ места в шторке)
+    const k = sh && $('#sheet').classList.contains('sheet-map') ? [...document.querySelectorAll('#sheet-body [data-k]')].map((x) => x.dataset.k).find((q) => /^(place|egg|db):/.test(q)) : '';
+    if (k) e.card = k;
+    mapOpening?.then((m) => { e.mode = m.tourMode?.(); }).catch(() => { });
+  }
+  return e;
+}
+function serReopenHub(h, a) {
+  if (h === 'walk') openWalk('back', a?.g || 'gta6');
+  else if (h === 'saves') openSavesScreen('back', /^(playstation|xbox|code|before-code|how)$/.test(a || '') ? 'all' : a || 'all');   // ключ платформы открывает инструкцию — вернуть сам хаб
+  else if (h === 'endings') openEndingsKey(a?.g || 'gta6', 'back');
+}
+function serRestore(e) {
+  if (!e) return;
+  setTimeout(async () => {
+    if ((await guideMod()).isOpen()) return;   // уже открыли другое
+    if (e.hub) { if (!hubOpen(e.hub)) serReopenHub(e.hub, e.arg); return; }
+    if (ui.tab !== e.tab || (e.tab === 'feed' && ui.feed !== e.feed)) {
+      if ($('#sheet-layer').classList.contains('open')) closeSheet();
+      ui.feed = e.feed; ui.tab = e.tab; renderAll();
+    }
+    if (e.tab === 'search') {
+      if (ui.query !== e.q || JSON.stringify(sf) !== JSON.stringify(e.sf)) { ui.query = e.q; Object.assign(sf, e.sf); await renderSearch(); }
+      $('#search-input').value = ui.query;
+    }
+    const box = document.querySelector(`#view-${e.tab} .scroll`); if (box && e.y) box.scrollTop = e.y;
+    if (e.set) { if (!$('#sheet-layer').classList.contains('open')) openSetList(); return; }
+    if (e.tab !== 'map') return;
+    if (e.card && !$('#sheet-layer').classList.contains('open')) { serSheetHold = true; const p = openOnMap(e.card); serSheetHold = false; await p; }
+    if (!e.cam) return;
+    const m = await mapOpening?.catch(() => null); if (!m) return;
+    if (e.mode && m.tourMode?.() !== e.mode) await m.setMode?.(e.mode, e.cam);
+    else window.__gtaMap?.jumpTo(e.cam);   // карточка двигала камеру к месту — вернуть ту же точку и масштаб
+  }, e.hub ? 140 : 60);
+}
+function serBack(lv) {   // «Назад»: предыдущая серия этого уровня, иначе его точка входа
+  const f = lv.chain.pop();
+  if (f) { setTimeout(() => f.reopen({ mode: 'back', at: f.at }), 60); return; }
+  SER.pop(); serRestore(lv.entry);
+}
+function serEnd(lv) { SER.pop(); serRestore(lv.entry); }   // крестик, «Готово»: сразу в точку входа уровня
+function serClosed(why) {   // закрыли инструкцию (guide.js closeGuide → ctx.onClose(why))
+  const lv = serTop(); if (!lv || why === 'go') return;
+  if (why === 'away') { SER.length = 0; return; }   // ушли в другой раздел («Снять про это»)
+  lv.cur = null;
+  if (why === 'pop') serBack(lv); else serEnd(lv);
+}
+function serOutClosed(kind, why) {   // закрыли хаб или карточку, куда увело «Дальше»
+  const lv = serTop(); if (!lv || lv.out !== kind) return;
+  lv.out = '';
+  if (why === 'pop') serBack(lv); else if (why === 'close') serEnd(lv); else SER.length = 0;   // ушли из хаба по его строке — серия окончена там, где человек
+}
+// «Дальше» из инструкции: текущую — в цепочку (там, где нажали), закрыть, открыть следующую
+async function serGo(k) {
+  const m = await guideMod(), lv = serTop();
+  if (lv?.cur && lv.cur.key !== k && lv.chain[lv.chain.length - 1]?.key !== lv.cur.key) { lv.chain.push({ ...lv.cur, at: m.where() }); if (lv.chain.length > 5) lv.chain.shift(); }
+  if (lv) lv.cur = null;
+  m.closeGuide(false, 'go');   // сначала закрыть инструкцию, потом следующая серия (иначе экран под #guide)
+  setTimeout(() => {
+    if (/^guide:(gta6|gta5):/.test(k)) { openGuideKey(k, 'guide', false, { mode: 'go' }); return; }
+    if (!gcore.openKey(k, { from: 'guide', ser: { mode: 'go' } })) { toast(t('place_nf')); return; }
+    const kind = k.split(':')[0];
+    if (lv && !lv.cur) lv.out = SER_HUBS.includes(kind) ? kind : 'sheet';   // хаб или карточка; инструкция платформы (saves:…:playstation) — та же цепочка
+  }, 120);
+}
+// открыть инструкцию в стеке серий: frame — как открыть её снова; ser — { mode: 'go' | 'back', at } или { entry } для новой серии
+async function openInstr(o, ctx, frame, ser) {
+  const m = await guideMod(), mode = ser?.mode || 'new';
+  if (mode === 'new') {
+    const lv = { entry: ser?.entry || serEntry(ctx.from), chain: [], cur: null, out: '' };
+    if (serTop()?.out) SER.push(lv); else SER.splice(0, SER.length, lv);
+  }
+  if (!serTop()) SER.push({ entry: serEntry(ctx.from), chain: [], cur: null, out: '' });
+  const tp = serTop(); tp.cur = frame; tp.out = '';
+  const close0 = ctx.onClose;
+  ctx.open = serGo; ctx.canOpen ||= (k) => gcore.hasOpener(gcore.parseOpen(k)?.kind);
+  ctx.onClose = (why) => { close0?.(why); serClosed(why); };
+  // пейвол поверх инструкции: «Назад» закрывает его (крестик появляется через 0,9 с — до этого «Назад» ничего не делает)
+  ctx.layer = () => { const pw = $('#paywall'); if (!pw?.classList.contains('open')) return false; if (pw.querySelector('.pw-close.show')) closePaywall(); return true; };
+  if (ser?.at) ctx.at = ser.at;
+  m.openGuide(o, ctx);
+}
+async function openGuideKey(key, from = '', linked = false, ser = null) {
+  if (from && typeof from === 'object') ({ from = '', linked = false } = from);   // точка находки на карте (ветка map-game-finds): openGuideKey(key, { from: 'map' })
+  const entry = ser ? null : serEntry(from);   // до закрытия шторки: открытая карточка места, список «Настроить игру»
   const { kind, game: g, id } = parseKey(key.replace(/^guide:/, 'egg:'));
   const o = /^set-/.test(id) ? await findSetting(g, id) : kind === 'egg' ? await findByKey(`egg:${g}:${id}`) : null;
   if (!hasGuide(o)) { openOnMap(key.replace(/^guide:/, 'egg:')); return; }
-  // открыли с карточки места на карте — после «Назад» / крестика вернуть ту же карточку (QA 27.11: возвращало на карту без шторки)
-  const back = ui.tab === 'map' && $('#sheet-layer')?.classList.contains('open') && kind === 'egg' ? `egg:${g}:${id}` : null;
-  closeSheet();
+  serSheetHold = true; closeSheet(); serSheetHold = false;   // карточка, куда увело «Дальше», остаётся точкой возврата
   await gcore.loadIndex(g);   // «Дальше» в финале читает указатель — загрузить и при входе по ссылке
-  const m = await guideMod();
   const ctx = guideCtx(g, from, linked || store.linkKeys.includes(`guide:${g}:${id}`) || store.linkKeys.includes(`egg:${g}:${id}`), (x) => `guide:${g}:${x.id}`);
-  if (from === 'settings' && /^set-/.test(id)) {   // открыли из списка «Настроить игру» — после «Назад» / крестика снова список (опись 28.11, п. 4)
-    let onward = false; const open0 = ctx.open, close0 = ctx.onClose;
-    ctx.open = (k) => { onward = true; open0(k); };
-    ctx.onClose = () => { close0(); if (!onward) setTimeout(() => { if (!m.isOpen() && !$('#sheet-layer').classList.contains('open')) openSetList(); }, 60); };
-  }
-  if (back) {
-    let onward = false; const open0 = ctx.open, close0 = ctx.onClose;
-    ctx.open = (k) => { onward = true; open0(k); };   // «Дальше» ведёт в другую серию — карточку не возвращаем
-    ctx.onClose = () => { close0(); if (!onward && ui.tab === 'map') setTimeout(() => { if (!m.isOpen() && ui.tab === 'map' && !$('#sheet-layer').classList.contains('open')) openOnMap(back); }, 60); };
-  }
-  m.openGuide({ ...o, game: g }, ctx);
+  const gk = `guide:${g}:${id}`;
+  openInstr({ ...o, game: g }, ctx, { key: gk, reopen: (s) => openGuideKey(gk, from, linked, s) }, ser || { entry });
 }
 window.SB.openWalk = (from = 'sb') => openWalk(from);   // для оглавления гида и тестов
 // ядро гида: ключ walk:gta6[:<подсказка>] открывает «Прохождение» (и сразу подсказку); таблицу ключей ведёт сборщик (guide-core)
@@ -563,17 +658,20 @@ async function openWalk(from = '', g = 'gta6', tipId = '') {
   closeSheet();
   const w = await walkMod();
   const leave = (fn) => { w.closeWalk(); setTimeout(fn, 80); };   // сначала снять экран и его запись истории, потом переход
+  hubArg.walk = { g };
+  const tk = (o) => `walk:${g}:${String(o.id).replace(/^walk-/, '')}`;
+  const tip = (o, ser) => openInstr(o, guideCtx(g, 'walk', false, tk, () => w.refresh()), { key: tk(o), reopen: (s) => tip(o, s) }, ser);
   const ok = await w.openWalk({
     lang: getLang(), I, from, haptic, toast, event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
     done: (o) => Math.max(0, guideDone(o)),
-    openTip: async (o) => (await guideMod()).openGuide(o, guideCtx(g, 'walk', false, (x) => `walk:${g}:${String(x.id).replace(/^walk-/, '')}`, () => w.refresh())),
+    openTip: (o) => tip(o),
     openPlace: (k) => leave(() => openOnMap(k)),
     openFeed: (v) => leave(() => { ui.feed = v; ui.tab = 'feed'; renderAll(); }),
     openCheats: () => leave(() => { ui.tab = 'cheats'; renderAll(); }),
     // ключи «Дальше» (решение Fable: одна таблица ?open= будет в js/guide-core.js у сборщика; здесь — то, что есть в этой ветке)
     can: (k) => /^guide:(gta6|gta5):/.test(k) || !!core?.hasOpener?.(String(k).split(':')[0]),
     openKey: (k) => { if (/^guide:(gta6|gta5):/.test(k)) leave(() => openGuideKey(k, 'walk')); else leave(() => core?.openKey(k, { from: 'walk' })); },
-    onClose: () => { if (ui.tab === 'home') renderHub(); },
+    onClose: (why) => { if (ui.tab === 'home') renderHub(); serOutClosed('walk', why); },
   }, g, tipId);
   if (!ok) toast(t('place_nf'));
 }
@@ -585,14 +683,17 @@ async function openSetList() {
 // «Не упустить навсегда» (js/saves.js): точки невозврата по миссиям, «как сохраняться» для выбранной платформы — тем же экраном «По шагам».
 // Ключи (решение Fable — общий указатель): saves:gta6:all | <id точки невозврата> | playstation | xbox | before-code. Вход в оглавлении гида и
 // «Дальше» из карточки кода (before-code) ставит сборщик (eggs-community, js/guide-core.js openKey); пока — ?open=saves:… и window.SB.openSaves(from, key).
-async function openSavesScreen(from = '', key = 'all') {
+async function openSavesScreen(from = '', key = 'all', ser = null) {
   const g = 'gta6', m = await savesMod();
-  const how = async (o) => (await guideMod()).openGuide(o, {
+  hubArg.saves = key;
+  // «Как сохраниться» платформы по «Дальше» открывается без хаба — это следующая серия той же цепочки (ser); из хаба — своя цепочка поверх
+  // без хаба (ссылка, «Как сохраняться» из Прохождения) точка входа — то, что под инструкцией, а не хаб «Сохранения»
+  const how = (o, s) => { const use = s || (m.isOpen() ? null : ser || { entry: serEntry('') }); ser = null; return openInstr(o, {
     lang: getLang(), I, from: 'saves', linked: true, access, haptic, toast, date: guideDate, imgUrl, credit,
     paywall: () => openPaywall(mapPw()), share: () => shareText(`${guideTitle(o)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=saves:${g}:all`),
     event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
     onClose: () => { if (m.isOpen()) document.documentElement.classList.add('guide-open'); },
-  });
+  }, { key: `saves:${g}:${o.id}`, reopen: (r) => how(o, r) }, use); };
   const ok = await m.openSaves({
     game: g, lang: getLang(), I, from, platform: store.platform, haptic, toast, date: guideDate,
     share: () => shareText(`${getLang() === 'ru' ? 'Не упустить навсегда — GTA 6' : "Don't miss it forever — GTA 6"} — ${APP.shortName}\n${location.origin}${location.pathname}?open=saves:${g}:all`),
@@ -606,30 +707,32 @@ async function openSavesScreen(from = '', key = 'all') {
       else if (v === 'eggs') { ui.feed = 'eggs'; ui.tab = 'feed'; renderAll(); }
       else if (v === 'codes') { ui.tab = 'cheats'; renderAll(); }
     },
-    onClose: () => { if (ui.tab === 'home') renderHub(); },
+    onClose: (why) => { if (ui.tab === 'home') renderHub(); serOutClosed('saves', why); },
   }, key);
   if (!ok) toast(t('place_nf'));
 }
 window.SB.openSaves = openSavesScreen;
-gcore.registerOpener('saves', (k, ctx) => openSavesScreen(ctx?.from || 'link', k.id || 'all'));   // ключи saves:<игра>:<id> в общей таблице openKey
+gcore.registerOpener('saves', (k, ctx) => openSavesScreen(ctx?.from || 'link', k.id || 'all', ctx?.ser));   // ключи saves:<игра>:<id> в общей таблице openKey
 // «Концовки и лучшее прохождение» (js/endings.js). Решение Fable «система гида»: строки на Главной нет, вход — оглавление «Гид по игре»
 // (data-action="open-endings" data-v="gta6"), подсказка у миссии с развилкой, справочник, поиск, ссылка ?open=endings:gta6.
 const END_ROW = { t: { ru: 'Концовки GTA 6', en: 'GTA 6 endings' } };
 async function openEndingsKey(g = 'gta6', from = '', focus = '') {
   closeSheet();
   const m = await endingsMod();
+  hubArg.endings = { g };
+  // «Маршрут развилок» сторис (решение Fable 28.11): тот же экран «По шагам», что у сохранений; «Дальше» и «Назад» — стек серий
+  const how = (o, s) => openInstr(o, { lang: getLang(), I, from: 'endings', linked: true, access, haptic, toast, date: guideDate, imgUrl, credit,
+      paywall: () => openPaywall(mapPw()), share: () => shareText(`${L(o.t)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=endings:${g}`),
+      event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
+      canOpen: (k) => gcore.hasOpener(gcore.parseOpen(k)?.kind),
+      onClose: () => { if (m.isOpen?.()) document.documentElement.classList.add('guide-open'); } }, { key: `endings:${g}:route`, reopen: (r) => how(o, r) }, s);
   const ok = await m.openEndings(g, {
     lang: getLang(), I, from, focus, haptic, toast, access, linked: from === 'link',
-    // «Маршрут развилок» сторис (решение Fable 28.11): тот же экран «По шагам», что у сохранений
-    openHow: async (o) => (await guideMod()).openGuide(o, { lang: getLang(), I, from: 'endings', linked: true, access, haptic, toast, date: guideDate, imgUrl, credit,
-      paywall: () => openPaywall(mapPw()), share: () => shareText(`${L(o.t)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=endings:${g}`),
-      event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } }, open: (k) => { guideMod().then((m) => m.closeGuide()); setTimeout(() => { if (!gcore.openKey(k, { from: 'guide' })) toast(t('place_nf')); }, 120); },
-      canOpen: (k) => gcore.hasOpener(gcore.parseOpen(k)?.kind),
-      onClose: () => { if (m.isOpen?.()) document.documentElement.classList.add('guide-open'); } }),
+    openHow: (o) => how(o),
     paywall: () => openPaywall(mapPw()),
     share: () => shareText(`${L(END_ROW.t)} — ${APP.shortName}\n${location.origin}${location.pathname}?open=endings:${g}`),
     event: (n, d) => { try { window.SB?.track?.(n, d); } catch { } },
-    onClose: () => { if (ui.tab === 'home') renderHub(); },
+    onClose: (why) => { if (ui.tab === 'home') renderHub(); serOutClosed('endings', why); },
   });
   if (!ok) toast(t('place_nf'));
 }
@@ -850,7 +953,7 @@ async function pickWhere() {
   if (v) { gReady[store.game] = null; fillGuideSec(); }
 }
 // одна таблица ключей ?open= и «Дальше» (guide-core.openKey): свои открывающие — здесь, остальные регистрируют модули функций
-gcore.registerOpener('guide', (k) => openGuideKey(`guide:${k.game}:${k.id}`, 'key'));
+gcore.registerOpener('guide', (k, x) => openGuideKey(`guide:${k.game}:${k.id}`, x?.from || 'key', false, x?.ser || null));   // from хаба — точка входа «хаб»
 gcore.registerOpener('progress', () => pickWhere());
 for (const pre of ['place', 'egg', 'db']) gcore.registerOpener(pre, (k) => openOnMap(`${k.kind}:${k.game}:${k.id}`));
 gcore.registerOpener('set', () => openSetList());   // set:gta6 — лист «Настроить игру» (5 советов; отдельный совет — guide:gta6:set-<id>)
@@ -1556,6 +1659,7 @@ function closeSheet() {
     setTimeout(() => { if (!layer.classList.contains('open')) { layer.classList.remove('snap'); delete layer.dataset.snap; } }, 380);
   }
   const cb = sheetOnClose; sheetOnClose = null; cb?.();
+  if (!serSheetHold) serOutClosed('sheet', serSheetBack ? 'pop' : '');   // стек серий: карточка или список, куда увело «Дальше»
 }
 addEventListener('resize', () => applySnap(false));
 
@@ -2021,7 +2125,7 @@ function backGuard() {
     // пейвол лежит поверх шторки: «назад» закрывает сначала его (QA 22.11 круг 2: закрывалась карточка под пейволом)
     const pw = $('#paywall');
     if (pw.classList.contains('open')) { if (pw.querySelector('.pw-close.show')) closePaywall(); again(); return; }
-    if ($('#sheet-layer').classList.contains('open')) { closeSheet(); again(); return; }
+    if ($('#sheet-layer').classList.contains('open')) { serSheetBack = true; closeSheet(); serSheetBack = false; again(); return; }   // карточка, куда увело «Дальше», — «Назад» в прошлую серию
     if (document.body.classList.contains('in-ob')) { again(); return; }
     if (ui.tab !== 'home') { ui.tab = 'home'; renderAll(); again(); }
   });
@@ -2318,7 +2422,7 @@ document.addEventListener('click', async (e) => {
     case 'start-hide': haptic(); store.startBlock = 0; save(); $('#start-blk')?.remove(); break;
     case 'egg-filter': haptic(); ui.eggf = v; renderFeed(); break;
     case 'cn-home': haptic(); window.SB.openCreator('cn_now'); break;
-    case 'cn-shoot': haptic(); guideMod().then((m) => m.closeGuide()); window.SB.openCreator('cn_find', { guide: el.dataset.key }); break;
+    case 'cn-shoot': haptic(); guideMod().then((m) => m.closeGuide(false, 'away')); window.SB.openCreator('cn_find', { guide: el.dataset.key }); break;
     case 'open-place': haptic(); rememberQuery(); openOnMap(el.dataset.key); break;
     case 'fav-place': {
       e.stopPropagation(); toggleFavPlace(el.dataset.key);

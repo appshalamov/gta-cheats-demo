@@ -48,7 +48,7 @@ export function view(A) {
   const H = () => O.how, PA = () => H().pa || [];
   const L = () => A.layer();
   // Игорь 27.11: лист всегда открывается сверху — сторис всегда с обложки, на ней «Продолжить: шаг N»
-  let mode = 'cover', sheet = false, fixAll = false, touch = null, note = '', last0 = 0, lastTag = 0, drag = null, shutT = 0, leaving = false;
+  let mode = 'cover', sheet = false, shKind = '', fixAll = false, touch = null, note = '', last0 = 0, lastTag = 0, drag = null, shutT = 0, leaving = false;
 
   const path = () => A.PATH();
   const pid = () => path().id || 'one';
@@ -263,12 +263,12 @@ export function view(A) {
     const box = L().querySelector('#st-sheet'); if (!box) return;
     // Игорь 28.11: детали — понятно открыть и закрыть: ручка сверху (тянуть вниз), «Свернуть ↓» словами, выезжает снизу и уезжает вниз
     box.innerHTML = `<div class="st-sh-top"><span class="st-grab" aria-hidden="true"></span>${brand('st-sh-brand')}<button class="st-less" data-g="sless"><span>${esc(s('less'))}</span><span class="st-dn" aria-hidden="true">${C.I.chevron}</span></button></div><div class="st-sh-in">${html}</div>`;
-    const was = sheet;
+    const was = sheet; shKind = at === 'toc' ? 'toc' : 'more';
     if (!sheet) A.ovlOpen('sheet');   // «Назад» (свайп от края, кнопка Android) закрывает шторку, а не инструкцию (QA 27.11)
     clearTimeout(shutT); box.classList.remove('is-out'); box.style.transform = '';
     box.hidden = false; L().querySelector('.st-scrim').hidden = false; sheet = true; box.scrollTop = 0;
     if (!was) { box.classList.remove('is-in'); void box.offsetWidth; box.classList.add('is-in'); }
-    const el = at && box.querySelector(`[data-x="${at}"]`); if (el) box.scrollTop = Math.max(0, el.offsetTop - 64);
+    const el = at && at !== 'toc' && box.querySelector(`[data-x="${at}"]`); if (el) box.scrollTop = Math.max(0, el.offsetTop - 64);
   }
   function openMore(at) {
     const box = L().querySelector('#st-sheet');
@@ -277,7 +277,7 @@ export function view(A) {
     openSheet(moreHTML(kGet(), open), at);
     C.event?.('guide_more', { id: O.id, k: kGet(), at: at || '' });
   }
-  function hideSheet() { clearTimeout(shutT); const box = L()?.querySelector('#st-sheet'); if (box) { box.hidden = true; box.innerHTML = ''; box.classList.remove('is-in', 'is-out'); box.style.transform = ''; } const sc = L()?.querySelector('.st-scrim'); if (sc) sc.hidden = true; sheet = false; drag = null; }
+  function hideSheet() { clearTimeout(shutT); const box = L()?.querySelector('#st-sheet'); if (box) { box.hidden = true; box.innerHTML = ''; box.classList.remove('is-in', 'is-out'); box.style.transform = ''; } const sc = L()?.querySelector('.st-scrim'); if (sc) sc.hidden = true; sheet = false; shKind = ''; drag = null; }
   // закрыть с уездом вниз (180 мс); листание карточек работает сразу — sheet = false до конца анимации
   function closeMore() {
     if (!sheet) return hideSheet();
@@ -374,6 +374,9 @@ export function view(A) {
       const i = Math.max(0, k - o0); return i >= st.length ? fo : i;
     },
     list,
+    // стек серий (решение Fable 28.11 п. 5): где нажали «Дальше» — финал или «Все шаги»; «Назад» из следующей серии открывает там же
+    where: () => ({ mode, k: kGet(), toc: sheet && shKind === 'toc' }),
+    restore(w) { if (!w) return; if (w.mode === 'story') { A.wake(true); go(w.k); } if (w.toc) openSheet(tocHTML(), 'toc'); },
     render() { bind(); render(); },
     stop() { touch = null; sheet = false; note = ''; if (live === api) live = null; },
     click(a, b, i, ev) {
@@ -391,7 +394,7 @@ export function view(A) {
         case 'sdone': done(); return true;
         case 'smore': openMore(b.dataset.x); return true;
         case 'sstuck': openMore('stuck'); return true;
-        case 'stoc': openSheet(tocHTML()); C.event?.('guide_toc', { id: O.id }); return true;
+        case 'stoc': openSheet(tocHTML(), 'toc'); C.event?.('guide_toc', { id: O.id }); return true;
         case 'sgoto': {
           let k = +b.dataset.k; const fr = H().fr ?? 2;
           if (k >= off() && A.shut(k - off())) k = fr + off();   // закрытый шаг — на стену Pro

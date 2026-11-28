@@ -223,7 +223,7 @@ async function onClick(e) {
   const b = e.target.closest('[data-s]'); if (!b || !layer.contains(b)) return;
   const a = b.dataset.s, v = b.dataset.v;
   switch (a) {
-    case 'close': closeSaves(); break;
+    case 'close': closeSaves(false, 'close'); break;
     case 'share': C.share?.(); break;
     case 'pick': C.haptic?.(); if (window.SB?.pickPos) window.SB.pickPos(C.game, () => rerender()); else window.SB?.openWalk?.(); break;
     case 'still': { const g = core?.pos(C.game); if (g) core.setPos(C.game, { m: g.m, c: g.m ? undefined : g.c, via: 'self' }); rerender(); break; }
@@ -255,10 +255,10 @@ export async function openSaves(ctx, key = 'all') {
   C.event?.('saves_open', { from: ctx.from || '', key });
   return true;
 }
-export function closeSaves(fromPop = false) {
+export function closeSaves(fromPop = false, why = '') {
   if (!layer?.classList.contains('open')) return false;
   layer.classList.remove('open'); document.documentElement.classList.remove('guide-open');
-  C?.onClose?.();
+  C?.onClose?.(fromPop ? 'pop' : why);   // стек серий в app.js: 'pop' — системное «Назад», 'close' — крестик хаба
   if (!fromPop && history.state?.saves) history.back();
   return true;
 }
